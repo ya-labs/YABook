@@ -75,8 +75,8 @@ Ao criar o handbook específico de um projeto, o usuário e a IA devem declarar 
 | `infra` | Área | `#006B75` | Infraestrutura, configuração de servidores, redes e serviços. |
 | `ui/ux` | Área | `#D876E3` | Design de interface e experiência do usuário. |
 | `architecture` | Área | `#5319E7` | Decisões ou desenho estrutural do produto. |
-| `epic` | Área | `#5319E7` | Agrupador macro de capacidade da V1. |
 | `process` | Área | `#5319E7` | Fluxo de trabalho, organização de Project, milestones, épicos e governança do repositório. |
+| `epic` | Especial | `#5319E7` | Agrupador macro de capacidade. |
 
 Use `docs` como label padrão para documentação. Evite criar labels diferentes para a mesma intenção. Por exemplo, não use `fix` como label se `bug` já representa correção de comportamento incorreto.
 
