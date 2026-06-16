@@ -37,6 +37,24 @@ Uso recomendado:
 - `Concluído`: tarefa finalizada, revisada e integrada.
 - `Ideias futuras`: sugestões que ainda não entraram no planejamento.
 
+## Milestones, épicos e execução vertical
+
+Use milestones quando o projeto tiver fases claras de entrega.
+
+Use épicos quando uma capacidade macro precisar agrupar várias issues relacionadas.
+
+Documentação pode mapear o projeto de forma horizontal, registrando visão, requisitos, arquitetura, fluxos, contratos, ADRs, RFCs e provas técnicas quando isso ajuda a entender o conjunto.
+
+Execução deve ser vertical por etapa, milestone ou fase, priorizando a próxima capacidade implementável antes de puxar tarefas dependentes de base ainda inexistente.
+
+Na prática:
+
+- issues executáveis devem priorizar a fase atual;
+- issues de fase futura podem ficar no backlog quando preservarem contexto;
+- documentação técnica deve acompanhar a capacidade que ela apoia;
+- provas técnicas devem validar risco antes de virarem contrato final;
+- backlog detalhado, status e progresso devem ficar no GitHub, não em Markdown.
+
 ## Labels
 
 Cada projeto pode adaptar as labels conforme sua stack, mas a YA LABS deve manter uma taxonomia simples.
@@ -119,6 +137,35 @@ Explique o contexto da tarefa e o resultado esperado.
 ```
 
 A seção `Dependências` só deve ser usada quando existir bloqueio por outra issue.
+
+### Issue preparada para IA
+
+Quando a issue for implementada com apoio de IA, inclua contexto suficiente para evitar nova investigação ampla.
+
+Campos recomendados:
+
+- contexto curto;
+- referências documentais;
+- objetivo;
+- escopo;
+- fora de escopo;
+- critérios de aceite;
+- validação esperada.
+
+Isso permite que a IA trabalhe com leitura direcionada, usando a issue como fonte principal da implementação.
+
+### Entrega visual esperada
+
+Quando uma issue implementar funcionalidade com impacto visível na interface, inclua uma seção `Entrega Visual Esperada` sempre que isso ajudar a testar o fluxo pela tela.
+
+Use essa seção para registrar:
+
+- tela, ação, botão, estado ou mensagem esperada;
+- como validar pela interface;
+- estados mínimos, como sucesso, erro, vazio ou bloqueio;
+- limite visual da issue.
+
+Ajustes visuais mínimos pertencem à própria issue da funcionalidade quando forem necessários para operar ou validar o fluxo. Polimento amplo, tema, reorganização geral ou padronização transversal devem ficar em issues próprias.
 
 ## Dependência entre issues
 
@@ -361,6 +408,16 @@ O front-end pode começar com mock enquanto o back-end ainda não terminou.
 Depois que o back-end finalizar, o front-end deve trocar o mock pela API real.
 
 ## Fluxo de release
+
+Nem todo projeto precisa de branch `dev` desde o começo.
+
+Adote branch de desenvolvimento quando houver pelo menos dois sinais:
+
+- implementação ativa além de documentação;
+- trabalho paralelo com risco de conflito;
+- necessidade de manter a branch principal apenas com conteúdo pronto para release.
+
+Enquanto esses sinais não existirem, branch por issue e Pull Request direto para a branch principal costuma ser suficiente.
 
 Quando a branch de desenvolvimento estiver validada e pronta para virar uma versão publicada, prepare a release em uma branch própria criada a partir da branch principal.
 

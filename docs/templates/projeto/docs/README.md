@@ -9,14 +9,38 @@ Use este espaço para registrar informações reais do produto, como arquitetura
 ```text
 docs/
 |-- README.md
-|-- planejamento-inicial/
-`-- tecnico/
-    |-- arquitetura/
-    |-- api/
-    `-- infraestrutura/
+|-- guia-da-documentacao.md
+|-- guia-de-documentacao-para-ia.md
+|-- produto/
+|-- arquitetura/
+|-- requisitos/
+|-- fluxos/
+|-- interface/
+|-- contratos/
+|-- processos/
+|-- adrs/
+|-- rfcs/
+|-- prototipos/
+|-- release/
+|-- uso/
+`-- planejamento/
 ```
 
 Crie apenas as pastas e documentos que fizerem sentido para o momento atual do projeto.
+
+## Como usar
+
+- Use `docs/produto/` para visão, problema, público, escopo inicial e alternativas.
+- Use `docs/arquitetura/` para módulos, responsabilidades e desenho conceitual.
+- Use `docs/requisitos/` para capacidades esperadas.
+- Use `docs/fluxos/` para jornadas e sequências de uso.
+- Use `docs/contratos/` para APIs, eventos, arquivos, comandos, entradas e saídas.
+- Use `docs/adrs/` para decisões aceitas.
+- Use `docs/rfcs/` para propostas abertas.
+- Use `docs/prototipos/` para provas técnicas e validações.
+- Use `docs/release/` para critérios de pronto e limites de release.
+
+Markdown deve guardar conhecimento estável. Backlog, status, responsáveis, Project, milestones, épicos e Pull Requests devem ficar no GitHub.
 
 ## Referência organizacional
 
@@ -30,5 +54,6 @@ Use o YABook como referência para:
 - padrão de commits;
 - padrão de Pull Requests;
 - uso de IA;
+- condução de projetos;
 - boas práticas de documentação técnica.
 

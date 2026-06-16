@@ -49,6 +49,14 @@ docs/
 
 Este projeto segue os padrões da YA LABS documentados no YABook.
 
+Leitura inicial recomendada:
+
+- [Documentação do projeto](docs/README.md)
+- [Guia de consulta da documentação](docs/guia-da-documentacao.md)
+- [Guia de documentação para IA](docs/guia-de-documentacao-para-ia.md)
+
+Crie apenas documentos e pastas que fizerem sentido para o estágio atual do projeto.
+
 ## Fluxo de trabalho
 
 Mudanças relevantes devem seguir o fluxo:
@@ -56,6 +64,14 @@ Mudanças relevantes devem seguir o fluxo:
 ```text
 Issue -> Branch -> Commit -> Pull Request -> Merge
 ```
+
+Para condução do projeto, use o YABook como referência para:
+
+- descoberta inicial;
+- documentação horizontal;
+- execução vertical por etapa, milestone ou fase;
+- issues preparadas para IA;
+- critérios de pronto e release.
 
 ### Labels do projeto
 
@@ -82,4 +98,4 @@ Remova as labels que não fizerem sentido para o projeto e adicione apenas label
 
 Em projetos da YA LABS, novas issues devem ser vinculadas ao GitHub Project aplicável e atribuídas ao usuário solicitante, salvo orientação diferente.
 
-Consulte o Handbook da YA LABS para o padrão completo de issues, labels, branches, commits, PRs e releases.
+Consulte o YABook para o padrão completo de issues, labels, branches, commits, PRs e releases.

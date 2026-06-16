@@ -19,32 +19,64 @@ Cada projeto deve manter sua própria documentação específica.
 
 Exemplos:
 
-- visão geral do produto;
-- stack;
+- visão, problema, público e escopo do produto;
+- stack e setup local;
 - arquitetura real;
-- contratos de API;
-- variáveis de ambiente;
-- setup local;
-- deploy;
-- integrações;
-- decisões técnicas importantes.
+- requisitos e fluxos de uso;
+- contratos de API, eventos, arquivos, comandos ou integrações;
+- variáveis de ambiente e deploy;
+- decisões técnicas importantes;
+- provas técnicas e critérios de pronto.
 
 ## Estrutura recomendada
 
 ```text
 docs/
 |-- README.md
-|-- planejamento-inicial/
-|-- tecnico/
-|   |-- arquitetura/
-|   |-- api/
-|   `-- infraestrutura/
-`-- processo/
+|-- produto/
+|-- arquitetura/
+|-- requisitos/
+|-- fluxos/
+|-- interface/
+|-- contratos/
+|-- processos/
+|-- adrs/
+|-- rfcs/
+|-- prototipos/
+|-- release/
+|-- uso/
+`-- planejamento/
 ```
 
 Essa estrutura pode ser adaptada conforme o tamanho do projeto.
 
 Projetos pequenos não precisam criar pastas vazias sem uso imediato.
+
+## Uso recomendado das pastas
+
+| Pasta | Uso |
+| --- | --- |
+| `docs/produto/` | Visão, problema, público, escopo inicial e alternativas. |
+| `docs/arquitetura/` | Arquitetura conceitual, módulos e responsabilidades. |
+| `docs/requisitos/` | Capacidades esperadas e requisitos funcionais ou não funcionais. |
+| `docs/fluxos/` | Jornadas e sequências de uso. |
+| `docs/interface/` | Diretrizes visuais, estados de tela e critérios de UX. |
+| `docs/contratos/` | APIs, eventos, arquivos, comandos, entradas e saídas. |
+| `docs/processos/` | Regras locais que complementam o YABook. |
+| `docs/adrs/` | Decisões técnicas aceitas. |
+| `docs/rfcs/` | Propostas ainda em discussão. |
+| `docs/prototipos/` | Provas técnicas, experimentos e validações. |
+| `docs/release/` | Critérios de pronto, release e riscos aceitos. |
+| `docs/uso/` | Manuais e trilhas da pessoa usuária. |
+| `docs/planejamento/` | Etapas macro estáticas, sem status operacional. |
+
+## Markdown e GitHub
+
+Markdown deve guardar conhecimento estável do projeto.
+
+GitHub deve guardar trabalho executável, como backlog, responsáveis, Project, milestones, épicos, issues, Pull Requests e progresso.
+
+Não use Markdown para acompanhar status de cards, próxima issue operacional ou lista detalhada de tarefas em andamento.
 
 ## Contratos de API
 
@@ -95,6 +127,21 @@ Uma decisão técnica deve responder:
 - quais opções foram consideradas;
 - qual decisão foi tomada;
 - quais impactos ou limitações existem.
+
+Use ADR para decisão aceita e RFC para proposta ainda aberta.
+
+## Provas técnicas
+
+Use provas técnicas para validar riscos antes de transformar uma ideia em contrato final.
+
+Uma prova técnica deve deixar claro:
+
+- objetivo da validação;
+- relação com requisito, etapa ou decisão;
+- pré-condições;
+- cenários executados;
+- resultado observado;
+- limites do que não foi validado.
 
 ## Regra prática
 

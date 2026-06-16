@@ -16,6 +16,7 @@ A IA deve:
 - preservar acentos e textos em português usando UTF-8;
 - manter rastreabilidade entre issue, branch, commit e Pull Request;
 - conferir labels, responsável e GitHub Project antes de criar issues;
+- diferenciar conhecimento estável em Markdown de acompanhamento operacional no GitHub;
 - sugerir mensagem de commit ao alterar arquivos.
 
 ## Fluxo de trabalho
@@ -62,6 +63,12 @@ Ao alterar documentação:
 - preserve informações reais do projeto;
 - escreva em português com acentos;
 - mantenha o texto objetivo e fácil de consultar.
+
+Use `docs/guia-da-documentacao.md` para localizar onde cada assunto deve ficar.
+
+Use `docs/guia-de-documentacao-para-ia.md` quando a tarefa exigir leitura econômica, manutenção de documentação ou consulta direcionada.
+
+Backlog, status de cards, andamento de issue, próximos passos operacionais, Project, milestones e Pull Requests devem ficar no GitHub, não em Markdown.
 
 ## Commit sugerido
 

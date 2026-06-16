@@ -6,6 +6,7 @@ O conteúdo daqui deve ser usado como referência para padronizar processos, gui
 
 ## Processos
 
+- [Condução de projetos](processos/conducao-de-projetos.md)
 - [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md)
 
 ## Guias
@@ -16,6 +17,11 @@ O conteúdo daqui deve ser usado como referência para padronizar processos, gui
 ## Templates
 
 - [Template base de projeto](templates/projeto/README.md)
+- [Guia de consulta da documentação](templates/projeto/docs/guia-da-documentacao.md)
+- [Guia de documentação para IA](templates/projeto/docs/guia-de-documentacao-para-ia.md)
+- [Template de ADR](templates/projeto/docs/adrs/000-template.md)
+- [Template de prova técnica](templates/projeto/docs/prototipos/prova-tecnica-template.md)
+- [Critérios de pronto](templates/projeto/docs/release/criterios-pronto.md)
 
 ## O que não deve ficar aqui
 

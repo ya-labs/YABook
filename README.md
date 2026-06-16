@@ -9,6 +9,7 @@ O objetivo do YABook é servir como fonte principal para decisões recorrentes d
 Use este repositório para consultar e evoluir:
 
 - fluxo de trabalho com GitHub Issues, Projects, branches, commits, Pull Requests e releases;
+- condução de projetos, da descoberta inicial até release;
 - orientações para uso de IA em tarefas de desenvolvimento e documentação;
 - boas práticas de documentação técnica;
 - templates iniciais para novos projetos da YA LABS.
@@ -36,6 +37,7 @@ O YABook fica responsável pelo padrão organizacional. Projetos da YA LABS pode
 docs/
 |-- README.md
 |-- processos/
+|   |-- conducao-de-projetos.md
 |   `-- fluxo-de-trabalho-github.md
 |-- guias/
 |   |-- documentacao-tecnica.md
@@ -54,4 +56,5 @@ docs/
 - Textos devem preservar acentos e caracteres Unicode em UTF-8.
 - Padrões da organização devem ficar neste repositório.
 - Informações específicas de produto devem ficar no repositório do produto.
+- Markdown deve guardar conhecimento estável; GitHub deve acompanhar execução, backlog e progresso.
 - Mudanças relevantes devem seguir o fluxo documentado em [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md).

@@ -61,6 +61,32 @@ Issue -> Branch -> Commit -> Pull Request -> Merge
 
 Se a IA identificar que não existe issue ou que a branch atual não combina com a mudança, deve avisar antes de editar ou registrar a exceção quando o usuário pedir para prosseguir.
 
+## Uso econômico de contexto
+
+Para tarefas bem descritas, a IA deve ler o mínimo necessário para executar com segurança.
+
+Uma issue preparada para IA deve conter:
+
+- contexto curto;
+- objetivo claro;
+- escopo;
+- fora de escopo quando houver risco de expansão;
+- critérios de aceite verificáveis;
+- referências documentais quando necessário;
+- validação esperada.
+
+Quando a issue já tiver contexto suficiente, ela deve ser a fonte principal da implementação.
+
+Leitura ampla continua adequada quando a tarefa alterar documentação estrutural, processo, requisito, contrato, fluxo, arquitetura, ADR, RFC ou planejamento.
+
+## Modos de trabalho
+
+Use modo econômico para desenvolvimento comum, correções pequenas e tarefas bem descritas.
+
+Use modo automático quando a pessoa usuária quiser delegar consulta de issue, Project, branch, implementação, validação e Pull Request.
+
+O modo automático é mais confortável, mas consome mais contexto porque exige mais leitura, validação e operações no GitHub.
+
 ## Limite saudável
 
 IA não substitui revisão técnica.
