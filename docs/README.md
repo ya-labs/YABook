@@ -11,6 +11,7 @@ O conteúdo daqui deve ser usado como referência para padronizar processos, gui
 
 ## Guias
 
+- [Design system da YA LABS](../yalabs-design-system.md)
 - [Documentação técnica](guias/documentacao-tecnica.md)
 - [Uso de IA](guias/uso-de-ia.md)
 

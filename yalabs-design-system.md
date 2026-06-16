@@ -20,6 +20,75 @@ A identidade visual prioriza alto contraste, interfaces limpas e uma aparência 
 
 ---
 
+# Papel do YAHub
+
+O YAHub deve ser tratado como a principal referência visual institucional da YA LABS.
+
+Ele representa a experiência de entrada do ecossistema: portal, apresentação da organização, acesso a projetos, documentação, materiais internos e pontos de navegação entre produtos.
+
+Por isso, o YAHub pode usar mais respiro visual, composição institucional, seções de apresentação e elementos de marca do que uma ferramenta operacional.
+
+O design system deve nascer observando o YAHub, mas não deve copiar literalmente cada decisão de layout para todos os produtos.
+
+---
+
+# Portal e Aplicações
+
+A identidade visual da YA LABS deve ser compartilhada entre os projetos, mas cada tipo de experiência precisa adaptar essa identidade ao seu contexto.
+
+## YAHub
+
+O YAHub deve priorizar:
+
+- primeira impressão da marca;
+- clareza institucional;
+- navegação entre projetos e recursos;
+- apresentação visual mais aberta;
+- comunicação dos valores da YA LABS;
+- organização de links, guias e pontos de acesso.
+
+## Aplicações e Ferramentas
+
+Aplicações como o SVNFlow devem herdar a identidade da YA LABS, mas priorizar:
+
+- produtividade;
+- leitura rápida;
+- estados operacionais claros;
+- feedback para ações sensíveis;
+- densidade maior de informação;
+- navegação objetiva;
+- componentes voltados ao uso recorrente.
+
+Na prática, o YAHub define a linguagem visual principal, enquanto aplicações desktop e ferramentas internas adaptam essa linguagem para fluxos de trabalho.
+
+---
+
+# Uso de Referências Visuais
+
+Referências externas podem ser usadas para amadurecer o design system, desde que sirvam como inspiração e não como cópia direta.
+
+Ao avaliar uma referência, observe:
+
+- sensação transmitida pela interface;
+- organização de navegação;
+- uso de tipografia;
+- hierarquia visual;
+- tratamento de cards, listas, formulários e botões;
+- equilíbrio entre identidade visual e clareza;
+- adaptação possível para portal, documentação e aplicações.
+
+Depois de analisar referências, registre somente decisões aplicáveis à YA LABS.
+
+Exemplo:
+
+```text
+Referência observada: portal com navegação lateral clara e cards objetivos.
+Decisão para YA LABS: usar navegação simples e cards informativos no YAHub.
+Adaptação para apps: usar listas e painéis mais densos em ferramentas como SVNFlow.
+```
+
+---
+
 # Cores Principais
 
 ## Cor Primária
