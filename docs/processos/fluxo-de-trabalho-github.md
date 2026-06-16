@@ -61,17 +61,22 @@ Cada projeto pode adaptar as labels conforme sua stack, mas a YA LABS deve mante
 
 Ao criar o handbook específico de um projeto, o usuário e a IA devem declarar quais labels serão usadas no repositório. A base abaixo é recomendada para projetos da YA LABS, mas cada projeto deve escolher apenas as labels que fizerem sentido para seu contexto.
 
-| Label | Tipo | Cor |
-| --- | --- | --- |
-| `bug` | Tipo | `#D73A4A` |
-| `feature` | Tipo | `#0E8A16` |
-| `docs` | Tipo | `#0075CA` |
-| `refactor` | Tipo | `#C5DEF5` |
-| `tooling` | Tipo | `#5319E7` |
-| `frontend` | Área | `#FBCA04` |
-| `backend` | Área | `#1D76DB` |
-| `infra` | Área | `#006B75` |
-| `ui/ux` | Área | `#D876E3` |
+| Label | Tipo | Cor | Descrição |
+| --- | --- | --- | --- |
+| `bug` | Tipo | `#D73A4A` | Algo não está funcionando como esperado. |
+| `feature` | Tipo | `#0E8A16` | Entrega funcional nova ou incremento de comportamento. |
+| `docs` | Tipo | `#0075CA` | Documentação estável, guias, contratos, ADRs ou ajustes textuais. |
+| `refactor` | Tipo | `#C5DEF5` | Alterações no código que não adicionam funcionalidade nem corrigem bugs. |
+| `tooling` | Tipo | `#5319E7` | Ferramentas, scripts ou automações que suportam o desenvolvimento. |
+| `prototype` | Área | `#5319E7` | Provas técnicas, experimentos e validações antes da implementação final. |
+| `frontend` | Área | `#FBCA04` | Interface, telas, componentes e experiência visual. |
+| `backend` | Área | `#1D76DB` | Regras internas, comandos, integração local, leitura de arquivos e execução de operações. |
+| `fullstack` | Área | `#5319E7` | Entrega que envolve interface e regras internas na mesma issue. |
+| `infra` | Área | `#006B75` | Infraestrutura, configuração de servidores, redes e serviços. |
+| `ui/ux` | Área | `#D876E3` | Design de interface e experiência do usuário. |
+| `architecture` | Área | `#5319E7` | Decisões ou desenho estrutural do produto. |
+| `epic` | Área | `#5319E7` | Agrupador macro de capacidade da V1. |
+| `process` | Área | `#5319E7` | Fluxo de trabalho, organização de Project, milestones, épicos e governança do repositório. |
 
 Use `docs` como label padrão para documentação. Evite criar labels diferentes para a mesma intenção. Por exemplo, não use `fix` como label se `bug` já representa correção de comportamento incorreto.
 
@@ -106,9 +111,9 @@ O título da issue deve funcionar como um cartão de tarefa. Não use prefixo co
 
 Ao criar issue em projeto da YA LABS, atribua o usuário solicitante como responsável padrão, salvo quando houver orientação diferente. Também vincule a issue ao GitHub Project aplicável e classifique com as labels definidas para o projeto.
 
-### Template de issue
+### Estrutura flexível de issue
 
-Use a estrutura abaixo como padrão:
+Toda issue deve ter um núcleo mínimo:
 
 ```md
 ## Descrição
@@ -130,27 +135,50 @@ Explique o contexto da tarefa e o resultado esperado.
 - Os principais cenários da tarefa devem estar cobertos.
 - Erros ou estados vazios devem ter tratamento claro, quando aplicável.
 - A implementação deve respeitar o padrão do projeto.
+```
 
+Esse núcleo mantém clareza sem engessar o corpo da issue.
+
+Inclua seções complementares conforme a demanda:
+
+| Seção | Quando usar |
+| --- | --- |
+| `Cabeçalho` | Quando for útil registrar milestone, épico, relação visual ou referência principal logo no início. |
+| `Resumo` ou `Contexto` | Quando a issue precisar de uma explicação curta antes do escopo. |
+| `Fora de escopo` | Quando houver risco de expansão indevida da tarefa. |
+| `Entrega Visual Esperada` | Quando a entrega tiver impacto visível na interface. |
+| `Validação` | Quando a issue precisar orientar testes, build, conferência visual ou validação manual. |
+| `Dependências` | Quando existir bloqueio real por outra issue, decisão, milestone ou entrega anterior. |
+| `Referências` | Quando a implementação depender de documentos, PRs, decisões ou issues relacionadas. |
+| `Riscos` | Quando houver risco técnico, operacional ou de produto que precise ficar explícito. |
+| `Observações` | Quando houver limitação, decisão pontual ou contexto que não caiba nas seções anteriores. |
+
+`Dependências` é opcional. Não inclua essa seção quando não houver bloqueio real.
+
+Issues simples devem continuar simples. Não transforme toda tarefa pequena em documento longo.
+
+### Exemplo de issue com dependência
+
+Use `Dependências` apenas quando existir bloqueio:
+
+```md
 ## Dependências
 
 - Depende da issue #numero.
 ```
 
-A seção `Dependências` só deve ser usada quando existir bloqueio por outra issue.
-
 ### Issue preparada para IA
 
 Quando a issue for implementada com apoio de IA, inclua contexto suficiente para evitar nova investigação ampla.
 
-Campos recomendados:
+O formato pode ser mais completo quando isso ajudar a execução. A IA pode adaptar o corpo conforme tipo, área, risco e nível de detalhe da tarefa, desde que preserve:
 
-- contexto curto;
-- referências documentais;
-- objetivo;
-- escopo;
-- fora de escopo;
+- objetivo claro;
+- escopo verificável;
 - critérios de aceite;
-- validação esperada.
+- fora de escopo quando houver risco de expansão;
+- referências documentais quando forem necessárias;
+- validação esperada quando a tarefa for implementável.
 
 Isso permite que a IA trabalhe com leitura direcionada, usando a issue como fonte principal da implementação.
 

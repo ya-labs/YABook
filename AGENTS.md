@@ -70,7 +70,7 @@ Ao criar ou revisar uma issue, garanta que ela tenha:
 - `Descrição`;
 - `Escopo`;
 - `Critérios de aceite`;
-- `Dependências`, quando existir bloqueio por outra issue.
+- seções complementares, como `Dependências`, `Fora de escopo`, `Validação` ou `Entrega Visual Esperada`, apenas quando ajudarem a executar ou revisar a tarefa.
 
 ## Branches
 

@@ -94,6 +94,7 @@ Uma issue implementável deve ter:
 - fora de escopo quando houver risco de expansão;
 - critérios de aceite verificáveis;
 - referências documentais quando necessário;
+- validação esperada quando a tarefa puder ser conferida por teste, build, revisão visual ou execução manual;
 - milestone e épico quando fizer parte de uma fase.
 
 Evite criar backlog completo do projeto inteiro no início. Crie apenas issues suficientes para orientar o próximo bloco de trabalho.
@@ -105,6 +106,10 @@ Quando a IA apoiar o projeto, prefira issues preparadas com referências claras.
 A IA deve ler o mínimo necessário para executar com segurança. Leitura ampla é adequada quando a tarefa altera documentação estrutural, processo, arquitetura, requisito, contrato, ADR ou planejamento.
 
 Para desenvolvimento comum, a issue deve ser a fonte principal da implementação.
+
+Issues preparadas para IA podem usar seções extras, como `Cabeçalho`, `Resumo`, `Fora de escopo`, `Entrega Visual Esperada`, `Validação`, `Dependências`, `Referências` e `Riscos`, quando isso reduzir ambiguidade.
+
+Esse formato expandido é uma ferramenta de clareza, não uma obrigação para toda issue. Tarefas simples devem manter corpo simples.
 
 ## Ajustes de processo
 
