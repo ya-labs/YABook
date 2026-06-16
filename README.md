@@ -10,6 +10,7 @@ Use este repositório para consultar e evoluir:
 
 - fluxo de trabalho com GitHub Issues, Projects, branches, commits, Pull Requests e releases;
 - condução de projetos, da descoberta inicial até release;
+- design system e identidade visual da YA LABS;
 - orientações para uso de IA em tarefas de desenvolvimento e documentação;
 - boas práticas de documentação técnica;
 - templates iniciais para novos projetos da YA LABS.
@@ -40,6 +41,7 @@ docs/
 |   |-- conducao-de-projetos.md
 |   `-- fluxo-de-trabalho-github.md
 |-- guias/
+|   |-- design-system.md
 |   |-- documentacao-tecnica.md
 |   `-- uso-de-ia.md
 `-- templates/
@@ -57,4 +59,5 @@ docs/
 - Padrões da organização devem ficar neste repositório.
 - Informações específicas de produto devem ficar no repositório do produto.
 - Markdown deve guardar conhecimento estável; GitHub deve acompanhar execução, backlog e progresso.
+- O design system deve orientar identidade visual organizacional, sem substituir decisões específicas de cada produto.
 - Mudanças relevantes devem seguir o fluxo documentado em [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md).

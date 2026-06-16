@@ -20,6 +20,172 @@ A identidade visual prioriza alto contraste, interfaces limpas e uma aparência 
 
 ---
 
+# Papel do YAHub
+
+O YAHub deve ser tratado como a principal referência visual institucional da YA LABS.
+
+Ele representa a experiência de entrada do ecossistema: portal, apresentação da organização, acesso a projetos, documentação, materiais internos e pontos de navegação entre produtos.
+
+Por isso, o YAHub pode usar mais respiro visual, composição institucional, seções de apresentação e elementos de marca do que uma ferramenta operacional.
+
+O design system deve nascer observando o YAHub, mas não deve copiar literalmente cada decisão de layout para todos os produtos.
+
+---
+
+# Portal e Aplicações
+
+A identidade visual da YA LABS deve ser compartilhada entre os projetos, mas cada tipo de experiência precisa adaptar essa identidade ao seu contexto.
+
+## YAHub
+
+O YAHub deve priorizar:
+
+- primeira impressão da marca;
+- clareza institucional;
+- navegação entre projetos e recursos;
+- apresentação visual mais aberta;
+- comunicação dos valores da YA LABS;
+- organização de links, guias e pontos de acesso.
+
+## Aplicações e Ferramentas
+
+Aplicações como o SVNFlow devem herdar a identidade da YA LABS, mas priorizar:
+
+- produtividade;
+- leitura rápida;
+- estados operacionais claros;
+- feedback para ações sensíveis;
+- densidade maior de informação;
+- navegação objetiva;
+- componentes voltados ao uso recorrente.
+
+Na prática, o YAHub define a linguagem visual principal, enquanto aplicações desktop e ferramentas internas adaptam essa linguagem para fluxos de trabalho.
+
+---
+
+# Uso de Referências Visuais
+
+Referências externas podem ser usadas para amadurecer o design system, desde que sirvam como inspiração e não como cópia direta.
+
+Ao avaliar uma referência, observe:
+
+- sensação transmitida pela interface;
+- organização de navegação;
+- uso de tipografia;
+- hierarquia visual;
+- tratamento de cards, listas, formulários e botões;
+- equilíbrio entre identidade visual e clareza;
+- adaptação possível para portal, documentação e aplicações.
+
+Depois de analisar referências, registre somente decisões aplicáveis à YA LABS.
+
+Exemplo:
+
+```text
+Referência observada: portal com navegação lateral clara e cards objetivos.
+Decisão para YA LABS: usar navegação simples e cards informativos no YAHub.
+Adaptação para apps: usar listas e painéis mais densos em ferramentas como SVNFlow.
+```
+
+---
+
+# Processo de Evolução do Design System
+
+O design system da YA LABS deve evoluir a partir de uso real, não de regras visuais definidas no vazio.
+
+O fluxo recomendado é:
+
+1. Coletar referências visuais externas.
+2. Identificar o que cada referência tem de útil para a YA LABS.
+3. Transformar as referências em direção visual própria.
+4. Aplicar a direção visual primeiro no YAHub.
+5. Revisar o resultado com olhar crítico de hierarquia, contraste, espaçamento, tipografia e clareza.
+6. Extrair padrões reutilizáveis para o design system.
+7. Adaptar esses padrões para aplicações e ferramentas internas.
+8. Registrar no YABook apenas decisões estáveis e reutilizáveis.
+
+## Papel do YAHub no Processo
+
+O YAHub deve ser o primeiro produto usado para validar a identidade visual da YA LABS.
+
+Ele serve como base para testar:
+
+- linguagem visual;
+- paleta de cores;
+- tipografia;
+- navegação;
+- cards;
+- seções institucionais;
+- apresentação de projetos;
+- tom visual da marca.
+
+Depois que uma decisão funcionar bem no YAHub, ela pode ser registrada como padrão organizacional.
+
+## Papel do SVNFlow e Aplicações Desktop
+
+O SVNFlow não deve copiar o layout do YAHub diretamente.
+
+Ele deve usar a mesma identidade visual, mas com ajustes para uma ferramenta de trabalho:
+
+- menos decoração;
+- maior densidade de informação;
+- feedback operacional mais explícito;
+- ações principais mais evidentes;
+- estados de erro, aviso e sucesso bem definidos;
+- navegação voltada ao uso frequente.
+
+Essa separação evita transformar um app desktop em landing page e evita que o portal fique com aparência de sistema administrativo.
+
+## Uso do Impeccable
+
+O Impeccable é a skill de design recomendada para apoiar a criação e evolução visual dos projetos da YA LABS no Codex.
+
+Ele deve ser usado para apoiar auditoria visual, refinamento de interface e melhoria de consistência.
+
+O fluxo recomendado é:
+
+1. Rodar `/impeccable init` no projeto que receberá o design.
+2. Definir o contexto do produto, público, intenção visual e restrições.
+3. Usar `/impeccable shape` antes de implementar telas novas.
+4. Usar `/impeccable critique` para avaliar a experiência e a direção visual.
+5. Usar `/impeccable audit` para checar qualidade técnica, acessibilidade e responsividade.
+6. Usar `/impeccable polish` antes de considerar a interface pronta.
+7. Usar `/impeccable extract` quando uma decisão visual puder virar token, componente ou regra reutilizável.
+
+O Impeccable deve ajudar a avaliar e melhorar:
+
+- hierarquia visual;
+- contraste;
+- espaçamento;
+- tipografia;
+- alinhamento;
+- estados de interação;
+- acessibilidade;
+- excesso de elementos decorativos;
+- aparência genérica de interface criada por IA.
+
+Ele não substitui a direção visual da YA LABS.
+
+A intenção da marca deve ser definida primeiro. Depois disso, o Impeccable ajuda a transformar essa intenção em uma interface mais consistente e profissional.
+
+Se outro recurso de design for usado no futuro, ele deve seguir a mesma regra: apoiar o processo, não definir sozinho a identidade visual.
+
+## Registro das Decisões
+
+Nem toda experimentação deve virar padrão oficial.
+
+Registre no design system apenas decisões que:
+
+- foram aplicadas em uma interface real;
+- melhoraram clareza ou consistência;
+- podem ser reutilizadas em mais de um projeto;
+- não dependem de um produto específico;
+- ajudam outros projetos da YA LABS a tomar decisões parecidas.
+
+Decisões específicas de produto devem ficar no repositório do próprio produto.
+
+---
+
 # Cores Principais
 
 ## Cor Primária
