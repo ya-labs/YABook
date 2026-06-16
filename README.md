@@ -41,6 +41,7 @@ docs/
 |   |-- conducao-de-projetos.md
 |   `-- fluxo-de-trabalho-github.md
 |-- guias/
+|   |-- design-system.md
 |   |-- documentacao-tecnica.md
 |   `-- uso-de-ia.md
 `-- templates/
