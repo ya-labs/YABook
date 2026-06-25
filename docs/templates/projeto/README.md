@@ -57,6 +57,8 @@ Leitura inicial recomendada:
 
 Crie apenas documentos e pastas que fizerem sentido para o estágio atual do projeto.
 
+Antes de criar documento novo, confira se ele ajuda alguém a executar, revisar, decidir ou continuar o trabalho. Se for apenas texto genérico, não crie.
+
 ## Fluxo de trabalho
 
 Mudanças relevantes devem seguir o fluxo:
@@ -72,6 +74,15 @@ Para condução do projeto, use o YABook como referência para:
 - execução vertical por etapa, milestone ou fase;
 - issues preparadas para IA;
 - critérios de pronto e release.
+
+Padrões principais:
+
+| Artefato | Padrão |
+| --- | --- |
+| Issue | título objetivo, sem prefixo de tipo |
+| Branch | `numero-descricao-curta` |
+| Commit | `tipo: descrição curta` |
+| Pull Request | título objetivo, com `Closes #numero` no corpo |
 
 ### Labels do projeto
 

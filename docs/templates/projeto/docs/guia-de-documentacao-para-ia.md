@@ -15,6 +15,8 @@ Ele descreve onde buscar informação estável. Backlog, progresso, responsávei
 
 Não leia todos os documentos por padrão.
 
+Quando o projeto seguir o YABook, consulte-o para validar padrões organizacionais antes de criar estrutura nova.
+
 ## Matriz documental
 
 | Área | Função | Quando consultar | Quando atualizar |
@@ -40,6 +42,8 @@ Não leia todos os documentos por padrão.
 - RFCs registram propostas ainda abertas.
 - Protótipos e provas técnicas são experimentais e não devem parecer documentação final de produto.
 - O roteiro macro do projeto não deve virar status operacional.
+- Documentos devem ser curtos, úteis e sem repetição.
+- IA deve propor poda quando encontrar documentação genérica ou duplicada.
 
 ## Quando ler documentação ampla
 
@@ -53,3 +57,12 @@ Leitura ampla é adequada quando:
 - a pessoa usuária pedir atualização de contexto do projeto.
 
 Fora desses casos, prefira leitura direcionada por issue, busca com `rg` e abertura pontual de arquivos.
+
+## Antes de criar documento novo
+
+Confirme:
+
+- qual pessoa ou IA vai usar o documento;
+- qual ação ou decisão ele apoia;
+- se o conteúdo não pertence a um documento existente;
+- se a informação é estável o bastante para Markdown.

@@ -1,39 +1,30 @@
 # Documentação do YABook
 
-Este diretório reúne a documentação organizacional da YA LABS.
+Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 
-O conteúdo daqui deve ser usado como referência para padronizar processos, guias e templates aplicáveis aos projetos da organização.
+## Se você quer...
 
-## Processos
+| Intenção | Leia |
+| --- | --- |
+| Entender como usar o YABook em um projeto | [Primeiros passos](primeiros-passos.md) |
+| Criar issue, branch, commit, PR ou release | [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md) |
+| Conduzir um projeto da descoberta até release | [Condução de projetos](processos/conducao-de-projetos.md) |
+| Usar IA sem perder padrão e rastreabilidade | [Uso de IA](guias/uso-de-ia.md) |
+| Organizar documentação técnica | [Documentação técnica](guias/documentacao-tecnica.md) |
+| Criar um projeto novo com base YA LABS | [Template base de projeto](templates/projeto/README.md) |
 
-- [Condução de projetos](processos/conducao-de-projetos.md)
-- [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md)
+## Templates úteis
 
-## Guias
-
-- [Documentação técnica](guias/documentacao-tecnica.md)
-- [Uso de IA](guias/uso-de-ia.md)
-
-## Templates
-
-- [Template base de projeto](templates/projeto/README.md)
+- [AGENTS.md de projeto](templates/projeto/AGENTS.md)
+- [README de projeto](templates/projeto/README.md)
 - [Guia de consulta da documentação](templates/projeto/docs/guia-da-documentacao.md)
 - [Guia de documentação para IA](templates/projeto/docs/guia-de-documentacao-para-ia.md)
 - [Template de ADR](templates/projeto/docs/adrs/000-template.md)
 - [Template de prova técnica](templates/projeto/docs/prototipos/prova-tecnica-template.md)
 - [Critérios de pronto](templates/projeto/docs/release/criterios-pronto.md)
 
-## O que não deve ficar aqui
+## Limite do YABook
 
-Documentos específicos de produto não devem ficar no YABook.
+O YABook guarda padrões organizacionais. Documentação específica de produto deve ficar no repositório do próprio projeto.
 
-Exemplos:
-
-- contratos reais de API de um produto;
-- arquitetura específica de uma aplicação;
-- variáveis de ambiente de um projeto;
-- detalhes de deploy de um produto;
-- roadmap ou planejamento exclusivo de um projeto.
-
-Esses documentos devem ficar no repositório do próprio projeto.
-
+Não coloque aqui endpoints reais, arquitetura de uma aplicação, variáveis de ambiente, deploy ou roadmap exclusivo de produto.

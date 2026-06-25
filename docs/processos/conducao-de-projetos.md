@@ -88,13 +88,10 @@ Use épico quando uma capacidade macro precisar agrupar várias tarefas relacion
 
 Uma issue implementável deve ter:
 
-- contexto curto;
-- objetivo claro;
-- escopo;
-- fora de escopo quando houver risco de expansão;
+- resumo rápido;
+- escopo objetivo;
 - critérios de aceite verificáveis;
-- referências documentais quando necessário;
-- validação esperada quando a tarefa puder ser conferida por teste, build, revisão visual ou execução manual;
+- contexto adicional em bloco recolhido quando a tarefa for delegada para IA;
 - milestone e épico quando fizer parte de uma fase.
 
 Evite criar backlog completo do projeto inteiro no início. Crie apenas issues suficientes para orientar o próximo bloco de trabalho.
@@ -107,9 +104,21 @@ A IA deve ler o mínimo necessário para executar com segurança. Leitura ampla 
 
 Para desenvolvimento comum, a issue deve ser a fonte principal da implementação.
 
-Issues preparadas para IA podem usar seções extras, como `Cabeçalho`, `Resumo`, `Fora de escopo`, `Entrega Visual Esperada`, `Validação`, `Dependências`, `Referências` e `Riscos`, quando isso reduzir ambiguidade.
+Issues preparadas para IA podem usar seções extras, como `Fora de escopo`, `Entrega Visual Esperada`, `Validação`, `Dependências`, `Referências` e `Riscos`, quando isso reduzir ambiguidade.
 
 Esse formato expandido é uma ferramenta de clareza, não uma obrigação para toda issue. Tarefas simples devem manter corpo simples.
+
+## Conformidade com o YABook
+
+Projetos da YA LABS devem consultar o YABook antes de criar ou alterar:
+
+- estrutura de documentação;
+- fluxo de issue, branch, commit, Pull Request e release;
+- instruções de IA;
+- critérios de pronto;
+- templates reutilizáveis.
+
+Adaptações são permitidas, mas devem estar explícitas no projeto. Se não houver exceção documentada, vale o padrão do YABook.
 
 ## Ajustes de processo
 

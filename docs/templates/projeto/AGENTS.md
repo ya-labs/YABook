@@ -17,7 +17,8 @@ A IA deve:
 - manter rastreabilidade entre issue, branch, commit e Pull Request;
 - conferir labels, responsável e GitHub Project antes de criar issues;
 - diferenciar conhecimento estável em Markdown de acompanhamento operacional no GitHub;
-- sugerir mensagem de commit ao alterar arquivos.
+- sugerir mensagem de commit ao alterar arquivos;
+- consultar o YABook quando a dúvida for sobre padrão organizacional da YA LABS.
 
 ## Fluxo de trabalho
 
@@ -30,6 +31,28 @@ Antes de executar uma alteração relevante, valide:
 5. Compatibilidade com o fluxo do projeto.
 
 Se não houver issue ou se a branch estiver incompatível, avise o usuário antes de editar ou registre a exceção quando houver autorização explícita.
+
+## Contrato com o YABook
+
+Este projeto segue o YABook como referência organizacional.
+
+Antes de criar issue, branch, commit, Pull Request, release ou novo documento, a IA deve:
+
+- consultar este `AGENTS.md`;
+- consultar a documentação local relacionada à tarefa;
+- consultar o YABook quando houver dúvida sobre padrão;
+- reutilizar a estrutura existente do projeto;
+- não inventar formato quando houver padrão documentado;
+- avisar quando o pedido fugir do padrão e registrar a exceção se o usuário autorizar.
+
+Padrões principais:
+
+| Artefato | Padrão |
+| --- | --- |
+| Issue | título objetivo, sem prefixo de tipo |
+| Branch | `numero-descricao-curta` |
+| Commit | `tipo: descrição curta` |
+| Pull Request | título objetivo, com `Closes #numero` no corpo |
 
 ## Issues, labels e Project
 
@@ -62,7 +85,8 @@ Ao alterar documentação:
 - use Markdown limpo;
 - preserve informações reais do projeto;
 - escreva em português com acentos;
-- mantenha o texto objetivo e fácil de consultar.
+- mantenha o texto objetivo e fácil de consultar;
+- remova repetição e texto genérico que não ajude execução, revisão ou decisão.
 
 Use `docs/guia-da-documentacao.md` para localizar onde cada assunto deve ficar.
 

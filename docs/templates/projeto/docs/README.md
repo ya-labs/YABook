@@ -28,6 +28,8 @@ docs/
 
 Crie apenas as pastas e documentos que fizerem sentido para o momento atual do projeto.
 
+Não crie documentação para preencher estrutura. Cada documento deve ajudar alguém a executar, revisar, decidir ou continuar o trabalho.
+
 ## Como usar
 
 - Use `docs/produto/` para visão, problema, público, escopo inicial e alternativas.
@@ -56,4 +58,3 @@ Use o YABook como referência para:
 - uso de IA;
 - condução de projetos;
 - boas práticas de documentação técnica.
-

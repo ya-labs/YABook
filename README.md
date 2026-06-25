@@ -1,60 +1,48 @@
-# YABook - Handbook de Padrões Internos da YA LABS
+# YABook - Handbook da YA LABS
 
-Este repositório concentra os padrões internos da YA LABS para documentação, fluxo de trabalho, uso de IA e organização de projetos.
+O YABook reúne os padrões reutilizáveis da YA LABS para documentação, GitHub, uso de IA e condução de projetos.
 
-O objetivo do YABook é servir como fonte principal para decisões recorrentes da organização, evitando que cada projeto precise reinventar seu próprio processo do zero.
+Use este repositório para responder rapidamente:
 
-## Para que serve
+- como iniciar um projeto seguindo o padrão da YA LABS;
+- como criar issues, branches, commits, Pull Requests e releases;
+- como orientar assistentes de IA sem deixar que inventem padrões;
+- como organizar documentação técnica sem criar burocracia.
 
-Use este repositório para consultar e evoluir:
+## Leitura inicial
 
-- fluxo de trabalho com GitHub Issues, Projects, branches, commits, Pull Requests e releases;
-- condução de projetos, da descoberta inicial até release;
-- orientações para uso de IA em tarefas de desenvolvimento e documentação;
-- boas práticas de documentação técnica;
-- templates iniciais para novos projetos da YA LABS.
+Se você nunca usou o YABook, comece por:
 
-## Como os projetos devem usar
+1. [Primeiros passos](docs/primeiros-passos.md)
+2. [Documentação do YABook](docs/README.md)
+3. [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md)
+4. [Uso de IA](docs/guias/uso-de-ia.md)
 
-Cada projeto da YA LABS deve manter sua própria documentação específica no repositório do produto.
+## Como usar em projetos
 
-Exemplos de documentação específica de projeto:
+Cada projeto deve manter sua própria documentação no repositório do produto. O YABook define o padrão; o projeto guarda os fatos reais.
+
+Fica no YABook:
+
+- processo de trabalho;
+- padrão de issue, branch, commit, PR e release;
+- orientação para IA;
+- templates de projeto;
+- boas práticas de documentação.
+
+Fica no projeto:
 
 - objetivo do produto;
-- stack usada;
+- stack e setup reais;
 - arquitetura real;
-- endpoints;
+- endpoints e contratos reais;
 - variáveis de ambiente;
 - deploy;
-- roadmap;
-- integrações.
+- integrações;
+- decisões específicas.
 
-O YABook fica responsável pelo padrão organizacional. Projetos da YA LABS podem copiar os templates deste repositório e adaptar apenas o que for próprio do produto.
+## Regra prática
 
-## Estrutura inicial
+Antes de criar estrutura nova em um projeto da YA LABS, consulte o YABook e o `AGENTS.md` local.
 
-```text
-docs/
-|-- README.md
-|-- processos/
-|   |-- conducao-de-projetos.md
-|   `-- fluxo-de-trabalho-github.md
-|-- guias/
-|   |-- documentacao-tecnica.md
-|   `-- uso-de-ia.md
-`-- templates/
-    `-- projeto/
-        |-- README.md
-        |-- AGENTS.md
-        `-- docs/
-            `-- README.md
-```
-
-## Regras gerais
-
-- Documentos devem ser escritos em português do Brasil.
-- Textos devem preservar acentos e caracteres Unicode em UTF-8.
-- Padrões da organização devem ficar neste repositório.
-- Informações específicas de produto devem ficar no repositório do produto.
-- Markdown deve guardar conhecimento estável; GitHub deve acompanhar execução, backlog e progresso.
-- Mudanças relevantes devem seguir o fluxo documentado em [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md).
+Se o projeto precisar fugir do padrão, registre a exceção no próprio projeto.

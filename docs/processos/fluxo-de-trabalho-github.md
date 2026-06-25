@@ -1,23 +1,24 @@
 # Fluxo de trabalho com GitHub
 
-Este documento define o padrão da YA LABS para organizar trabalho usando GitHub Issues, GitHub Projects, branches, commits, Pull Requests e releases.
+Este documento define o padrão da YA LABS para issues, branches, commits, Pull Requests, Projects e releases.
 
-O objetivo é manter tarefas, código, revisão, documentação e histórico conectados dentro do GitHub.
+Use este guia quando for criar, revisar ou orientar trabalho executável no GitHub. Ele deve ser prático: a pessoa precisa entender a tarefa rápido, e a IA precisa ter regras claras para não inventar padrão.
 
-## Conceito principal
+## Regra principal
 
-- Issue: tarefa, bug, melhoria, documentação ou investigação.
-- Project: quadro visual onde as issues são organizadas.
-- Branch: ramificação criada para desenvolver uma issue específica.
-- Commit: registro pequeno e claro de uma alteração.
-- Pull Request: solicitação para revisar e integrar uma branch.
-- Release: publicação de uma versão validada.
+Toda mudança relevante deve manter rastreabilidade:
+
+```text
+Issue -> Branch -> Commit -> Pull Request -> Merge -> Release
+```
+
+Não trabalhe duas issues diferentes na mesma branch.
 
 ## GitHub Projects
 
-O GitHub Project deve funcionar como o quadro oficial de acompanhamento do projeto.
+O GitHub Project é o quadro oficial de acompanhamento do projeto.
 
-Em projetos da YA LABS, toda issue relevante deve ser vinculada ao GitHub Project aplicável. Quando o repositório não fizer parte da YA LABS ou quando ainda não houver Project definido, o usuário e a IA devem decidir explicitamente se a issue será vinculada a algum Project.
+Em projetos da YA LABS, toda issue relevante deve ser vinculada ao Project aplicável. Quando ainda não houver Project definido, a IA deve perguntar ou registrar a exceção.
 
 Colunas recomendadas:
 
@@ -29,297 +30,144 @@ Concluído
 Ideias futuras
 ```
 
-Uso recomendado:
-
-- `Backlog`: tarefas mapeadas, mas ainda não priorizadas.
-- `Pendente`: tarefas priorizadas e prontas para começar.
-- `Em andamento`: tarefa sendo desenvolvida em branch própria.
-- `Concluído`: tarefa finalizada, revisada e integrada.
-- `Ideias futuras`: sugestões que ainda não entraram no planejamento.
-
-## Milestones, épicos e execução vertical
-
-Use milestones quando o projeto tiver fases claras de entrega.
-
-Use épicos quando uma capacidade macro precisar agrupar várias issues relacionadas.
-
-Documentação pode mapear o projeto de forma horizontal, registrando visão, requisitos, arquitetura, fluxos, contratos, ADRs, RFCs e provas técnicas quando isso ajuda a entender o conjunto.
-
-Execução deve ser vertical por etapa, milestone ou fase, priorizando a próxima capacidade implementável antes de puxar tarefas dependentes de base ainda inexistente.
-
-Na prática:
-
-- issues executáveis devem priorizar a fase atual;
-- issues de fase futura podem ficar no backlog quando preservarem contexto;
-- documentação técnica deve acompanhar a capacidade que ela apoia;
-- provas técnicas devem validar risco antes de virarem contrato final;
-- backlog detalhado, status e progresso devem ficar no GitHub, não em Markdown.
+Use Markdown para conhecimento estável. Use GitHub para backlog, responsáveis, status, milestones, épicos, Pull Requests e progresso operacional.
 
 ## Labels
 
-Cada projeto pode adaptar as labels conforme sua stack, mas a YA LABS deve manter uma taxonomia simples.
+Labels classificam o tipo e a área da issue. Branch e título de PR não devem repetir essa classificação.
 
-Ao criar o handbook específico de um projeto, o usuário e a IA devem declarar quais labels serão usadas no repositório. A base abaixo é recomendada para projetos da YA LABS, mas cada projeto deve escolher apenas as labels que fizerem sentido para seu contexto.
+Base recomendada:
 
-| Label | Tipo | Cor | Descrição |
+| Label | Tipo | Cor | Uso |
 | --- | --- | --- | --- |
-| `bug` | Tipo | `#D73A4A` | Algo não está funcionando como esperado. |
-| `feature` | Tipo | `#0E8A16` | Entrega funcional nova ou incremento de comportamento. |
-| `docs` | Tipo | `#0075CA` | Documentação estável, guias, contratos, ADRs ou ajustes textuais. |
-| `refactor` | Tipo | `#C5DEF5` | Alterações no código que não adicionam funcionalidade nem corrigem bugs. |
-| `tooling` | Tipo | `#5319E7` | Ferramentas, scripts ou automações que suportam o desenvolvimento. |
-| `prototype` | Área | `#5319E7` | Provas técnicas, experimentos e validações antes da implementação final. |
-| `frontend` | Área | `#FBCA04` | Interface, telas, componentes e experiência visual. |
-| `backend` | Área | `#1D76DB` | Regras internas, comandos, integração local, leitura de arquivos e execução de operações. |
-| `fullstack` | Área | `#5319E7` | Entrega que envolve interface e regras internas na mesma issue. |
-| `infra` | Área | `#006B75` | Infraestrutura, configuração de servidores, redes e serviços. |
-| `ui/ux` | Área | `#D876E3` | Design de interface e experiência do usuário. |
-| `architecture` | Área | `#5319E7` | Decisões ou desenho estrutural do produto. |
-| `process` | Área | `#5319E7` | Fluxo de trabalho, organização de Project, milestones, épicos e governança do repositório. |
+| `bug` | Tipo | `#D73A4A` | Algo não funciona como esperado. |
+| `feature` | Tipo | `#0E8A16` | Nova entrega funcional. |
+| `docs` | Tipo | `#0075CA` | Documentação, guias, contratos, ADRs ou ajustes textuais. |
+| `refactor` | Tipo | `#C5DEF5` | Alteração interna sem nova funcionalidade ou correção de bug. |
+| `tooling` | Tipo | `#5319E7` | Scripts, automações e ferramentas de desenvolvimento. |
+| `frontend` | Área | `#FBCA04` | Interface, telas e componentes. |
+| `backend` | Área | `#1D76DB` | Regras internas, APIs, comandos e integrações. |
+| `infra` | Área | `#006B75` | Deploy, ambiente, rede e serviços. |
+| `ui/ux` | Área | `#D876E3` | Experiência, layout e critérios visuais. |
+| `architecture` | Área | `#5319E7` | Decisões estruturais. |
+| `process` | Área | `#5319E7` | Fluxo de trabalho e governança. |
 | `epic` | Especial | `#5319E7` | Agrupador macro de capacidade. |
 
-Use `docs` como label padrão para documentação. Evite criar labels diferentes para a mesma intenção. Por exemplo, não use `fix` como label se `bug` já representa correção de comportamento incorreto.
+Cada projeto deve declarar apenas as labels que realmente usa.
 
-Labels classificam a issue no GitHub. Prefixos de nomenclatura identificam o tipo do trabalho em branches, commits e PRs. Por isso, um trabalho com prefixo `fix` normalmente usa a label `bug`, e um trabalho com prefixo `feat` normalmente usa a label `feature`.
+## Issues
 
-## Padrão de issues
+Issue é cartão de tarefa. Ela deve ser rápida para leitura humana e suficiente para orientar execução.
 
-Cada tarefa relevante deve virar uma issue separada.
-
-Quando uma funcionalidade exigir front-end e back-end, crie issues separadas para cada parte, salvo quando a alteração for pequena e inevitavelmente conjunta.
-
-Exemplo:
-
-- Backend: criar endpoint de autenticação.
-- Frontend: criar tela de login consumindo a API.
-
-Título recomendado:
+Título:
 
 ```text
 descrição objetiva da tarefa
 ```
 
-Exemplos:
+Não use prefixos como `docs:`, `feat:` ou `fix:` no título. Use labels para tipo e área.
 
-```text
-Definir labels padrão do projeto
-Adicionar autenticação por e-mail
-Corrigir validação do formulário de login
-```
-
-O título da issue deve funcionar como um cartão de tarefa. Não use prefixo como `docs:`, `feat:` ou `fix:` no título da issue; use as labels para indicar tipo e área.
-
-Ao criar issue em projeto da YA LABS, atribua o usuário solicitante como responsável padrão, salvo quando houver orientação diferente. Também vincule a issue ao GitHub Project aplicável e classifique com as labels definidas para o projeto.
-
-### Estrutura flexível de issue
-
-Toda issue deve ter um núcleo mínimo:
+### Estrutura recomendada
 
 ```md
-## Descrição
+## Resumo rápido
 
-Descreva de forma objetiva o que deve ser implementado, corrigido ou documentado.
-
-Explique o contexto da tarefa e o resultado esperado.
+- Tarefa: descreva em uma frase.
+- Entrega esperada: informe o resultado visível ou documental.
+- Limite: informe o principal fora de escopo, se existir.
 
 ## Escopo
 
-- Item principal que precisa ser feito.
-- Integração, regra, tela, processo ou documento envolvido.
-- Tratamento de erro, estado vazio ou caso especial relevante.
-- Ajuste visual, técnico ou documental necessário.
+- Item principal da tarefa.
+- Arquivo, tela, fluxo, regra ou documento envolvido.
+- Ajuste relevante para concluir a entrega.
 
 ## Critérios de aceite
 
-- O comportamento esperado deve estar funcionando.
-- Os principais cenários da tarefa devem estar cobertos.
-- Erros ou estados vazios devem ter tratamento claro, quando aplicável.
-- A implementação deve respeitar o padrão do projeto.
+- Resultado mínimo para considerar a issue pronta.
+- Conferência essencial para validar a entrega.
 ```
 
-Esse núcleo mantém clareza sem engessar o corpo da issue.
+Esse é o padrão base. Tarefas simples devem parar aqui.
 
-Inclua seções complementares conforme a demanda:
+### Contexto para IA
+
+Quando a issue for usada como handoff para IA ou pessoa que precisa de mais contexto, coloque detalhes adicionais em bloco recolhido:
+
+```md
+<details>
+<summary>Contexto para IA</summary>
+
+## Referências
+
+- Documentos, decisões, PRs ou issues relacionadas.
+
+## Cuidados
+
+- Limites, riscos ou decisões que evitam retrabalho.
+
+## Validação sugerida
+
+- Testes, build, revisão visual ou conferência manual relevante.
+
+</details>
+```
+
+Use esse bloco só quando ele reduzir dúvida real. Não transforme toda issue em documento longo.
+
+### Seções opcionais
+
+Inclua somente quando forem úteis:
 
 | Seção | Quando usar |
 | --- | --- |
-| `Cabeçalho` | Quando for útil registrar milestone, épico, relação visual ou referência principal logo no início. |
-| `Resumo` ou `Contexto` | Quando a issue precisar de uma explicação curta antes do escopo. |
-| `Fora de escopo` | Quando houver risco de expansão indevida da tarefa. |
-| `Entrega Visual Esperada` | Quando a entrega tiver impacto visível na interface. |
-| `Validação` | Quando a issue precisar orientar testes, build, conferência visual ou validação manual. |
-| `Dependências` | Quando existir bloqueio real por outra issue, decisão, milestone ou entrega anterior. |
-| `Referências` | Quando a implementação depender de documentos, PRs, decisões ou issues relacionadas. |
-| `Riscos` | Quando houver risco técnico, operacional ou de produto que precise ficar explícito. |
-| `Observações` | Quando houver limitação, decisão pontual ou contexto que não caiba nas seções anteriores. |
+| `Fora de escopo` | Há risco claro de expansão indevida. |
+| `Entrega visual esperada` | A tarefa altera interface ou fluxo visível. |
+| `Referências` | A execução depende de documentos, PRs ou decisões. |
+| `Riscos` | Há risco técnico, operacional ou de produto. |
+| `Dependências` | Existe bloqueio real por outra entrega ou decisão. |
 
-`Dependências` é opcional. Não inclua essa seção quando não houver bloqueio real.
+Não inclua `Dependências` quando não houver bloqueio.
 
-Issues simples devem continuar simples. Não transforme toda tarefa pequena em documento longo.
+## Branches
 
-### Exemplo de issue com dependência
+Cada issue deve ter branch própria.
 
-Use `Dependências` apenas quando existir bloqueio:
-
-```md
-## Dependências
-
-- Depende da issue #numero.
-```
-
-### Issue preparada para IA
-
-Quando a issue for implementada com apoio de IA, inclua contexto suficiente para evitar nova investigação ampla.
-
-O formato pode ser mais completo quando isso ajudar a execução. A IA pode adaptar o corpo conforme tipo, área, risco e nível de detalhe da tarefa, desde que preserve:
-
-- objetivo claro;
-- escopo verificável;
-- critérios de aceite;
-- fora de escopo quando houver risco de expansão;
-- referências documentais quando forem necessárias;
-- validação esperada quando a tarefa for implementável.
-
-Isso permite que a IA trabalhe com leitura direcionada, usando a issue como fonte principal da implementação.
-
-### Entrega visual esperada
-
-Quando uma issue implementar funcionalidade com impacto visível na interface, inclua uma seção `Entrega Visual Esperada` sempre que isso ajudar a testar o fluxo pela tela.
-
-Use essa seção para registrar:
-
-- tela, ação, botão, estado ou mensagem esperada;
-- como validar pela interface;
-- estados mínimos, como sucesso, erro, vazio ou bloqueio;
-- limite visual da issue.
-
-Ajustes visuais mínimos pertencem à própria issue da funcionalidade quando forem necessários para operar ou validar o fluxo. Polimento amplo, tema, reorganização geral ou padronização transversal devem ficar em issues próprias.
-
-## Dependência entre issues
-
-Quando uma issue depender de outra, informe isso na descrição.
-
-Exemplo:
-
-```md
-## Dependências
-
-- Depende da issue #12.
-```
-
-Enquanto a dependência não for concluída, a issue dependente não deve entrar em desenvolvimento.
-
-## Padrão de branches
-
-Cada issue deve ter sua própria branch.
-
-Padrão geral:
+Padrão:
 
 ```text
-area/tipoNumero-descricao-curta
-```
-
-Para issues que não possuam área definida, não repita o tipo. 
-
-Ao invés de:
-
-```text
-docs/docsNumero-descricao-curta
-```
-
-Use:
-
-```text
-docsNumero-descricao-curta
+numero-da-issue-descricao-curta
 ```
 
 Exemplos:
 
 ```text
-back/feat006-cria-endpoint-login
-front/feat007-cria-tela-login
-front/fix028-corrige-validacao-formulario
-docs031-documenta-fluxo-github
-```
-
-Áreas comuns:
-
-```text
-front
-back
-docs
-infra
-```
-
-Tipos comuns:
-
-```text
-feat
-fix
-refactor
-chore
-docs
+17-reestrutura-yabook-para-ia
+187-redesenha-preview-pacotes
+28-corrige-total-com-desconto
 ```
 
 Regras:
 
-- Use o número da issue na branch.
+- Comece pelo número da issue.
 - Use descrição curta em kebab-case.
+- Não use `issue`, `#`, tipo ou área no nome.
 - Não use acentos, espaços ou caracteres especiais.
-- Não trabalhe em duas issues diferentes na mesma branch.
-- Não misture front-end e back-end na mesma branch sem necessidade real.
 
-## Branches de lote documental
-
-Para documentação, alterações pequenas e relacionadas podem ser agrupadas em uma única issue, branch e Pull Request quando fizerem parte do mesmo objetivo.
-
-Esse fluxo serve para reduzir cerimônia operacional em trabalhos documentais como planejamento inicial, mapa do problema, matriz de alternativas, escopo inicial, riscos, decisões e próximos passos.
-
-Use branch individual quando:
-
-- a documentação tiver objetivo próprio e independente;
-- a alteração for crítica, extensa ou de maior impacto;
-- o documento precisar de revisão, validação ou aprovação separada;
-- o tema não fizer parte do mesmo planejamento ou contexto.
-
-Use branch de lote documental quando:
-
-- os documentos forem pequenos e relacionados;
-- todos fizerem parte da mesma intenção de trabalho;
-- a revisão puder acontecer no mesmo Pull Request;
-- a issue principal tiver escopo fechado e critérios de aceite claros.
-
-A branch de lote deve ter começo, fim e objetivo claro. Ela não deve virar uma branch fixa permanente de documentação.
-
-Exemplo de branch:
+Não use:
 
 ```text
-docs042-planejamento-inicial-yahub
+docs017-reestrutura-yabook
+docs/issue17-reestrutura-yabook
+front/feat017-reestrutura-yabook
+issue17-reestrutura-yabook
 ```
 
-Para organizar o lote, use uma issue principal com checklist quando os documentos forem simples e tiverem baixo acoplamento decisório.
+Tipo e área pertencem às labels da issue, não ao nome da branch.
 
-Exemplo:
+## Commits
 
-```md
-- [ ] Mapa do problema
-- [ ] Matriz de alternativas
-- [ ] Escopo inicial
-- [ ] Riscos e decisões
-- [ ] Próximos passos
-```
-
-Use subissues quando houver entregas documentais relacionadas, mas com dependências, responsáveis, validações ou discussões próprias.
-
-Mesmo em lote documental, preserve a rastreabilidade:
-
-```text
-Issue principal -> Branch de lote -> Commit -> Pull Request -> Merge -> Validação
-```
-
-## Padrão de commits
-
-As mensagens de commit devem seguir o formato:
+Use o padrão:
 
 ```text
 tipo: descrição curta
@@ -328,163 +176,90 @@ tipo: descrição curta
 Exemplos:
 
 ```text
+docs: simplifica padrão de branches
 feat: adiciona tela de login
-fix: corrige retorno de autenticação inválida
-chore: ajusta workflow de deploy
-docs: documenta fluxo de trabalho com GitHub
+fix: corrige validação do token
+chore: ajusta configuração de build
+refactor: reorganiza serviço de autenticação
 ```
 
-Regras:
+Tipos comuns:
 
-- O tipo deve indicar a natureza da mudança.
-- Para alterações apenas de documentação, use `docs: descrição curta`.
-- A descrição deve ser curta, clara e em português.
-- Use letras minúsculas no prefixo.
-- Evite mensagens genéricas como `ajustes`, `teste`, `alterações` ou `update`.
+```text
+feat
+fix
+docs
+chore
+refactor
+```
 
-## Fluxo de desenvolvimento
+Evite mensagens genéricas como `ajustes`, `update`, `alterações` ou `teste`.
 
-1. Criar ou identificar a issue.
-2. Atribuir o usuário solicitante como responsável padrão, salvo orientação diferente.
-3. Adicionar a issue ao GitHub Project aplicável, quando houver.
-4. Classificar com labels de área e tipo definidas para o projeto.
-5. Criar branch própria a partir da issue.
-6. Desenvolver apenas o escopo da issue na branch.
-7. Fazer commits seguindo o padrão do projeto.
-8. Abrir Pull Request.
-9. Vincular o PR à issue usando `Closes #numero`.
-10. Revisar e validar o próprio trabalho.
-11. Fazer merge na branch de desenvolvimento do projeto.
-12. Preparar release quando houver versão pronta para publicação.
+Escopo opcional pode ser usado quando o projeto já adotar esse costume:
 
-## Padrão de Pull Requests
+```text
+docs(github): simplifica padrão de branches
+feat(frontend): adiciona tela de login
+```
 
-O Pull Request deve explicar o que foi feito e deixar claro o impacto da alteração.
+Não torne escopo obrigatório no padrão da YA LABS.
+
+## Pull Requests
+
+O título do PR deve ser objetivo e não precisa repetir o tipo da mudança.
 
 Título recomendado:
 
 ```text
-tipo: descrição objetiva
+Reestruturar YABook para melhorar contexto de IA
 ```
 
-Exemplos:
+O vínculo com a issue deve ficar no corpo:
 
-```text
-feat: adiciona autenticação por e-mail
-fix: corrige validação do formulário de login
-docs: atualiza fluxo de trabalho com GitHub
+```md
+Closes #17
 ```
 
-Use o corpo do PR para vincular a issue com `Closes #numero`. A branch numerada e o vínculo no corpo do PR garantem a rastreabilidade sem deixar o título pesado.
-
-### Template de Pull Request
-
-Use a estrutura abaixo:
+### Template de PR
 
 ```md
 ## Contexto
 
-Explique o objetivo do PR e qual problema ele resolve.
+Explique em poucas linhas o objetivo do PR.
 
 Closes #numero
 
 ## O que mudou
 
-- Alteração principal feita no projeto.
-- Serviço, componente, tela, endpoint ou documentação criada.
-- Regra de negócio, tratamento ou integração ajustada.
-
-## Contrato do endpoint
-
-Use esta seção quando o PR alterar ou criar contrato de API.
-
-Endpoint:
-
-GET /rota/exemplo
-
-Response:
-
-{
-  "id": "123",
-  "name": "Exemplo"
-}
+- Mudança principal.
+- Arquivo, fluxo, regra ou documento ajustado.
+- Decisão relevante para revisão.
 
 ## Observações
 
-- Pontos importantes para revisão.
+- Validações feitas.
 - Limitações conhecidas.
-- Testes feitos.
-- Warnings existentes que não foram causados pelo PR.
+- Pontos que merecem atenção.
 ```
 
-Se o PR não alterar API, remova a seção `Contrato do endpoint`.
+Se o PR alterar contrato de API, inclua uma seção curta com método, rota, request/response e estados relevantes. Se não alterar API, não inclua essa seção.
 
-## Integração entre front-end e back-end
+## Releases
 
-Quando o back-end criar ou alterar uma API, o contrato deve ser documentado na issue, no Pull Request ou na pasta `docs` do projeto.
+Use release quando houver uma versão consolidada para publicação ou validação.
 
-O contrato deve informar pelo menos:
+Nem todo projeto precisa de branch `dev` desde o começo. Adote branch de desenvolvimento quando houver implementação ativa, trabalho paralelo ou necessidade de proteger a branch principal.
 
-- endpoint;
-- método HTTP;
-- parâmetros principais;
-- exemplo de response;
-- estados de sucesso, erro e vazio, quando existirem.
-
-O front-end pode começar com mock enquanto o back-end ainda não terminou.
-
-Depois que o back-end finalizar, o front-end deve trocar o mock pela API real.
-
-## Fluxo de release
-
-Nem todo projeto precisa de branch `dev` desde o começo.
-
-Adote branch de desenvolvimento quando houver pelo menos dois sinais:
-
-- implementação ativa além de documentação;
-- trabalho paralelo com risco de conflito;
-- necessidade de manter a branch principal apenas com conteúdo pronto para release.
-
-Enquanto esses sinais não existirem, branch por issue e Pull Request direto para a branch principal costuma ser suficiente.
-
-Quando a branch de desenvolvimento estiver validada e pronta para virar uma versão publicada, prepare a release em uma branch própria criada a partir da branch principal.
-
-Padrão:
+Padrão de branch de release:
 
 ```text
 release/x.y.z
 ```
 
-Exemplos:
+Título de PR de release:
 
 ```text
-release/1.0.0
-release/1.1.0
-release/1.1.1
-```
-
-Passo a passo recomendado:
-
-1. Garantir que a branch de desenvolvimento foi validada.
-2. Atualizar a branch principal local com a versão remota.
-3. Criar `release/x.y.z` a partir da branch principal.
-4. Fazer merge da branch de desenvolvimento na branch de release.
-5. Resolver conflitos, se existirem.
-6. Rodar as validações necessárias do projeto.
-7. Abrir Pull Request de `release/x.y.z` para a branch principal.
-8. Revisar o PR e confirmar que ele contém apenas o conteúdo esperado da release.
-9. Fazer merge da branch de release na branch principal.
-10. Atualizar a branch principal local.
-11. Criar a tag da versão a partir da branch principal.
-12. Publicar a tag no GitHub.
-13. Sincronizar a branch de desenvolvimento com a branch principal, quando necessário.
-
-## PR de release
-
-Título recomendado:
-
-```text
-Release: publica versão x.y.z
+Publicar versão x.y.z
 ```
 
 Descrição recomendada:
@@ -492,77 +267,71 @@ Descrição recomendada:
 ```md
 ## Contexto
 
-Publica a versão x.y.z da aplicação.
-
-Esta release consolida as alterações validadas na branch `release/x.y.z`.
+Publica a versão x.y.z.
 
 ## O que mudou
 
-- Lista resumida das principais entregas técnicas.
-- Lista resumida das principais correções.
-- Ajustes de documentação ou fluxo, quando existirem.
-
-## PRs e commits incluídos
-
-- #numero área/tipo: descrição curta
-- área/tipo: descrição curta
+- Principais entregas.
+- Principais correções.
+- Ajustes de documentação ou processo.
 
 ## Validações
 
-- Front-end lint executado
-- Front-end build executado
-- Back-end build executado
+- Testes, build ou conferências realizadas.
 
 ## Observações
 
-- A tag `vx.y.z` deve ser criada somente depois do merge na branch principal.
+- Riscos aceitos ou limitações conhecidas.
 ```
 
-## Tags
+A tag deve ser criada somente depois que a release estiver integrada na branch principal.
 
-A tag da versão deve ser criada somente depois que a release estiver integrada na branch principal.
+## Orientação para IA
 
-Não crie tag diretamente na branch de desenvolvimento, porque a tag precisa apontar para o commit que realmente representa a versão publicada.
+Antes de criar issue, branch, commit, PR, release ou documentação, a IA deve:
 
-Não mova uma tag já publicada sem alinhamento explícito do time. Mover tag exige reescrever referência publicada e pode confundir quem já baixou a versão anterior.
+1. Ler o `AGENTS.md` do projeto.
+2. Verificar se há padrão local documentado.
+3. Consultar o YABook quando o projeto usar padrões da YA LABS.
+4. Conferir issue, branch atual, tipo da mudança e área afetada.
+5. Apontar divergências antes de executar.
+6. Registrar exceção quando o usuário pedir algo fora do padrão.
 
-## Orientação da IA
+A IA não deve inventar formatos quando já houver padrão documentado.
 
-Quando a IA for usada para implementar, revisar ou documentar algo, ela deve reforçar:
+## Lotes documentais
 
-- criação ou identificação da issue relacionada;
-- uso de branch própria para cada issue;
-- uso de branch de lote documental quando uma issue principal agrupar documentos pequenos e relacionados;
-- separação entre tarefas de front-end, back-end, infraestrutura e documentação;
-- commits no padrão do projeto;
-- Pull Requests com contexto, mudanças, observações e vínculo com a issue;
-- documentação de contratos de API quando houver integração entre front-end e back-end.
+Alterações pequenas e relacionadas podem ser agrupadas em uma issue, branch e PR quando fizerem parte do mesmo objetivo.
 
-Ao classificar uma demanda documental, a IA deve identificar se a solicitação é uma alteração isolada ou um lote documental.
+Use lote documental quando:
 
-Quando os documentos forem pequenos e fizerem parte do mesmo objetivo, a IA deve sugerir agrupamento em issue principal com checklist ou subissues, evitando criar uma branch por documento sem necessidade.
+- os documentos forem pequenos e relacionados;
+- a revisão puder acontecer no mesmo PR;
+- a issue principal tiver escopo claro.
 
-Quando os temas forem independentes, críticos ou de maior impacto, a IA deve manter issues, branches e Pull Requests separados.
+Use issues separadas quando:
 
-Antes de alterar arquivos, a IA deve validar:
+- os temas forem independentes;
+- houver impacto alto;
+- a validação exigir revisão própria;
+- existirem responsáveis ou dependências diferentes.
 
-- branch atual;
-- tipo da alteração solicitada;
-- área afetada;
-- issue relacionada, quando aplicável;
-- compatibilidade com o fluxo documentado;
-- risco de mexer em branch principal, branch de desenvolvimento, branch de release ou branch incompatível.
-
-Se a solicitação estiver fora do fluxo documentado, a IA deve avisar o usuário e pedir confirmação explícita ou registrar a exceção autorizada.
-
-## Regra principal
-
-Não trabalhe duas issues diferentes na mesma branch.
-
-Cada issue deve ter sua própria branch. Em documentação, uma issue principal pode usar branch de lote quando agrupar documentos pequenos e relacionados dentro de um objetivo claro.
-
-Esse fluxo mantém o histórico limpo, facilita revisão, reduz conflitos e deixa claro o caminho:
+Mesmo em lote, preserve a rastreabilidade:
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge -> Release
+Issue principal -> Branch de lote -> Commit -> Pull Request -> Merge
 ```
+
+## Integração front-end e back-end
+
+Quando uma API for criada ou alterada, documente o contrato na issue, no PR ou em `docs/contratos/`, conforme o tamanho da mudança.
+
+Contrato mínimo:
+
+- método e rota;
+- parâmetros principais;
+- exemplo de request, quando existir;
+- exemplo de response;
+- estados de sucesso, erro e vazio.
+
+Front-end pode começar com mock enquanto o back-end não estiver pronto, mas a troca para API real deve estar clara na issue ou no PR.

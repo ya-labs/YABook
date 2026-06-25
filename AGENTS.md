@@ -55,6 +55,19 @@ Se a branch atual não estiver compatível com a alteração, avise antes de edi
 
 Se o usuário quiser prosseguir mesmo fora do fluxo documentado, peça confirmação explícita ou registre na resposta que a alteração foi feita como exceção solicitada.
 
+## Contrato operacional para IA
+
+Antes de criar issue, branch, commit, Pull Request, release ou documentação:
+
+- consulte este `AGENTS.md`;
+- consulte o documento aplicável em `docs/`;
+- use o padrão do YABook como fonte normativa;
+- não invente formato quando já houver padrão documentado;
+- aponte divergências antes de executar;
+- registre exceções quando o usuário pedir algo fora do padrão.
+
+Use textos curtos primeiro. Detalhes úteis para IA devem ficar em seções específicas ou blocos recolhidos, sem atrapalhar a leitura humana.
+
 ## Issues
 
 Cada mudança relevante no YABook deve ter uma issue própria.
@@ -67,28 +80,29 @@ docs/processos/fluxo-de-trabalho-github.md
 
 Ao criar ou revisar uma issue, garanta que ela tenha:
 
-- `Descrição`;
+- `Resumo rápido`;
 - `Escopo`;
 - `Critérios de aceite`;
+- `Contexto para IA` em `<details>`, apenas quando houver contexto adicional útil;
 - seções complementares, como `Dependências`, `Fora de escopo`, `Validação` ou `Entrega Visual Esperada`, apenas quando ajudarem a executar ou revisar a tarefa.
 
 ## Branches
 
 Cada issue deve ter sua própria branch.
 
-Para documentação, use:
+Use:
 
 ```text
-docsNumero-descricao-curta
+numero-descricao-curta
 ```
 
 Exemplo:
 
 ```text
-docs001-adapta-documentacao-base-yabook
+17-reestrutura-yabook-para-ia
 ```
 
-Não use acentos, espaços ou caracteres especiais no nome da branch.
+Não use `issue`, `#`, tipo, área, acentos, espaços ou caracteres especiais no nome da branch.
 
 ## Commits
 
@@ -117,7 +131,7 @@ teste
 
 ## Pull Requests
 
-Ao orientar ou criar um Pull Request, use a estrutura:
+Ao orientar ou criar um Pull Request, use título objetivo sem prefixo de tipo e a estrutura:
 
 ```md
 ## Contexto
@@ -147,6 +161,7 @@ Ao alterar documentação:
 - diferencie claramente padrão organizacional de conteúdo específico de projeto;
 - prefira textos objetivos e fáceis de consultar;
 - evite duplicar o mesmo padrão em vários documentos;
+- corte trechos repetidos ou genéricos que não ajudem execução, revisão ou decisão;
 - não invente fluxos, contratos ou regras que ainda não foram definidos.
 
 ## Regra principal

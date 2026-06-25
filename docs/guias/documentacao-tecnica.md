@@ -12,6 +12,8 @@ O objetivo é manter documentos úteis para desenvolvimento real, sem transforma
 - Prefira exemplos reais do projeto.
 - Não invente arquitetura, endpoint ou fluxo que ainda não existe.
 - Atualize a documentação quando uma mudança alterar comportamento, contrato ou processo.
+- Escreva para uso humano primeiro: objetivo, ação e exemplo antes de contexto longo.
+- Remova repetição e texto genérico que não ajude execução, revisão ou decisão.
 
 ## O que documentar no projeto
 
@@ -51,6 +53,13 @@ docs/
 Essa estrutura pode ser adaptada conforme o tamanho do projeto.
 
 Projetos pequenos não precisam criar pastas vazias sem uso imediato.
+
+Antes de criar um documento novo, responda:
+
+- quem vai usar este documento;
+- quando ele será consultado;
+- qual decisão ou ação ele ajuda a executar;
+- por que o conteúdo não cabe melhor em um documento existente.
 
 ## Uso recomendado das pastas
 
