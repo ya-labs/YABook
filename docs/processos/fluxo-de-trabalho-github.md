@@ -1,6 +1,6 @@
 # Fluxo de trabalho com GitHub
 
-Este documento define o padrão da YA LABS para issues, branches, commits, Pull Requests, Projects e releases.
+Este documento explica o fluxo da YA LABS para organizar trabalho com GitHub.
 
 Use este guia quando for criar, revisar ou orientar trabalho executável no GitHub. Ele deve ser prático: a pessoa precisa entender a tarefa rápido, e a IA precisa ter regras claras para não inventar padrão.
 
@@ -55,194 +55,19 @@ Base recomendada:
 
 Cada projeto deve declarar apenas as labels que realmente usa.
 
-## Issues
+## Padrões operacionais
 
-Issue é cartão de tarefa. Ela deve ser rápida para leitura humana e suficiente para orientar execução.
+Os formatos oficiais de issue, branch, commit e Pull Request ficam em [Padrões rápidos](../padroes-rapidos.md).
 
-Título:
+Não repita esses formatos em documentos específicos de projeto. Referencie o padrão central e registre exceções apenas quando o projeto realmente precisar fugir dele.
 
-```text
-descrição objetiva da tarefa
-```
+Neste fluxo:
 
-Não use prefixos como `docs:`, `feat:` ou `fix:` no título. Use labels para tipo e área.
-
-### Estrutura recomendada
-
-```md
-## Resumo rápido
-
-- Tarefa: descreva em uma frase.
-- Entrega esperada: informe o resultado visível ou documental.
-- Limite: informe o principal fora de escopo, se existir.
-
-## Escopo
-
-- Item principal da tarefa.
-- Arquivo, tela, fluxo, regra ou documento envolvido.
-- Ajuste relevante para concluir a entrega.
-
-## Critérios de aceite
-
-- Resultado mínimo para considerar a issue pronta.
-- Conferência essencial para validar a entrega.
-```
-
-Esse é o padrão base. Tarefas simples devem parar aqui.
-
-### Contexto para IA
-
-Quando a issue for usada como handoff para IA ou pessoa que precisa de mais contexto, coloque detalhes adicionais em bloco recolhido:
-
-```md
-<details>
-<summary>Contexto para IA</summary>
-
-## Referências
-
-- Documentos, decisões, PRs ou issues relacionadas.
-
-## Cuidados
-
-- Limites, riscos ou decisões que evitam retrabalho.
-
-## Validação sugerida
-
-- Testes, build, revisão visual ou conferência manual relevante.
-
-</details>
-```
-
-Use esse bloco só quando ele reduzir dúvida real. Não transforme toda issue em documento longo.
-
-### Seções opcionais
-
-Inclua somente quando forem úteis:
-
-| Seção | Quando usar |
-| --- | --- |
-| `Fora de escopo` | Há risco claro de expansão indevida. |
-| `Entrega visual esperada` | A tarefa altera interface ou fluxo visível. |
-| `Referências` | A execução depende de documentos, PRs ou decisões. |
-| `Riscos` | Há risco técnico, operacional ou de produto. |
-| `Dependências` | Existe bloqueio real por outra entrega ou decisão. |
-
-Não inclua `Dependências` quando não houver bloqueio.
-
-## Branches
-
-Cada issue deve ter branch própria.
-
-Padrão:
-
-```text
-numero-da-issue-descricao-curta
-```
-
-Exemplos:
-
-```text
-17-reestrutura-yabook-para-ia
-187-redesenha-preview-pacotes
-28-corrige-total-com-desconto
-```
-
-Regras:
-
-- Comece pelo número da issue.
-- Use descrição curta em kebab-case.
-- Não use `issue`, `#`, tipo ou área no nome.
-- Não use acentos, espaços ou caracteres especiais.
-
-Não use:
-
-```text
-docs017-reestrutura-yabook
-docs/issue17-reestrutura-yabook
-front/feat017-reestrutura-yabook
-issue17-reestrutura-yabook
-```
-
-Tipo e área pertencem às labels da issue, não ao nome da branch.
-
-## Commits
-
-Use o padrão:
-
-```text
-tipo: descrição curta
-```
-
-Exemplos:
-
-```text
-docs: simplifica padrão de branches
-feat: adiciona tela de login
-fix: corrige validação do token
-chore: ajusta configuração de build
-refactor: reorganiza serviço de autenticação
-```
-
-Tipos comuns:
-
-```text
-feat
-fix
-docs
-chore
-refactor
-```
-
-Evite mensagens genéricas como `ajustes`, `update`, `alterações` ou `teste`.
-
-Escopo opcional pode ser usado quando o projeto já adotar esse costume:
-
-```text
-docs(github): simplifica padrão de branches
-feat(frontend): adiciona tela de login
-```
-
-Não torne escopo obrigatório no padrão da YA LABS.
-
-## Pull Requests
-
-O título do PR deve ser objetivo e não precisa repetir o tipo da mudança.
-
-Título recomendado:
-
-```text
-Reestruturar YABook para melhorar contexto de IA
-```
-
-O vínculo com a issue deve ficar no corpo:
-
-```md
-Closes #17
-```
-
-### Template de PR
-
-```md
-## Contexto
-
-Explique em poucas linhas o objetivo do PR.
-
-Closes #numero
-
-## O que mudou
-
-- Mudança principal.
-- Arquivo, fluxo, regra ou documento ajustado.
-- Decisão relevante para revisão.
-
-## Observações
-
-- Validações feitas.
-- Limitações conhecidas.
-- Pontos que merecem atenção.
-```
-
-Se o PR alterar contrato de API, inclua uma seção curta com método, rota, request/response e estados relevantes. Se não alterar API, não inclua essa seção.
+- issue define a tarefa e seus limites;
+- branch isola o trabalho da issue;
+- commits registram alterações pequenas e claras;
+- Pull Request explica o que mudou e vincula a issue;
+- merge integra o trabalho revisado.
 
 ## Releases
 

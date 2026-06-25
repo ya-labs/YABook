@@ -68,88 +68,14 @@ Antes de criar issue, branch, commit, Pull Request, release ou documentação:
 
 Use textos curtos primeiro. Detalhes úteis para IA devem ficar em seções específicas ou blocos recolhidos, sem atrapalhar a leitura humana.
 
-## Issues
+## Padrões de GitHub
 
-Cada mudança relevante no YABook deve ter uma issue própria.
+Cada mudança relevante no YABook deve ter issue própria e seguir o fluxo documentado em:
 
-Use o padrão documentado em:
+- `docs/padroes-rapidos.md`
+- `docs/processos/fluxo-de-trabalho-github.md`
 
-```text
-docs/processos/fluxo-de-trabalho-github.md
-```
-
-Ao criar ou revisar uma issue, garanta que ela tenha:
-
-- `Resumo rápido`;
-- `Escopo`;
-- `Critérios de aceite`;
-- `Contexto para IA` em `<details>`, apenas quando houver contexto adicional útil;
-- seções complementares, como `Dependências`, `Fora de escopo`, `Validação` ou `Entrega Visual Esperada`, apenas quando ajudarem a executar ou revisar a tarefa.
-
-## Branches
-
-Cada issue deve ter sua própria branch.
-
-Use:
-
-```text
-numero-descricao-curta
-```
-
-Exemplo:
-
-```text
-17-reestrutura-yabook-para-ia
-```
-
-Não use `issue`, `#`, tipo, área, acentos, espaços ou caracteres especiais no nome da branch.
-
-## Commits
-
-Use o padrão:
-
-```text
-docs: descrição curta
-```
-
-Exemplos:
-
-```text
-docs: adapta documentação-base do yabook
-docs: documenta fluxo de trabalho da organização
-docs: adiciona template inicial de projeto
-```
-
-Evite mensagens genéricas como:
-
-```text
-ajustes
-update
-alterações
-teste
-```
-
-## Pull Requests
-
-Ao orientar ou criar um Pull Request, use título objetivo sem prefixo de tipo e a estrutura:
-
-```md
-## Contexto
-
-Explique o objetivo do PR e qual problema ele resolve.
-
-Closes #numero
-
-## O que mudou
-
-- Liste as principais alterações.
-
-## Observações
-
-- Informe validações feitas, limitações conhecidas ou decisões importantes.
-```
-
-Se o PR fizer parte de uma release, siga também o fluxo de release documentado.
+Não duplique formatos de issue, branch, commit ou Pull Request neste arquivo. Use os documentos centrais como fonte de verdade.
 
 ## Documentação
 

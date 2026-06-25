@@ -73,16 +73,9 @@ Antes de criar ou alterar artefatos de projeto, a IA deve:
 4. Usar a estrutura existente do projeto.
 5. Avisar quando houver divergência entre pedido, projeto e YABook.
 
-Padrões que a IA deve copiar sem reinterpretar:
+Os formatos oficiais de issue, branch, commit e PR ficam em [Padrões rápidos](../padroes-rapidos.md).
 
-| Artefato | Padrão |
-| --- | --- |
-| Issue | título objetivo, sem prefixo de tipo |
-| Branch | `numero-descricao-curta` |
-| Commit | `tipo: descrição curta` |
-| Pull Request | título objetivo, com `Closes #numero` no corpo |
-
-Não use formatos como `docs/issue12-descricao`, `issue12-descricao`, `front/feat12-descricao` ou PR com título `tipo: descrição`, salvo se o projeto registrar essa exceção.
+Não use variações locais salvo quando o projeto registrar essa exceção.
 
 ## Uso econômico de contexto
 

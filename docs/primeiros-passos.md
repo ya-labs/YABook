@@ -25,23 +25,7 @@ Não crie pastas vazias nem documentos só para "completar a estrutura".
 Issue -> Branch -> Commit -> Pull Request -> Merge
 ```
 
-Padrões principais:
-
-| Artefato | Padrão |
-| --- | --- |
-| Issue | título objetivo, sem prefixo de tipo |
-| Branch | `numero-descricao-curta` |
-| Commit | `tipo: descrição curta` |
-| Pull Request | título objetivo, com `Closes #numero` no corpo |
-
-Exemplo:
-
-```text
-Issue: Reestruturar YABook para melhorar contexto de IA
-Branch: 17-reestrutura-yabook-para-ia
-Commit: docs: reestrutura padrões de uso por IA
-PR: Reestruturar YABook para melhorar contexto de IA
-```
+Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](padroes-rapidos.md).
 
 ## Como orientar a IA
 

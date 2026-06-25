@@ -73,16 +73,8 @@ Para condução do projeto, use o YABook como referência para:
 - documentação horizontal;
 - execução vertical por etapa, milestone ou fase;
 - issues preparadas para IA;
+- padrões de issue, branch, commit e PR;
 - critérios de pronto e release.
-
-Padrões principais:
-
-| Artefato | Padrão |
-| --- | --- |
-| Issue | título objetivo, sem prefixo de tipo |
-| Branch | `numero-descricao-curta` |
-| Commit | `tipo: descrição curta` |
-| Pull Request | título objetivo, com `Closes #numero` no corpo |
 
 ### Labels do projeto
 

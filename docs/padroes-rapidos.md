@@ -2,6 +2,17 @@
 
 Este documento resume os padrões operacionais mais usados no dia a dia.
 
+## Sumário
+
+- [Por que temos padrões](#por-que-temos-padroes)
+- [Como os padrões são feitos](#como-os-padroes-sao-feitos)
+- [Padrão de issue](#padrao-de-issue)
+- [Padrão de branch](#padrao-de-branch)
+- [Padrão de commit](#padrao-de-commit)
+- [Padrão de PR](#padrao-de-pr)
+
+<a id="por-que-temos-padroes"></a>
+
 ## Por que temos padrões
 
 Padrões evitam que cada projeto organize trabalho de um jeito diferente.
@@ -13,6 +24,8 @@ Eles ajudam a:
 - reduzir decisões repetidas;
 - facilitar trabalho com IA;
 - manter os projetos da YA LABS consistentes.
+
+<a id="como-os-padroes-sao-feitos"></a>
 
 ## Como os padrões são feitos
 
@@ -27,6 +40,8 @@ Antes de virar padrão, ele precisa:
 - ser objetivo o bastante para ser seguido sem interpretação.
 
 Quando um projeto precisar fugir do padrão, registre a exceção no próprio projeto.
+
+<a id="padrao-de-issue"></a>
 
 ## Padrão de issue
 
@@ -54,6 +69,8 @@ Estrutura base:
 
 Contexto extra para IA deve ficar em `<details>` apenas quando for necessário.
 
+<a id="padrao-de-branch"></a>
+
 ## Padrão de branch
 
 Use o número da issue no início:
@@ -69,6 +86,8 @@ Exemplo:
 ```
 
 Não use tipo, área, `issue`, `#`, acentos ou espaços.
+
+<a id="padrao-de-commit"></a>
 
 ## Padrão de commit
 
@@ -86,6 +105,8 @@ feat: adiciona tela de login
 fix: corrige validação do token
 chore: ajusta configuração de build
 ```
+
+<a id="padrao-de-pr"></a>
 
 ## Padrão de PR
 

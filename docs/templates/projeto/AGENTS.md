@@ -45,14 +45,7 @@ Antes de criar issue, branch, commit, Pull Request, release ou novo documento, a
 - não inventar formato quando houver padrão documentado;
 - avisar quando o pedido fugir do padrão e registrar a exceção se o usuário autorizar.
 
-Padrões principais:
-
-| Artefato | Padrão |
-| --- | --- |
-| Issue | título objetivo, sem prefixo de tipo |
-| Branch | `numero-descricao-curta` |
-| Commit | `tipo: descrição curta` |
-| Pull Request | título objetivo, com `Closes #numero` no corpo |
+Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo exceção registrada no projeto.
 
 ## Issues, labels e Project
 
