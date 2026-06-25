@@ -7,6 +7,7 @@ Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 | Intenção | Leia |
 | --- | --- |
 | Entender como usar o YABook em um projeto | [Primeiros passos](primeiros-passos.md) |
+| Consultar os padrões mais usados rapidamente | [Padrões rápidos](padroes-rapidos.md) |
 | Criar issue, branch, commit, PR ou release | [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md) |
 | Conduzir um projeto da descoberta até release | [Condução de projetos](processos/conducao-de-projetos.md) |
 | Usar IA sem perder padrão e rastreabilidade | [Uso de IA](guias/uso-de-ia.md) |
