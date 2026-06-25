@@ -36,7 +36,7 @@ Use Markdown para conhecimento estável. Use GitHub para backlog, responsáveis,
 
 Labels classificam o tipo e a área da issue. Branch e título de PR não devem repetir essa classificação.
 
-Base recomendada:
+Esta tabela é a base oficial de nomenclatura, cor e uso das labels da YA LABS:
 
 | Label | Tipo | Cor | Uso |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ Base recomendada:
 | `process` | Área | `#5319E7` | Fluxo de trabalho e governança. |
 | `epic` | Especial | `#5319E7` | Agrupador macro de capacidade. |
 
-Cada projeto deve declarar apenas as labels que realmente usa.
+Cada projeto deve declarar apenas as labels que realmente usa, sem criar variações de nome quando a label oficial atender ao caso.
 
 ## Padrões operacionais
 

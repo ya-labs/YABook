@@ -47,17 +47,11 @@ A documentação técnica do projeto fica em:
 docs/
 ```
 
-Este projeto segue os padrões da YA LABS documentados no YABook.
+Para decidir onde registrar cada assunto, use:
 
-Leitura inicial recomendada:
-
-- [Documentação do projeto](docs/README.md)
 - [Guia de consulta da documentação](docs/guia-da-documentacao.md)
-- [Guia de documentação para IA](docs/guia-de-documentacao-para-ia.md)
 
-Crie apenas documentos e pastas que fizerem sentido para o estágio atual do projeto.
-
-Antes de criar documento novo, confira se ele ajuda alguém a executar, revisar, decidir ou continuar o trabalho. Se for apenas texto genérico, não crie.
+Esse guia é a fonte do projeto para estrutura documental. Crie apenas documentos e pastas que ajudem alguém a executar, revisar, decidir ou continuar o trabalho.
 
 ## Fluxo de trabalho
 
@@ -69,30 +63,20 @@ Issue -> Branch -> Commit -> Pull Request -> Merge
 
 Para condução do projeto, use o YABook como referência para:
 
-- descoberta inicial;
-- documentação horizontal;
-- execução vertical por etapa, milestone ou fase;
-- issues preparadas para IA;
 - padrões de issue, branch, commit e PR;
+- labels;
+- Project e responsáveis;
 - critérios de pronto e release.
 
 ### Labels do projeto
 
-Declare as labels usadas neste projeto a partir da base recomendada pela YA LABS.
+Use a base oficial de labels do YABook. Declare aqui somente as labels adotadas neste projeto.
 
-| Label | Cor | Uso no projeto |
-| --- | --- | --- |
-| `bug` | `#D73A4A` |  |
-| `feature` | `#0E8A16` |  |
-| `docs` | `#0075CA` |  |
-| `refactor` | `#C5DEF5` |  |
-| `tooling` | `#5319E7` |  |
-| `frontend` | `#FBCA04` |  |
-| `backend` | `#1D76DB` |  |
-| `infra` | `#006B75` |  |
-| `ui/ux` | `#D876E3` |  |
+- Tipo: `bug`, `feature`, `docs`, `refactor`, `tooling`
+- Área: `frontend`, `backend`, `infra`, `ui/ux`, `architecture`, `process`
+- Especial: `epic`
 
-Remova as labels que não fizerem sentido para o projeto e adicione apenas labels específicas realmente necessárias.
+Remova as labels que não fizerem sentido para o projeto. Não crie variações de nomenclatura sem registrar a exceção.
 
 ### GitHub Project e responsável
 

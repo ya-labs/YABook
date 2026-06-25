@@ -9,41 +9,39 @@ Ele descreve onde buscar informação estável. Backlog, progresso, responsávei
 1. Leia o `AGENTS.md`.
 2. Leia este guia quando a tarefa envolver documentação.
 3. Identifique o tipo da tarefa.
-4. Consulte a matriz documental.
-5. Use `rg` com palavras-chave direcionadas.
-6. Abra documentos completos somente quando o trecho localizado não for suficiente.
+4. Use a issue como fonte principal quando ela já tiver contexto suficiente.
+5. Consulte [Guia de consulta da documentação](guia-da-documentacao.md) para decidir onde buscar ou atualizar informação.
+6. Use `rg` com palavras-chave direcionadas.
+7. Abra documentos completos somente quando o trecho localizado não for suficiente.
 
 Não leia todos os documentos por padrão.
 
-Quando o projeto seguir o YABook, consulte-o para validar padrões organizacionais antes de criar estrutura nova.
+Quando o projeto seguir o YABook, consulte-o para validar padrões organizacionais antes de criar estrutura, fluxo ou formato novo.
 
-## Matriz documental
+## Quando consultar o guia fonte
 
-| Área | Função | Quando consultar | Quando atualizar |
-| --- | --- | --- | --- |
-| `README.md` | Entrada pública do projeto. | Visão geral e links principais. | Mudança de posicionamento ou leitura inicial. |
-| `docs/produto/` | Conhecimento de produto. | Visão, problema, público e escopo. | Mudança de objetivo, público ou escopo. |
-| `docs/arquitetura/` | Arquitetura conceitual. | Módulos, responsabilidades e comunicação. | Mudança estrutural relevante. |
-| `docs/requisitos/` | O que o sistema deve fazer. | Requisitos funcionais e não funcionais. | Mudança de capacidade esperada. |
-| `docs/fluxos/` | Sequências de uso. | Jornada da pessoa usuária. | Mudança na ordem ou comportamento de uso. |
-| `docs/interface/` | Critérios de interface. | Entrega visual, estados e navegação. | Mudança visual recorrente ou critério de UX. |
-| `docs/contratos/` | Formatos e operações. | APIs, eventos, arquivos, comandos, entradas e saídas. | Mudança de formato, validação, bloqueio ou falha esperada. |
-| `docs/processos/` | Processo local. | Regras que complementam o YABook. | Mudança de fluxo operacional do projeto. |
-| `docs/adrs/` | Decisões aceitas. | Confirmar decisão já tomada. | Nova decisão aceita ou substituição de decisão. |
-| `docs/rfcs/` | Propostas abertas. | Ideias ainda não decididas. | Nova proposta em discussão. |
-| `docs/prototipos/` | Provas e experimentos. | Evidência técnica ou validação experimental. | Nova prova, resultado ou limite observado. |
-| `docs/release/` | Critérios de pronto. | Aceite final e limites de release. | Mudança nos critérios de pronto. |
+Consulte [Guia de consulta da documentação](guia-da-documentacao.md) quando precisar decidir:
 
-## Premissas
+- onde registrar um assunto;
+- se um documento novo faz sentido;
+- se uma informação pertence ao Markdown ou ao GitHub;
+- se um trecho repetido deve ser fundido ou removido.
 
-- Markdown guarda conhecimento estável.
-- GitHub guarda trabalho executável.
-- ADRs registram decisões aceitas.
-- RFCs registram propostas ainda abertas.
-- Protótipos e provas técnicas são experimentais e não devem parecer documentação final de produto.
-- O roteiro macro do projeto não deve virar status operacional.
-- Documentos devem ser curtos, úteis e sem repetição.
-- IA deve propor poda quando encontrar documentação genérica ou duplicada.
+## Leitura direcionada
+
+Use leitura direcionada quando:
+
+- a issue estiver objetiva;
+- a mudança afetar um arquivo ou assunto claro;
+- a tarefa for correção pequena;
+- o padrão necessário já estiver documentado.
+
+Fluxo recomendado:
+
+1. Leia a issue.
+2. Busque palavras-chave com `rg`.
+3. Abra apenas os arquivos encontrados.
+4. Consulte o YABook somente se a dúvida for sobre padrão organizacional.
 
 ## Quando ler documentação ampla
 
@@ -66,3 +64,13 @@ Confirme:
 - qual ação ou decisão ele apoia;
 - se o conteúdo não pertence a um documento existente;
 - se a informação é estável o bastante para Markdown.
+
+## Quando propor poda
+
+Proponha remoção, fusão ou reescrita quando encontrar documento ou trecho que:
+
+- repete regra já documentada;
+- descreve intenção sem orientar ação;
+- guarda status operacional que deveria estar no GitHub;
+- mistura proposta aberta com decisão aceita;
+- usa texto genérico que não ajuda execução, revisão ou decisão.

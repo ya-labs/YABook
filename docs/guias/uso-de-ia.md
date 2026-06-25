@@ -8,7 +8,7 @@ Use quando for pedir para IA criar issues, preparar PRs, alterar documentação,
 
 - A IA deve consultar o repositório antes de assumir arquitetura, stack ou padrão.
 - Em projetos YA LABS, a IA deve consultar o YABook quando a dúvida for sobre padrão organizacional.
-- Mudanças relevantes devem ter issue, branch, commit e Pull Request.
+- Mudanças relevantes devem manter rastreabilidade entre issue, branch, commit e Pull Request.
 - A IA deve respeitar o padrão local do projeto.
 - A IA não deve inventar formato quando já houver padrão documentado.
 - Código gerado deve ser legível, simples e pronto para manutenção.
@@ -47,7 +47,7 @@ Em contexto de projeto, a IA deve:
 
 - responder em português do Brasil;
 - ser direta e prática;
-- explicar rapidamente o motivo técnico das decisões;
+- explicar o motivo técnico das decisões quando isso ajudar a revisão;
 - evitar resposta genérica;
 - entregar código completo quando a tarefa pedir implementação;
 - sugerir mensagem de commit ao alterar arquivos;
@@ -63,7 +63,7 @@ Issue -> Branch -> Commit -> Pull Request -> Merge
 
 Se a IA identificar que não existe issue ou que a branch atual não combina com a mudança, deve avisar antes de editar ou registrar a exceção quando o usuário pedir para prosseguir.
 
-## Contrato operacional
+## Contrato operacional obrigatório
 
 Antes de criar ou alterar artefatos de projeto, a IA deve:
 
@@ -73,9 +73,9 @@ Antes de criar ou alterar artefatos de projeto, a IA deve:
 4. Usar a estrutura existente do projeto.
 5. Avisar quando houver divergência entre pedido, projeto e YABook.
 
-Os formatos oficiais de issue, branch, commit e PR ficam em [Padrões rápidos](../padroes-rapidos.md).
+Os formatos oficiais de issue, branch, commit e PR ficam em [Padrões rápidos](../padroes-rapidos.md). Labels, Project, `main`, `dev`, release e tags ficam em [Fluxo de trabalho com GitHub](../processos/fluxo-de-trabalho-github.md).
 
-Não use variações locais salvo quando o projeto registrar essa exceção.
+Não use variações locais salvo quando o projeto registrar a exceção.
 
 ## Uso econômico de contexto
 
@@ -94,17 +94,9 @@ Contexto detalhado para IA deve ficar em `<details>` quando for útil:
 - validação sugerida;
 - decisões relevantes.
 
-Quando a issue já tiver contexto suficiente, ela deve ser a fonte principal da implementação.
+Quando a issue já tiver contexto suficiente, ela deve ser a fonte principal da implementação. A IA deve buscar documentação adicional somente para confirmar regras, contratos, arquitetura ou riscos que afetem a entrega.
 
 Leitura ampla continua adequada quando a tarefa alterar documentação estrutural, processo, requisito, contrato, fluxo, arquitetura, ADR, RFC ou planejamento.
-
-## Modos de trabalho
-
-Use modo econômico para desenvolvimento comum, correções pequenas e tarefas bem descritas.
-
-Use modo automático quando a pessoa usuária quiser delegar consulta de issue, Project, branch, implementação, validação e Pull Request.
-
-O modo automático é mais confortável, mas consome mais contexto porque exige mais leitura, validação e operações no GitHub.
 
 ## Limite saudável
 

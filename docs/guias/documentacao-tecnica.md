@@ -30,29 +30,11 @@ Exemplos:
 - decisões técnicas importantes;
 - provas técnicas e critérios de pronto.
 
-## Estrutura recomendada
+## Estrutura documental
 
-```text
-docs/
-|-- README.md
-|-- produto/
-|-- arquitetura/
-|-- requisitos/
-|-- fluxos/
-|-- interface/
-|-- contratos/
-|-- processos/
-|-- adrs/
-|-- rfcs/
-|-- prototipos/
-|-- release/
-|-- uso/
-`-- planejamento/
-```
+A matriz de pastas fica no [Guia de consulta da documentação](../templates/projeto/docs/guia-da-documentacao.md), que é a fonte única para decidir onde cada assunto deve ser registrado.
 
-Essa estrutura pode ser adaptada conforme o tamanho do projeto.
-
-Projetos pequenos não precisam criar pastas vazias sem uso imediato.
+Use essa estrutura como referência, não como checklist obrigatório. Projetos pequenos não precisam criar pastas vazias sem uso imediato.
 
 Antes de criar um documento novo, responda:
 
@@ -60,24 +42,6 @@ Antes de criar um documento novo, responda:
 - quando ele será consultado;
 - qual decisão ou ação ele ajuda a executar;
 - por que o conteúdo não cabe melhor em um documento existente.
-
-## Uso recomendado das pastas
-
-| Pasta | Uso |
-| --- | --- |
-| `docs/produto/` | Visão, problema, público, escopo inicial e alternativas. |
-| `docs/arquitetura/` | Arquitetura conceitual, módulos e responsabilidades. |
-| `docs/requisitos/` | Capacidades esperadas e requisitos funcionais ou não funcionais. |
-| `docs/fluxos/` | Jornadas e sequências de uso. |
-| `docs/interface/` | Diretrizes visuais, estados de tela e critérios de UX. |
-| `docs/contratos/` | APIs, eventos, arquivos, comandos, entradas e saídas. |
-| `docs/processos/` | Regras locais que complementam o YABook. |
-| `docs/adrs/` | Decisões técnicas aceitas. |
-| `docs/rfcs/` | Propostas ainda em discussão. |
-| `docs/prototipos/` | Provas técnicas, experimentos e validações. |
-| `docs/release/` | Critérios de pronto, release e riscos aceitos. |
-| `docs/uso/` | Manuais e trilhas da pessoa usuária. |
-| `docs/planejamento/` | Etapas macro estáticas, sem status operacional. |
 
 ## Markdown e GitHub
 

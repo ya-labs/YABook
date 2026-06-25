@@ -1,10 +1,12 @@
 # Guia de Consulta da Documentação
 
-Este documento ajuda pessoas e assistentes a localizar rapidamente onde cada assunto do projeto está documentado.
+Este documento é a fonte única para localizar onde cada assunto do projeto deve ser documentado.
 
 Adapte a estrutura conforme o tamanho real do projeto. Não crie pastas vazias sem necessidade.
 
 Se um assunto já está bem explicado em outro documento, atualize o documento existente em vez de criar um novo.
+
+Não repita esta matriz em outros documentos. Aponte para este guia.
 
 ## Leitura rápida recomendada
 
