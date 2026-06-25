@@ -69,9 +69,11 @@ Título objetivo, sem prefixo de tipo.
 Corpo base:
 
 ```md
-## Contexto
+## Resumo rápido
 
-Explique em poucas linhas o objetivo do PR.
+- Objetivo:
+- Entrega:
+- Issue:
 
 Closes #numero
 
@@ -82,7 +84,18 @@ Closes #numero
 ## Observações
 
 - 
+
+<details>
+<summary>Informações para IA</summary>
+
+- Contexto:
+- Validações:
+- Riscos:
+
+</details>
 ```
+
+Use `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
 
 ## Labels
 
@@ -140,9 +153,11 @@ Publicar versão x.y.z
 Descrição base:
 
 ```md
-## Contexto
+## Resumo rápido
 
-Publica a versão x.y.z.
+- Objetivo: publicar a versão x.y.z.
+- Entrega:
+- Issue:
 
 ## O que mudou
 
@@ -155,6 +170,15 @@ Publica a versão x.y.z.
 ## Observações
 
 - 
+
+<details>
+<summary>Informações para IA</summary>
+
+- Contexto:
+- Validações:
+- Riscos:
+
+</details>
 ```
 
 A tag deve apontar para o commit integrado na branch principal.

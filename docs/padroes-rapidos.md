@@ -4,12 +4,14 @@ Este documento resume os padrões operacionais mais usados no dia a dia.
 
 ## Sumário
 
-- [Por que temos padrões](#por-que-temos-padroes)
-- [Como os padrões são feitos](#como-os-padroes-sao-feitos)
-- [Padrão de issue](#padrao-de-issue)
-- [Padrão de branch](#padrao-de-branch)
-- [Padrão de commit](#padrao-de-commit)
-- [Padrão de PR](#padrao-de-pr)
+- [Padrões rápidos da YA LABS](#padrões-rápidos-da-ya-labs)
+  - [Sumário](#sumário)
+  - [Por que temos padrões](#por-que-temos-padrões)
+  - [Como os padrões são feitos](#como-os-padrões-são-feitos)
+  - [Padrão de issue](#padrão-de-issue)
+  - [Padrão de branch](#padrão-de-branch)
+  - [Padrão de commit](#padrão-de-commit)
+  - [Padrão de PR](#padrão-de-pr)
 
 <a id="por-que-temos-padroes"></a>
 
@@ -64,8 +66,24 @@ Estrutura base:
 
 ## Critérios de aceite
 
+-
+ 
+## Observações
+
 - 
+
+<details>
+<summary>Informações para IA</summary>
+
+- Contexto:
+- Validações:
+- Riscos:
+
+</details>
 ```
+
+Use o bloco `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
+
 
 Contexto extra para IA deve ficar em `<details>` apenas quando for necessário.
 
@@ -121,9 +139,11 @@ Closes #numero
 Estrutura base:
 
 ```md
-## Contexto
+## Resumo rápido
 
-Explique em poucas linhas o objetivo do PR.
+- Objetivo:
+- Entrega:
+- Issue:
 
 Closes #numero
 
@@ -134,4 +154,15 @@ Closes #numero
 ## Observações
 
 - 
+
+<details>
+<summary>Informações para IA</summary>
+
+- Contexto:
+- Validações:
+- Riscos:
+
+</details>
 ```
+
+Use o bloco `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.

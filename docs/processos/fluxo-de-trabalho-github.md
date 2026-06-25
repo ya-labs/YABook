@@ -140,9 +140,11 @@ Publicar versão x.y.z
 Descrição recomendada:
 
 ```md
-## Contexto
+## Resumo rápido
 
-Publica a versão x.y.z.
+- Objetivo: publicar a versão x.y.z.
+- Entrega:
+- Issue:
 
 ## O que mudou
 
@@ -157,6 +159,15 @@ Publica a versão x.y.z.
 ## Observações
 
 - Riscos aceitos ou limitações conhecidas.
+
+<details>
+<summary>Informações para IA</summary>
+
+- Contexto:
+- Validações:
+- Riscos:
+
+</details>
 ```
 
 A tag deve ser criada somente depois que a release estiver integrada na branch principal.
