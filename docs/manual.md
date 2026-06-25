@@ -70,6 +70,28 @@ Comandos principais:
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
 
+### Como instalar a skill no agente
+
+A skill versionada fica em:
+
+```text
+skills/yabook/
+```
+
+Para usar em um agente compatível com skills:
+
+1. Copie ou registre a pasta `skills/yabook/` no local de skills do agente.
+2. Recarregue o agente ou inicie uma nova conversa para ele reconhecer a skill.
+3. Teste com:
+
+```text
+$yabook help
+```
+
+Se o agente aceitar referência direta por caminho ou repositório, aponte para `skills/yabook/`.
+
+Não copie o YABook inteiro para dentro do agente. A skill deve carregar o comportamento operacional; a documentação continua no repositório para consulta.
+
 ## Onde consultar padrões
 
 - [Padrões rápidos](padroes-rapidos.md): issue, branch, commit e PR.
