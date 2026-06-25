@@ -26,7 +26,7 @@ Não use o YABook para documentar fatos específicos de um produto.
 2. Preencha o `README.md` do projeto com objetivo, stack, setup e links principais.
 3. Mantenha um `AGENTS.md` com as instruções para IA naquele projeto.
 4. Crie em `docs/` apenas os documentos que fazem sentido para o momento atual.
-5. Declare labels, GitHub Project e responsável padrão por novas issues.
+5. Declare labels, GitHub Project, campo `Size` e responsável padrão por novas issues.
 6. Use o padrão de GitHub do YABook para issue, branch, commit, PR e release.
 
 Não crie pastas vazias nem documentos só para "completar a estrutura".
@@ -40,6 +40,8 @@ Issue -> Branch -> Commit -> Pull Request -> Merge
 ```
 
 Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](padroes-rapidos.md).
+
+Ao criar issues, defina labels e `Size`. `Size` vai de `1` a `5` no GitHub Project e indica o tamanho da tarefa.
 
 Use `main` para documentação inicial, planejamento e prototipagem. Crie `dev` apenas quando começar o desenvolvimento de produto. O fluxo completo de `main`, `dev`, `release/x.y.z` e `archive/dev-x.y.z` fica em [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md).
 
@@ -60,8 +62,11 @@ A skill YABook é a interface operacional para IA usar estes padrões no trabalh
 Comandos principais:
 
 - `$yabook help`: lista os comandos disponíveis.
+- `$yabook load`: carrega os padrões operacionais na conversa atual.
 - `$yabook init`: inicializa o padrão YA LABS no repositório atual.
+- `$yabook create`: cria os artefatos pedidos, como issue, branch, PR, release ou merge.
 - `$yabook issue`: gera título e descrição de issue.
+- `$yabook issue classify`: sugere labels e `Size` para a tarefa.
 - `$yabook pr`: gera título e descrição de Pull Request.
 - `$yabook commit message`: sugere mensagem de commit.
 - `$yabook release`: gera descrição de release.

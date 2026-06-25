@@ -39,6 +39,7 @@ Deve declarar:
 - link para documentação;
 - labels adotadas;
 - GitHub Project;
+- campo `Size` de `1` a `5`;
 - responsável padrão por novas issues;
 - referência ao YABook.
 

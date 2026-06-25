@@ -30,6 +30,22 @@ Concluído
 Ideias futuras
 ```
 
+### Size da issue
+
+`Size` é um campo do GitHub Project para estimar o tamanho da issue. Não é label e não deve aparecer no título.
+
+Toda issue relevante vinculada ao Project deve receber `Size`:
+
+| Size | Uso |
+| --- | --- |
+| `1` | Ajuste rápido, baixo risco e escopo evidente. |
+| `2` | Tarefa pequena, poucos arquivos ou pouca incerteza. |
+| `3` | Tarefa média, exige implementação ou revisão normal. |
+| `4` | Tarefa grande, envolve várias partes, análise relevante ou coordenação. |
+| `5` | Tarefa muito grande, alta incerteza ou candidata a ser quebrada. |
+
+Se a IA sugerir `Size 5`, ela deve sugerir também uma divisão em issues menores.
+
 Use Markdown para conhecimento estável. Use GitHub para backlog, responsáveis, status, milestones, épicos, Pull Requests e progresso operacional.
 
 ## Labels

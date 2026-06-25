@@ -51,6 +51,8 @@ Título objetivo, sem prefixo de tipo.
 
 Use labels para indicar tipo e área.
 
+Use `Size` no GitHub Project para indicar tamanho. Não coloque tamanho no título.
+
 Estrutura base:
 
 ```md
@@ -86,6 +88,8 @@ Use o bloco `Informações para IA` apenas quando houver contexto útil para rev
 
 
 Contexto extra para IA deve ficar em `<details>` apenas quando for necessário.
+
+Se a issue for criada com IA, ela deve sugerir labels e `Size`. Quando sugerir `Size 5`, deve indicar como dividir a tarefa.
 
 <a id="padrao-de-branch"></a>
 

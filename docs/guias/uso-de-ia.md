@@ -87,6 +87,10 @@ Uma issue preparada para IA deve conter primeiro o que uma pessoa precisa ler r�
 - escopo curto;
 - critérios de aceite objetivos.
 
+Ao criar issues, a IA deve sugerir labels, `Size` e Project quando aplicável.
+
+Em lotes de issues, cada issue deve ter labels e `Size`. Se uma issue ficar `Size 5`, a IA deve sugerir quebra em issues menores.
+
 Contexto detalhado para IA deve ficar em `<details>` quando for útil:
 
 - referências documentais;

@@ -14,7 +14,7 @@ Não trabalhe duas issues diferentes na mesma branch.
 
 ## Issues
 
-Título objetivo, sem prefixo de tipo. Use labels para tipo e área.
+Título objetivo, sem prefixo de tipo. Use labels para tipo e área. Use `Size` no Project para tamanho.
 
 Estrutura base:
 
@@ -35,6 +35,8 @@ Estrutura base:
 ```
 
 Use `<details>` apenas quando contexto extra para IA for realmente útil.
+
+Ao criar issues com IA, sugira labels e `Size`. Se sugerir `Size 5`, proponha divisão em issues menores.
 
 ## Branches
 
@@ -131,6 +133,24 @@ Em andamento
 Concluído
 Ideias futuras
 ```
+
+### Size
+
+`Size` é campo do GitHub Project. Não é label e não deve aparecer no título da issue.
+
+| Size | Uso |
+| --- | --- |
+| `1` | Ajuste rápido, baixo risco e escopo evidente. |
+| `2` | Tarefa pequena, poucos arquivos ou pouca incerteza. |
+| `3` | Tarefa média, exige implementação ou revisão normal. |
+| `4` | Tarefa grande, envolve várias partes, análise relevante ou coordenação. |
+| `5` | Tarefa muito grande, alta incerteza ou candidata a ser quebrada. |
+
+Toda issue relevante vinculada ao Project deve receber `Size`.
+
+Se a ferramenta não conseguir preencher `Size` no Project, informe o valor sugerido para preenchimento manual.
+
+Se `Size` for `5`, sugira uma quebra em issues menores.
 
 ## `main`, `dev` e release
 

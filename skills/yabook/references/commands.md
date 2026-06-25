@@ -9,10 +9,13 @@ Responda em português do Brasil, com texto pronto para uso.
 | Comando | Saída |
 | --- | --- |
 | `$yabook help` | Lista curta dos comandos disponíveis. |
+| `$yabook load` | Carrega resumo operacional do YABook para a conversa atual. |
 | `$yabook init` | Inicializa ou adapta o padrão YA LABS no repositório atual. |
+| `$yabook create` | Cria os artefatos pedidos, como issue, branch, PR, release ou merge. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
 | `$yabook issue` | Gera título e descrição completa da issue. |
+| `$yabook issue classify` | Sugere labels, `Size`, justificativa e possível quebra. |
 | `$yabook issue title` | Gera apenas o título da issue. |
 | `$yabook issue desc` | Gera apenas o corpo da issue. |
 | `$yabook branch name` | Sugere branch baseada na issue. |
@@ -24,12 +27,54 @@ Responda em português do Brasil, com texto pronto para uso.
 | `$yabook docs` | Indica onde documentar uma informação. |
 | `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
 
+## `$yabook create`
+
+`$yabook create` é adaptável à solicitação da pessoa usuária.
+
+Aceite artefatos explícitos:
+
+```text
+$yabook create issue
+$yabook create branch
+$yabook create pr
+$yabook create release
+$yabook create issue branch pr
+$yabook create pr merge
+```
+
+Aceite linguagem natural:
+
+```text
+$yabook create uma issue, uma branch e um PR para main
+$yabook create abra um PR e faça merge
+$yabook create só uma issue para essa tarefa
+```
+
+Regras:
+
+- Crie somente o que foi pedido.
+- Não faça merge se a pessoa não pediu merge explicitamente.
+- Antes de criar artefatos, confira `AGENTS.md`, branch atual, issue relacionada, labels, Project e `Size`.
+- Se a ferramenta GitHub não conseguir aplicar Project ou `Size`, entregue o valor sugerido para preenchimento manual.
+- Se o pedido misturar criação e merge, confira destino, status e risco antes.
+
+Por artefato:
+
+- Issue: gerar título, descrição, labels, `Size` e Project quando aplicável.
+- Branch: usar `numero-descricao-curta`; basear em `main` ou `dev` conforme fluxo.
+- PR: usar título objetivo e descrição com `Resumo rápido`, `O que mudou`, `Observações` e `Informações para IA`.
+- Release: usar formato de release do YABook e tags quando aplicável.
+- Merge: executar apenas com pedido explícito e depois de conferir risco.
+
 ## Aliases
 
 | Alias | Comando oficial |
 | --- | --- |
 | `$yabook branch` | `$yabook branch name` |
 | `$yabook commit msg` | `$yabook commit message` |
+| `$yabook classify` | `$yabook issue classify` |
+| `$yabook estimate` | `$yabook issue classify` |
+| `$yabook issue batch` | `$yabook create issues` |
 | `$yabook pr description` | `$yabook pr desc` |
 | `$yabook issue description` | `$yabook issue desc` |
 | `$yabook doc` | `$yabook docs` |
@@ -39,9 +84,12 @@ Responda em português do Brasil, com texto pronto para uso.
 
 - Para `pr`, `pr desc`, `commit message` e `release`, use conversa atual e confirme com Git.
 - Para `issue`, use o pedido do usuário, o escopo descoberto e o padrão de issue.
+- Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
+- Para `create`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `branch name`, use o número da issue quando existir.
 - Para `docs`, leia `documentacao.md`.
 - Para `init`, leia `init.md`.
+- Para `load`, leia `session.md`.
 - Para `check` e `review`, leia `github.md`, `documentacao.md` e `ia.md` conforme o artefato revisado.
 
 ## Formato do help
@@ -50,8 +98,11 @@ Quando o comando for `$yabook help`, responda curto:
 
 ```text
 Comandos principais:
+- $yabook load: carrega os padrões na conversa atual.
 - $yabook init: inicializa o padrão YA LABS no repo.
+- $yabook create: cria issue, branch, PR, release ou merge conforme pedido.
 - $yabook issue: gera título e descrição da issue.
+- $yabook issue classify: sugere labels e Size.
 - $yabook pr: gera título e descrição do PR.
 - $yabook commit message: sugere mensagem de commit.
 - $yabook release: gera descrição de release.

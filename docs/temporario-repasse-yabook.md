@@ -85,8 +85,11 @@ Explique que a skill reduz orientação repetida para IA.
 Comandos principais:
 
 - `$yabook help`;
+- `$yabook load`;
 - `$yabook init`;
+- `$yabook create`;
 - `$yabook issue`;
+- `$yabook issue classify`;
 - `$yabook branch name`;
 - `$yabook commit message`;
 - `$yabook pr`;
@@ -103,15 +106,19 @@ Peça para a pessoa executar este cenário em um projeto de teste:
 1. Ler o `README.md` e o `AGENTS.md` do projeto.
 2. Identificar se o projeto segue o YABook.
 3. Criar uma issue para uma pequena melhoria documental.
-4. Sugerir o nome da branch.
-5. Sugerir a mensagem de commit.
-6. Montar uma descrição de PR.
-7. Dizer onde a melhoria deveria ser documentada.
+4. Classificar labels e `Size` da issue.
+5. Sugerir o nome da branch.
+6. Sugerir a mensagem de commit.
+7. Montar uma descrição de PR.
+8. Dizer onde a melhoria deveria ser documentada.
 
 Se a skill estiver disponível, peça para testar:
 
 ```text
+$yabook load
 $yabook issue
+$yabook issue classify
+$yabook create issue branch pr
 $yabook branch name
 $yabook commit message
 $yabook pr

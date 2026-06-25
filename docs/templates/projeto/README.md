@@ -81,8 +81,9 @@ Remova as labels que não fizerem sentido para o projeto. Não crie variações 
 ### GitHub Project e responsável
 
 - GitHub Project:
+- Campo `Size`: `1` a `5`
 - Responsável padrão por novas issues:
 
-Em projetos da YA LABS, novas issues devem ser vinculadas ao GitHub Project aplicável e atribuídas ao usuário solicitante, salvo orientação diferente.
+Em projetos da YA LABS, novas issues devem ser vinculadas ao GitHub Project aplicável, receber `Size` e ser atribuídas ao usuário solicitante, salvo orientação diferente.
 
 Consulte o YABook para o padrão completo de issues, labels, branches, commits, PRs e releases.
