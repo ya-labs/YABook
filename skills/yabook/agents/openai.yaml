@@ -1,0 +1,7 @@
+interface:
+  display_name: "YABook"
+  short_description: "Padrões YA LABS para GitHub, docs e IA"
+  default_prompt: "Use $yabook para aplicar os padrões YA LABS em issues, PRs, commits, documentação e releases."
+
+policy:
+  allow_implicit_invocation: true

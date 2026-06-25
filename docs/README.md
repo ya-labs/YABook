@@ -6,13 +6,14 @@ Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 
 | Intenção | Leia |
 | --- | --- |
-| Entender como usar o YABook em um projeto | [Primeiros passos](primeiros-passos.md) |
+| Entender como usar o YABook em um projeto | [Manual de uso](manual.md) |
 | Consultar os padrões mais usados rapidamente | [Padrões rápidos](padroes-rapidos.md) |
 | Criar issue, branch, commit, PR ou release | [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md) |
 | Conduzir um projeto da descoberta até release | [Condução de projetos](processos/conducao-de-projetos.md) |
 | Usar IA sem perder padrão e rastreabilidade | [Uso de IA](guias/uso-de-ia.md) |
 | Organizar documentação técnica | [Documentação técnica](guias/documentacao-tecnica.md) |
 | Criar um projeto novo com base YA LABS | [Template base de projeto](templates/projeto/README.md) |
+| Usar comandos YABook com IA | [Skill YABook](../skills/yabook/SKILL.md) |
 
 ## Templates úteis
 

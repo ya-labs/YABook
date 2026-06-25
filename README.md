@@ -13,11 +13,13 @@ Use este repositório para responder rapidamente:
 
 Se você nunca usou o YABook, comece por:
 
-1. [Primeiros passos](docs/primeiros-passos.md)
+1. [Manual de uso](docs/manual.md)
 2. [Padrões rápidos](docs/padroes-rapidos.md)
 3. [Documentação do YABook](docs/README.md)
 4. [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md)
 5. [Uso de IA](docs/guias/uso-de-ia.md)
+
+Para uso com agentes de IA, consulte também a [skill YABook](skills/yabook/SKILL.md).
 
 ## Como usar em projetos
 
