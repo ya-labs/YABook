@@ -1,51 +1,72 @@
 # YABook - Handbook da YA LABS
 
-O YABook reúne os padrões reutilizáveis da YA LABS para documentação, GitHub, uso de IA e condução de projetos.
+O YABook é o manual operacional da YA LABS para criar, documentar e evoluir projetos com o mesmo padrão de trabalho.
 
-Use este repositório para responder rapidamente:
+Ele existe para reduzir improviso: pessoas e agentes de IA passam a seguir o mesmo contrato para documentação, GitHub, issues, branches, commits, Pull Requests, releases e organização do projeto.
 
-- como iniciar um projeto seguindo o padrão da YA LABS;
-- como criar issues, branches, commits, Pull Requests e releases;
-- como orientar assistentes de IA sem deixar que inventem padrões;
-- como organizar documentação técnica sem criar burocracia.
+## O que o YABook entrega
 
-## Leitura inicial
+- Um padrão único para condução de tarefas no GitHub.
+- Um modelo objetivo para issues, PRs, commits, branches e releases.
+- Uma estrutura de documentação reutilizável para novos projetos.
+- Orientações para usar IA sem deixar que o agente invente formatos.
+- Uma skill `$yabook` para gerar, revisar e validar artefatos do fluxo.
+- Critérios para manter documentação curta, útil e fácil de consultar.
 
-Se você nunca usou o YABook, comece por:
+## Para quem é
+
+Use o YABook quando você precisa:
+
+- iniciar um projeto seguindo o padrão da YA LABS;
+- criar ou revisar issues, PRs, commits, branches e releases;
+- orientar uma IA a trabalhar de forma consistente no repositório;
+- organizar documentação técnica sem transformar o projeto em um arquivo morto;
+- ensinar alguém novo a trabalhar dentro do fluxo da organização.
+
+## Comece por aqui
+
+Se você nunca usou o YABook, leia nesta ordem:
 
 1. [Manual de uso](docs/manual.md)
 2. [Padrões rápidos](docs/padroes-rapidos.md)
-3. [Documentação do YABook](docs/README.md)
-4. [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md)
-5. [Uso de IA](docs/guias/uso-de-ia.md)
+3. [Skill YABook](skills/yabook/SKILL.md)
+4. [Documentação do YABook](docs/README.md)
+5. [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md)
+6. [Uso de IA](docs/guias/uso-de-ia.md)
 
-Para uso com agentes de IA, consulte também a [skill YABook](skills/yabook/SKILL.md).
-
-## Como usar em projetos
+## Como aplicar em um projeto
 
 Cada projeto deve manter sua própria documentação no repositório do produto. O YABook define o padrão; o projeto guarda os fatos reais.
 
-Fica no YABook:
+Use o YABook como base para:
 
-- processo de trabalho;
-- padrão de issue, branch, commit, PR e release;
-- orientação para IA;
-- templates de projeto;
-- boas práticas de documentação.
+- montar a documentação inicial do projeto;
+- configurar o `AGENTS.md` local;
+- orientar a IA sobre o padrão da YA LABS;
+- criar issues com labels, Project e Size;
+- manter rastreabilidade entre issue, branch, commit, PR e release.
 
-Fica no projeto:
+## O que fica aqui
 
-- objetivo do produto;
-- stack e setup reais;
-- arquitetura real;
-- endpoints e contratos reais;
-- variáveis de ambiente;
-- deploy;
-- integrações;
-- decisões específicas.
+- Processos de trabalho da YA LABS.
+- Padrões de GitHub.
+- Guias de documentação.
+- Contratos de uso de IA.
+- Templates para novos projetos.
+- Skill `$yabook`.
+
+## O que fica no projeto
+
+- Objetivo real do produto.
+- Stack, setup e comandos reais.
+- Arquitetura real.
+- Endpoints, contratos e integrações.
+- Variáveis de ambiente.
+- Deploy.
+- Decisões específicas do produto.
 
 ## Regra prática
 
-Antes de criar estrutura nova em um projeto da YA LABS, consulte o YABook e o `AGENTS.md` local.
+Antes de criar estrutura nova em um projeto da YA LABS, consulte o YABook, carregue a skill quando disponível e verifique o `AGENTS.md` local.
 
 Se o projeto precisar fugir do padrão, registre a exceção no próprio projeto.
