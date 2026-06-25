@@ -13,7 +13,8 @@ Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 | Usar IA sem perder padrão e rastreabilidade | [Uso de IA](guias/uso-de-ia.md) |
 | Organizar documentação técnica | [Documentação técnica](guias/documentacao-tecnica.md) |
 | Criar um projeto novo com base YA LABS | [Template base de projeto](templates/projeto/README.md) |
-| Usar comandos YABook com IA | [Skill YABook](../skills/yabook/SKILL.md) |
+| Usar comandos YABook com IA | [Manual de uso](manual.md) |
+| Entender como a skill YABook funciona | [Guia técnico da skill YABook](guias/skill-yabook.md) |
 
 ## Templates úteis
 

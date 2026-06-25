@@ -29,7 +29,7 @@ Se você nunca usou o YABook, leia nesta ordem:
 
 1. [Manual de uso](docs/manual.md)
 2. [Padrões rápidos](docs/padroes-rapidos.md)
-3. [Skill YABook](skills/yabook/SKILL.md)
+3. [Guia técnico da skill YABook](docs/guias/skill-yabook.md)
 4. [Documentação do YABook](docs/README.md)
 5. [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md)
 6. [Uso de IA](docs/guias/uso-de-ia.md)

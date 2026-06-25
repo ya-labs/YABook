@@ -75,6 +75,34 @@ Comandos principais:
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
 
+Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
+
+### Como usar `$yabook create`
+
+Use `$yabook create` quando quiser que a IA execute uma ação do fluxo, não apenas gere texto.
+
+O comando entende pedidos diretos e pedidos em linguagem natural. Ele deve considerar a conversa atual, a branch, o estado do Git e a issue relacionada quando existir.
+
+Exemplos:
+
+```text
+$yabook create issue
+$yabook create issue branch pr
+$yabook create pr merge
+$yabook create uma issue para essa tarefa
+$yabook create uma issue, uma branch e um PR para main
+$yabook create abra um PR e faça merge
+```
+
+Regras principais:
+
+- cria somente o que foi pedido;
+- não faz merge sem pedido explícito;
+- usa labels e `Size` ao criar ou classificar issues;
+- usa branch no formato `numero-descricao-curta`;
+- usa o contexto das alterações atuais para PR, commit e release;
+- informa valores manuais quando não conseguir aplicar Project ou `Size` pela ferramenta.
+
 ### Como instalar a skill no agente
 
 A skill versionada fica em:
