@@ -27,6 +27,8 @@ Issue -> Branch -> Commit -> Pull Request -> Merge
 
 Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](padroes-rapidos.md).
 
+Use `main` para documentação inicial, planejamento e prototipagem. Crie `dev` apenas quando começar o desenvolvimento de produto. O fluxo completo de `main`, `dev`, `release/x.y.z` e `archive/dev-x.y.z` fica em [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md).
+
 ## Como orientar a IA
 
 Antes de pedir execução para IA, garanta que ela consulte:

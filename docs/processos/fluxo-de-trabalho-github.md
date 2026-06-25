@@ -69,16 +69,66 @@ Neste fluxo:
 - Pull Request explica o que mudou e vincula a issue;
 - merge integra o trabalho revisado.
 
-## Releases
+## Branches `main`, `dev` e `release`
 
-Use release quando houver uma versão consolidada para publicação ou validação.
+Use esta seção para decidir quando trabalhar direto na `main`, quando criar `dev` e quando usar `release/x.y.z`.
 
-Nem todo projeto precisa de branch `dev` desde o começo. Adote branch de desenvolvimento quando houver implementação ativa, trabalho paralelo ou necessidade de proteger a branch principal.
+`main` é a branch estável do projeto. Ela deve representar conteúdo publicado, pronto para release ou pronto para virar tag.
+
+Não crie `dev` durante documentação inicial, planejamento, prototipagem exploratória ou provas técnicas que ainda não serão produto.
+
+Nessas fases, use:
+
+```text
+main -> branch da issue -> Pull Request para main
+```
+
+Crie `dev` quando começar o desenvolvimento de produto:
+
+- código que deve entrar em uma versão;
+- mais de uma issue de implementação no mesmo ciclo;
+- necessidade de integrar várias tarefas antes de publicar;
+- necessidade de manter `main` estável enquanto o ciclo ainda está em andamento.
+
+`dev` representa o ciclo atual de desenvolvimento. Ela não deve ser tratada como branch permanente do projeto.
+
+Durante o ciclo:
+
+```text
+main -> dev
+dev -> branch da issue
+branch da issue -> Pull Request para dev
+```
+
+### Publicação direta a partir de `dev`
+
+Quando `dev` já estiver validada e não precisar de revisão adicional por analista, homologação ou ajuste final, abra Pull Request de `dev` para `main`.
+
+Depois do merge em `main`:
+
+1. Crie a tag da versão em `main`.
+2. Encerre a `dev` do ciclo.
+3. Crie uma nova `dev` a partir da `main` para o próximo ciclo, se houver novo desenvolvimento.
+
+Se o merge para `main` for feito com squash and merge, não continue usando a mesma `dev`. Como os commits originais não entram na `main` com os mesmos hashes, eles podem reaparecer em Pull Requests futuros.
+
+### Branch de release
+
+Use `release/x.y.z` quando a versão ainda precisar passar por revisão, homologação ou ajustes finais antes de entrar na `main`.
 
 Padrão de branch de release:
 
 ```text
 release/x.y.z
+```
+
+Fluxo:
+
+```text
+dev -> release/x.y.z
+release/x.y.z -> ajustes finais
+release/x.y.z -> Pull Request para main
+main -> tag vx.y.z
 ```
 
 Título de PR de release:
@@ -110,6 +160,24 @@ Publica a versão x.y.z.
 ```
 
 A tag deve ser criada somente depois que a release estiver integrada na branch principal.
+
+### Arquivamento de `dev`
+
+Depois que uma versão for publicada, a fonte oficial da versão é `main` com a tag `vx.y.z`.
+
+Se o time quiser preservar a branch de integração daquele ciclo, arquive a `dev` antiga antes de criar a próxima:
+
+```text
+archive/dev-x.y.z
+```
+
+Exemplo:
+
+```text
+archive/dev-1.0.0
+```
+
+Esse arquivamento é opcional. Use quando for útil consultar a integração do ciclo depois da publicação.
 
 ## Orientação para IA
 

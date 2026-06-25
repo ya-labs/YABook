@@ -132,15 +132,13 @@ Não crie branch permanente de documentação. Cada lote deve ter começo, fim e
 
 ## Branch de desenvolvimento e release
 
-Nem todo projeto precisa de branch `dev` desde o começo.
+Nem todo projeto precisa de branch `dev` desde o começo. Em documentação inicial, planejamento e prototipagem, trabalhe com branch de issue a partir da `main`.
 
-Adote branch de desenvolvimento quando houver pelo menos dois sinais:
+Adote `dev` quando começar o desenvolvimento de produto e houver necessidade de integrar issues antes de publicar uma versão.
 
-- implementação ativa além de documentação;
-- trabalho paralelo com risco de conflito;
-- necessidade de manter a branch principal apenas com conteúdo pronto para release.
+`dev` representa o ciclo atual, não uma branch permanente. Depois da release, crie uma nova `dev` a partir da `main`. Se precisar preservar o ciclo anterior, arquive como `archive/dev-x.y.z`.
 
-Use branch `release/x.y.z` quando existir uma versão candidata consolidada.
+Use `release/x.y.z` apenas quando a versão precisar de revisão, homologação ou ajustes finais antes de entrar na `main`.
 
 A tag deve apontar para o commit integrado na branch principal que representa a versão publicada.
 
