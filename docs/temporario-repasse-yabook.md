@@ -1,173 +1,302 @@
 # Roteiro temporário de repasse do YABook
 
-Este documento é temporário. Use para testar o repasse do YABook com uma pessoa nova no padrão YA LABS.
+Este documento é temporário. Use para apresentar o YABook ao Marco e validar se uma pessoa nova consegue entender o padrão sem explicação longa.
 
-## Objetivo do teste
+## Objetivo da apresentação
 
-Validar se uma pessoa consegue entender e aplicar o YABook em um projeto real sem depender de explicação longa.
+Mostrar que o YABook é o manual operacional da YA LABS para manter projetos, documentação, GitHub e IA trabalhando no mesmo padrão.
 
-Ao final, a pessoa deve conseguir:
+Ao final, o Marco deve entender:
 
-- explicar o que é o YABook;
-- saber quando consultar o YABook;
-- entender o fluxo Issue -> Branch -> Commit -> Pull Request -> Merge;
-- criar ou revisar uma issue no padrão;
-- entender onde documentar informações de projeto;
-- usar a skill `$yabook` como apoio operacional.
+- o que é o YABook;
+- quando consultar o YABook;
+- o que fica no YABook e o que fica no projeto;
+- como funciona o fluxo Issue -> Branch -> Commit -> Pull Request -> Merge;
+- como criar ou revisar issues com labels e `Size`;
+- como usar a skill `$yabook` para reduzir orientação repetida à IA;
+- onde encontrar os padrões sem ler o repositório inteiro.
+
+## O que mudou nesta rodada
+
+- O [README principal](../README.md) virou uma apresentação do YABook: o que ele entrega, para quem serve e como começar.
+- O antigo primeiros passos virou [Manual de uso](manual.md), com jornada humana objetiva.
+- O manual agora explica melhor o `$yabook create`, incluindo pedidos em linguagem natural.
+- Foi criado o [Guia técnico da skill YABook](guias/skill-yabook.md), explicando arquitetura, comandos, limites e manutenção.
+- A skill foi criada em `skills/yabook/` com referências curtas para GitHub, documentação, IA, init e sessão.
+- Foi criado o comando `$yabook load` para carregar o resumo operacional na conversa atual.
+- Foi criado o comando `$yabook create`, adaptável ao que a pessoa pedir.
+- Foi criado o comando `$yabook issue classify` para sugerir labels e `Size`.
+- `Size` foi documentado como campo do GitHub Project, não como label.
+- PRs agora seguem o mesmo espírito das issues: resumo rápido para humano e informações extras para IA quando necessário.
+- A documentação foi reorganizada para evitar repetição: cada assunto deve ter uma fonte principal.
 
 ## Preparação
 
 Antes da conversa, deixe aberto:
 
+- [README principal](../README.md);
 - [Manual de uso](manual.md);
 - [Padrões rápidos](padroes-rapidos.md);
 - [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md);
-- [Skill YABook](../skills/yabook/SKILL.md);
+- [Guia técnico da skill YABook](guias/skill-yabook.md);
 - um projeto real ou repositório de teste.
 
-Explique que o YABook não é documentação de produto. Ele é o padrão organizacional da YA LABS.
+Se for testar no Codex local, a skill já foi instalada em:
+
+```text
+/home/nmachado/.codex/skills/yabook
+```
+
+Depois de instalar ou atualizar a skill, reinicie o agente para ela aparecer na lista de skills disponíveis.
 
 ## Roteiro sugerido
 
-### 1. Explicar o papel do YABook
+### 1. Apresentar o YABook pelo README
 
-Fale em termos simples:
+Abra o [README principal](../README.md) e explique:
 
-> O YABook define como a YA LABS organiza documentação, issues, branches, commits, PRs, releases e uso de IA. Cada projeto guarda seus fatos reais; o YABook guarda o padrão reutilizável.
+> O YABook é o manual operacional da YA LABS. Ele define o padrão reutilizável para documentação, GitHub, uso de IA e condução de projetos.
 
 Reforce:
 
-- YABook é padrão organizacional;
-- documentação específica fica no projeto;
-- exceções ao padrão devem ficar explícitas no projeto.
+- o YABook não é documentação de um produto específico;
+- cada projeto guarda seus fatos reais;
+- o YABook guarda o padrão que todos os projetos devem seguir;
+- a ideia é reduzir improviso e retrabalho com IA.
 
-### 2. Mostrar o manual
+### 2. Mostrar a jornada humana no manual
 
 Abra [Manual de uso](manual.md) e mostre:
 
+- o que é;
 - quando usar;
 - como aplicar em projeto novo;
 - uso no dia a dia;
 - uso com IA;
+- uso com a skill;
 - onde consultar padrões.
 
-Não leia o documento inteiro. Mostre como encontrar a resposta certa rápido.
+Não leia tudo. A ideia é mostrar que o manual responde “por onde começo?”.
 
 ### 3. Mostrar os padrões rápidos
 
-Abra [Padrões rápidos](padroes-rapidos.md) e mostre:
+Abra [Padrões rápidos](padroes-rapidos.md) e destaque:
 
-- padrão de issue;
-- padrão de branch;
-- padrão de commit;
-- padrão de PR.
+- issue tem título objetivo;
+- labels indicam tipo e área;
+- `Size` indica tamanho no GitHub Project;
+- branch usa `numero-descricao-curta`;
+- commit usa `tipo: descrição curta`;
+- PR tem título objetivo e descrição curta para humano.
 
-Explique a ideia principal:
+Resumo para falar:
 
-> Labels indicam tipo e área. Branch e PR não repetem isso.
+> O padrão evita repetir informação. Tipo e área ficam nas labels; número da issue fica na branch; contexto longo vai para seção própria quando ajuda a IA.
 
-### 4. Mostrar o fluxo GitHub
+### 4. Explicar `Size`
+
+Explique que `Size` é um campo do GitHub Project:
+
+| Size | Significado |
+| --- | --- |
+| `1` | Ajuste rápido, baixo risco e escopo evidente. |
+| `2` | Tarefa pequena, poucos arquivos ou pouca incerteza. |
+| `3` | Tarefa média, exige implementação ou revisão normal. |
+| `4` | Tarefa grande, envolve várias partes ou análise relevante. |
+| `5` | Tarefa muito grande, alta incerteza ou candidata a ser quebrada. |
+
+Regra importante:
+
+> Se a IA sugerir `Size 5`, ela deve sugerir divisão em issues menores.
+
+### 5. Mostrar o fluxo GitHub
 
 Abra [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md) e mostre:
 
-- labels oficiais;
+- labels oficiais da YA LABS;
+- Project e `Size`;
 - quando usar `main`;
 - quando criar `dev`;
 - quando usar `release/x.y.z`;
-- por que `dev` é branch de ciclo, não permanente.
+- quando arquivar `dev` como `archive/dev-x.y.z`.
 
-Não aprofunde tudo. O foco é a pessoa saber onde consultar.
+Mensagem principal:
 
-### 5. Mostrar a skill
+> `main` é estável. `dev` só aparece quando começa desenvolvimento de produto. `dev` representa um ciclo, não uma branch eterna.
 
-Explique que a skill reduz orientação repetida para IA.
+### 6. Apresentar a skill YABook
 
-Comandos principais:
+Explique:
 
-- `$yabook help`;
-- `$yabook load`;
-- `$yabook init`;
-- `$yabook create`;
-- `$yabook issue`;
-- `$yabook issue classify`;
-- `$yabook branch name`;
-- `$yabook commit message`;
-- `$yabook pr`;
-- `$yabook release`;
-- `$yabook check`;
-- `$yabook docs`.
+> A documentação é a fonte humana. A skill é a interface operacional para a IA aplicar o padrão sem eu precisar explicar tudo de novo.
 
-Explique que a skill usa o YABook como referência, mas ainda precisa conferir o contexto real do repositório.
-
-## Exercício prático
-
-Peça para a pessoa executar este cenário em um projeto de teste:
-
-1. Ler o `README.md` e o `AGENTS.md` do projeto.
-2. Identificar se o projeto segue o YABook.
-3. Criar uma issue para uma pequena melhoria documental.
-4. Classificar labels e `Size` da issue.
-5. Sugerir o nome da branch.
-6. Sugerir a mensagem de commit.
-7. Montar uma descrição de PR.
-8. Dizer onde a melhoria deveria ser documentada.
-
-Se a skill estiver disponível, peça para testar:
+Mostre que a skill fica em:
 
 ```text
-$yabook load
-$yabook issue
-$yabook issue classify
-$yabook create issue branch pr
-$yabook branch name
-$yabook commit message
-$yabook pr
-$yabook docs
-$yabook check
+skills/yabook/
 ```
+
+Mostre também o [Guia técnico da skill YABook](guias/skill-yabook.md) para explicar como ela funciona por dentro.
+
+## Comandos principais para demonstrar
+
+Use estes comandos em um repositório de teste.
+
+### `$yabook help`
+
+Mostra a lista curta de comandos.
+
+### `$yabook load`
+
+Carrega o resumo operacional do YABook na conversa atual.
+
+Use para reduzir buscas repetidas durante a mesma conversa.
+
+### `$yabook issue`
+
+Gera título e descrição completa de issue.
+
+Deve ser objetivo e evitar validações genéricas.
+
+### `$yabook issue classify`
+
+Sugere:
+
+- labels;
+- `Size`;
+- justificativa curta;
+- confiança;
+- quebra em issues menores quando for `Size 5`.
+
+### `$yabook create`
+
+É o comando adaptável.
+
+Ele entende pedido direto:
+
+```text
+$yabook create issue
+$yabook create issue branch pr
+$yabook create pr merge
+```
+
+E também linguagem natural:
+
+```text
+$yabook create uma issue para essa tarefa
+$yabook create uma issue, uma branch e um PR para main
+$yabook create abra um PR e faça merge
+```
+
+Regras para explicar:
+
+- cria somente o que foi pedido;
+- entende o contexto da conversa e do Git;
+- confere branch, issue e alterações quando necessário;
+- não faz merge sem pedido explícito;
+- se não conseguir preencher Project ou `Size`, informa o valor para preenchimento manual.
+
+### `$yabook pr`
+
+Gera título e descrição completa do PR.
+
+Modelo esperado:
+
+- `Resumo rápido`;
+- `O que mudou`;
+- `Observações`;
+- `Informações para IA`, apenas quando houver contexto útil.
+
+### `$yabook commit message`
+
+Sugere mensagem de commit com base no diff atual.
+
+Padrão:
+
+```text
+tipo: descrição curta
+```
+
+### `$yabook docs`
+
+Indica onde documentar uma informação.
+
+Use para evitar criar documento novo sem necessidade.
+
+## Exercício prático com Marco
+
+Use um projeto real ou repo de teste e peça para ele executar:
+
+1. Abrir `README.md` e `AGENTS.md` do projeto.
+2. Identificar se o projeto segue o YABook.
+3. Rodar `$yabook load`.
+4. Descrever uma pequena melhoria.
+5. Rodar `$yabook issue`.
+6. Rodar `$yabook issue classify`.
+7. Rodar `$yabook create issue`.
+8. Sugerir branch com `$yabook branch name`.
+9. Simular uma alteração pequena.
+10. Pedir `$yabook commit message`.
+11. Pedir `$yabook pr`.
+12. Pedir `$yabook check`.
+
+Se quiser testar o create completo:
+
+```text
+$yabook create uma issue, uma branch e um PR para essa melhoria
+```
+
+O ponto do teste é observar se a IA cria só o que foi pedido e se aplica labels, Project e `Size` corretamente.
 
 ## Perguntas para validar entendimento
 
-Use estas perguntas no final:
-
+- O que o YABook resolve?
 - O que fica no YABook e o que fica no projeto?
-- Por que o título da issue não precisa ter tipo?
+- Por que issue não precisa de tipo no título?
+- Onde entram labels, Project e `Size`?
 - Por que a branch começa com número da issue?
 - Quando devo criar `dev`?
 - Quando uso `release/x.y.z`?
-- O que faço se o projeto precisar fugir do padrão?
+- O que muda quando uso `$yabook load`?
+- O que o `$yabook create` pode criar?
 - Quando a IA deve ler documentação ampla?
-- Quando a issue deve ser suficiente para executar?
+- O que fazer se o projeto precisar fugir do padrão?
 
 ## Critérios de sucesso
 
-O repasse funcionou se a pessoa conseguir:
+O repasse funcionou se o Marco conseguir:
 
-- encontrar sozinha o documento certo;
-- explicar o fluxo de trabalho sem decorar tudo;
+- explicar o YABook em poucas frases;
+- encontrar sozinho o documento certo;
 - criar uma issue curta e objetiva;
-- sugerir branch e commit no padrão;
-- evitar criar documentação genérica;
-- entender que a IA deve consultar o YABook sem copiar o handbook inteiro para a conversa.
+- classificar labels e `Size`;
+- sugerir branch, commit e PR no padrão;
+- usar `$yabook create` sem esperar que ele faça etapas não pedidas;
+- entender que a skill não substitui leitura do repositório;
+- evitar documentação genérica ou duplicada.
 
 ## Pontos para observar
 
 Durante o teste, anote:
 
-- onde a pessoa travou;
-- quais documentos ficaram confusos;
-- quais comandos da skill foram naturais;
-- quais comandos ficaram ambíguos;
-- quais trechos pareceram longos demais;
-- o que precisou de explicação oral para fazer sentido.
+- onde ele travou;
+- se o README vende bem a ideia;
+- se o manual responde rápido;
+- se `Size` ficou claro;
+- se `$yabook create` ficou natural;
+- se algum comando ficou ambíguo;
+- se a IA insistiu em reler o YABook mesmo após `$yabook load`;
+- o que ainda precisou de explicação oral.
 
 ## Ajustes depois do teste
 
 Depois do repasse, revisar:
 
-- se o [Manual de uso](manual.md) está claro o bastante;
+- se o [README principal](../README.md) apresenta bem o YABook;
+- se o [Manual de uso](manual.md) está claro para uma pessoa nova;
 - se [Padrões rápidos](padroes-rapidos.md) resolve a consulta do dia a dia;
-- se a skill cobre os comandos que a pessoa tentou usar;
+- se o [Guia técnico da skill](guias/skill-yabook.md) explica bem a mecânica;
+- se a skill cobre os comandos que o Marco tentou usar;
 - se algum trecho do YABook ainda força explicação oral demais.
 
 Este documento pode ser removido ou convertido em guia oficial depois do teste.
