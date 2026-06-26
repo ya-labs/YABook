@@ -31,7 +31,7 @@ Common commands:
 - `$yabook help`
 - `$yabook load`
 - `$yabook init`
-- `$yabook create`
+- `$yabook do`
 - `$yabook status`
 - `$yabook check`
 - `$yabook issue`
@@ -44,6 +44,8 @@ Common commands:
 - `$yabook review`
 
 Use aliases listed in `commands.md` when the user writes a shorter variant.
+
+Support chained commands with `&`, for example `$yabook init & load & commit msg`. Execute each segment from left to right, reuse context collected by earlier segments, and keep the response grouped and concise.
 
 ## References
 
@@ -64,7 +66,7 @@ When the session is loaded in the current conversation:
 - do not re-read `github.md` or `session.md` for `issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, or `status`;
 - still inspect Git state and `git diff` when the artifact depends on the current change;
 - still read `AGENTS.md` during load and apply local overrides over generic YABook rules;
-- re-read other references only for `init`, `docs`, `check`, `review`, `create`, or when context is incomplete.
+- re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns
 
@@ -101,7 +103,7 @@ For commands that depend on current work, inspect:
 
 For GitHub operations, inspect existing issue, PR, labels, Project, and repository conventions when tools are available.
 
-For `$yabook create`, create only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
+For `$yabook do`, create or execute only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
 
 Do not invent facts. When context is missing, state the assumption or ask for the missing decision.
 
@@ -112,3 +114,4 @@ Do not invent facts. When context is missing, state the assumption or ask for th
 - Put long AI context in `<details>` only when it materially helps execution.
 - Do not add validation sections to issues unless they change execution or review.
 - Always keep traceability: Issue -> Branch -> Commit -> Pull Request -> Merge.
+- When working in a repository that follows YABook and you changed files, end the final response with a suggested commit message for those changes.

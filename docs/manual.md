@@ -55,6 +55,8 @@ Antes de pedir execução para IA, garanta que ela consulte:
 
 A IA deve avisar antes de criar padrão novo, mudar fluxo de trabalho ou agir fora do YABook.
 
+Quando a IA alterar arquivos em um projeto que segue YABook, ela deve terminar a resposta sugerindo a mensagem de commit para a alteração.
+
 ## Uso com a skill YABook
 
 A skill YABook é a interface operacional para IA usar estes padrões no trabalho diário.
@@ -64,7 +66,7 @@ Comandos principais:
 - `$yabook help`: lista os comandos disponíveis.
 - `$yabook load`: carrega os padrões operacionais na conversa atual.
 - `$yabook init`: inicializa o padrão YA LABS no repositório atual.
-- `$yabook create`: cria os artefatos pedidos, como issue, branch, PR, release ou merge.
+- `$yabook do`: executa os artefatos pedidos, como issue, branch, PR, release ou merge.
 - `$yabook issue`: gera título e descrição de issue.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
 - `$yabook pr`: gera título e descrição de Pull Request.
@@ -77,21 +79,56 @@ Use a skill para reduzir orientação repetida. A documentação continua sendo 
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 
-### Como usar `$yabook create`
+### Como usar `$yabook load`
 
-Use `$yabook create` quando quiser que a IA execute uma ação do fluxo, não apenas gere texto.
+Use `$yabook load` no início de uma conversa em que a IA vai trabalhar seguindo o YABook.
+
+O comando carrega um cache operacional para a conversa atual. Esse cache inclui os padrões mais usados de issue, branch, commit, PR, release, labels, `Size` e rastreabilidade.
+
+Durante o load, a IA deve:
+
+1. ler o cache da skill;
+2. ler o `AGENTS.md` do repositório atual, se existir;
+3. conferir branch e estado do Git;
+4. responder com um resumo curto do padrão carregado.
+
+Depois disso, para comandos rotineiros como `$yabook issue`, `$yabook issue classify`, `$yabook branch name`, `$yabook commit message`, `$yabook pr`, `$yabook release` e `$yabook status`, a IA deve usar o cache carregado sem reler os arquivos do YABook toda vez.
+
+Mesmo após o load, a IA ainda deve consultar o repositório quando precisar entender alterações reais, validar GitHub, executar `$yabook do`, revisar conformidade ou resolver dúvida que o cache não cobre.
+
+O load vale apenas para a conversa atual. Em uma nova conversa, execute `$yabook load` novamente.
+
+### Como encadear comandos
+
+Use `&` para pedir vários comandos YABook na mesma mensagem.
+
+Exemplos:
+
+```text
+$yabook init & load & commit msg
+$yabook load & status & commit message
+$yabook load & issue classify & branch name
+```
+
+A IA deve executar da esquerda para a direita, reaproveitar o contexto entre os comandos e responder em blocos curtos.
+
+Se `load` aparecer no encadeamento, o cache carregado passa a valer para os comandos seguintes.
+
+### Como usar `$yabook do`
+
+Use `$yabook do` quando quiser que a IA execute uma ação do fluxo, não apenas gere texto.
 
 O comando entende pedidos diretos e pedidos em linguagem natural. Ele deve considerar a conversa atual, a branch, o estado do Git e a issue relacionada quando existir.
 
 Exemplos:
 
 ```text
-$yabook create issue
-$yabook create issue branch pr
-$yabook create pr merge
-$yabook create uma issue para essa tarefa
-$yabook create uma issue, uma branch e um PR para main
-$yabook create abra um PR e faça merge
+$yabook do issue
+$yabook do issue branch pr
+$yabook do pr merge
+$yabook do uma issue para essa tarefa
+$yabook do uma issue, uma branch e um PR para main
+$yabook do abra um PR e faça merge
 ```
 
 Regras principais:

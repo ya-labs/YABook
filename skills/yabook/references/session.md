@@ -231,6 +231,20 @@ Para esses comandos, use:
 3. contexto da conversa;
 4. estado do Git quando o artefato depender da alteração atual.
 
+Em comandos encadeados com `&`, se um dos trechos for `load`, este cache passa a valer para os trechos seguintes.
+
+Exemplo:
+
+```text
+$yabook init & load & commit msg
+```
+
+Nesse caso:
+
+1. execute `init`;
+2. carregue o cache com `load`;
+3. gere `commit msg` usando o cache, regras locais e o diff atual.
+
 ## O que ainda exige inspeção após o load
 
 Mesmo com o cache carregado, inspecione:
@@ -244,7 +258,7 @@ Mesmo com o cache carregado, inspecione:
 Consulte documentos ou arquivos do projeto somente quando:
 
 - o pedido for `$yabook init`, `$yabook docs`, `$yabook check` ou `$yabook review`;
-- o pedido for `$yabook create` e exigir criação real no GitHub;
+- o pedido for `$yabook do` e exigir criação real no GitHub;
 - o pedido contrariar o padrão carregado;
 - houver dúvida sobre regra local não capturada no load;
 - o contexto estiver incompleto;
@@ -257,7 +271,7 @@ Mapa de releitura:
 | `$yabook init` | `init.md` |
 | `$yabook docs` | `documentacao.md` |
 | `$yabook check`, `$yabook review` | `github.md`, `documentacao.md`, `ia.md` conforme o artefato |
-| `$yabook create` | `commands.md` + estado real do repo/GitHub |
+| `$yabook do` | `commands.md` + estado real do repo/GitHub |
 | `$yabook help` | `commands.md` |
 
 ## Regras locais

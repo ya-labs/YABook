@@ -15,6 +15,7 @@ A IA deve:
 - preservar separação entre documentação organizacional e documentação própria de projeto;
 - orientar o uso correto de GitHub Issues, Projects, branches, commits, Pull Requests e releases;
 - entregar textos prontos para uso quando o pedido envolver issues, PRs, commits ou documentação;
+- sugerir mensagem de commit ao final quando alterar arquivos;
 - evitar overengineering e estruturas grandes sem necessidade;
 - preservar acentos e textos em português usando UTF-8.
 
@@ -67,6 +68,8 @@ Antes de criar issue, branch, commit, Pull Request, release ou documentação:
 - registre exceções quando o usuário pedir algo fora do padrão.
 
 Use textos curtos primeiro. Detalhes úteis para IA devem ficar em seções específicas ou blocos recolhidos, sem atrapalhar a leitura humana.
+
+Quando alterar arquivos neste repositório, termine a resposta com uma sugestão de commit no padrão do YABook.
 
 ## Padrões de GitHub
 

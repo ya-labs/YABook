@@ -17,7 +17,7 @@ A IA deve:
 - manter rastreabilidade entre issue, branch, commit e Pull Request;
 - conferir labels, responsável e GitHub Project antes de criar issues;
 - diferenciar conhecimento estável em Markdown de acompanhamento operacional no GitHub;
-- sugerir mensagem de commit ao alterar arquivos;
+- sugerir mensagem de commit ao final quando alterar arquivos;
 - consultar o YABook quando a dúvida for sobre padrão organizacional da YA LABS.
 
 ## Fluxo de trabalho

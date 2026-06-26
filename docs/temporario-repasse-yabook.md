@@ -20,11 +20,14 @@ Ao final, o Marco deve entender:
 
 - O [README principal](../README.md) virou uma apresentação do YABook: o que ele entrega, para quem serve e como começar.
 - O antigo primeiros passos virou [Manual de uso](manual.md), com jornada humana objetiva.
-- O manual agora explica melhor o `$yabook create`, incluindo pedidos em linguagem natural.
+- O manual agora explica melhor o `$yabook do`, incluindo pedidos em linguagem natural.
 - Foi criado o [Guia técnico da skill YABook](guias/skill-yabook.md), explicando arquitetura, comandos, limites e manutenção.
 - A skill foi criada em `skills/yabook/` com referências curtas para GitHub, documentação, IA, init e sessão.
-- Foi criado o comando `$yabook load` para carregar o resumo operacional na conversa atual.
-- Foi criado o comando `$yabook create`, adaptável ao que a pessoa pedir.
+- O comando `$yabook load` foi reestruturado para carregar um cache operacional da sessão.
+- O comando de ação agora é `$yabook do`, adaptável ao que a pessoa pedir.
+- `$yabook create` fica apenas como alias de compatibilidade.
+- A skill agora aceita múltiplos comandos na mesma mensagem usando `&`.
+- Quando a IA altera arquivos em projeto que segue YABook, ela deve terminar sugerindo mensagem de commit.
 - Foi criado o comando `$yabook issue classify` para sugerir labels e `Size`.
 - `Size` foi documentado como campo do GitHub Project, não como label.
 - PRs agora seguem o mesmo espírito das issues: resumo rápido para humano e informações extras para IA quando necessário.
@@ -142,15 +145,57 @@ Mostre também o [Guia técnico da skill YABook](guias/skill-yabook.md) para exp
 
 Use estes comandos em um repositório de teste.
 
+### Encadeamento com `&`
+
+Mostre que a skill aceita vários comandos na mesma mensagem.
+
+Exemplos:
+
+```text
+$yabook init & load & commit msg
+$yabook load & status & commit message
+$yabook load & issue classify & branch name
+```
+
+Explique:
+
+- os comandos rodam da esquerda para a direita;
+- o prefixo `$yabook` só precisa aparecer no início;
+- `load` carrega cache para os comandos seguintes;
+- a resposta deve vir agrupada por comando;
+- se houver alteração de arquivos, a IA deve fechar com `Commit sugerido`.
+
 ### `$yabook help`
 
 Mostra a lista curta de comandos.
 
 ### `$yabook load`
 
-Carrega o resumo operacional do YABook na conversa atual.
+Carrega o cache operacional do YABook na conversa atual.
 
 Use para reduzir buscas repetidas durante a mesma conversa.
+
+Explique que agora o load:
+
+- lê o cache completo da skill;
+- lê o `AGENTS.md` local, quando existir;
+- confere branch e estado do Git;
+- guarda os padrões principais para comandos rotineiros;
+- evita reler `github.md` e `session.md` a cada comando simples.
+
+Depois do load, a IA deve usar o cache para:
+
+- `$yabook issue`;
+- `$yabook issue classify`;
+- `$yabook branch name`;
+- `$yabook commit message`;
+- `$yabook pr`;
+- `$yabook release`;
+- `$yabook status`.
+
+Reforce o limite:
+
+> O load reduz busca repetida, mas não substitui inspeção real do repo. Para diff, GitHub, `$yabook do`, `$yabook check`, `$yabook review` e `$yabook docs`, a IA ainda precisa conferir o contexto.
 
 ### `$yabook issue`
 
@@ -168,24 +213,24 @@ Sugere:
 - confiança;
 - quebra em issues menores quando for `Size 5`.
 
-### `$yabook create`
+### `$yabook do`
 
 É o comando adaptável.
 
 Ele entende pedido direto:
 
 ```text
-$yabook create issue
-$yabook create issue branch pr
-$yabook create pr merge
+$yabook do issue
+$yabook do issue branch pr
+$yabook do pr merge
 ```
 
 E também linguagem natural:
 
 ```text
-$yabook create uma issue para essa tarefa
-$yabook create uma issue, uma branch e um PR para main
-$yabook create abra um PR e faça merge
+$yabook do uma issue para essa tarefa
+$yabook do uma issue, uma branch e um PR para main
+$yabook do abra um PR e faça merge
 ```
 
 Regras para explicar:
@@ -231,19 +276,25 @@ Use um projeto real ou repo de teste e peça para ele executar:
 2. Identificar se o projeto segue o YABook.
 3. Rodar `$yabook load`.
 4. Descrever uma pequena melhoria.
-5. Rodar `$yabook issue`.
+5. Rodar `$yabook issue` e observar se a IA usa o cache sem reler o YABook.
 6. Rodar `$yabook issue classify`.
-7. Rodar `$yabook create issue`.
+7. Rodar `$yabook do issue` e observar se a IA confere GitHub quando necessário.
 8. Sugerir branch com `$yabook branch name`.
 9. Simular uma alteração pequena.
 10. Pedir `$yabook commit message`.
 11. Pedir `$yabook pr`.
 12. Pedir `$yabook check`.
 
-Se quiser testar o create completo:
+Se quiser testar o do completo:
 
 ```text
-$yabook create uma issue, uma branch e um PR para essa melhoria
+$yabook do uma issue, uma branch e um PR para essa melhoria
+```
+
+Se quiser testar economia de chamada:
+
+```text
+$yabook load & status & commit msg
 ```
 
 O ponto do teste é observar se a IA cria só o que foi pedido e se aplica labels, Project e `Size` corretamente.
@@ -258,7 +309,10 @@ O ponto do teste é observar se a IA cria só o que foi pedido e se aplica label
 - Quando devo criar `dev`?
 - Quando uso `release/x.y.z`?
 - O que muda quando uso `$yabook load`?
-- O que o `$yabook create` pode criar?
+- Quando a IA ainda precisa consultar o repositório mesmo após `$yabook load`?
+- O que o `$yabook do` pode criar?
+- Como rodar vários comandos YABook em uma única mensagem?
+- O que a IA deve sugerir ao final quando altera arquivos?
 - Quando a IA deve ler documentação ampla?
 - O que fazer se o projeto precisar fugir do padrão?
 
@@ -271,7 +325,7 @@ O repasse funcionou se o Marco conseguir:
 - criar uma issue curta e objetiva;
 - classificar labels e `Size`;
 - sugerir branch, commit e PR no padrão;
-- usar `$yabook create` sem esperar que ele faça etapas não pedidas;
+- usar `$yabook do` sem esperar que ele faça etapas não pedidas;
 - entender que a skill não substitui leitura do repositório;
 - evitar documentação genérica ou duplicada.
 
@@ -283,7 +337,7 @@ Durante o teste, anote:
 - se o README vende bem a ideia;
 - se o manual responde rápido;
 - se `Size` ficou claro;
-- se `$yabook create` ficou natural;
+- se `$yabook do` ficou natural;
 - se algum comando ficou ambíguo;
 - se a IA insistiu em reler o YABook mesmo após `$yabook load`;
 - o que ainda precisou de explicação oral.

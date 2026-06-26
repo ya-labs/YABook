@@ -50,7 +50,7 @@ Em contexto de projeto, a IA deve:
 - explicar o motivo técnico das decisões quando isso ajudar a revisão;
 - evitar resposta genérica;
 - entregar código completo quando a tarefa pedir implementação;
-- sugerir mensagem de commit ao alterar arquivos;
+- sugerir mensagem de commit ao final quando alterar arquivos;
 - informar validações feitas e limitações conhecidas.
 
 ## Rastreabilidade

@@ -82,7 +82,7 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 | `$yabook init` | Inicializa ou adapta o repositório atual ao padrão YA LABS, sem sobrescrever conteúdo existente sem aviso. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
-| `$yabook create` | Cria somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
+| `$yabook do` | Executa somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
@@ -96,27 +96,57 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 | `$yabook docs` | Indica onde documentar uma informação no projeto. |
 | `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
 
-## `$yabook create`
+## Comandos encadeados
 
-`$yabook create` é o comando operacional mais flexível da skill.
+A skill aceita vários comandos em uma única mensagem usando `&`.
+
+Exemplo:
+
+```text
+$yabook init & load & commit msg
+```
+
+O agente deve interpretar como:
+
+1. `$yabook init`;
+2. `$yabook load`;
+3. `$yabook commit message`.
+
+Regras:
+
+- executar da esquerda para a direita;
+- aceitar o prefixo `$yabook` apenas no primeiro comando;
+- aceitar prefixo repetido em comandos seguintes sem erro;
+- aplicar aliases antes de executar;
+- reaproveitar contexto já coletado;
+- usar o cache do `load` nos comandos seguintes;
+- agrupar a resposta por comando;
+- evitar repetir o mesmo diagnóstico várias vezes.
+
+O `&` aqui não representa execução paralela. Ele define ordem de execução dentro da skill.
+
+## `$yabook do`
+
+`$yabook do` é o comando operacional mais flexível da skill.
 
 Ele aceita artefatos explícitos:
 
 ```text
-$yabook create issue
-$yabook create branch
-$yabook create pr
-$yabook create release
-$yabook create issue branch pr
-$yabook create pr merge
+$yabook do issue
+$yabook do branch
+$yabook do pr
+$yabook do release
+$yabook do issues
+$yabook do issue branch pr
+$yabook do pr merge
 ```
 
 Também aceita linguagem natural:
 
 ```text
-$yabook create uma issue, uma branch e um PR para main
-$yabook create abra um PR e faça merge
-$yabook create só uma issue para essa tarefa
+$yabook do uma issue, uma branch e um PR para main
+$yabook do abra um PR e faça merge
+$yabook do só uma issue para essa tarefa
 ```
 
 Regras:
@@ -159,7 +189,7 @@ Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`iss
 Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
 
 - precisar de `git diff` para commit, PR ou release baseados no código atual;
-- a tarefa for `init`, `docs`, `check`, `review` ou `create` com ação real no GitHub;
+- a tarefa for `init`, `docs`, `check`, `review` ou `do` com ação real no GitHub;
 - o pedido contrariar o padrão carregado;
 - houver dúvida sobre regra local não capturada no load;
 - o contexto estiver incompleto;
@@ -176,9 +206,11 @@ Regras de saída:
 - responder em português do Brasil;
 - ser objetiva;
 - evitar explicação longa quando a pessoa pediu só um artefato;
+- agrupar respostas por comando quando a pessoa usar `&`;
 - colocar contexto extenso para IA em `<details>` apenas quando útil;
 - não incluir validações genéricas em issue;
 - apontar exceções e riscos antes de executar ações irreversíveis.
+- sugerir mensagem de commit ao final quando alterar arquivos em repositório que segue YABook.
 
 ## Limites
 
