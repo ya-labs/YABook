@@ -27,14 +27,19 @@ Before producing or changing anything:
 
 ## GitHub Write Safety
 
-Only create, edit, delete, assign, label, move in Projects, push, merge, or
-otherwise mutate GitHub state when the active command is `$yabook do` or one of
-its documented aliases such as `$yabook create`.
+Without `$yabook do`, do not create, edit, delete, publish, move in Projects,
+apply labels, open PRs, merge, push, assign, or otherwise mutate GitHub state.
+
+Only mutate GitHub state when the active command is `$yabook do` or one of its
+documented aliases such as `$yabook create`.
 
 Commands such as `$yabook issue`, `$yabook pr`, `$yabook branch name`,
 `$yabook commit message`, `$yabook status`, `$yabook check`, and `$yabook review`
 must generate text, inspect context, or report findings only. They must not run
 GitHub write commands, even if the requested artifact appears obvious.
+
+Even with `$yabook do`, create or execute only the artifacts explicitly requested
+by the user. Never merge unless the user explicitly asks for merge.
 
 ## Command Routing
 

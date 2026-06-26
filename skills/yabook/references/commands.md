@@ -54,11 +54,15 @@ Regras:
 - Reaproveite contexto, `AGENTS.md`, estado do Git e cache carregado por comandos anteriores.
 - Se `load` aparecer no encadeamento, use o cache carregado para os comandos seguintes.
 - Se um comando depender de alterações atuais, confirme com Git antes de responder aquele comando.
+- Sem `$yabook do`, a IA não deve criar, editar, apagar, publicar, mover em Project,
+  aplicar labels, abrir PR, fazer merge, dar push, atribuir responsável ou alterar
+  qualquer estado no GitHub.
 - Só comandos `$yabook do` ou aliases documentados de `do`, como `$yabook create`,
   podem criar, editar, publicar, fazer merge, apagar ou alterar GitHub.
 - Comandos que geram artefatos textuais, como `$yabook issue`, `$yabook pr`,
-  `$yabook branch name` e `$yabook commit message`, não podem executar comandos
-  de escrita no GitHub.
+  `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check`
+  e `$yabook review`, não podem executar comandos de escrita no GitHub, mesmo que
+  o artefato pareça óbvio.
 - Se um comando `do` criar, publicar, fazer merge ou alterar GitHub, confira risco e contexto antes de executar.
 - Se algum comando não puder ser executado com segurança, informe o bloqueio e continue apenas com comandos que não dependem dele.
 
