@@ -17,10 +17,24 @@ Before producing or changing anything:
 
 1. Read the local `AGENTS.md` when available.
 2. Inspect the repository state before assuming stack, branch, issue, or workflow.
-3. Use local project rules first when they explicitly override YABook.
+3. Use documented YABook formats as the source of truth for generated artifacts.
+   Do not copy historical issue, PR, branch, or commit formats from the project
+   when they differ from the documented YABook pattern, unless the user
+   explicitly asks to preserve that project-specific legacy format.
 4. Use YABook as the default when the project follows YA LABS and has no local exception.
 5. Warn before acting outside the documented pattern.
 6. Keep outputs short, practical, and in Brazilian Portuguese unless the user asks otherwise.
+
+## GitHub Write Safety
+
+Only create, edit, delete, assign, label, move in Projects, push, merge, or
+otherwise mutate GitHub state when the active command is `$yabook do` or one of
+its documented aliases such as `$yabook create`.
+
+Commands such as `$yabook issue`, `$yabook pr`, `$yabook branch name`,
+`$yabook commit message`, `$yabook status`, `$yabook check`, and `$yabook review`
+must generate text, inspect context, or report findings only. They must not run
+GitHub write commands, even if the requested artifact appears obvious.
 
 ## Command Routing
 

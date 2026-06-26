@@ -43,6 +43,8 @@ Antes de virar padrão, ele precisa:
 
 Quando um projeto precisar fugir do padrão, registre a exceção no próprio projeto.
 
+Issues, PRs, branches e commits antigos de um projeto podem servir como contexto, mas não substituem o padrão documentado aqui. Quando houver divergência, use este documento como fonte de verdade, salvo pedido explícito para manter um formato legado do projeto.
+
 <a id="padrao-de-issue"></a>
 
 ## Padrão de issue

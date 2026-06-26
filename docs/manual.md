@@ -79,6 +79,10 @@ Use a skill para reduzir orientação repetida. A documentação continua sendo 
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 
+Ao usar a skill, diferencie geração de texto de execução. Comandos como `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` geram artefatos no padrão documentado. Só `$yabook do` ou alias documentado, como `$yabook create`, deve criar, editar, apagar, publicar ou mover algo no GitHub.
+
+A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issues ou PRs antigos em outro padrão. Use o formato histórico do projeto apenas quando a pessoa usuária pedir explicitamente.
+
 ### Como usar `$yabook load`
 
 Use `$yabook load` no início de uma conversa em que a IA vai trabalhar seguindo o YABook.

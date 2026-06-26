@@ -54,7 +54,12 @@ Regras:
 - Reaproveite contexto, `AGENTS.md`, estado do Git e cache carregado por comandos anteriores.
 - Se `load` aparecer no encadeamento, use o cache carregado para os comandos seguintes.
 - Se um comando depender de alterações atuais, confirme com Git antes de responder aquele comando.
-- Se um comando criar, publicar, fazer merge ou alterar GitHub, confira risco e contexto antes de executar.
+- Só comandos `$yabook do` ou aliases documentados de `do`, como `$yabook create`,
+  podem criar, editar, publicar, fazer merge, apagar ou alterar GitHub.
+- Comandos que geram artefatos textuais, como `$yabook issue`, `$yabook pr`,
+  `$yabook branch name` e `$yabook commit message`, não podem executar comandos
+  de escrita no GitHub.
+- Se um comando `do` criar, publicar, fazer merge ou alterar GitHub, confira risco e contexto antes de executar.
 - Se algum comando não puder ser executado com segurança, informe o bloqueio e continue apenas com comandos que não dependem dele.
 
 Saída:
@@ -155,7 +160,9 @@ Se a sessão já foi carregada na conversa atual:
 ### Sempre
 
 - Para `pr`, `pr desc`, `commit message` e `release`, use conversa atual e confirme com Git.
-- Para `issue`, use o pedido do usuário, o escopo descoberto e o padrão de issue.
+- Para `issue`, use o pedido do usuário, o escopo descoberto e o padrão documentado do YABook.
+  Não copie o formato de issues anteriores do projeto quando ele divergir do YABook,
+  salvo pedido explícito da pessoa usuária.
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `branch name`, use o número da issue quando existir.

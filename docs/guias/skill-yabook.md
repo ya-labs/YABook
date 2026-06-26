@@ -73,6 +73,14 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 - PRs abertos;
 - destino do PR ou merge.
 
+## Segurança para escrita no GitHub
+
+A skill só pode criar, editar, apagar, publicar, fazer merge ou alterar estado no GitHub quando a pessoa usuária usar `$yabook do` ou um alias documentado de `do`, como `$yabook create`.
+
+Comandos que geram texto, como `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message`, devem apenas produzir o artefato solicitado. Eles não devem criar issue, editar descrição, mover item em Project, aplicar labels, abrir PR ou executar qualquer escrita no GitHub.
+
+Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. Se ela quiser ação real no GitHub, oriente a usar `$yabook do`.
+
 ## Comandos
 
 | Comando | Como atua |
@@ -216,6 +224,7 @@ Regras de saída:
 - agrupar respostas por comando quando a pessoa usar `&`;
 - colocar contexto extenso para IA em `<details>` apenas quando útil;
 - não incluir validações genéricas em issue;
+- seguir o formato documentado do YABook em vez de copiar formatos históricos de issues ou PRs do projeto, salvo pedido explícito;
 - apontar exceções e riscos antes de executar ações irreversíveis.
 - sugerir mensagem de commit ao final quando alterar arquivos em repositório que segue YABook.
 
