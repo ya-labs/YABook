@@ -145,11 +145,23 @@ O comando `$yabook issue classify` deve retornar:
 
 `$yabook load` serve para preparar a conversa atual.
 
-Depois de carregar, o agente deve usar o resumo operacional antes de buscar novamente a documentação. Mesmo assim, ele ainda deve consultar arquivos quando:
+O arquivo `references/session.md` concentra o cache operacional completo: templates de issue, PR e release, labels, `Size`, branch, commit, classificação e regras de releitura.
 
-- houver regra local em `AGENTS.md`;
-- a tarefa envolver criação real de issue, branch, PR, release ou merge;
+Durante o load, o agente deve:
+
+1. ler `session.md` por completo;
+2. ler `AGENTS.md` do repositório atual, se existir;
+3. inspecionar o estado do Git;
+4. responder com um resumo curto para a pessoa usuária.
+
+Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
+
+Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
+
+- precisar de `git diff` para commit, PR ou release baseados no código atual;
+- a tarefa for `init`, `docs`, `check`, `review` ou `create` com ação real no GitHub;
 - o pedido contrariar o padrão carregado;
+- houver dúvida sobre regra local não capturada no load;
 - o contexto estiver incompleto;
 - a pessoa pedir validação de conformidade.
 

@@ -54,7 +54,17 @@ Load only the reference needed for the current task:
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
-- [session.md](references/session.md): `$yabook load` behavior and session context.
+- [session.md](references/session.md): `$yabook load` behavior and full session cache.
+
+## After `$yabook load`
+
+When the session is loaded in the current conversation:
+
+- use [session.md](references/session.md) as the main source for routine commands;
+- do not re-read `github.md` or `session.md` for `issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, or `status`;
+- still inspect Git state and `git diff` when the artifact depends on the current change;
+- still read `AGENTS.md` during load and apply local overrides over generic YABook rules;
+- re-read other references only for `init`, `docs`, `check`, `review`, `create`, or when context is incomplete.
 
 ## Core Patterns
 

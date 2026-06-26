@@ -82,6 +82,17 @@ Por artefato:
 
 ## Contexto por comando
 
+### Depois de `$yabook load`
+
+Se a sessão já foi carregada na conversa atual:
+
+- use o cache de `session.md` para `issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release` e `status`;
+- não releia `github.md` nem `session.md` para esses comandos;
+- confirme com Git (`status`, `diff`) quando o artefato depender da alteração atual;
+- aplique overrides locais já lidos de `AGENTS.md` no load.
+
+### Sempre
+
 - Para `pr`, `pr desc`, `commit message` e `release`, use conversa atual e confirme com Git.
 - Para `issue`, use o pedido do usuário, o escopo descoberto e o padrão de issue.
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
@@ -89,7 +100,7 @@ Por artefato:
 - Para `branch name`, use o número da issue quando existir.
 - Para `docs`, leia `documentacao.md`.
 - Para `init`, leia `init.md`.
-- Para `load`, leia `session.md`.
+- Para `load`, leia `session.md` por completo e também `AGENTS.md` quando existir.
 - Para `check` e `review`, leia `github.md`, `documentacao.md` e `ia.md` conforme o artefato revisado.
 
 ## Formato do help
