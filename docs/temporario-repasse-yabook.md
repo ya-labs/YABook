@@ -239,6 +239,7 @@ Regras para explicar:
 - entende o contexto da conversa e do Git;
 - confere branch, issue e alterações quando necessário;
 - não faz merge sem pedido explícito;
+- em squash merge, usa o número do PR no assunto e inclui o histórico dos commits da branch contra a branch alvo;
 - se não conseguir preencher Project ou `Size`, informa o valor para preenchimento manual.
 
 ### `$yabook pr`

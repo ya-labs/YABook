@@ -138,6 +138,7 @@ Regras principais:
 - usa labels e `Size` ao criar ou classificar issues;
 - usa branch no formato `numero-descricao-curta`;
 - usa o contexto das alterações atuais para PR, commit e release;
+- em squash merge, usa o número do PR no assunto e inclui o histórico dos commits da branch contra a branch alvo;
 - informa valores manuais quando não conseguir aplicar Project ou `Size` pela ferramenta.
 
 ### Como instalar a skill no agente

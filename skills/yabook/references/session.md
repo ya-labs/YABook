@@ -149,6 +149,15 @@ Closes #numero
 
 Use `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
 
+### Squash merge
+
+Quando fizer squash merge:
+
+- inclua o número do PR no assunto do commit final, como `tipo: descrição curta (#numero)`;
+- inclua no corpo o histórico dos commits da branch contra a branch alvo;
+- gere o histórico com `git log --reverse --format='- %s (%h)' base..head`;
+- use `--body-file` ao executar `gh pr merge --squash`.
+
 ### Release
 
 Título de PR de release:

@@ -128,6 +128,33 @@ Depois do merge em `main`:
 
 Se o merge para `main` for feito com squash and merge, não continue usando a mesma `dev`. Como os commits originais não entram na `main` com os mesmos hashes, eles podem reaparecer em Pull Requests futuros.
 
+### Mensagem de squash merge
+
+Quando usar squash merge, o commit final deve preservar o PR e o histórico da branch.
+
+Assunto:
+
+```text
+tipo: descrição curta (#numero-do-pr)
+```
+
+Corpo:
+
+```text
+Histórico da branch contra branch-alvo:
+- commit original 1 (hash)
+- commit original 2 (hash)
+- commit original 3 (hash)
+```
+
+Gere o histórico comparando a branch do PR contra a branch alvo:
+
+```bash
+git log --reverse --format='- %s (%h)' branch-alvo..branch-do-pr
+```
+
+Ao usar `gh pr merge --squash`, prefira passar o corpo por arquivo com `--body-file` para preservar quebras de linha.
+
 ### Branch de release
 
 Use `release/x.y.z` quando a versão ainda precisar passar por revisão, homologação ou ajustes finais antes de entrar na `main`.

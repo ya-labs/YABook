@@ -99,6 +99,33 @@ Closes #numero
 
 Use `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
 
+## Squash merge
+
+Quando fizer squash merge, a mensagem do commit final deve preservar rastreabilidade.
+
+Assunto:
+
+```text
+tipo: descrição curta (#numero-do-pr)
+```
+
+Corpo:
+
+```text
+Histórico da branch contra branch-alvo:
+- commit original 1 (hash)
+- commit original 2 (hash)
+- commit original 3 (hash)
+```
+
+Gere o histórico comparando a branch do PR contra a branch alvo:
+
+```bash
+git log --reverse --format='- %s (%h)' branch-alvo..branch-do-pr
+```
+
+Se usar `gh pr merge --squash`, prefira passar o corpo por arquivo com `--body-file`.
+
 ## Labels
 
 Base oficial:

@@ -105,6 +105,8 @@ For GitHub operations, inspect existing issue, PR, labels, Project, and reposito
 
 For `$yabook do`, create or execute only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
 
+For squash merge, include the Pull Request number in the squash commit subject and include the commit history from the source branch against the target branch in the squash commit body.
+
 Do not invent facts. When context is missing, state the assumption or ask for the missing decision.
 
 ## Output Rules

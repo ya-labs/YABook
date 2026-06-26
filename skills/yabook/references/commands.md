@@ -102,6 +102,29 @@ Por artefato:
 - PR: usar título objetivo e descrição com `Resumo rápido`, `O que mudou`, `Observações` e `Informações para IA`.
 - Release: usar formato de release do YABook e tags quando aplicável.
 - Merge: executar apenas com pedido explícito e depois de conferir risco.
+- Squash merge: usar assunto com referência ao PR, como `tipo: descrição curta (#numero)`.
+- Squash merge: montar o corpo com o histórico de commits da branch contra a branch alvo.
+
+Para montar o histórico do squash merge, use a comparação entre base e head do PR:
+
+```bash
+git log --reverse --format='- %s (%h)' base..head
+```
+
+Exemplo conceitual:
+
+```text
+Assunto:
+docs: reestrutura YABook para contexto de IA (#19)
+
+Corpo:
+Histórico da branch contra main:
+- docs: reestrutura yabook para leitura humana e ia (caa3513)
+- chore: exclui design system desatualizado (316fa7a)
+- docs: adiciona padrões rápidos da ya labs (7b87415)
+```
+
+Ao usar `gh pr merge --squash`, prefira `--body-file` para evitar que quebras de linha virem texto literal.
 
 ## Aliases
 

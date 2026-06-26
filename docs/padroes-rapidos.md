@@ -86,6 +86,18 @@ Estrutura base:
 
 Use o bloco `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
 
+No squash merge, use o número do PR no assunto do commit final e inclua no corpo o histórico dos commits da branch contra a branch alvo.
+
+Exemplo:
+
+```text
+docs: reestrutura YABook para contexto de IA (#19)
+
+Histórico da branch contra main:
+- docs: reestrutura yabook para leitura humana e ia (caa3513)
+- docs: adiciona padrões rápidos da ya labs (7b87415)
+```
+
 
 Contexto extra para IA deve ficar em `<details>` apenas quando for necessário.
 

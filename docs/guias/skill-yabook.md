@@ -158,6 +158,13 @@ Regras:
 - vincular ao Project quando a ferramenta permitir;
 - informar valor manual quando Project ou `Size` não puderem ser aplicados pela ferramenta.
 
+Para squash merge:
+
+- usar assunto com referência ao PR, como `tipo: descrição curta (#numero)`;
+- montar o corpo com o histórico de commits da branch contra a branch alvo;
+- gerar o histórico com `git log --reverse --format='- %s (%h)' base..head`;
+- usar `--body-file` quando fizer merge por `gh pr merge --squash`.
+
 ## Classificação de issue
 
 O comando `$yabook issue classify` deve retornar:
