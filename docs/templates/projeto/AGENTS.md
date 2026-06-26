@@ -17,7 +17,8 @@ A IA deve:
 - manter rastreabilidade entre issue, branch, commit e Pull Request;
 - conferir labels, responsável e GitHub Project antes de criar issues;
 - diferenciar conhecimento estável em Markdown de acompanhamento operacional no GitHub;
-- sugerir mensagem de commit ao alterar arquivos.
+- sugerir mensagem de commit ao final quando alterar arquivos;
+- consultar o YABook quando a dúvida for sobre padrão organizacional da YA LABS.
 
 ## Fluxo de trabalho
 
@@ -31,6 +32,21 @@ Antes de executar uma alteração relevante, valide:
 
 Se não houver issue ou se a branch estiver incompatível, avise o usuário antes de editar ou registre a exceção quando houver autorização explícita.
 
+## Contrato com o YABook
+
+Este projeto segue o YABook como referência organizacional.
+
+Antes de criar issue, branch, commit, Pull Request, release ou novo documento, a IA deve:
+
+- consultar este `AGENTS.md`;
+- consultar a documentação local relacionada à tarefa;
+- consultar o YABook quando houver dúvida sobre padrão;
+- reutilizar a estrutura existente do projeto;
+- não inventar formato quando houver padrão documentado;
+- avisar quando o pedido fugir do padrão e registrar a exceção se o usuário autorizar.
+
+Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo exceção registrada no projeto.
+
 ## Issues, labels e Project
 
 Antes de criar uma issue, confira as labels existentes no repositório e compare com as labels declaradas para o projeto.
@@ -41,6 +57,7 @@ Ao criar issue em projeto da YA LABS:
 
 - atribua o usuário solicitante como responsável padrão, salvo orientação diferente;
 - vincule a issue ao GitHub Project aplicável;
+- defina `Size` de `1` a `5` quando o Project usar esse campo;
 - aplique as labels de tipo e área compatíveis com o escopo.
 
 Quando o repositório não fizer parte da YA LABS ou quando não houver GitHub Project definido, pergunte ao usuário se a issue deve receber responsável, labels ou vínculo com Project.
@@ -62,7 +79,8 @@ Ao alterar documentação:
 - use Markdown limpo;
 - preserve informações reais do projeto;
 - escreva em português com acentos;
-- mantenha o texto objetivo e fácil de consultar.
+- mantenha o texto objetivo e fácil de consultar;
+- remova repetição e texto genérico que não ajude execução, revisão ou decisão.
 
 Use `docs/guia-da-documentacao.md` para localizar onde cada assunto deve ficar.
 

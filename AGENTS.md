@@ -15,6 +15,7 @@ A IA deve:
 - preservar separação entre documentação organizacional e documentação própria de projeto;
 - orientar o uso correto de GitHub Issues, Projects, branches, commits, Pull Requests e releases;
 - entregar textos prontos para uso quando o pedido envolver issues, PRs, commits ou documentação;
+- sugerir mensagem de commit ao final quando alterar arquivos;
 - evitar overengineering e estruturas grandes sem necessidade;
 - preservar acentos e textos em português usando UTF-8.
 
@@ -55,87 +56,29 @@ Se a branch atual não estiver compatível com a alteração, avise antes de edi
 
 Se o usuário quiser prosseguir mesmo fora do fluxo documentado, peça confirmação explícita ou registre na resposta que a alteração foi feita como exceção solicitada.
 
-## Issues
+## Contrato operacional para IA
 
-Cada mudança relevante no YABook deve ter uma issue própria.
+Antes de criar issue, branch, commit, Pull Request, release ou documentação:
 
-Use o padrão documentado em:
+- consulte este `AGENTS.md`;
+- consulte o documento aplicável em `docs/`;
+- use o padrão do YABook como fonte normativa;
+- não invente formato quando já houver padrão documentado;
+- aponte divergências antes de executar;
+- registre exceções quando o usuário pedir algo fora do padrão.
 
-```text
-docs/processos/fluxo-de-trabalho-github.md
-```
+Use textos curtos primeiro. Detalhes úteis para IA devem ficar em seções específicas ou blocos recolhidos, sem atrapalhar a leitura humana.
 
-Ao criar ou revisar uma issue, garanta que ela tenha:
+Quando alterar arquivos neste repositório, termine a resposta com uma sugestão de commit no padrão do YABook.
 
-- `Descrição`;
-- `Escopo`;
-- `Critérios de aceite`;
-- seções complementares, como `Dependências`, `Fora de escopo`, `Validação` ou `Entrega Visual Esperada`, apenas quando ajudarem a executar ou revisar a tarefa.
+## Padrões de GitHub
 
-## Branches
+Cada mudança relevante no YABook deve ter issue própria e seguir o fluxo documentado em:
 
-Cada issue deve ter sua própria branch.
+- `docs/padroes-rapidos.md`
+- `docs/processos/fluxo-de-trabalho-github.md`
 
-Para documentação, use:
-
-```text
-docsNumero-descricao-curta
-```
-
-Exemplo:
-
-```text
-docs001-adapta-documentacao-base-yabook
-```
-
-Não use acentos, espaços ou caracteres especiais no nome da branch.
-
-## Commits
-
-Use o padrão:
-
-```text
-docs: descrição curta
-```
-
-Exemplos:
-
-```text
-docs: adapta documentação-base do yabook
-docs: documenta fluxo de trabalho da organização
-docs: adiciona template inicial de projeto
-```
-
-Evite mensagens genéricas como:
-
-```text
-ajustes
-update
-alterações
-teste
-```
-
-## Pull Requests
-
-Ao orientar ou criar um Pull Request, use a estrutura:
-
-```md
-## Contexto
-
-Explique o objetivo do PR e qual problema ele resolve.
-
-Closes #numero
-
-## O que mudou
-
-- Liste as principais alterações.
-
-## Observações
-
-- Informe validações feitas, limitações conhecidas ou decisões importantes.
-```
-
-Se o PR fizer parte de uma release, siga também o fluxo de release documentado.
+Não duplique formatos de issue, branch, commit ou Pull Request neste arquivo. Use os documentos centrais como fonte de verdade.
 
 ## Documentação
 
@@ -147,6 +90,7 @@ Ao alterar documentação:
 - diferencie claramente padrão organizacional de conteúdo específico de projeto;
 - prefira textos objetivos e fáceis de consultar;
 - evite duplicar o mesmo padrão em vários documentos;
+- corte trechos repetidos ou genéricos que não ajudem execução, revisão ou decisão;
 - não invente fluxos, contratos ou regras que ainda não foram definidos.
 
 ## Regra principal

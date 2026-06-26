@@ -88,13 +88,10 @@ Use épico quando uma capacidade macro precisar agrupar várias tarefas relacion
 
 Uma issue implementável deve ter:
 
-- contexto curto;
-- objetivo claro;
-- escopo;
-- fora de escopo quando houver risco de expansão;
+- resumo rápido;
+- escopo objetivo;
 - critérios de aceite verificáveis;
-- referências documentais quando necessário;
-- validação esperada quando a tarefa puder ser conferida por teste, build, revisão visual ou execução manual;
+- contexto adicional em bloco recolhido quando a tarefa for delegada para IA;
 - milestone e épico quando fizer parte de uma fase.
 
 Evite criar backlog completo do projeto inteiro no início. Crie apenas issues suficientes para orientar o próximo bloco de trabalho.
@@ -107,9 +104,21 @@ A IA deve ler o mínimo necessário para executar com segurança. Leitura ampla 
 
 Para desenvolvimento comum, a issue deve ser a fonte principal da implementação.
 
-Issues preparadas para IA podem usar seções extras, como `Cabeçalho`, `Resumo`, `Fora de escopo`, `Entrega Visual Esperada`, `Validação`, `Dependências`, `Referências` e `Riscos`, quando isso reduzir ambiguidade.
+Issues preparadas para IA podem usar seções extras, como `Fora de escopo`, `Entrega Visual Esperada`, `Validação`, `Dependências`, `Referências` e `Riscos`, quando isso reduzir ambiguidade.
 
 Esse formato expandido é uma ferramenta de clareza, não uma obrigação para toda issue. Tarefas simples devem manter corpo simples.
+
+## Conformidade com o YABook
+
+Projetos da YA LABS devem consultar o YABook antes de criar ou alterar:
+
+- estrutura de documentação;
+- fluxo de issue, branch, commit, Pull Request e release;
+- instruções de IA;
+- critérios de pronto;
+- templates reutilizáveis.
+
+Adaptações são permitidas, mas devem estar explícitas no projeto. Se não houver exceção documentada, vale o padrão do YABook.
 
 ## Ajustes de processo
 
@@ -123,15 +132,13 @@ Não crie branch permanente de documentação. Cada lote deve ter começo, fim e
 
 ## Branch de desenvolvimento e release
 
-Nem todo projeto precisa de branch `dev` desde o começo.
+Nem todo projeto precisa de branch `dev` desde o começo. Em documentação inicial, planejamento e prototipagem, trabalhe com branch de issue a partir da `main`.
 
-Adote branch de desenvolvimento quando houver pelo menos dois sinais:
+Adote `dev` quando começar o desenvolvimento de produto e houver necessidade de integrar issues antes de publicar uma versão.
 
-- implementação ativa além de documentação;
-- trabalho paralelo com risco de conflito;
-- necessidade de manter a branch principal apenas com conteúdo pronto para release.
+`dev` representa o ciclo atual, não uma branch permanente. Depois da release, crie uma nova `dev` a partir da `main`. Se precisar preservar o ciclo anterior, arquive como `archive/dev-x.y.z`.
 
-Use branch `release/x.y.z` quando existir uma versão candidata consolidada.
+Use `release/x.y.z` apenas quando a versão precisar de revisão, homologação ou ajustes finais antes de entrar na `main`.
 
 A tag deve apontar para o commit integrado na branch principal que representa a versão publicada.
 

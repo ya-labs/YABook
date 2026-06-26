@@ -1,8 +1,12 @@
 # Guia de Consulta da Documentação
 
-Este documento ajuda pessoas e assistentes a localizar rapidamente onde cada assunto do projeto está documentado.
+Este documento é a fonte única para localizar onde cada assunto do projeto deve ser documentado.
 
 Adapte a estrutura conforme o tamanho real do projeto. Não crie pastas vazias sem necessidade.
+
+Se um assunto já está bem explicado em outro documento, atualize o documento existente em vez de criar um novo.
+
+Não repita esta matriz em outros documentos. Aponte para este guia.
 
 ## Leitura rápida recomendada
 
@@ -51,3 +55,12 @@ Adapte a estrutura conforme o tamanho real do projeto. Não crie pastas vazias s
 ## Regra de segurança
 
 Não registre credenciais, URLs privadas, dados sensíveis, caminhos locais reais, nomes de clientes ou conteúdo corporativo interno.
+
+## Regra de poda
+
+Remova ou funda documentos que:
+
+- repetem regras já documentadas;
+- não ajudam execução, revisão ou decisão;
+- descrevem intenção sem orientar ação;
+- misturam status operacional com conhecimento estável.

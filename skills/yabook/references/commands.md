@@ -1,0 +1,168 @@
+# Comandos YABook
+
+Use estes comandos quando a pessoa usuária invocar `$yabook`.
+
+Responda em português do Brasil, com texto pronto para uso.
+
+## Comandos
+
+| Comando | Saída |
+| --- | --- |
+| `$yabook help` | Lista curta dos comandos disponíveis. |
+| `$yabook load` | Carrega resumo operacional do YABook para a conversa atual. |
+| `$yabook init` | Inicializa ou adapta o padrão YA LABS no repositório atual. |
+| `$yabook do` | Executa os artefatos pedidos, como issue, branch, PR, release ou merge. |
+| `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
+| `$yabook check` | Verifica conformidade com o YABook. |
+| `$yabook issue` | Gera título e descrição completa da issue. |
+| `$yabook issue classify` | Sugere labels, `Size`, justificativa e possível quebra. |
+| `$yabook issue title` | Gera apenas o título da issue. |
+| `$yabook issue desc` | Gera apenas o corpo da issue. |
+| `$yabook branch name` | Sugere branch baseada na issue. |
+| `$yabook commit message` | Sugere mensagem de commit no padrão. |
+| `$yabook pr` | Gera título e descrição completa do Pull Request. |
+| `$yabook pr title` | Gera apenas o título do Pull Request. |
+| `$yabook pr desc` | Gera apenas a descrição do Pull Request. |
+| `$yabook release` | Gera descrição completa de release. |
+| `$yabook docs` | Indica onde documentar uma informação. |
+| `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
+
+## Comandos encadeados
+
+Use `&` para executar vários comandos YABook na mesma mensagem.
+
+Formato:
+
+```text
+$yabook comando 1 & comando 2 & comando 3
+```
+
+Exemplos:
+
+```text
+$yabook init & load & commit msg
+$yabook load & status & commit message
+$yabook load & issue classify & branch name
+$yabook check & pr desc
+```
+
+Regras:
+
+- Execute os comandos da esquerda para a direita.
+- O prefixo `$yabook` é obrigatório apenas no início. Se aparecer de novo em outro trecho, ignore o prefixo repetido.
+- Aplique aliases antes de executar cada comando.
+- Reaproveite contexto, `AGENTS.md`, estado do Git e cache carregado por comandos anteriores.
+- Se `load` aparecer no encadeamento, use o cache carregado para os comandos seguintes.
+- Se um comando depender de alterações atuais, confirme com Git antes de responder aquele comando.
+- Se um comando criar, publicar, fazer merge ou alterar GitHub, confira risco e contexto antes de executar.
+- Se algum comando não puder ser executado com segurança, informe o bloqueio e continue apenas com comandos que não dependem dele.
+
+Saída:
+
+- Responda em uma seção curta por comando.
+- Evite repetir o mesmo contexto em todas as seções.
+- Se houver alteração de arquivos em repositório que segue YABook, finalize com `Commit sugerido`.
+
+## `$yabook do`
+
+`$yabook do` é adaptável à solicitação da pessoa usuária.
+
+Aceite artefatos explícitos:
+
+```text
+$yabook do issue
+$yabook do branch
+$yabook do pr
+$yabook do release
+$yabook do issues
+$yabook do issue branch pr
+$yabook do pr merge
+```
+
+Aceite linguagem natural:
+
+```text
+$yabook do uma issue, uma branch e um PR para main
+$yabook do abra um PR e faça merge
+$yabook do só uma issue para essa tarefa
+```
+
+Regras:
+
+- Crie somente o que foi pedido.
+- Não faça merge se a pessoa não pediu merge explicitamente.
+- Antes de criar artefatos, confira `AGENTS.md`, branch atual, issue relacionada, labels, Project e `Size`.
+- Se a ferramenta GitHub não conseguir aplicar Project ou `Size`, entregue o valor sugerido para preenchimento manual.
+- Se o pedido misturar criação e merge, confira destino, status e risco antes.
+
+Por artefato:
+
+- Issue: gerar título, descrição, labels, `Size` e Project quando aplicável.
+- Branch: usar `numero-descricao-curta`; basear em `main` ou `dev` conforme fluxo.
+- PR: usar título objetivo e descrição com `Resumo rápido`, `O que mudou`, `Observações` e `Informações para IA`.
+- Release: usar formato de release do YABook e tags quando aplicável.
+- Merge: executar apenas com pedido explícito e depois de conferir risco.
+
+## Aliases
+
+| Alias | Comando oficial |
+| --- | --- |
+| `$yabook branch` | `$yabook branch name` |
+| `$yabook commit msg` | `$yabook commit message` |
+| `$yabook classify` | `$yabook issue classify` |
+| `$yabook estimate` | `$yabook issue classify` |
+| `$yabook create` | `$yabook do` |
+| `$yabook issue batch` | `$yabook do issues` |
+| `$yabook pr description` | `$yabook pr desc` |
+| `$yabook issue description` | `$yabook issue desc` |
+| `$yabook doc` | `$yabook docs` |
+| `$yabook validate` | `$yabook check` |
+
+## Contexto por comando
+
+### Depois de `$yabook load`
+
+Se a sessão já foi carregada na conversa atual:
+
+- use o cache de `session.md` para `issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release` e `status`;
+- não releia `github.md` nem `session.md` para esses comandos;
+- confirme com Git (`status`, `diff`) quando o artefato depender da alteração atual;
+- aplique overrides locais já lidos de `AGENTS.md` no load.
+
+### Sempre
+
+- Para `pr`, `pr desc`, `commit message` e `release`, use conversa atual e confirme com Git.
+- Para `issue`, use o pedido do usuário, o escopo descoberto e o padrão de issue.
+- Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
+- Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
+- Para `branch name`, use o número da issue quando existir.
+- Para `docs`, leia `documentacao.md`.
+- Para `init`, leia `init.md`.
+- Para `load`, leia `session.md` por completo e também `AGENTS.md` quando existir.
+- Para `check` e `review`, leia `github.md`, `documentacao.md` e `ia.md` conforme o artefato revisado.
+
+## Formato do help
+
+Quando o comando for `$yabook help`, responda curto:
+
+```text
+Comandos principais:
+- $yabook load: carrega os padrões na conversa atual.
+- $yabook init: inicializa o padrão YA LABS no repo.
+- $yabook do: cria issue, branch, PR, release ou merge conforme pedido.
+- $yabook issue: gera título e descrição da issue.
+- $yabook issue classify: sugere labels e Size.
+- $yabook pr: gera título e descrição do PR.
+- $yabook commit message: sugere mensagem de commit.
+- $yabook release: gera descrição de release.
+- $yabook check: verifica conformidade com o YABook.
+- $yabook docs: indica onde documentar algo.
+```
+
+## Saídas
+
+- Não explique o YABook inteiro quando a pessoa pedir um artefato.
+- Entregue o texto pronto para copiar.
+- Inclua observações apenas quando houver risco, exceção ou contexto faltante.
+- Em comandos encadeados, agrupe a resposta por comando e reaproveite contexto já informado.
+- Quando alterar arquivos em repositório que segue YABook, termine a resposta com uma sugestão de commit no padrão do projeto.

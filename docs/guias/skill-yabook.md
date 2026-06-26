@@ -1,0 +1,243 @@
+# Skill YABook
+
+Este documento explica como a skill YABook funciona por dentro e como cada comando deve atuar.
+
+A documentação humana continua no YABook. A skill é a interface operacional para agentes de IA aplicarem esses padrões no dia a dia.
+
+## Objetivo
+
+A skill YABook existe para reduzir orientação repetida ao agente.
+
+Ela deve ajudar a IA a:
+
+- carregar o padrão YA LABS na conversa atual;
+- criar ou sugerir issues, branches, commits, PRs e releases;
+- classificar issues com labels e `Size`;
+- validar se uma tarefa segue o YABook;
+- inicializar um repositório no padrão YA LABS;
+- decidir onde documentar uma informação.
+
+## Arquitetura
+
+A skill fica em:
+
+```text
+skills/yabook/
+```
+
+Arquivos principais:
+
+| Arquivo | Função |
+| --- | --- |
+| `SKILL.md` | Entrada da skill. Define gatilhos, workflow obrigatório, padrões centrais e regras de saída. |
+| `agents/openai.yaml` | Metadados para agentes que usam manifesto YAML. |
+| `references/commands.md` | Lista de comandos, aliases, roteamento e formato de saída esperado. |
+| `references/github.md` | Regras de issue, branch, commit, PR, labels, Project, `Size`, `main`, `dev` e release. |
+| `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
+| `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
+| `references/init.md` | Comportamento esperado do `$yabook init`. |
+| `references/session.md` | Comportamento esperado do `$yabook load`. |
+
+## Fluxo de execução
+
+Quando a pessoa usuária invoca `$yabook`, o agente deve:
+
+1. Ler `skills/yabook/SKILL.md`.
+2. Identificar o comando ou alias em `references/commands.md`.
+3. Ler apenas as referências necessárias para o comando.
+4. Conferir `AGENTS.md` local quando existir.
+5. Conferir estado do repositório quando o comando depende de trabalho atual.
+6. Aplicar o padrão YABook ou apontar divergência.
+7. Entregar o artefato pronto, a ação executada ou a checagem objetiva.
+
+O agente não deve carregar todo o YABook para qualquer comando. A skill usa referências curtas para economizar contexto.
+
+## Contexto local
+
+Para comandos que dependem do trabalho atual, o agente deve conferir:
+
+- conversa atual;
+- `AGENTS.md` local;
+- branch atual;
+- issue inferida pela branch, quando houver;
+- `git status --short --branch`;
+- `git diff --stat`;
+- `git diff`, quando necessário.
+
+Para comandos que criam ou alteram GitHub, o agente também deve conferir, quando a ferramenta estiver disponível:
+
+- issue relacionada;
+- labels existentes;
+- GitHub Project;
+- campo `Size`;
+- PRs abertos;
+- destino do PR ou merge.
+
+## Comandos
+
+| Comando | Como atua |
+| --- | --- |
+| `$yabook help` | Lista os comandos principais de forma curta. Não explica o handbook inteiro. |
+| `$yabook load` | Carrega um resumo operacional do YABook na conversa atual para reduzir buscas repetidas. Não cria memória permanente e não altera arquivos. |
+| `$yabook init` | Inicializa ou adapta o repositório atual ao padrão YA LABS, sem sobrescrever conteúdo existente sem aviso. |
+| `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
+| `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
+| `$yabook do` | Executa somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
+| `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
+| `$yabook issue title` | Gera apenas o título objetivo da issue. |
+| `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
+| `$yabook issue classify` | Sugere labels, `Size`, justificativa curta, confiança e quebra em issues menores quando necessário. |
+| `$yabook branch name` | Sugere branch no formato `numero-descricao-curta`, baseada na issue. |
+| `$yabook commit message` | Sugere mensagem no padrão `tipo: descrição curta`, considerando o diff atual. |
+| `$yabook pr` | Gera título e descrição completa do PR com base na conversa e no Git. |
+| `$yabook pr title` | Gera apenas o título objetivo do PR. |
+| `$yabook pr desc` | Gera apenas a descrição do PR. |
+| `$yabook release` | Gera descrição de release e orienta tag quando aplicável. |
+| `$yabook docs` | Indica onde documentar uma informação no projeto. |
+| `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
+
+## Comandos encadeados
+
+A skill aceita vários comandos em uma única mensagem usando `&`.
+
+Exemplo:
+
+```text
+$yabook init & load & commit msg
+```
+
+O agente deve interpretar como:
+
+1. `$yabook init`;
+2. `$yabook load`;
+3. `$yabook commit message`.
+
+Regras:
+
+- executar da esquerda para a direita;
+- aceitar o prefixo `$yabook` apenas no primeiro comando;
+- aceitar prefixo repetido em comandos seguintes sem erro;
+- aplicar aliases antes de executar;
+- reaproveitar contexto já coletado;
+- usar o cache do `load` nos comandos seguintes;
+- agrupar a resposta por comando;
+- evitar repetir o mesmo diagnóstico várias vezes.
+
+O `&` aqui não representa execução paralela. Ele define ordem de execução dentro da skill.
+
+## `$yabook do`
+
+`$yabook do` é o comando operacional mais flexível da skill.
+
+Ele aceita artefatos explícitos:
+
+```text
+$yabook do issue
+$yabook do branch
+$yabook do pr
+$yabook do release
+$yabook do issues
+$yabook do issue branch pr
+$yabook do pr merge
+```
+
+Também aceita linguagem natural:
+
+```text
+$yabook do uma issue, uma branch e um PR para main
+$yabook do abra um PR e faça merge
+$yabook do só uma issue para essa tarefa
+```
+
+Regras:
+
+- criar somente o que foi pedido;
+- não fazer merge se a pessoa não pediu merge explicitamente;
+- conferir contexto local antes de criar artefatos;
+- sugerir ou aplicar labels e `Size` em issues;
+- vincular ao Project quando a ferramenta permitir;
+- informar valor manual quando Project ou `Size` não puderem ser aplicados pela ferramenta.
+
+## Classificação de issue
+
+O comando `$yabook issue classify` deve retornar:
+
+- labels de tipo;
+- labels de área;
+- `Size` de `1` a `5`;
+- justificativa curta;
+- nível de confiança;
+- sugestão de quebra quando `Size` for `5`.
+
+`Size` é campo do GitHub Project. Não é label e não deve entrar no título da issue.
+
+## Uso de `$yabook load`
+
+`$yabook load` serve para preparar a conversa atual.
+
+O arquivo `references/session.md` concentra o cache operacional completo: templates de issue, PR e release, labels, `Size`, branch, commit, classificação e regras de releitura.
+
+Durante o load, o agente deve:
+
+1. ler `session.md` por completo;
+2. ler `AGENTS.md` do repositório atual, se existir;
+3. inspecionar o estado do Git;
+4. responder com um resumo curto para a pessoa usuária.
+
+Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
+
+Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
+
+- precisar de `git diff` para commit, PR ou release baseados no código atual;
+- a tarefa for `init`, `docs`, `check`, `review` ou `do` com ação real no GitHub;
+- o pedido contrariar o padrão carregado;
+- houver dúvida sobre regra local não capturada no load;
+- o contexto estiver incompleto;
+- a pessoa pedir validação de conformidade.
+
+O carregamento não é memória permanente. Em uma nova conversa, o comando deve ser executado novamente.
+
+## Saídas esperadas
+
+A skill deve entregar texto pronto para uso.
+
+Regras de saída:
+
+- responder em português do Brasil;
+- ser objetiva;
+- evitar explicação longa quando a pessoa pediu só um artefato;
+- agrupar respostas por comando quando a pessoa usar `&`;
+- colocar contexto extenso para IA em `<details>` apenas quando útil;
+- não incluir validações genéricas em issue;
+- apontar exceções e riscos antes de executar ações irreversíveis.
+- sugerir mensagem de commit ao final quando alterar arquivos em repositório que segue YABook.
+
+## Limites
+
+A skill não substitui leitura do repositório.
+
+Ela não deve:
+
+- inventar padrão quando o YABook já define;
+- sobrescrever arquivos existentes sem aviso;
+- criar pastas vazias para preencher template;
+- executar merge sem pedido explícito;
+- tratar `Size` como label;
+- criar memória permanente a partir de `$yabook load`;
+- documentar no YABook conteúdo específico de produto.
+
+## Manutenção
+
+Ao alterar a skill:
+
+1. Atualize `SKILL.md` quando mudar gatilho, workflow ou padrão central.
+2. Atualize `references/commands.md` quando mudar comando, alias ou saída.
+3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, init ou sessão.
+4. Atualize este documento quando a mecânica da skill mudar.
+5. Rode a validação da skill e `git diff --check`.
+
+Comando de validação:
+
+```bash
+quick_validate.py skills/yabook
+```
