@@ -79,7 +79,15 @@ Use a skill para reduzir orientação repetida. A documentação continua sendo 
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 
-Ao usar a skill, diferencie geração de texto de execução. Comandos como `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` geram artefatos no padrão documentado. Só `$yabook do` ou alias documentado, como `$yabook create`, deve criar, editar, apagar, publicar ou mover algo no GitHub.
+### Trava para escrita no GitHub
+
+Ao usar a skill, diferencie geração de texto de execução.
+
+Sem `$yabook do`, a IA não deve criar, editar, apagar, publicar, mover em Project, aplicar labels, abrir PR, fazer merge, dar push ou alterar qualquer estado no GitHub.
+
+Comandos como `$yabook issue`, `$yabook pr`, `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check` e `$yabook review` servem para gerar texto, inspecionar contexto ou apontar conformidade. Eles não executam escrita no GitHub.
+
+Somente `$yabook do` ou alias documentado de `do`, como `$yabook create`, pode executar ações reais no GitHub. Mesmo nesses casos, a IA deve criar somente o que foi pedido e não deve fazer merge sem pedido explícito.
 
 A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issues ou PRs antigos em outro padrão. Use o formato histórico do projeto apenas quando a pessoa usuária pedir explicitamente.
 
