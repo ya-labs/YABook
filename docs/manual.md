@@ -48,13 +48,33 @@ O tutorial completo está em
 
 ## Uso no dia a dia
 
-Use o fluxo mínimo para mudanças relevantes:
+O fluxo começa quando surge um problema, ajuste ou melhoria nova. Descreva a
+necessidade; a IA deve ajudar a transformá-la em uma issue executável antes de
+começar a implementação.
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge
+Problema, ajuste ou melhoria
+-> Issue
+-> Branch
+-> Implementação
+-> Commit
+-> Pull Request
+-> Merge
 ```
 
 Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](padroes-rapidos.md).
+
+Com a skill:
+
+```text
+$yabook issue
+$yabook do issue
+$yabook branch name
+$yabook do branch
+```
+
+O primeiro comando prepara a issue para revisão. O segundo cria a issue. Depois,
+a branch coloca a demanda no fluxo normal de implementação, commit e PR.
 
 Ao criar issues, defina labels e `Size`. `Size` vai de `1` a `5` no GitHub Project e indica o tamanho da tarefa.
 
@@ -235,6 +255,10 @@ Regras principais:
 - usa o contexto das alterações atuais para PR, commit e release;
 - em squash merge, usa o número do PR no assunto e inclui o histórico dos commits da branch contra a branch alvo;
 - informa valores manuais quando não conseguir aplicar Project ou `Size` pela ferramenta.
+
+Para iniciar trabalho novo, descreva primeiro o problema, ajuste ou melhoria.
+Use `$yabook issue` para revisar como a demanda será registrada e
+`$yabook do issue` para criá-la antes da branch e da implementação.
 
 ### Como instalar a skill no agente
 

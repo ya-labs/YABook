@@ -39,7 +39,7 @@ Use este bloco como fonte principal após o load.
 ### Rastreabilidade
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge -> Release
+Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge -> Release
 ```
 
 Regras:

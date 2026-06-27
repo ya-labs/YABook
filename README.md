@@ -63,11 +63,24 @@ Cada projeto deve manter sua própria documentação no repositório do produto.
 
 Use o YABook como base para:
 
+- transformar problemas, ajustes e melhorias em issues executáveis;
 - montar a documentação inicial do projeto;
 - configurar o `AGENTS.md` local;
 - orientar a IA sobre o padrão da YA LABS;
 - criar issues com labels, Project e Size;
 - manter rastreabilidade entre issue, branch, commit, PR e release.
+
+O fluxo de trabalho começa pela demanda, não pela branch:
+
+```text
+Problema, ajuste ou melhoria
+-> Issue
+-> Branch
+-> Implementação
+-> Commit
+-> Pull Request
+-> Merge
+```
 
 ## O que fica aqui
 

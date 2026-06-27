@@ -126,6 +126,19 @@ Adapte o fluxo ao objetivo. Exemplos de intenções:
 - preparar PR e release;
 - verificar ou sincronizar a skill.
 
+Para intenções como “corrigir um bug”, “fazer um ajuste” ou “adicionar uma
+melhoria”, recomende primeiro:
+
+```text
+$yabook issue
+$yabook do issue
+$yabook branch name
+$yabook do branch
+```
+
+Explique que a issue transforma a necessidade em trabalho executável e inicia o
+fluxo normal de implementação.
+
 Se o objetivo admitir caminhos diferentes, recomende um e explique brevemente a
 condição que faria escolher o outro.
 

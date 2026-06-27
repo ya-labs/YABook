@@ -119,6 +119,29 @@ A trava de `do` vale dentro da gramática `$yabook`:
 Pedidos normais em linguagem natural continuam executáveis quando a branch é
 compatível.
 
+### Entrada do fluxo de trabalho
+
+O foco do fluxo YABook é transformar uma coisa nova em trabalho executável.
+
+Quando surgir um problema, ajuste, melhoria, funcionalidade ou necessidade de
+documentação, a pessoa pode descrevê-lo em linguagem natural. A IA deve entender
+e delimitar a demanda sem inventar requisitos.
+
+```text
+Problema, ajuste ou melhoria
+-> $yabook issue
+-> $yabook do issue
+-> $yabook branch name
+-> $yabook do branch
+-> implementação
+-> commit
+-> Pull Request
+-> merge
+```
+
+A issue não é burocracia posterior: ela é o ponto em que a demanda ganha
+objetivo, limite e critérios de aceite antes da implementação.
+
 ### Proteção de `main`, `dev` e branches incompatíveis
 
 Pedidos diretos em `main`, `dev`, release ou branch incompatível devem ser

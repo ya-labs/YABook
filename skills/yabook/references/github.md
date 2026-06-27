@@ -4,15 +4,31 @@ Use esta referência para issues, branches, commits, Pull Requests, labels, Proj
 
 ## Regra principal
 
-Toda mudança relevante deve manter rastreabilidade:
+Toda mudança relevante começa com uma demanda nova e deve manter rastreabilidade:
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge -> Release
+Problema, ajuste ou melhoria
+-> Issue
+-> Branch
+-> Implementação
+-> Commit
+-> Pull Request
+-> Merge
+-> Release
 ```
 
 Não trabalhe duas issues diferentes na mesma branch.
 
 ## Issues
+
+Quando a pessoa descrever algo novo para fazer, transforme a necessidade em uma
+issue antes de criar branch ou implementar. Descubra somente o contexto
+necessário e delimite tarefa, entrega esperada, limite e critérios de aceite.
+
+`$yabook issue` propõe o artefato. `$yabook do issue` cria a issue aprovada.
+Depois, use `branch name` e `do branch` para entrar no fluxo de execução.
+
+Não exija uma issue pronta da pessoa e não invente requisitos ausentes.
 
 Título objetivo, sem prefixo de tipo. Use labels para tipo e área. Use `Size` no Project para tamanho.
 

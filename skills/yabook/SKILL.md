@@ -139,7 +139,7 @@ Use these patterns directly before loading references:
 - Commit: `tipo: descrição curta`.
 - PR title: objective, without type prefix.
 - PR body: `Resumo rápido`, `O que mudou`, `Observações`, and optional `<details>` with `Informações para IA`.
-- Traceability: Issue -> Branch -> Commit -> Pull Request -> Merge.
+- Traceability: new demand -> Issue -> Branch -> implementation -> Commit -> Pull Request -> Merge.
 
 Size scale:
 
@@ -179,5 +179,5 @@ Do not invent facts. When context is missing, state the assumption or ask for th
 - Keep human-facing text objective and short.
 - Put long AI context in `<details>` only when it materially helps execution.
 - Do not add validation sections to issues unless they change execution or review.
-- Always keep traceability: Issue -> Branch -> Commit -> Pull Request -> Merge.
+- Always keep traceability: new demand -> Issue -> Branch -> implementation -> Commit -> Pull Request -> Merge.
 - When working in a repository that follows YABook and you changed files, end the final response with a suggested commit message for those changes.

@@ -22,6 +22,18 @@ A IA deve:
 
 ## Fluxo de trabalho
 
+Quando surgir um problema, ajuste ou melhoria nova, transforme a demanda em uma
+issue antes de criar branch ou implementar.
+
+Fluxo esperado:
+
+```text
+Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge
+```
+
+Não exija que o usuário escreva a issue completa. Ajude a delimitar a entrega,
+o escopo e os critérios de aceite usando o contexto real do projeto.
+
 Antes de executar uma alteração relevante, valide:
 
 1. Branch atual.

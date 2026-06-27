@@ -6,13 +6,52 @@ Use este guia quando for criar, revisar ou orientar trabalho executável no GitH
 
 ## Regra principal
 
-Toda mudança relevante deve manter rastreabilidade:
+O fluxo começa quando surge uma coisa nova para fazer no projeto: problema,
+ajuste, melhoria, funcionalidade, documentação ou decisão técnica.
+
+Antes de implementar, transforme essa demanda em uma issue que deixe claro o
+que precisa ser entregue e onde termina o trabalho.
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge -> Release
+Problema, ajuste ou melhoria
+-> Issue
+-> Branch
+-> Implementação
+-> Commit
+-> Pull Request
+-> Merge
+-> Release
 ```
 
 Não trabalhe duas issues diferentes na mesma branch.
+
+## Entrada de uma nova demanda
+
+Quando a pessoa citar algo novo que precisa ser feito:
+
+1. entenda o problema ou resultado desejado;
+2. consulte o contexto real necessário;
+3. delimite escopo, entrega esperada e critérios de aceite;
+4. proponha a issue;
+5. crie a issue quando houver autorização;
+6. somente então crie a branch e inicie a implementação.
+
+Com a skill:
+
+```text
+$yabook issue
+$yabook do issue
+$yabook branch name
+$yabook do branch
+```
+
+`$yabook issue` transforma a demanda em uma proposta pronta para revisão.
+`$yabook do issue` cria o item aprovado no GitHub. A issue passa a ser a fonte
+principal da execução.
+
+Não exija que a pessoa chegue com uma issue já escrita. Ela pode descrever a
+necessidade em linguagem natural; a IA deve ajudar a convertê-la em trabalho
+executável sem inventar requisitos.
 
 ## GitHub Projects
 
@@ -79,7 +118,8 @@ Não repita esses formatos em documentos específicos de projeto. Referencie o p
 
 Neste fluxo:
 
-- issue define a tarefa e seus limites;
+- demanda descreve o problema, ajuste ou melhoria desejada;
+- issue transforma a demanda em trabalho executável e define seus limites;
 - branch isola o trabalho da issue;
 - commits registram alterações pequenas e claras;
 - Pull Request explica o que mudou e vincula a issue;

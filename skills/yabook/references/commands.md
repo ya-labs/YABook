@@ -215,6 +215,8 @@ Se a sessão já foi carregada na conversa atual:
 
 - Para `pr`, `pr desc`, `commit message` e `release`, use conversa atual e confirme com Git.
 - Para `issue`, use o pedido do usuário, o escopo descoberto e o padrão documentado do YABook.
+  Trate a descrição de um problema, ajuste ou melhoria como entrada do fluxo e
+  transforme-a em trabalho executável antes de branch ou implementação.
   Não copie o formato de issues anteriores do projeto quando ele divergir do YABook,
   salvo pedido explícito da pessoa usuária.
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.

@@ -58,7 +58,7 @@ Esse guia é a fonte do projeto para estrutura documental. Crie apenas documento
 Mudanças relevantes devem seguir o fluxo:
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge
+Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge
 ```
 
 Para condução do projeto, use o YABook como referência para:
