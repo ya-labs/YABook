@@ -58,7 +58,12 @@ Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](padroe
 
 Ao criar issues, defina labels e `Size`. `Size` vai de `1` a `5` no GitHub Project e indica o tamanho da tarefa.
 
-Use `main` para documentação inicial, planejamento e prototipagem. Crie `dev` apenas quando começar o desenvolvimento de produto. O fluxo completo de `main`, `dev`, `release/x.y.z` e `archive/dev-x.y.z` fica em [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md).
+Durante documentação inicial, planejamento e prototipagem, crie branches de
+issue a partir da `main`. Não altere `main` diretamente sem
+`$yabook bypass <ação>`. Crie `dev` apenas quando começar o desenvolvimento de
+produto. O fluxo completo de `main`, `dev`, `release/x.y.z` e
+`archive/dev-x.y.z` fica em
+[Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md).
 
 ## Uso com IA
 
@@ -85,7 +90,7 @@ Comandos principais:
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
-- `$yabook do`: executa os artefatos pedidos, como issue, branch, PR, release ou merge.
+- `$yabook do`: executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge.
 - `$yabook issue`: gera título e descrição de issue.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
 - `$yabook pr`: gera título e descrição de Pull Request.

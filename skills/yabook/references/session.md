@@ -363,4 +363,5 @@ Depois disso, use o cache desta sessão antes de consultar novamente o YABook.
 
 O contexto carregado vale apenas para a conversa atual.
 
-Em nova conversa, carregue novamente com `$yabook load`.
+Em nova conversa, o primeiro comando operacional `$yabook` executa novamente o
+carregamento automático. Use `$yabook load` apenas para recarregar o contexto.

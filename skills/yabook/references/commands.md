@@ -20,7 +20,7 @@ Responda em português do Brasil, com texto pronto para uso.
 | `$yabook plan review` | Revisa o planejamento contra o YABook. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
-| `$yabook do` | Executa os artefatos pedidos, como issue, branch, PR, release ou merge. |
+| `$yabook do` | Executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
 | `$yabook issue` | Gera título e descrição completa da issue. |

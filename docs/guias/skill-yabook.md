@@ -113,7 +113,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
-| `$yabook do` | Executa somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
+| `$yabook do` | Executa somente a ação pedida: init, plan, sync, issue, branch, PR, release ou merge. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |

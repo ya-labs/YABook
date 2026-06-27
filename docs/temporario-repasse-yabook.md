@@ -1,362 +1,327 @@
 # Roteiro temporário de repasse do YABook
 
-Este documento é temporário. Use para apresentar o YABook ao Marco e validar se uma pessoa nova consegue entender o padrão sem explicação longa.
+Este documento apresenta a rodada que expandiu o YABook de um conjunto de
+padrões operacionais para um fluxo de condução de projetos apoiado por IA.
 
-## Objetivo da apresentação
+Use o roteiro para demonstrar as mudanças e validar se outra pessoa consegue
+iniciar, planejar, diagnosticar e organizar um projeto sem orientação externa.
 
-Mostrar que o YABook é o manual operacional da YA LABS para manter projetos, documentação, GitHub e IA trabalhando no mesmo padrão.
+## Objetivo do repasse
 
-Ao final, o Marco deve entender:
+Ao final, a pessoa deve compreender:
 
-- o que é o YABook;
-- quando consultar o YABook;
-- o que fica no YABook e o que fica no projeto;
-- como funciona o fluxo Issue -> Branch -> Commit -> Pull Request -> Merge;
-- como criar ou revisar issues com labels e `Size`;
-- como usar a skill `$yabook` para reduzir orientação repetida à IA;
-- onde encontrar os padrões sem ler o repositório inteiro.
+- como o YABook conduz um projeto da descoberta até a release;
+- como planejar a V1 ou uma versão posterior com o Codex;
+- como descobrir onde o projeto está e qual é a próxima etapa;
+- o que comandos sem `do` analisam e o que comandos com `do` executam;
+- como o carregamento automático funciona;
+- quando usar `bypass`;
+- como verificar e sincronizar a skill;
+- como usar o help por comando ou objetivo.
 
 ## O que mudou nesta rodada
 
-- O [README principal](../README.md) virou uma apresentação do YABook: o que ele entrega, para quem serve e como começar.
-- O antigo primeiros passos virou [Manual de uso](manual.md), com jornada humana objetiva.
-- O manual agora explica melhor o `$yabook do`, incluindo pedidos em linguagem natural.
-- Foi criado o [Guia técnico da skill YABook](guias/skill-yabook.md), explicando arquitetura, comandos, limites e manutenção.
-- A skill foi criada em `skills/yabook/` com referências curtas para GitHub, documentação, IA, init e sessão.
-- O primeiro comando operacional `$yabook` carrega automaticamente o cache da sessão; `$yabook load` serve para atualização manual.
-- O comando de ação agora é `$yabook do`, adaptável ao que a pessoa pedir.
-- `$yabook create` fica apenas como alias de compatibilidade.
-- A skill agora aceita múltiplos comandos na mesma mensagem usando `&`.
-- Quando a IA altera arquivos em projeto que segue YABook, ela deve terminar sugerindo mensagem de commit.
-- Foi criado o comando `$yabook issue classify` para sugerir labels e `Size`.
-- `Size` foi documentado como campo do GitHub Project, não como label.
-- PRs agora seguem o mesmo espírito das issues: resumo rápido para humano e informações extras para IA quando necessário.
-- A documentação foi reorganizada para evitar repetição: cada assunto deve ter uma fonte principal.
+### Condução de projetos
 
-## Preparação
-
-Antes da conversa, deixe aberto:
-
-- [README principal](../README.md);
-- [Manual de uso](manual.md);
-- [Padrões rápidos](padroes-rapidos.md);
-- [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md);
-- [Guia técnico da skill YABook](guias/skill-yabook.md);
-- um projeto real ou repositório de teste.
-
-Se for testar no Codex local, a skill já foi instalada em:
+O YABook agora define um ciclo reutilizável:
 
 ```text
-/home/nmachado/.codex/skills/yabook
+Descoberta
+-> planejamento colaborativo
+-> documentação da versão
+-> roadmap
+-> próximo bloco de issues
+-> implementação
+-> estabilização
+-> release
 ```
 
-Depois de instalar ou atualizar a skill, reinicie o agente para ela aparecer na lista de skills disponíveis.
+O planejamento cobre a versão inteira em alto nível, mas detalha somente o
+próximo bloco acionável.
 
-## Roteiro sugerido
+Documentação guarda conhecimento estável. GitHub guarda backlog, responsáveis,
+status, milestones, épicos e progresso operacional.
 
-### 1. Apresentar o YABook pelo README
+### Diagnóstico do projeto
 
-Abra o [README principal](../README.md) e explique:
+`$yabook diagnose` cruza documentação, código, Git e GitHub para apresentar:
 
-> O YABook é o manual operacional da YA LABS. Ele define o padrão reutilizável para documentação, GitHub, uso de IA e condução de projetos.
+- objetivo da versão;
+- entregas concluídas;
+- trabalho em andamento;
+- pendências;
+- bloqueios;
+- divergências entre plano e execução;
+- próximo passo recomendado.
 
-Reforce:
+Diagnóstico observa o projeto. Planejamento decide sua direção.
 
-- o YABook não é documentação de um produto específico;
-- cada projeto guarda seus fatos reais;
-- o YABook guarda o padrão que todos os projetos devem seguir;
-- a ideia é reduzir improviso e retrabalho com IA.
+### Planejamento colaborativo
 
-### 2. Mostrar a jornada humana no manual
+A família `plan` permite conversar antes de documentar:
 
-Abra [Manual de uso](manual.md) e mostre:
-
-- o que é;
-- quando usar;
-- como aplicar em projeto novo;
-- uso no dia a dia;
-- uso com IA;
-- uso com a skill;
-- onde consultar padrões.
-
-Não leia tudo. A ideia é mostrar que o manual responde “por onde começo?”.
-
-### 3. Mostrar os padrões rápidos
-
-Abra [Padrões rápidos](padroes-rapidos.md) e destaque:
-
-- issue tem título objetivo;
-- labels indicam tipo e área;
-- `Size` indica tamanho no GitHub Project;
-- branch usa `numero-descricao-curta`;
-- commit usa `tipo: descrição curta`;
-- PR tem título objetivo e descrição curta para humano.
-
-Resumo para falar:
-
-> O padrão evita repetir informação. Tipo e área ficam nas labels; número da issue fica na branch; contexto longo vai para seção própria quando ajuda a IA.
-
-### 4. Explicar `Size`
-
-Explique que `Size` é um campo do GitHub Project:
-
-| Size | Significado |
+| Comando | Função |
 | --- | --- |
-| `1` | Ajuste rápido, baixo risco e escopo evidente. |
-| `2` | Tarefa pequena, poucos arquivos ou pouca incerteza. |
-| `3` | Tarefa média, exige implementação ou revisão normal. |
-| `4` | Tarefa grande, envolve várias partes ou análise relevante. |
-| `5` | Tarefa muito grande, alta incerteza ou candidata a ser quebrada. |
+| `$yabook plan start v1` | Inicia a entrevista da versão. |
+| `$yabook plan discuss <tema>` | Discute uma mudança e seus impactos. |
+| `$yabook plan status` | Mostra maturidade e decisões abertas. |
+| `$yabook plan next` | Recomenda uma única próxima ação. |
+| `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
+| `$yabook plan review` | Revisa coerência e prontidão. |
+| `$yabook do plan` | Consolida decisões aprovadas nos documentos. |
+| `$yabook do plan roadmap` | Materializa o roadmap aprovado no GitHub. |
 
-Regra importante:
+Comandos `plan` sem `do` não alteram arquivos ou GitHub.
 
-> Se a IA sugerir `Size 5`, ela deve sugerir divisão em issues menores.
+### Núcleo documental adaptável
 
-### 5. Mostrar o fluxo GitHub
-
-Abra [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md) e mostre:
-
-- labels oficiais da YA LABS;
-- Project e `Size`;
-- quando usar `main`;
-- quando criar `dev`;
-- quando usar `release/x.y.z`;
-- quando arquivar `dev` como `archive/dev-x.y.z`.
-
-Mensagem principal:
-
-> `main` é estável. `dev` só aparece quando começa desenvolvimento de produto. `dev` representa um ciclo, não uma branch eterna.
-
-### 6. Apresentar a skill YABook
-
-Explique:
-
-> A documentação é a fonte humana. A skill é a interface operacional para a IA aplicar o padrão sem eu precisar explicar tudo de novo.
-
-Mostre que a skill fica em:
+Quando o projeto não tiver estrutura equivalente, o padrão sugerido é:
 
 ```text
-skills/yabook/
+docs/planejamento/
+├── visao-do-produto.md
+├── roadmap.md
+├── versoes/
+│   └── v1.md
+└── sessoes/
+    └── AAAA-MM-DD-assunto.md
 ```
 
-Mostre também o [Guia técnico da skill YABook](guias/skill-yabook.md) para explicar como ela funciona por dentro.
+Sessões guardam contexto, decisões, pendências e impactos. Não guardam a
+transcrição completa nem status operacional.
 
-## Comandos principais para demonstrar
+### Carregamento automático
 
-Use estes comandos em um repositório de teste.
+Não é mais necessário iniciar a conversa com `$yabook load`.
 
-### Encadeamento com `&`
+No primeiro comando operacional `$yabook`, a skill carrega silenciosamente:
 
-Mostre que a skill aceita vários comandos na mesma mensagem.
+- `session.md`;
+- `AGENTS.md` local;
+- branch;
+- `git status --short --branch`;
+- `git diff --stat`.
 
-Exemplos:
+`$yabook help` é a única exceção. `$yabook load` continua disponível para
+recarregar o contexto depois de trocar repositório, branch ou regras locais.
+
+### Trava de execução
+
+A trava de `do` vale dentro da gramática `$yabook`:
+
+- `$yabook issue` gera a proposta;
+- `$yabook do issue` cria a issue;
+- `$yabook plan roadmap` propõe a estrutura;
+- `$yabook do plan roadmap` cria a estrutura;
+- `$yabook sync` compara;
+- `$yabook do sync` sincroniza.
+
+Pedidos normais em linguagem natural continuam executáveis quando a branch é
+compatível.
+
+### Proteção de `main`, `dev` e branches incompatíveis
+
+Pedidos diretos em `main`, `dev`, release ou branch incompatível devem ser
+bloqueados.
+
+Uma confirmação comum não libera a execução. A exceção precisa ser explícita:
 
 ```text
-$yabook init & load & commit msg
-$yabook load & status & commit message
-$yabook load & issue classify & branch name
+$yabook bypass atualize o README diretamente na main
 ```
 
-Explique:
+O `bypass` vale somente para a ação anexada e não substitui `do issue`,
+`do branch`, `do commit`, `do pr`, `do release`, `do merge` ou `do sync`.
 
-- os comandos rodam da esquerda para a direita;
-- o prefixo `$yabook` só precisa aparecer no início;
-- `load` carrega cache para os comandos seguintes;
-- a resposta deve vir agrupada por comando;
-- se houver alteração de arquivos, a IA deve fechar com `Commit sugerido`.
+### Sincronização da skill
 
-### `$yabook help`
+Use:
 
-Mostra a lista curta de comandos.
+```text
+$yabook sync
+$yabook sync local
+$yabook sync remote
+```
 
-### `$yabook load`
+Esses comandos apenas comparam a instalação com a origem.
 
-Carrega o cache operacional do YABook na conversa atual.
+Para atualizar:
 
-Use para reduzir buscas repetidas durante a mesma conversa.
+```text
+$yabook do sync
+$yabook do sync local
+$yabook do sync remote
+```
 
-Explique que agora o load:
+O modo local prefere o checkout YABook atual ou `YABOOK_REPO_PATH`. O modo
+remoto usa o repositório oficial sem executar `pull` no checkout local.
 
-- lê o cache completo da skill;
-- lê o `AGENTS.md` local, quando existir;
-- confere branch e estado do Git;
-- guarda os padrões principais para comandos rotineiros;
-- evita reler `github.md` e `session.md` a cada comando simples.
+A sincronização valida antes e depois, ignora diferenças de quebra de linha e
+altera somente a instalação `yabook`.
 
-Depois do load, a IA deve usar o cache para:
+### Help contextual
 
-- `$yabook issue`;
-- `$yabook issue classify`;
-- `$yabook branch name`;
-- `$yabook commit message`;
-- `$yabook pr`;
-- `$yabook release`;
-- `$yabook status`.
+O help agora possui três níveis:
 
-Reforce o limite:
+```text
+$yabook help
+$yabook help plan
+$yabook help planejar a V1 do projeto
+```
 
-> O load reduz busca repetida, mas não substitui inspeção real do repo. Para diff, GitHub, `$yabook do`, `$yabook check`, `$yabook review` e `$yabook docs`, a IA ainda precisa conferir o contexto.
+- o primeiro apresenta o índice;
+- o segundo explica uma família e mostra exemplos;
+- o terceiro recomenda um fluxo e explica o motivo de cada etapa.
 
-### `$yabook issue`
+Help não carrega o repositório, não altera estado e não executa os comandos que
+aparecem na explicação.
 
-Gera título e descrição completa de issue.
+## Demonstração: projeto do zero
 
-Deve ser objetivo e evitar validações genéricas.
+Execute em um repositório de teste:
 
-### `$yabook issue classify`
+```text
+$yabook init
+$yabook do init
+$yabook plan start v1
+$yabook plan review
+$yabook do plan
+$yabook plan roadmap
+$yabook do plan roadmap
+$yabook plan next
+```
 
-Sugere:
+Durante a demonstração, confirme:
 
-- labels;
-- `Size`;
-- justificativa curta;
-- confiança;
-- quebra em issues menores quando for `Size 5`.
+- `init` apenas propõe;
+- `do init` aplica;
+- `plan start` conduz perguntas em blocos curtos;
+- hipóteses não viram decisões automaticamente;
+- `do plan` não cria commit;
+- o roadmap reutiliza itens existentes;
+- somente o próximo bloco recebe issues detalhadas.
 
-### `$yabook do`
+## Demonstração: expandir projeto existente
 
-É o comando adaptável.
+Para uma nova versão:
 
-Antes de demonstrar, destaque a trava principal:
+```text
+$yabook diagnose
+$yabook plan start v2
+$yabook plan review
+$yabook do plan
+$yabook plan roadmap
+$yabook do plan roadmap
+```
 
-> Dentro da gramática `$yabook`, somente comandos iniciados por `$yabook do` executam ações. Pedidos normais seguem o fluxo do agente.
-> Comandos como `$yabook issue`, `$yabook pr` e `$yabook branch name` apenas geram texto no padrão YABook.
+Para alterar a versão atual:
 
-Ele entende pedido direto:
+```text
+$yabook diagnose
+$yabook plan discuss adicionar integração com IA
+$yabook plan review
+$yabook do plan
+$yabook plan roadmap
+$yabook do plan roadmap
+```
+
+## Demonstração: projeto sem direção
+
+```text
+$yabook diagnose
+$yabook plan status
+$yabook plan next
+```
+
+Valide a diferença:
+
+- `status`: trabalho local atual;
+- `diagnose`: estado do projeto inteiro;
+- `plan status`: maturidade do planejamento;
+- `plan next`: uma próxima ação recomendada.
+
+## Demonstração: segurança
+
+### Comando sem `do`
+
+```text
+$yabook issue
+```
+
+Resultado esperado: proposta textual, sem criação no GitHub.
+
+### Comando com `do`
 
 ```text
 $yabook do issue
-$yabook do issue branch pr
-$yabook do pr merge
 ```
 
-E também linguagem natural:
+Resultado esperado: criação somente depois de conferir contexto, labels,
+Project e `Size`.
+
+### Pedido direto em branch protegida
+
+Em `main` ou `dev`, peça:
 
 ```text
-$yabook do uma issue para essa tarefa
-$yabook do uma issue, uma branch e um PR para main
-$yabook do abra um PR e faça merge
+atualize o README
 ```
 
-Regras para explicar:
+Resultado esperado: bloqueio e orientação para usar `bypass`.
 
-- cria somente o que foi pedido;
-- entende o contexto da conversa e do Git;
-- confere branch, issue e alterações quando necessário;
-- não faz merge sem pedido explícito;
-- em squash merge, usa o número do PR no assunto e inclui o histórico dos commits da branch contra a branch alvo;
-- se não conseguir preencher Project ou `Size`, informa o valor para preenchimento manual.
-
-### `$yabook pr`
-
-Gera título e descrição completa do PR.
-
-Modelo esperado:
-
-- `Resumo rápido`;
-- `O que mudou`;
-- `Observações`;
-- `Informações para IA`, apenas quando houver contexto útil.
-
-### `$yabook commit message`
-
-Sugere mensagem de commit com base no diff atual.
-
-Padrão:
+Depois:
 
 ```text
-tipo: descrição curta
+$yabook bypass atualize o README
 ```
 
-### `$yabook docs`
+Resultado esperado: execução apenas dessa ação, com a exceção registrada na
+resposta.
 
-Indica onde documentar uma informação.
-
-Use para evitar criar documento novo sem necessidade.
-
-## Exercício prático com Marco
-
-Use um projeto real ou repo de teste e peça para ele executar:
-
-1. Abrir `README.md` e `AGENTS.md` do projeto.
-2. Identificar se o projeto segue o YABook.
-3. Rodar `$yabook load`.
-4. Descrever uma pequena melhoria.
-5. Rodar `$yabook issue` e observar se a IA usa o cache sem reler o YABook.
-6. Rodar `$yabook issue classify`.
-7. Rodar `$yabook do issue` e observar se a IA confere GitHub quando necessário.
-8. Sugerir branch com `$yabook branch name`.
-9. Simular uma alteração pequena.
-10. Pedir `$yabook commit message`.
-11. Pedir `$yabook pr`.
-12. Pedir `$yabook check`.
-
-Se quiser testar o do completo:
+## Demonstração: help e sync
 
 ```text
-$yabook do uma issue, uma branch e um PR para essa melhoria
+$yabook help plan
+$yabook help criar uma issue e uma branch
+$yabook sync local
 ```
 
-Se quiser testar economia de chamada:
+Valide que:
 
-```text
-$yabook load & status & commit msg
-```
-
-O ponto do teste é observar se a IA cria só o que foi pedido e se aplica labels, Project e `Size` corretamente.
+- o help explica sem executar;
+- o help por objetivo monta o menor fluxo;
+- sync apenas compara;
+- se houver diferença, a resposta sugere `$yabook do sync local`.
 
 ## Perguntas para validar entendimento
 
-- O que o YABook resolve?
-- O que fica no YABook e o que fica no projeto?
-- Por que issue não precisa de tipo no título?
-- Onde entram labels, Project e `Size`?
-- Por que a branch começa com número da issue?
-- Quando devo criar `dev`?
-- Quando uso `release/x.y.z`?
-- O que muda quando uso `$yabook load`?
-- Quando a IA ainda precisa consultar o repositório mesmo após `$yabook load`?
-- O que o `$yabook do` pode criar?
-- Como rodar vários comandos YABook em uma única mensagem?
-- O que a IA deve sugerir ao final quando altera arquivos?
-- Quando a IA deve ler documentação ampla?
-- O que fazer se o projeto precisar fugir do padrão?
+- Qual é a diferença entre `diagnose` e `plan status`?
+- Quando usar `plan discuss` em vez de `plan start v2`?
+- Por que o roadmap não cria o backlog detalhado inteiro?
+- O que o primeiro comando `$yabook` carrega automaticamente?
+- Quando ainda faz sentido usar `$yabook load`?
+- Por que uma confirmação comum não substitui `bypass`?
+- Por que `bypass` não substitui `do`?
+- Como verificar a sincronização sem alterar arquivos?
+- Como pedir ajuda para um objetivo em linguagem natural?
+- Onde ficam decisões estáveis e onde fica o andamento operacional?
 
 ## Critérios de sucesso
 
-O repasse funcionou se o Marco conseguir:
+O repasse foi bem-sucedido quando a pessoa consegue:
 
-- explicar o YABook em poucas frases;
-- encontrar sozinho o documento certo;
-- criar uma issue curta e objetiva;
-- classificar labels e `Size`;
-- sugerir branch, commit e PR no padrão;
-- usar `$yabook do` sem esperar que ele faça etapas não pedidas;
-- entender que a skill não substitui leitura do repositório;
-- evitar documentação genérica ou duplicada.
+- explicar o ciclo de condução de projetos;
+- iniciar o planejamento de uma versão;
+- recuperar a direção de um projeto;
+- distinguir análise de execução;
+- prever quando o agente bloqueará uma alteração;
+- escolher entre `load`, `diagnose`, `plan`, `sync` e `help`;
+- executar o próximo passo sem inventar formato ou duplicar documentação.
 
-## Pontos para observar
+## Referências
 
-Durante o teste, anote:
-
-- onde ele travou;
-- se o README vende bem a ideia;
-- se o manual responde rápido;
-- se `Size` ficou claro;
-- se `$yabook do` ficou natural;
-- se algum comando ficou ambíguo;
-- se a IA insistiu em reler o YABook mesmo após `$yabook load`;
-- o que ainda precisou de explicação oral.
-
-## Ajustes depois do teste
-
-Depois do repasse, revisar:
-
-- se o [README principal](../README.md) apresenta bem o YABook;
-- se o [Manual de uso](manual.md) está claro para uma pessoa nova;
-- se [Padrões rápidos](padroes-rapidos.md) resolve a consulta do dia a dia;
-- se o [Guia técnico da skill](guias/skill-yabook.md) explica bem a mecânica;
-- se a skill cobre os comandos que o Marco tentou usar;
-- se algum trecho do YABook ainda força explicação oral demais.
-
-Este documento pode ser removido ou convertido em guia oficial depois do teste.
+- [Manual de uso](manual.md)
+- [Condução de projetos](processos/conducao-de-projetos.md)
+- [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md)
+- [Guia técnico da skill](guias/skill-yabook.md)
+- [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md)
