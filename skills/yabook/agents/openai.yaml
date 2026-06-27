@@ -1,7 +1,7 @@
 interface:
   display_name: "YABook"
   short_description: "Planejamento e padrões operacionais da YA LABS"
-  default_prompt: "Use $yabook para diagnosticar e planejar. Dentro da gramática YABook, somente $yabook do executa ações; pedidos normais seguem o fluxo do agente."
+  default_prompt: "Use $yabook para diagnosticar e planejar. O primeiro comando operacional carrega o contexto automaticamente; somente $yabook do executa ações da gramática YABook."
 
 policy:
   allow_implicit_invocation: true

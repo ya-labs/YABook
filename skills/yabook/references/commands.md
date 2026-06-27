@@ -9,7 +9,7 @@ Responda em português do Brasil, com texto pronto para uso.
 | Comando | Saída |
 | --- | --- |
 | `$yabook help` | Lista curta dos comandos disponíveis. |
-| `$yabook load` | Carrega resumo operacional do YABook para a conversa atual. |
+| `$yabook load` | Carrega explicitamente ou atualiza o cache operacional da conversa. |
 | `$yabook init` | Analisa como inicializar ou adaptar o padrão YA LABS, sem alterar estado. |
 | `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo do projeto. |
 | `$yabook plan start <versão>` | Inicia entrevista colaborativa para planejar uma versão. |
@@ -81,6 +81,24 @@ repetir a ação com `$yabook bypass <ação>`. Uma confirmação comum não aut
 exigência de issue/branch. Não use `bypass` como substituto de `do issue`,
 `do branch`, `do commit`, `do pr`, `do release`, `do merge` ou outros comandos
 YABook que alterem estado.
+
+## Carregamento automático
+
+No primeiro comando operacional `$yabook` da conversa:
+
+1. leia `session.md` por completo;
+2. leia o `AGENTS.md` local, quando existir;
+3. confira branch, `git status --short --branch` e `git diff --stat`;
+4. mantenha esse contexto como cache da conversa;
+5. execute o comando solicitado sem responder com uma seção separada de load.
+
+Não repita o carregamento nos comandos seguintes da mesma conversa.
+
+Exceções:
+
+- `$yabook help` pode responder sem carregar contexto do repositório;
+- `$yabook load` força o carregamento ou atualiza o cache quando branch,
+  repositório, regras locais ou contexto relevante mudarem.
 
 Saída:
 
@@ -209,7 +227,7 @@ Quando o comando for `$yabook help`, responda curto:
 
 ```text
 Comandos principais:
-- $yabook load: carrega os padrões na conversa atual.
+- $yabook load: recarrega o cache quando o contexto mudar.
 - $yabook init: analisa como inicializar o padrão YA LABS, sem alterar estado.
 - $yabook diagnose: mostra onde o projeto está e recomenda o próximo passo.
 - $yabook plan: entrevista, discute e revisa o planejamento de versões.

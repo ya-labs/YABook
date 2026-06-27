@@ -1,12 +1,24 @@
 # `$yabook load`
 
-Use este comando para carregar o cache operacional do YABook na conversa atual.
+Use esta referência para o carregamento automático da primeira operação YABook
+e para o comando explícito `$yabook load`.
 
 ## Objetivo
 
 Reduzir buscas repetidas no repositório durante a mesma conversa.
 
-`$yabook load` não cria memória permanente e não altera arquivos.
+O carregamento não cria memória permanente e não altera arquivos.
+
+## Carregamento automático
+
+No primeiro comando operacional `$yabook` da conversa, execute o fluxo de
+carregamento abaixo silenciosamente e depois responda somente ao comando pedido.
+
+Não repita o carregamento na mesma conversa. `$yabook help` é a única exceção e
+pode responder sem contexto do repositório.
+
+Use `$yabook load` para carregar explicitamente ou atualizar o cache quando a
+branch, o repositório, as regras locais ou o contexto relevante mudarem.
 
 ## Como executar
 

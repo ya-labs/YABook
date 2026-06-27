@@ -85,6 +85,21 @@ Use aliases listed in `commands.md` when the user writes a shorter variant.
 
 Support chained commands with `&`, for example `$yabook init & load & commit msg`. Execute each segment from left to right, reuse context collected by earlier segments, and keep the response grouped and concise.
 
+## Implicit Session Load
+
+On the first operational `$yabook` command in a conversation:
+
+1. Read `session.md` completely.
+2. Read the repository `AGENTS.md` when available.
+3. Inspect the current branch, `git status --short --branch`, and `git diff --stat`.
+4. Keep that context as the session cache.
+5. Execute the requested command without producing a separate load response.
+
+Do not repeat the implicit load for later commands in the same conversation.
+`$yabook help` is the only exception and may respond without repository context.
+`$yabook load` remains available to load explicitly or refresh the cache after
+the repository, branch, workflow, or relevant local rules change.
+
 ## References
 
 Load only the reference needed for the current task:

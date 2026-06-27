@@ -15,6 +15,15 @@ confirmação comum não é suficiente.
 `$yabook bypass <ação>` autoriza a ação anexada fora do fluxo de issue/branch,
 mas não substitui `do` para executar comandos YABook.
 
+## Carregamento automático
+
+O primeiro comando operacional `$yabook` da conversa carrega automaticamente o
+cache da skill, o `AGENTS.md` local e o estado do Git. Não é necessário executar
+`$yabook load` antes.
+
+Use `$yabook load` apenas para atualizar o contexto depois de mudar de
+repositório, branch ou regras locais.
+
 ## Criar um projeto do zero
 
 ### 1. Analisar a inicialização
@@ -88,10 +97,9 @@ Quando `do plan roadmap` já tiver criado a issue seguinte, não a crie novament
 
 ## Expandir um projeto existente
 
-Comece carregando o padrão e reconstruindo o estado real:
+Comece reconstruindo o estado real. O contexto será carregado automaticamente:
 
 ```text
-$yabook load
 $yabook diagnose
 ```
 

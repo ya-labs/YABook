@@ -79,7 +79,7 @@ A skill YABook é a interface operacional para IA usar estes padrões no trabalh
 Comandos principais:
 
 - `$yabook help`: lista os comandos disponíveis.
-- `$yabook load`: carrega os padrões operacionais na conversa atual.
+- `$yabook load`: recarrega os padrões operacionais quando o contexto mudar.
 - `$yabook init`: analisa como inicializar o padrão, sem alterar estado.
 - `$yabook diagnose`: reconstrói progresso, lacunas, bloqueios e próximo passo.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
@@ -126,11 +126,21 @@ A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issue
 
 ### Como usar `$yabook load`
 
-Use `$yabook load` no início de uma conversa em que a IA vai trabalhar seguindo o YABook.
+Você não precisa executar `$yabook load` no início da conversa.
 
-O comando carrega um cache operacional para a conversa atual. Esse cache inclui os padrões mais usados de issue, branch, commit, PR, release, labels, `Size` e rastreabilidade.
+No primeiro comando operacional `$yabook`, a skill carrega automaticamente:
 
-Durante o load, a IA deve:
+- cache operacional de `session.md`;
+- `AGENTS.md` local;
+- branch e estado do Git.
+
+Depois, executa o comando solicitado sem responder com um bloco separado de
+load. `$yabook help` é a única exceção e pode funcionar sem contexto local.
+
+Use `$yabook load` manualmente quando mudar de repositório ou branch, quando as
+regras locais forem alteradas ou quando quiser atualizar o cache da conversa.
+
+Durante o carregamento, a IA deve:
 
 1. ler o cache da skill;
 2. ler o `AGENTS.md` do repositório atual, se existir;
@@ -141,7 +151,8 @@ Depois disso, para comandos rotineiros como `$yabook issue`, `$yabook issue clas
 
 Mesmo após o load, a IA ainda deve consultar o repositório quando precisar entender alterações reais, validar GitHub, executar `$yabook do`, revisar conformidade ou resolver dúvida que o cache não cobre.
 
-O load vale apenas para a conversa atual. Em uma nova conversa, execute `$yabook load` novamente.
+O cache vale apenas para a conversa atual. Em uma nova conversa, o primeiro
+comando operacional executa outro carregamento automático.
 
 ### Como encadear comandos
 

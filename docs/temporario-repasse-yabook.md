@@ -23,7 +23,7 @@ Ao final, o Marco deve entender:
 - O manual agora explica melhor o `$yabook do`, incluindo pedidos em linguagem natural.
 - Foi criado o [Guia técnico da skill YABook](guias/skill-yabook.md), explicando arquitetura, comandos, limites e manutenção.
 - A skill foi criada em `skills/yabook/` com referências curtas para GitHub, documentação, IA, init e sessão.
-- O comando `$yabook load` foi reestruturado para carregar um cache operacional da sessão.
+- O primeiro comando operacional `$yabook` carrega automaticamente o cache da sessão; `$yabook load` serve para atualização manual.
 - O comando de ação agora é `$yabook do`, adaptável ao que a pessoa pedir.
 - `$yabook create` fica apenas como alias de compatibilidade.
 - A skill agora aceita múltiplos comandos na mesma mensagem usando `&`.

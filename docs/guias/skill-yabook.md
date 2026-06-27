@@ -98,7 +98,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | Comando | Como atua |
 | --- | --- |
 | `$yabook help` | Lista os comandos principais de forma curta. Não explica o handbook inteiro. |
-| `$yabook load` | Carrega um resumo operacional do YABook na conversa atual para reduzir buscas repetidas. Não cria memória permanente e não altera arquivos. |
+| `$yabook load` | Recarrega o cache operacional quando branch, repositório ou regras locais mudarem. |
 | `$yabook init` | Analisa como inicializar ou adaptar o repositório, sem alterar estado. |
 | `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo. |
 | `$yabook plan start <versão>` | Inicia entrevista colaborativa para uma versão. |
@@ -212,13 +212,19 @@ O comando `$yabook issue classify` deve retornar:
 
 `Size` é campo do GitHub Project. Não é label e não deve entrar no título da issue.
 
-## Uso de `$yabook load`
+## Carregamento automático e `$yabook load`
 
-`$yabook load` serve para preparar a conversa atual.
+O primeiro comando operacional `$yabook` da conversa prepara automaticamente o
+contexto. O agente lê `session.md`, `AGENTS.md`, branch e estado do Git e então
+executa o comando solicitado sem exibir uma resposta separada de load.
 
 O arquivo `references/session.md` concentra o cache operacional completo: templates de issue, PR e release, labels, `Size`, branch, commit, classificação e regras de releitura.
 
-Durante o load, o agente deve:
+`$yabook help` pode responder sem carregar o repositório. `$yabook load` continua
+disponível para atualizar o cache depois de mudanças de branch, repositório,
+regras locais ou contexto relevante.
+
+Durante o carregamento, o agente deve:
 
 1. ler `session.md` por completo;
 2. ler `AGENTS.md` do repositório atual, se existir;
