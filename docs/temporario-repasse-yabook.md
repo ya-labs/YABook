@@ -219,7 +219,7 @@ Sugere:
 
 Antes de demonstrar, destaque a trava principal:
 
-> Sem `$yabook do`, a IA não deve criar, editar, apagar, publicar, mover em Project, aplicar labels, abrir PR, fazer merge, dar push ou alterar qualquer estado no GitHub.
+> Dentro da gramática `$yabook`, somente comandos iniciados por `$yabook do` executam ações. Pedidos normais seguem o fluxo do agente.
 > Comandos como `$yabook issue`, `$yabook pr` e `$yabook branch name` apenas geram texto no padrão YABook.
 
 Ele entende pedido direto:

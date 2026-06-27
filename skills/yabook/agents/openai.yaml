@@ -1,7 +1,7 @@
 interface:
   display_name: "YABook"
-  short_description: "Padrões YA LABS para GitHub, docs e IA"
-  default_prompt: "Use $yabook do para criar issues, branches, PRs, releases ou merges seguindo os padrões YA LABS. Encadeie comandos com &, como $yabook load & commit msg."
+  short_description: "Planejamento e padrões operacionais da YA LABS"
+  default_prompt: "Use $yabook para diagnosticar e planejar. Dentro da gramática YABook, somente $yabook do executa ações; pedidos normais seguem o fluxo do agente."
 
 policy:
   allow_implicit_invocation: true

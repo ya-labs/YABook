@@ -42,6 +42,21 @@ Não coloque no YABook conteúdo específico de produto:
 - fluxo de negócio exclusivo;
 - roadmap interno de produto.
 
+## Planejamento de produto
+
+O repositório do produto deve guardar visão, versões, roadmap e decisões
+específicas. Use a estrutura existente quando ela for clara.
+
+Quando não houver equivalente, adote o núcleo adaptável:
+
+- `docs/planejamento/visao-do-produto.md`;
+- `docs/planejamento/roadmap.md`;
+- `docs/planejamento/versoes/vN.md`;
+- `docs/planejamento/sessoes/AAAA-MM-DD-assunto.md`.
+
+Sessões guardam resumos de contexto, decisões, pendências e impactos, não
+transcrições completas. Status operacional continua no GitHub.
+
 ## Antes de criar documento novo
 
 Confirme:

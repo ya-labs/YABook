@@ -10,7 +10,15 @@ Responda em português do Brasil, com texto pronto para uso.
 | --- | --- |
 | `$yabook help` | Lista curta dos comandos disponíveis. |
 | `$yabook load` | Carrega resumo operacional do YABook para a conversa atual. |
-| `$yabook init` | Inicializa ou adapta o padrão YA LABS no repositório atual. |
+| `$yabook init` | Analisa como inicializar ou adaptar o padrão YA LABS, sem alterar estado. |
+| `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo do projeto. |
+| `$yabook plan start <versão>` | Inicia entrevista colaborativa para planejar uma versão. |
+| `$yabook plan discuss <tema>` | Discute uma mudança e seus impactos no planejamento. |
+| `$yabook plan status` | Avalia maturidade, decisões abertas e lacunas do planejamento. |
+| `$yabook plan next` | Recomenda uma única próxima decisão ou entrega. |
+| `$yabook plan roadmap` | Propõe milestones, épicos, encaixes e próximo bloco de issues. |
+| `$yabook plan review` | Revisa o planejamento contra o YABook. |
+| `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
 | `$yabook do` | Executa os artefatos pedidos, como issue, branch, PR, release ou merge. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
@@ -54,17 +62,25 @@ Regras:
 - Reaproveite contexto, `AGENTS.md`, estado do Git e cache carregado por comandos anteriores.
 - Se `load` aparecer no encadeamento, use o cache carregado para os comandos seguintes.
 - Se um comando depender de alterações atuais, confirme com Git antes de responder aquele comando.
-- Sem `$yabook do`, a IA não deve criar, editar, apagar, publicar, mover em Project,
-  aplicar labels, abrir PR, fazer merge, dar push, atribuir responsável ou alterar
-  qualquer estado no GitHub.
-- Só comandos `$yabook do` ou aliases documentados de `do`, como `$yabook create`,
-  podem criar, editar, publicar, fazer merge, apagar ou alterar GitHub.
+- A trava de `do` vale para comandos `$yabook`, não para pedidos normais em
+  linguagem natural.
+- Só comandos iniciados por `$yabook do` ou aliases documentados, como
+  `$yabook create`, podem executar artefatos da gramática YABook.
 - Comandos que geram artefatos textuais, como `$yabook issue`, `$yabook pr`,
   `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check`
   e `$yabook review`, não podem executar comandos de escrita no GitHub, mesmo que
   o artefato pareça óbvio.
 - Se um comando `do` criar, publicar, fazer merge ou alterar GitHub, confira risco e contexto antes de executar.
 - Se algum comando não puder ser executado com segurança, informe o bloqueio e continue apenas com comandos que não dependem dele.
+
+Pedidos diretos sem `$yabook` seguem o fluxo normal do agente. Antes de editar
+em `main`, `dev`, release ou branch incompatível, bloqueie e oriente a pessoa a
+repetir a ação com `$yabook bypass <ação>`. Uma confirmação comum não autoriza.
+
+`$yabook bypass <ação>` vale somente para a ação anexada e ignora apenas a
+exigência de issue/branch. Não use `bypass` como substituto de `do issue`,
+`do branch`, `do commit`, `do pr`, `do release`, `do merge` ou outros comandos
+YABook que alterem estado.
 
 Saída:
 
@@ -81,6 +97,9 @@ Aceite artefatos explícitos:
 ```text
 $yabook do issue
 $yabook do branch
+$yabook do init
+$yabook do plan
+$yabook do plan roadmap
 $yabook do pr
 $yabook do release
 $yabook do issues
@@ -106,6 +125,11 @@ Regras:
 
 Por artefato:
 
+- Init: aplicar a proposta produzida por `$yabook init`, preservando conteúdo existente.
+- Plan: consolidar decisões aprovadas nos documentos e criar issue/branch de
+  planejamento quando a rastreabilidade ainda não existir; nunca criar commit.
+- Plan roadmap: materializar milestones, épicos, vínculos e somente o próximo
+  bloco acionável; reler o resultado e não duplicar equivalentes.
 - Issue: gerar título, descrição, labels, `Size` e Project quando aplicável.
 - Branch: usar `numero-descricao-curta`; basear em `main` ou `dev` conforme fluxo.
 - PR: usar título objetivo e descrição com `Resumo rápido`, `O que mudou`, `Observações` e `Informações para IA`.
@@ -149,6 +173,8 @@ Ao usar `gh pr merge --squash`, prefira `--body-file` para evitar que quebras de
 | `$yabook issue description` | `$yabook issue desc` |
 | `$yabook doc` | `$yabook docs` |
 | `$yabook validate` | `$yabook check` |
+| `$yabook diagnóstico` | `$yabook diagnose` |
+| `$yabook planejamento` | `$yabook plan` |
 
 ## Contexto por comando
 
@@ -169,6 +195,8 @@ Se a sessão já foi carregada na conversa atual:
   salvo pedido explícito da pessoa usuária.
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
+- Para `diagnose`, `plan` e `do plan`, leia `planejamento.md`.
+- Para `init`, apenas inspecione e proponha; para alterar, exija `do init`.
 - Para `branch name`, use o número da issue quando existir.
 - Para `docs`, leia `documentacao.md`.
 - Para `init`, leia `init.md`.
@@ -182,7 +210,10 @@ Quando o comando for `$yabook help`, responda curto:
 ```text
 Comandos principais:
 - $yabook load: carrega os padrões na conversa atual.
-- $yabook init: inicializa o padrão YA LABS no repo.
+- $yabook init: analisa como inicializar o padrão YA LABS, sem alterar estado.
+- $yabook diagnose: mostra onde o projeto está e recomenda o próximo passo.
+- $yabook plan: entrevista, discute e revisa o planejamento de versões.
+- $yabook bypass: autoriza uma ação direta fora do fluxo nesta solicitação.
 - $yabook do: cria issue, branch, PR, release ou merge conforme pedido.
 - $yabook issue: gera título e descrição da issue.
 - $yabook issue classify: sugere labels e Size.

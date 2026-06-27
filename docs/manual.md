@@ -13,6 +13,9 @@ Ele não substitui a documentação do projeto. Ele diz como o projeto deve orga
 Use o YABook quando precisar:
 
 - iniciar um projeto no padrão YA LABS;
+- diagnosticar o estado real de um projeto;
+- planejar a V1 ou versões posteriores;
+- discutir mudanças e estruturar roadmap;
 - criar ou revisar issue, branch, commit, Pull Request ou release;
 - organizar documentação técnica;
 - orientar uma IA a seguir padrões da organização;
@@ -22,14 +25,26 @@ Não use o YABook para documentar fatos específicos de um produto.
 
 ## Como aplicar em projeto novo
 
-1. Copie ou adapte os templates necessários.
-2. Preencha o `README.md` do projeto com objetivo, stack, setup e links principais.
-3. Mantenha um `AGENTS.md` com as instruções para IA naquele projeto.
-4. Crie em `docs/` apenas os documentos que fazem sentido para o momento atual.
-5. Declare labels, GitHub Project, campo `Size` e responsável padrão por novas issues.
-6. Use o padrão de GitHub do YABook para issue, branch, commit, PR e release.
+Use o fluxo:
+
+```text
+$yabook init
+$yabook do init
+$yabook plan start v1
+$yabook plan review
+$yabook do plan
+$yabook plan roadmap
+$yabook do plan roadmap
+$yabook plan next
+```
+
+O primeiro comando de cada par analisa ou propõe. O comando iniciado por
+`$yabook do` aplica a proposta aprovada.
 
 Não crie pastas vazias nem documentos só para "completar a estrutura".
+
+O tutorial completo está em
+[Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md).
 
 ## Uso no dia a dia
 
@@ -65,7 +80,10 @@ Comandos principais:
 
 - `$yabook help`: lista os comandos disponíveis.
 - `$yabook load`: carrega os padrões operacionais na conversa atual.
-- `$yabook init`: inicializa o padrão YA LABS no repositório atual.
+- `$yabook init`: analisa como inicializar o padrão, sem alterar estado.
+- `$yabook diagnose`: reconstrói progresso, lacunas, bloqueios e próximo passo.
+- `$yabook plan`: entrevista, discute, revisa e estrutura versões.
+- `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook do`: executa os artefatos pedidos, como issue, branch, PR, release ou merge.
 - `$yabook issue`: gera título e descrição de issue.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
@@ -79,15 +97,30 @@ Use a skill para reduzir orientação repetida. A documentação continua sendo 
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 
-### Trava para escrita no GitHub
+### Trava dos comandos YABook
 
 Ao usar a skill, diferencie geração de texto de execução.
 
-Sem `$yabook do`, a IA não deve criar, editar, apagar, publicar, mover em Project, aplicar labels, abrir PR, fazer merge, dar push ou alterar qualquer estado no GitHub.
+A trava de `do` vale somente quando a pessoa invoca a gramática `$yabook`.
+Pedidos normais em linguagem natural continuam sendo solicitações diretas e
+podem autorizar alterações.
 
-Comandos como `$yabook issue`, `$yabook pr`, `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check` e `$yabook review` servem para gerar texto, inspecionar contexto ou apontar conformidade. Eles não executam escrita no GitHub.
+Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check` e `$yabook review` servem para conversar, gerar propostas, inspecionar contexto ou apontar conformidade.
 
-Somente `$yabook do` ou alias documentado de `do`, como `$yabook create`, pode executar ações reais no GitHub. Mesmo nesses casos, a IA deve criar somente o que foi pedido e não deve fazer merge sem pedido explícito.
+Dentro da gramática YABook, somente um comando iniciado por `$yabook do` ou
+alias documentado, como `$yabook create`, pode executar ações reais.
+
+Antes de uma alteração direta em `main`, `dev`, release ou branch incompatível,
+a IA deve bloquear a execução. Uma confirmação comum não é suficiente. Para
+autorizar a exceção, repita a ação com:
+
+```text
+$yabook bypass atualize o README diretamente na main
+```
+
+O `bypass` autoriza somente a ação anexada fora do fluxo de issue/branch. Ele não
+substitui `do issue`, `do branch`, `do commit`, `do pr`, `do release` ou
+`do merge`, nem autoriza merge implicitamente.
 
 A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issues ou PRs antigos em outro padrão. Use o formato histórico do projeto apenas quando a pessoa usuária pedir explicitamente.
 
@@ -136,6 +169,9 @@ Exemplos:
 
 ```text
 $yabook do issue
+$yabook do init
+$yabook do plan
+$yabook do plan roadmap
 $yabook do issue branch pr
 $yabook do pr merge
 $yabook do uma issue para essa tarefa
@@ -146,6 +182,8 @@ $yabook do abra um PR e faça merge
 Regras principais:
 
 - cria somente o que foi pedido;
+- consolida planejamento sem commit automático;
+- cria somente o próximo bloco de roadmap;
 - não faz merge sem pedido explícito;
 - usa labels e `Size` ao criar ou classificar issues;
 - usa branch no formato `numero-descricao-curta`;
@@ -180,6 +218,7 @@ Não copie o YABook inteiro para dentro do agente. A skill deve carregar o compo
 - [Padrões rápidos](padroes-rapidos.md): issue, branch, commit e PR.
 - [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md): labels, Project, `main`, `dev`, release e tags.
 - [Uso de IA](guias/uso-de-ia.md): contrato operacional para assistentes.
+- [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md): tutorial de inicialização, diagnóstico e planejamento.
 - [Documentação técnica](guias/documentacao-tecnica.md): como organizar documentação de projeto.
 - [Template base de projeto](templates/projeto/README.md): estrutura inicial para novos projetos.
 

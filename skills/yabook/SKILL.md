@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Apply YA LABS YABook standards for GitHub workflow, documentation, AI usage, project initialization, issue creation, issue classification, branch creation, pull requests, merges, releases, labels, GitHub Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, asks to create or review issues/branches/PRs/releases/commits, asks for labels or Size, asks to create a batch of issues, asks to initialize a repository with YA LABS standards, or asks to load YABook context for the current conversation.
+description: Apply YA LABS YABook standards for GitHub workflow, documentation, AI usage, project initialization, collaborative version planning, project diagnosis, roadmaps, issue creation and classification, branches, pull requests, releases, labels, GitHub Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, wants to initialize or diagnose a project, plan or revise a V1 or later version, discuss scope changes, create milestones or epics, determine next steps, or create/review GitHub artifacts following YA LABS standards.
 ---
 
 # YABook
@@ -25,18 +25,29 @@ Before producing or changing anything:
 5. Warn before acting outside the documented pattern.
 6. Keep outputs short, practical, and in Brazilian Portuguese unless the user asks otherwise.
 
-## GitHub Write Safety
+## YABook Command Safety
 
-Without `$yabook do`, do not create, edit, delete, publish, move in Projects,
-apply labels, open PRs, merge, push, assign, or otherwise mutate GitHub state.
+The `do` gate applies only when the user invokes a `$yabook` command.
+Natural-language requests that do not invoke `$yabook` remain ordinary direct
+requests and may authorize the requested change.
 
-Only mutate GitHub state when the active command is `$yabook do` or one of its
-documented aliases such as `$yabook create`.
+Within the YABook command grammar, only mutate state when the active command
+starts with `$yabook do` or uses a documented alias such as `$yabook create`.
 
 Commands such as `$yabook issue`, `$yabook pr`, `$yabook branch name`,
-`$yabook commit message`, `$yabook status`, `$yabook check`, and `$yabook review`
-must generate text, inspect context, or report findings only. They must not run
-GitHub write commands, even if the requested artifact appears obvious.
+`$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook commit message`,
+`$yabook status`, `$yabook check`, and `$yabook review` must generate text,
+inspect context, ask questions, or report findings only.
+
+Before a relevant direct change, inspect the branch and related issue. If the
+repository is on `main`, `dev`, a release branch, or another incompatible branch,
+block the change and instruct the user to repeat the action with
+`$yabook bypass <ação>`. A plain confirmation is not sufficient.
+
+`$yabook bypass <ação>` authorizes the attached direct action outside the normal
+issue/branch flow for that request only. It does not replace `$yabook do` for
+YABook artifact commands, does not authorize merge implicitly, and does not
+disable destructive-operation safeguards.
 
 Even with `$yabook do`, create or execute only the artifacts explicitly requested
 by the user. Never merge unless the user explicitly asks for merge.
@@ -50,6 +61,14 @@ Common commands:
 - `$yabook help`
 - `$yabook load`
 - `$yabook init`
+- `$yabook diagnose`
+- `$yabook plan start v1`
+- `$yabook plan discuss`
+- `$yabook plan status`
+- `$yabook plan next`
+- `$yabook plan roadmap`
+- `$yabook plan review`
+- `$yabook bypass`
 - `$yabook do`
 - `$yabook status`
 - `$yabook check`
@@ -75,6 +94,7 @@ Load only the reference needed for the current task:
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
+- [planejamento.md](references/planejamento.md): diagnosis, collaborative planning, version documents, roadmap, and next-step behavior.
 - [session.md](references/session.md): `$yabook load` behavior and full session cache.
 
 ## After `$yabook load`
@@ -85,6 +105,7 @@ When the session is loaded in the current conversation:
 - do not re-read `github.md` or `session.md` for `issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, or `status`;
 - still inspect Git state and `git diff` when the artifact depends on the current change;
 - still read `AGENTS.md` during load and apply local overrides over generic YABook rules;
+- read `planejamento.md` for `diagnose`, every `plan` command, and `do plan`;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns
@@ -123,6 +144,10 @@ For commands that depend on current work, inspect:
 For GitHub operations, inspect existing issue, PR, labels, Project, and repository conventions when tools are available.
 
 For `$yabook do`, create or execute only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
+
+For `$yabook do plan`, the documented planning issue and branch are part of the
+requested operation when compatible traceability does not already exist. Edit
+planning files, but never commit automatically.
 
 For squash merge, include the Pull Request number in the squash commit subject and include the commit history from the source branch against the target branch in the squash commit body.
 

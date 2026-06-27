@@ -217,6 +217,22 @@ Cada projeto declara apenas as labels que usa.
 
 Se `AGENTS.md` definir outro fluxo, ele prevalece.
 
+### Diagnóstico e planejamento
+
+- `$yabook status`: branch, issue e alterações do trabalho local.
+- `$yabook diagnose`: estado real do projeto inteiro.
+- `$yabook plan status`: maturidade e lacunas do planejamento.
+- `$yabook plan next`: uma próxima ação recomendada.
+- `$yabook plan start <versão>`: entrevista colaborativa sem escrita.
+- `$yabook plan discuss <tema>`: discussão sem decisão automática.
+- `$yabook plan roadmap`: proposta de milestones, épicos e próximo bloco.
+- `$yabook plan review`: revisão antes da consolidação ou do roadmap.
+- `$yabook do plan`: consolidação documental sem commit automático.
+- `$yabook do plan roadmap`: materialização idempotente do próximo bloco.
+
+Leia `planejamento.md` para esses comandos. O cache não substitui a descoberta
+atual do projeto nem a conferência do GitHub.
+
 ## Comandos que usam só o cache após o load
 
 Depois de `$yabook load`, **não releia** `github.md` nem `session.md` para:
@@ -261,6 +277,7 @@ Mesmo com o cache carregado, inspecione:
 - `git diff` ou `git diff --stat` para commit, PR e release com base no código atual;
 - issue, PR, labels, Project e `Size` reais quando for criar ou validar artefatos no GitHub;
 - código e arquivos do projeto quando o pedido depender do conteúdo alterado.
+- documentação, código e GitHub atuais para `diagnose`, `plan` e `do plan`.
 
 ## Quando reler referências mesmo após o load
 
@@ -278,6 +295,8 @@ Mapa de releitura:
 | Comando | Referência |
 | --- | --- |
 | `$yabook init` | `init.md` |
+| `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
+| `$yabook do plan ...` | `planejamento.md` |
 | `$yabook docs` | `documentacao.md` |
 | `$yabook check`, `$yabook review` | `github.md`, `documentacao.md`, `ia.md` conforme o artefato |
 | `$yabook do` | `commands.md` + estado real do repo/GitHub |

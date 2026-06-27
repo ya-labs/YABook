@@ -1,12 +1,19 @@
-# `$yabook init`
+# Inicialização YABook
 
-Use este comando para inicializar ou adaptar um repositório ao padrão YA LABS.
+Use esta referência para `$yabook init` e `$yabook do init`.
 
 ## Objetivo
 
-Declarar que o projeto usa YABook e preparar a base mínima para documentação, IA e fluxo GitHub.
+Analisar ou preparar a base mínima para documentação, IA e fluxo GitHub.
 
-## Antes de alterar
+## Separação entre análise e execução
+
+- `$yabook init`: inspeciona o repositório e apresenta arquivos que seriam criados
+  ou adaptados, conflitos, exceções e próximos passos. Não altera estado.
+- `$yabook do init`: aplica somente a proposta aprovada. Não sobrescreve conteúdo
+  existente sem apontar o conflito e não cria commit automaticamente.
+
+## Antes de propor ou alterar
 
 Inspecione:
 
@@ -59,7 +66,17 @@ Crie apenas documentos úteis para o estágio atual.
 
 Não crie pastas vazias para preencher estrutura.
 
-## Resultado esperado
+## Resultado do `$yabook init`
+
+Informar:
+
+- estado atual;
+- arquivos ausentes;
+- adaptações propostas;
+- conflitos e exceções;
+- escopo que `$yabook do init` executaria.
+
+## Resultado do `$yabook do init`
 
 Ao final, informar:
 

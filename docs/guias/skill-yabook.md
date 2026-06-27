@@ -11,6 +11,9 @@ A skill YABook existe para reduzir orientação repetida ao agente.
 Ela deve ajudar a IA a:
 
 - carregar o padrão YA LABS na conversa atual;
+- diagnosticar onde um projeto está e recomendar o próximo passo;
+- planejar versões por entrevista e discutir mudanças de escopo;
+- consolidar planejamento e estruturar roadmap;
 - criar ou sugerir issues, branches, commits, PRs e releases;
 - classificar issues com labels e `Size`;
 - validar se uma tarefa segue o YABook;
@@ -36,6 +39,7 @@ Arquivos principais:
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
+| `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
 | `references/session.md` | Comportamento esperado do `$yabook load`. |
 
 ## Fluxo de execução
@@ -73,13 +77,21 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 - PRs abertos;
 - destino do PR ou merge.
 
-## Segurança para escrita no GitHub
+## Segurança dos comandos
 
-A skill só pode criar, editar, apagar, publicar, fazer merge ou alterar estado no GitHub quando a pessoa usuária usar `$yabook do` ou um alias documentado de `do`, como `$yabook create`.
+A trava de `do` vale somente para solicitações que usam a gramática `$yabook`.
+Pedidos comuns em linguagem natural seguem o fluxo normal do agente.
 
-Comandos que geram texto, como `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message`, devem apenas produzir o artefato solicitado. Eles não devem criar issue, editar descrição, mover item em Project, aplicar labels, abrir PR ou executar qualquer escrita no GitHub.
+Dentro da gramática YABook, a skill só pode alterar estado quando o comando
+começar com `$yabook do` ou usar um alias documentado, como `$yabook create`.
+
+Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` apenas inspecionam, conversam ou produzem propostas.
 
 Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. Se ela quiser ação real no GitHub, oriente a usar `$yabook do`.
+
+Em `main`, `dev`, release ou branch incompatível, pedidos diretos devem gerar um
+bloqueio. Confirmação comum não basta. `$yabook bypass <ação>` autoriza somente
+a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 
 ## Comandos
 
@@ -87,7 +99,15 @@ Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. S
 | --- | --- |
 | `$yabook help` | Lista os comandos principais de forma curta. Não explica o handbook inteiro. |
 | `$yabook load` | Carrega um resumo operacional do YABook na conversa atual para reduzir buscas repetidas. Não cria memória permanente e não altera arquivos. |
-| `$yabook init` | Inicializa ou adapta o repositório atual ao padrão YA LABS, sem sobrescrever conteúdo existente sem aviso. |
+| `$yabook init` | Analisa como inicializar ou adaptar o repositório, sem alterar estado. |
+| `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo. |
+| `$yabook plan start <versão>` | Inicia entrevista colaborativa para uma versão. |
+| `$yabook plan discuss <tema>` | Discute uma mudança e seus impactos. |
+| `$yabook plan status` | Avalia maturidade e decisões abertas do planejamento. |
+| `$yabook plan next` | Recomenda uma única próxima ação. |
+| `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
+| `$yabook plan review` | Revisa o planejamento contra o YABook. |
+| `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
 | `$yabook do` | Executa somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
@@ -142,6 +162,9 @@ Ele aceita artefatos explícitos:
 ```text
 $yabook do issue
 $yabook do branch
+$yabook do init
+$yabook do plan
+$yabook do plan roadmap
 $yabook do pr
 $yabook do release
 $yabook do issues
@@ -160,6 +183,9 @@ $yabook do só uma issue para essa tarefa
 Regras:
 
 - criar somente o que foi pedido;
+- usar `do init` para aplicar a inicialização proposta;
+- usar `do plan` para consolidar decisões, sem commit automático;
+- usar `do plan roadmap` para criar estrutura e somente o próximo bloco;
 - não fazer merge se a pessoa não pediu merge explicitamente;
 - conferir contexto local antes de criar artefatos;
 - sugerir ou aplicar labels e `Size` em issues;
@@ -201,6 +227,8 @@ Durante o load, o agente deve:
 
 Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
 
+Diagnóstico e planejamento continuam exigindo `references/planejamento.md` e descoberta atual do projeto.
+
 Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
 
 - precisar de `git diff` para commit, PR ou release baseados no código atual;
@@ -238,6 +266,7 @@ Ela não deve:
 - sobrescrever arquivos existentes sem aviso;
 - criar pastas vazias para preencher template;
 - executar merge sem pedido explícito;
+- executar um comando YABook de escrita sem `do`;
 - tratar `Size` como label;
 - criar memória permanente a partir de `$yabook load`;
 - documentar no YABook conteúdo específico de produto.
@@ -248,7 +277,7 @@ Ao alterar a skill:
 
 1. Atualize `SKILL.md` quando mudar gatilho, workflow ou padrão central.
 2. Atualize `references/commands.md` quando mudar comando, alias ou saída.
-3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, init ou sessão.
+3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, init, planejamento ou sessão.
 4. Atualize este documento quando a mecânica da skill mudar.
 5. Rode a validação da skill e `git diff --check`.
 
