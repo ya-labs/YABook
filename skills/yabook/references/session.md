@@ -241,6 +241,8 @@ Se `AGENTS.md` definir outro fluxo, ele prevalece.
 - `$yabook plan review`: revisão antes da consolidação ou do roadmap.
 - `$yabook do plan`: consolidação documental sem commit automático.
 - `$yabook do plan roadmap`: materialização idempotente do próximo bloco.
+- `$yabook sync`: comparação somente leitura entre origem e instalação.
+- `$yabook do sync`: sincronização e validação da instalação.
 
 Leia `planejamento.md` para esses comandos. O cache não substitui a descoberta
 atual do projeto nem a conferência do GitHub.
@@ -309,6 +311,7 @@ Mapa de releitura:
 | `$yabook init` | `init.md` |
 | `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
 | `$yabook do plan ...` | `planejamento.md` |
+| `$yabook sync` e `$yabook do sync` | `sync.md` |
 | `$yabook docs` | `documentacao.md` |
 | `$yabook check`, `$yabook review` | `github.md`, `documentacao.md`, `ia.md` conforme o artefato |
 | `$yabook do` | `commands.md` + estado real do repo/GitHub |

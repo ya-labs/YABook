@@ -69,6 +69,7 @@ Common commands:
 - `$yabook plan roadmap`
 - `$yabook plan review`
 - `$yabook bypass`
+- `$yabook sync`
 - `$yabook do`
 - `$yabook status`
 - `$yabook check`
@@ -106,11 +107,13 @@ Load only the reference needed for the current task:
 
 - [commands.md](references/commands.md): command grammar, aliases, and expected outputs.
 - [github.md](references/github.md): issues, branches, commits, PRs, labels, Projects, releases, `main`, `dev`.
+- [help.md](references/help.md): contextual help for commands, command families, and natural-language goals.
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
 - [planejamento.md](references/planejamento.md): diagnosis, collaborative planning, version documents, roadmap, and next-step behavior.
 - [session.md](references/session.md): `$yabook load` behavior and full session cache.
+- [sync.md](references/sync.md): compare and synchronize the installed skill with a local or remote YABook source.
 
 ## After `$yabook load`
 
@@ -121,6 +124,8 @@ When the session is loaded in the current conversation:
 - still inspect Git state and `git diff` when the artifact depends on the current change;
 - still read `AGENTS.md` during load and apply local overrides over generic YABook rules;
 - read `planejamento.md` for `diagnose`, every `plan` command, and `do plan`;
+- read `sync.md` for `sync` and `do sync`;
+- read `help.md` for every `help` request;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns

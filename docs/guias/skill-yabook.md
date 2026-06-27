@@ -36,11 +36,13 @@ Arquivos principais:
 | `agents/openai.yaml` | Metadados para agentes que usam manifesto YAML. |
 | `references/commands.md` | Lista de comandos, aliases, roteamento e formato de saída esperado. |
 | `references/github.md` | Regras de issue, branch, commit, PR, labels, Project, `Size`, `main`, `dev` e release. |
+| `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
 | `references/session.md` | Comportamento esperado do `$yabook load`. |
+| `references/sync.md` | Comparação e sincronização da skill instalada. |
 
 ## Fluxo de execução
 
@@ -97,7 +99,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 
 | Comando | Como atua |
 | --- | --- |
-| `$yabook help` | Lista os comandos principais de forma curta. Não explica o handbook inteiro. |
+| `$yabook help [tópico ou objetivo]` | Lista comandos, explica uma família ou recomenda um fluxo por intenção. |
 | `$yabook load` | Recarrega o cache operacional quando branch, repositório ou regras locais mudarem. |
 | `$yabook init` | Analisa como inicializar ou adaptar o repositório, sem alterar estado. |
 | `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo. |
@@ -108,6 +110,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
 | `$yabook plan review` | Revisa o planejamento contra o YABook. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
+| `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
 | `$yabook do` | Executa somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
@@ -153,6 +156,18 @@ Regras:
 
 O `&` aqui não representa execução paralela. Ele define ordem de execução dentro da skill.
 
+## Help contextual
+
+O help possui três níveis:
+
+- `$yabook help`: índice curto agrupado por finalidade;
+- `$yabook help plan`: explica cada comando da família com exemplos;
+- `$yabook help planejar a V1 do projeto`: recomenda uma sequência e explica o
+  motivo de cada etapa.
+
+Help não executa load automático, não consulta o projeto e não dispara comandos
+mencionados no texto. A referência normativa é `references/help.md`.
+
 ## `$yabook do`
 
 `$yabook do` é o comando operacional mais flexível da skill.
@@ -165,6 +180,7 @@ $yabook do branch
 $yabook do init
 $yabook do plan
 $yabook do plan roadmap
+$yabook do sync
 $yabook do pr
 $yabook do release
 $yabook do issues
@@ -186,6 +202,7 @@ Regras:
 - usar `do init` para aplicar a inicialização proposta;
 - usar `do plan` para consolidar decisões, sem commit automático;
 - usar `do plan roadmap` para criar estrutura e somente o próximo bloco;
+- usar `do sync` para atualizar somente a skill instalada e validar o resultado;
 - não fazer merge se a pessoa não pediu merge explicitamente;
 - conferir contexto local antes de criar artefatos;
 - sugerir ou aplicar labels e `Size` em issues;
@@ -235,6 +252,9 @@ Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`iss
 
 Diagnóstico e planejamento continuam exigindo `references/planejamento.md` e descoberta atual do projeto.
 
+Sincronização exige `references/sync.md`. A verificação é somente leitura;
+qualquer atualização da instalação exige `do sync`.
+
 Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
 
 - precisar de `git diff` para commit, PR ou release baseados no código atual;
@@ -283,7 +303,7 @@ Ao alterar a skill:
 
 1. Atualize `SKILL.md` quando mudar gatilho, workflow ou padrão central.
 2. Atualize `references/commands.md` quando mudar comando, alias ou saída.
-3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, init, planejamento ou sessão.
+3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, help, init, planejamento, sessão ou sincronização.
 4. Atualize este documento quando a mecânica da skill mudar.
 5. Rode a validação da skill e `git diff --check`.
 

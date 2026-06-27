@@ -19,6 +19,7 @@ Responda em português do Brasil, com texto pronto para uso.
 | `$yabook plan roadmap` | Propõe milestones, épicos, encaixes e próximo bloco de issues. |
 | `$yabook plan review` | Revisa o planejamento contra o YABook. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
+| `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
 | `$yabook do` | Executa os artefatos pedidos, como issue, branch, PR, release ou merge. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
@@ -118,6 +119,9 @@ $yabook do branch
 $yabook do init
 $yabook do plan
 $yabook do plan roadmap
+$yabook do sync
+$yabook do sync local
+$yabook do sync remote
 $yabook do pr
 $yabook do release
 $yabook do issues
@@ -148,6 +152,8 @@ Por artefato:
   planejamento quando a rastreabilidade ainda não existir; nunca criar commit.
 - Plan roadmap: materializar milestones, épicos, vínculos e somente o próximo
   bloco acionável; reler o resultado e não duplicar equivalentes.
+- Sync: validar a origem, sincronizar somente a instalação `yabook`, remover
+  excedentes do destino e validar novamente; nunca alterar ou atualizar a origem.
 - Issue: gerar título, descrição, labels, `Size` e Project quando aplicável.
 - Branch: usar `numero-descricao-curta`; basear em `main` ou `dev` conforme fluxo.
 - PR: usar título objetivo e descrição com `Resumo rápido`, `O que mudou`, `Observações` e `Informações para IA`.
@@ -214,6 +220,9 @@ Se a sessão já foi carregada na conversa atual:
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `diagnose`, `plan` e `do plan`, leia `planejamento.md`.
+- Para `sync` e `do sync`, leia `sync.md`.
+- Para qualquer `help`, leia `help.md`; não execute load automático nem o
+  comando mencionado dentro da solicitação de ajuda.
 - Para `init`, apenas inspecione e proponha; para alterar, exija `do init`.
 - Para `branch name`, use o número da issue quando existir.
 - Para `docs`, leia `documentacao.md`.
@@ -223,24 +232,13 @@ Se a sessão já foi carregada na conversa atual:
 
 ## Formato do help
 
-Quando o comando for `$yabook help`, responda curto:
+Use `help.md` para distinguir:
 
-```text
-Comandos principais:
-- $yabook load: recarrega o cache quando o contexto mudar.
-- $yabook init: analisa como inicializar o padrão YA LABS, sem alterar estado.
-- $yabook diagnose: mostra onde o projeto está e recomenda o próximo passo.
-- $yabook plan: entrevista, discute e revisa o planejamento de versões.
-- $yabook bypass: autoriza uma ação direta fora do fluxo nesta solicitação.
-- $yabook do: cria issue, branch, PR, release ou merge conforme pedido.
-- $yabook issue: gera título e descrição da issue.
-- $yabook issue classify: sugere labels e Size.
-- $yabook pr: gera título e descrição do PR.
-- $yabook commit message: sugere mensagem de commit.
-- $yabook release: gera descrição de release.
-- $yabook check: verifica conformidade com o YABook.
-- $yabook docs: indica onde documentar algo.
-```
+- `$yabook help`: índice curto;
+- `$yabook help <comando ou família>`: explicação, sintaxe e exemplos;
+- `$yabook help <objetivo>`: sequência recomendada com o motivo de cada etapa.
+
+Help é sempre somente leitura e não dispara o fluxo sugerido.
 
 ## Saídas
 

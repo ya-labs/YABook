@@ -84,6 +84,7 @@ Comandos principais:
 - `$yabook diagnose`: reconstrói progresso, lacunas, bloqueios e próximo passo.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
+- `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
 - `$yabook do`: executa os artefatos pedidos, como issue, branch, PR, release ou merge.
 - `$yabook issue`: gera título e descrição de issue.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
@@ -96,6 +97,34 @@ Comandos principais:
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
+
+### Como usar o help
+
+Use o help geral para consultar o índice de comandos:
+
+```text
+$yabook help
+```
+
+Passe um comando ou família para receber explicação, sintaxe e exemplos:
+
+```text
+$yabook help plan
+$yabook help sync
+$yabook help issue classify
+```
+
+Também é possível descrever um objetivo:
+
+```text
+$yabook help planejar a V1 do projeto
+$yabook help descobrir a próxima etapa
+$yabook help preparar uma release
+```
+
+Nesse formato, a skill recomenda o menor fluxo, explica por que cada comando
+será usado e diferencia análise de execução. O help não carrega o repositório,
+não altera estado e não executa a sequência sugerida.
 
 ### Trava dos comandos YABook
 
@@ -223,6 +252,39 @@ $yabook help
 Se o agente aceitar referência direta por caminho ou repositório, aponte para `skills/yabook/`.
 
 Não copie o YABook inteiro para dentro do agente. A skill deve carregar o comportamento operacional; a documentação continua no repositório para consulta.
+
+### Como sincronizar a skill
+
+Para verificar sem alterar arquivos:
+
+```text
+$yabook sync
+$yabook sync local
+$yabook sync remote
+```
+
+Para sincronizar:
+
+```text
+$yabook do sync
+$yabook do sync local
+$yabook do sync remote
+```
+
+O modo `local` usa o checkout YABook atual, `YABOOK_REPO_PATH` ou uma origem
+local conhecida. O modo `remote` usa a branch principal do repositório oficial.
+
+A sincronização:
+
+- compara a árvore completa da skill;
+- ignora diferenças entre `CRLF` e `LF`;
+- valida antes e depois da instalação;
+- remove arquivos excedentes somente do destino instalado;
+- não executa `pull`, commit, push ou merge;
+- não altera o checkout usado como origem.
+
+Sem modo explícito, a skill prefere uma origem local válida e usa o remoto como
+fallback.
 
 ## Onde consultar padrões
 

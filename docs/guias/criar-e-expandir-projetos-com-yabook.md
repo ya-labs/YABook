@@ -24,6 +24,26 @@ cache da skill, o `AGENTS.md` local e o estado do Git. Não é necessário execu
 Use `$yabook load` apenas para atualizar o contexto depois de mudar de
 repositório, branch ou regras locais.
 
+Se não souber qual fluxo usar, descreva o objetivo no help:
+
+```text
+$yabook help planejar a V1 do projeto
+```
+
+O help explica a sequência e o motivo de cada comando sem executar nada.
+
+Para conferir se a instalação local da skill corresponde ao YABook:
+
+```text
+$yabook sync
+```
+
+Se houver diferenças, sincronize explicitamente:
+
+```text
+$yabook do sync
+```
+
 ## Criar um projeto do zero
 
 ### 1. Analisar a inicialização
