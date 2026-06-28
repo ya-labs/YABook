@@ -17,7 +17,8 @@ Ao final, a pessoa deve compreender:
 - como o carregamento automático funciona;
 - quando usar `bypass`;
 - como verificar e sincronizar a skill;
-- como usar o help por comando ou objetivo.
+- como usar o help por comando ou objetivo;
+- como manter uma sequência recomendada visível durante a conversa.
 
 ## O que mudou nesta rodada
 
@@ -72,6 +73,30 @@ A família `plan` permite conversar antes de documentar:
 | `$yabook do plan roadmap` | Materializa o roadmap aprovado no GitHub. |
 
 Comandos `plan` sem `do` não alteram arquivos ou GitHub.
+
+### Acompanhamento de etapas
+
+A família `steps` transforma uma sequência recomendada em checklist temporário:
+
+| Comando | Função |
+| --- | --- |
+| `$yabook steps start` | Inicia o checklist com base na sequência discutida. |
+| `$yabook steps` | Mostra o checklist ativo. |
+| `$yabook steps done <número>` | Conclui uma etapa e destaca a próxima. |
+| `$yabook steps cancel` | Encerra o acompanhamento. |
+
+Enquanto houver etapas abertas, a IA repete um resumo compacto no final de cada
+resposta:
+
+```text
+✅ 1. Etapa concluída
+➡️ 2. Próxima etapa
+⬜ 3. Etapa pendente
+```
+
+Confirmações inequívocas em linguagem natural, como `concluí a primeira etapa`,
+também podem atualizar o checklist. O acompanhamento vale apenas para a conversa
+atual, não executa os passos e não substitui planejamento, issues ou milestones.
 
 ### Núcleo documental adaptável
 
@@ -262,6 +287,29 @@ Valide a diferença:
 - `diagnose`: estado do projeto inteiro;
 - `plan status`: maturidade do planejamento;
 - `plan next`: uma próxima ação recomendada.
+
+## Demonstração: acompanhamento de etapas
+
+Depois que o help ou o planejamento recomendar uma sequência, execute:
+
+```text
+$yabook steps start
+```
+
+Em seguida, informe:
+
+```text
+concluí a primeira etapa
+```
+
+Valide que:
+
+- somente um checklist fica ativo;
+- a primeira etapa recebe `✅`;
+- a próxima etapa recebe `➡️`;
+- o checklist reaparece no final das respostas enquanto houver itens abertos;
+- nenhuma etapa é executada automaticamente;
+- `$yabook steps cancel` encerra o acompanhamento.
 
 ## Demonstração: segurança
 
