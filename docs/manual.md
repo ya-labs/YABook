@@ -108,6 +108,7 @@ Comandos principais:
 - `$yabook init`: analisa como inicializar o padrão, sem alterar estado.
 - `$yabook diagnose`: reconstrói progresso, lacunas, bloqueios e próximo passo.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
+- `$yabook steps`: acompanha uma sequência com checklist durante a conversa.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
 - `$yabook do`: executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge.
@@ -122,6 +123,23 @@ Comandos principais:
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
+
+### Como acompanhar uma sequência de etapas
+
+Quando a IA recomendar vários passos e você quiser mantê-los visíveis durante a
+conversa, use:
+
+```text
+$yabook steps start
+```
+
+Enquanto houver etapas abertas, a IA repete um checklist compacto no final das
+respostas. Conclua uma etapa com `$yabook steps done 1` ou com uma confirmação
+inequívoca, como `concluí a primeira etapa`. Use `$yabook steps` para consultar
+o estado e `$yabook steps cancel` para encerrar o acompanhamento.
+
+O checklist vale somente para a conversa atual. Ele não executa os passos, não
+substitui issues ou milestones e não cria memória permanente.
 
 ### Como usar o help
 

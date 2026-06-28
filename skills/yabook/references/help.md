@@ -26,6 +26,7 @@ $yabook help <objetivo em linguagem natural>
 
 - contexto: `load`, `status`, `diagnose`;
 - inicialização e planejamento: `init`, `plan`;
+- acompanhamento da conversa: `steps`;
 - execução: `do`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade e documentação: `check`, `review`, `docs`;
@@ -78,6 +79,18 @@ Deixe explícito que comandos `plan` sem `do` não escrevem.
 
 Use a mesma estrutura para famílias como `issue`, `pr`, `sync` e `do`, listando
 somente subcomandos realmente documentados.
+
+Para `$yabook help steps`, inclua:
+
+| Comando | Uso |
+| --- | --- |
+| `steps start` | Criar um checklist a partir da sequência discutida. |
+| `steps` | Consultar o checklist ativo. |
+| `steps done <número>` | Concluir uma etapa e destacar a próxima. |
+| `steps cancel` | Encerrar o acompanhamento. |
+
+Explique que o checklist vale apenas para a conversa atual, aparece no final das
+respostas enquanto estiver aberto e não executa os passos listados.
 
 ## Help por objetivo
 

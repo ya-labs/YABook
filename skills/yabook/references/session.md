@@ -247,6 +247,19 @@ Se `AGENTS.md` definir outro fluxo, ele prevalece.
 Leia `planejamento.md` para esses comandos. O cache não substitui a descoberta
 atual do projeto nem a conferência do GitHub.
 
+### Acompanhamento de etapas
+
+- `$yabook steps start`: cria um checklist a partir da sequência discutida.
+- `$yabook steps`: mostra o checklist ativo.
+- `$yabook steps done <número>`: conclui uma etapa.
+- `$yabook steps cancel`: encerra o acompanhamento.
+- Confirmações inequívocas em linguagem natural também podem concluir etapas.
+- Enquanto houver etapas abertas, repita o checklist compacto ao final de cada
+  resposta.
+- O checklist vale somente para a conversa e não executa ações por conta própria.
+
+Leia `steps.md` para criar ou atualizar o checklist.
+
 ## Comandos que usam só o cache após o load
 
 Depois de `$yabook load`, **não releia** `github.md` nem `session.md` para:
@@ -311,6 +324,7 @@ Mapa de releitura:
 | `$yabook init` | `init.md` |
 | `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
 | `$yabook do plan ...` | `planejamento.md` |
+| `$yabook steps ...` | `steps.md` |
 | `$yabook sync` e `$yabook do sync` | `sync.md` |
 | `$yabook docs` | `documentacao.md` |
 | `$yabook check`, `$yabook review` | `github.md`, `documentacao.md`, `ia.md` conforme o artefato |

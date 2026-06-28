@@ -41,6 +41,7 @@ Arquivos principais:
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
+| `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
 | `references/session.md` | Comportamento esperado do `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 
@@ -109,6 +110,10 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook plan next` | Recomenda uma única próxima ação. |
 | `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
 | `$yabook plan review` | Revisa o planejamento contra o YABook. |
+| `$yabook steps start` | Cria um checklist para acompanhar uma sequência na conversa. |
+| `$yabook steps` | Mostra o checklist ativo. |
+| `$yabook steps done <número>` | Marca uma etapa como concluída. |
+| `$yabook steps cancel` | Encerra o acompanhamento. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
@@ -255,6 +260,20 @@ Diagnóstico e planejamento continuam exigindo `references/planejamento.md` e de
 Sincronização exige `references/sync.md`. A verificação é somente leitura;
 qualquer atualização da instalação exige `do sync`.
 
+## Acompanhamento de etapas
+
+`$yabook steps` mantém uma sequência recomendada visível durante a conversa.
+Enquanto houver itens abertos, o agente repete um checklist compacto no final
+de cada resposta, usando `✅` para concluído, `➡️` para a próxima etapa e `⬜`
+para as demais.
+
+O checklist pode ser atualizado por subcomando ou por confirmação inequívoca em
+linguagem natural. Seu estado é temporário e não deve ser salvo em arquivo,
+memória permanente, issue ou Project.
+
+Esse recurso não substitui `$yabook plan`, não executa comandos e não remove a
+exigência de `$yabook do` para ações de escrita.
+
 Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
 
 - precisar de `git diff` para commit, PR ou release baseados no código atual;
@@ -295,6 +314,7 @@ Ela não deve:
 - executar um comando YABook de escrita sem `do`;
 - tratar `Size` como label;
 - criar memória permanente a partir de `$yabook load`;
+- persistir checklist de `$yabook steps` fora da conversa atual;
 - documentar no YABook conteúdo específico de produto.
 
 ## Manutenção

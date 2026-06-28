@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Apply YA LABS YABook standards for GitHub workflow, documentation, AI usage, project initialization, collaborative version planning, project diagnosis, roadmaps, issue creation and classification, branches, pull requests, releases, labels, GitHub Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, wants to initialize or diagnose a project, plan or revise a V1 or later version, discuss scope changes, create milestones or epics, determine next steps, or create/review GitHub artifacts following YA LABS standards.
+description: Apply YA LABS YABook standards for GitHub workflow, documentation, AI usage, project initialization, collaborative version planning, project diagnosis, roadmaps, conversation step tracking, issue creation and classification, branches, pull requests, releases, labels, GitHub Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, wants to initialize or diagnose a project, plan or revise a V1 or later version, discuss scope changes, track a recommended sequence as a checklist, create milestones or epics, determine next steps, or create/review GitHub artifacts following YA LABS standards.
 ---
 
 # YABook
@@ -68,6 +68,7 @@ Common commands:
 - `$yabook plan next`
 - `$yabook plan roadmap`
 - `$yabook plan review`
+- `$yabook steps`
 - `$yabook bypass`
 - `$yabook sync`
 - `$yabook do`
@@ -112,6 +113,7 @@ Load only the reference needed for the current task:
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
 - [planejamento.md](references/planejamento.md): diagnosis, collaborative planning, version documents, roadmap, and next-step behavior.
+- [steps.md](references/steps.md): conversation-scoped checklists and step tracking.
 - [session.md](references/session.md): `$yabook load` behavior and full session cache.
 - [sync.md](references/sync.md): compare and synchronize the installed skill with a local or remote YABook source.
 
@@ -124,6 +126,7 @@ When the session is loaded in the current conversation:
 - still inspect Git state and `git diff` when the artifact depends on the current change;
 - still read `AGENTS.md` during load and apply local overrides over generic YABook rules;
 - read `planejamento.md` for `diagnose`, every `plan` command, and `do plan`;
+- read `steps.md` for every `steps` command and while a checklist is active;
 - read `sync.md` for `sync` and `do sync`;
 - read `help.md` for every `help` request;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
@@ -177,6 +180,7 @@ Do not invent facts. When context is missing, state the assumption or ask for th
 
 - Prefer the exact artifact requested.
 - Keep human-facing text objective and short.
+- While a `steps` checklist is active, repeat its compact status at the end of every response.
 - Put long AI context in `<details>` only when it materially helps execution.
 - Do not add validation sections to issues unless they change execution or review.
 - Always keep traceability: new demand -> Issue -> Branch -> implementation -> Commit -> Pull Request -> Merge.

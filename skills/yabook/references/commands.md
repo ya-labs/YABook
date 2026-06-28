@@ -18,6 +18,10 @@ Responda em português do Brasil, com texto pronto para uso.
 | `$yabook plan next` | Recomenda uma única próxima decisão ou entrega. |
 | `$yabook plan roadmap` | Propõe milestones, épicos, encaixes e próximo bloco de issues. |
 | `$yabook plan review` | Revisa o planejamento contra o YABook. |
+| `$yabook steps start` | Inicia um checklist para acompanhar etapas na conversa atual. |
+| `$yabook steps` | Mostra o checklist ativo. |
+| `$yabook steps done <número>` | Marca uma etapa como concluída. |
+| `$yabook steps cancel` | Encerra o checklist ativo. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
 | `$yabook do` | Executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge. |
@@ -222,6 +226,7 @@ Se a sessão já foi carregada na conversa atual:
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `diagnose`, `plan` e `do plan`, leia `planejamento.md`.
+- Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
 - Para `sync` e `do sync`, leia `sync.md`.
 - Para qualquer `help`, leia `help.md`; não execute load automático nem o
   comando mencionado dentro da solicitação de ajuda.
@@ -248,4 +253,5 @@ Help é sempre somente leitura e não dispara o fluxo sugerido.
 - Entregue o texto pronto para copiar.
 - Inclua observações apenas quando houver risco, exceção ou contexto faltante.
 - Em comandos encadeados, agrupe a resposta por comando e reaproveite contexto já informado.
+- Enquanto houver checklist `steps` ativo, repita o estado compacto ao final de cada resposta.
 - Quando alterar arquivos em repositório que segue YABook, termine a resposta com uma sugestão de commit no padrão do projeto.
