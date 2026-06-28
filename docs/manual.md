@@ -97,9 +97,27 @@ A IA deve avisar antes de criar padrão novo, mudar fluxo de trabalho ou agir fo
 
 Quando a IA alterar arquivos em um projeto que segue YABook, ela deve terminar a resposta sugerindo a mensagem de commit para a alteração.
 
-## Uso com a skill YABook
+## Uso com a YABook Skill
 
-A skill YABook é a interface operacional para IA usar estes padrões no trabalho diário.
+A YABook Skill é o orquestrador inteligente do Método YA LABS. A pessoa define
+o projeto e toma as decisões; a skill organiza o caminho, recomenda etapas e
+executa somente o que foi autorizado.
+
+### Como usar linguagem natural
+
+Você não precisa conhecer previamente o comando correto:
+
+```text
+$yabook desejo planejar a V1 do meu projeto
+```
+
+A skill infere `plan start v1`. Quando precisar combinar ou corrigir comandos,
+ela informa o roteamento no início. Comandos seguros de leitura avançam até uma
+decisão necessária ou escrita.
+
+Se a intenção estiver incompleta, a skill pergunta o que muda materialmente o
+caminho. Ela pode sugerir uma opção melhor mesmo quando o comando informado for
+válido, mas nunca infere `do`.
 
 Comandos principais:
 

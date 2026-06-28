@@ -1,6 +1,18 @@
-# YABook - Handbook da YA LABS
+# YABook — ecossistema do Método YA LABS
 
-O YABook é o manual operacional da YA LABS para criar, documentar e evoluir projetos com o mesmo padrão de trabalho.
+O YABook é o ecossistema que materializa o Método YA LABS para criar,
+documentar e evoluir projetos com o mesmo padrão de trabalho.
+
+## Nomenclatura
+
+- **Método YA LABS**: princípios, processos e modelo de trabalho.
+- **YABook**: ecossistema que materializa o método.
+- **YABook Handbook**: documentação humana e fonte normativa.
+- **YABook Skill**: orquestrador inteligente usado por agentes de IA.
+- **YABook Platform**: futuro software do ecossistema, quando existir.
+
+A YABook Skill consulta o YABook Handbook para orientar, planejar e executar o
+trabalho com segurança.
 
 Ele existe para reduzir improviso: pessoas e agentes de IA passam a seguir o mesmo contrato para documentação, GitHub, issues, branches, commits, Pull Requests, releases e organização do projeto.
 

@@ -4,6 +4,18 @@ Use estes comandos quando a pessoa usuária invocar `$yabook`.
 
 Responda em português do Brasil, com texto pronto para uso.
 
+## Intenção em linguagem natural
+
+Além dos comandos abaixo, aceite:
+
+```text
+$yabook <objetivo em linguagem natural>
+```
+
+Use `orquestracao.md` para inferir o menor fluxo seguro. Execute comandos de
+leitura até encontrar uma decisão necessária ou uma escrita. Nunca transforme
+intenção em `do`.
+
 ## Comandos
 
 | Comando | Saída |
@@ -228,6 +240,8 @@ Se a sessão já foi carregada na conversa atual:
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `diagnose`, `plan` e `do plan`, leia `planejamento.md`.
 - Para `discuss` e o alias `plan discuss`, leia `discuss.md`.
+- Para intenção em linguagem natural, comando incompatível ou roteamento
+  composto, leia `orquestracao.md`.
 - Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
 - Para `sync` e `do sync`, leia `sync.md`.
 - Para qualquer `help`, leia `help.md`; não execute load automático nem o

@@ -22,6 +22,25 @@ Ao final, a pessoa deve compreender:
 
 ## O que mudou nesta rodada
 
+### YABook Skill como orquestrador
+
+A YABook Skill é o orquestrador inteligente do Método YA LABS. A pessoa usuária
+define projeto, prioridades e decisões; a skill interpreta a intenção, orienta
+o caminho correto e executa somente o que foi autorizado.
+
+Exemplo:
+
+```text
+$yabook desejo planejar a V1 do meu projeto
+```
+
+A skill infere `plan start v1`. Se precisar corrigir ou combinar comandos,
+informa o roteamento no início. Ela avança por leituras seguras até encontrar
+uma decisão ou escrita, mas nunca infere `do`.
+
+Quando houver várias etapas, sugere `$yabook steps start` com um motivo curto,
+sem iniciar o checklist automaticamente.
+
 ### Condução de projetos
 
 O YABook agora define um ciclo reutilizável:

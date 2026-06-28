@@ -251,6 +251,19 @@ atual do projeto nem a conferência do GitHub.
 Leia `discuss.md` para discussões gerais. Quando o tema afetar o planejamento,
 aplique também as regras específicas de `planejamento.md`.
 
+### Orquestração inteligente
+
+- `$yabook <intenção>` seleciona internamente os comandos adequados.
+- Comandos seguros de leitura avançam até uma decisão necessária ou escrita.
+- Comando válido é executado; uma opção melhor pode ser sugerida brevemente.
+- Comando incompatível com intenção inequívoca pode ser corrigido.
+- Ambiguidade material exige pergunta.
+- Roteamento inferido, ajustado ou composto aparece no início da resposta.
+- `do` nunca é inferido.
+- Fluxos com várias etapas apenas sugerem `$yabook steps start`, com motivo.
+
+Leia `orquestracao.md` para aplicar essas regras.
+
 ### Acompanhamento de etapas
 
 - `$yabook steps start`: cria um checklist a partir da sequência discutida.
@@ -328,6 +341,7 @@ Mapa de releitura:
 | `$yabook init` | `init.md` |
 | `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
 | `$yabook discuss ...` | `discuss.md` |
+| `$yabook <intenção em linguagem natural>` | `orquestracao.md` |
 | `$yabook do plan ...` | `planejamento.md` |
 | `$yabook steps ...` | `steps.md` |
 | `$yabook sync` e `$yabook do sync` | `sync.md` |

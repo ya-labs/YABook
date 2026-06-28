@@ -1,8 +1,9 @@
-# Skill YABook
+# YABook Skill
 
 Este documento explica como a skill YABook funciona por dentro e como cada comando deve atuar.
 
-A documentação humana continua no YABook. A skill é a interface operacional para agentes de IA aplicarem esses padrões no dia a dia.
+O YABook Handbook continua sendo a fonte normativa. A YABook Skill é o
+orquestrador inteligente do Método YA LABS para agentes de IA.
 
 ## Objetivo
 
@@ -40,6 +41,7 @@ Arquivos principais:
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
+| `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
 | `references/discuss.md` | Discussões gerais antes de planejar ou executar mudanças. |
 | `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
 | `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
@@ -57,6 +59,13 @@ Quando a pessoa usuária invoca `$yabook`, o agente deve:
 5. Conferir estado do repositório quando o comando depende de trabalho atual.
 6. Aplicar o padrão YABook ou apontar divergência.
 7. Entregar o artefato pronto, a ação executada ou a checagem objetiva.
+
+Quando a entrada for uma intenção em linguagem natural, a skill seleciona os
+comandos necessários, executa leituras seguras até uma decisão ou escrita e
+explica no início qualquer roteamento inferido, corrigido ou composto.
+
+O usuário continua responsável por produto, escopo, prioridades e decisões. A
+skill recomenda e facilita o trabalho, mas não infere `do`.
 
 O agente não deve carregar todo o YABook para qualquer comando. A skill usa referências curtas para economizar contexto.
 

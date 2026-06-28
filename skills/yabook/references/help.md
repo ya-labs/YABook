@@ -20,6 +20,10 @@ $yabook help <família>
 $yabook help <objetivo em linguagem natural>
 ```
 
+`$yabook help <objetivo>` apenas explica um caminho. `$yabook <objetivo>` usa a
+orquestração inteligente para executar comandos seguros de leitura até uma
+decisão ou escrita.
+
 ## Help geral
 
 `$yabook help` retorna um índice curto agrupado por finalidade:

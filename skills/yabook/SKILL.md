@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Apply YA LABS YABook standards for GitHub workflow, documentation, AI usage, project initialization, collaborative version planning, project diagnosis, roadmaps, conversation step tracking, issue creation and classification, branches, pull requests, releases, labels, GitHub Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, wants to initialize or diagnose a project, plan or revise a V1 or later version, discuss scope changes, track a recommended sequence as a checklist, create milestones or epics, determine next steps, or create/review GitHub artifacts following YA LABS standards.
+description: Intelligently orchestrate the YA LABS Method through natural-language intent, safe command routing, GitHub workflow, documentation, project initialization, collaborative planning, diagnosis, roadmaps, conversation step tracking, issues, branches, pull requests, releases, Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, describes a goal without knowing the command, uses a mismatched command, wants guidance on the correct YA LABS path, initializes or diagnoses a project, plans a version, discusses scope, tracks steps, or creates and reviews GitHub artifacts.
 ---
 
 # YABook
@@ -9,7 +9,7 @@ description: Apply YA LABS YABook standards for GitHub workflow, documentation, 
 
 Use this skill to apply YA LABS organizational standards without copying the entire handbook into context.
 
-The YABook documentation remains the human source of truth. This skill is the operational interface for agents.
+The YABook Handbook remains the human source of truth. The YABook Skill is the intelligent orchestrator of the YA LABS Method.
 
 ## Required Workflow
 
@@ -55,6 +55,11 @@ by the user. Never merge unless the user explicitly asks for merge.
 ## Command Routing
 
 When the user invokes `$yabook`, route the request through [commands.md](references/commands.md).
+
+When `$yabook` is followed by natural language, an incompatible command, or an
+unclear goal, apply [orquestracao.md](references/orquestracao.md). Infer and run
+safe read-only commands until a material decision or write is required. Never
+infer `do`.
 
 Common commands:
 
@@ -112,6 +117,7 @@ Load only the reference needed for the current task:
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
+- [orquestracao.md](references/orquestracao.md): intent routing, command correction, guidance, and autonomy limits.
 - [planejamento.md](references/planejamento.md): diagnosis, collaborative planning, version documents, roadmap, and next-step behavior.
 - [discuss.md](references/discuss.md): general-purpose discussion before planning or execution.
 - [steps.md](references/steps.md): conversation-scoped checklists and step tracking.
@@ -131,6 +137,7 @@ When the session is loaded in the current conversation:
 - read `steps.md` for every `steps` command and while a checklist is active;
 - read `sync.md` for `sync` and `do sync`;
 - read `help.md` for every `help` request;
+- read `orquestracao.md` for natural-language intent, command correction, or composed routing;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns

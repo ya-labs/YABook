@@ -1,4 +1,7 @@
-# Documentação do YABook
+# YABook Handbook
+
+O YABook Handbook é a documentação humana e a fonte normativa do ecossistema
+YABook. A YABook Skill usa estas regras para orquestrar o Método YA LABS.
 
 Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 
