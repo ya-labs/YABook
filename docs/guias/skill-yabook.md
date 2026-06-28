@@ -1,8 +1,9 @@
-# Skill YABook
+# YABook Skill
 
 Este documento explica como a skill YABook funciona por dentro e como cada comando deve atuar.
 
-A documentação humana continua no YABook. A skill é a interface operacional para agentes de IA aplicarem esses padrões no dia a dia.
+O YABook Handbook continua sendo a fonte normativa. A YABook Skill é o
+orquestrador inteligente do Método YA LABS para agentes de IA.
 
 ## Objetivo
 
@@ -11,6 +12,9 @@ A skill YABook existe para reduzir orientação repetida ao agente.
 Ela deve ajudar a IA a:
 
 - carregar o padrão YA LABS na conversa atual;
+- diagnosticar onde um projeto está e recomendar o próximo passo;
+- planejar versões por entrevista e discutir mudanças de escopo;
+- consolidar planejamento e estruturar roadmap;
 - criar ou sugerir issues, branches, commits, PRs e releases;
 - classificar issues com labels e `Size`;
 - validar se uma tarefa segue o YABook;
@@ -33,10 +37,16 @@ Arquivos principais:
 | `agents/openai.yaml` | Metadados para agentes que usam manifesto YAML. |
 | `references/commands.md` | Lista de comandos, aliases, roteamento e formato de saída esperado. |
 | `references/github.md` | Regras de issue, branch, commit, PR, labels, Project, `Size`, `main`, `dev` e release. |
+| `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
+| `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
+| `references/discuss.md` | Discussões gerais antes de planejar ou executar mudanças. |
+| `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
+| `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
 | `references/session.md` | Comportamento esperado do `$yabook load`. |
+| `references/sync.md` | Comparação e sincronização da skill instalada. |
 
 ## Fluxo de execução
 
@@ -49,6 +59,13 @@ Quando a pessoa usuária invoca `$yabook`, o agente deve:
 5. Conferir estado do repositório quando o comando depende de trabalho atual.
 6. Aplicar o padrão YABook ou apontar divergência.
 7. Entregar o artefato pronto, a ação executada ou a checagem objetiva.
+
+Quando a entrada for uma intenção em linguagem natural, a skill seleciona os
+comandos necessários, executa leituras seguras até uma decisão ou escrita e
+explica no início qualquer roteamento inferido, corrigido ou composto.
+
+O usuário continua responsável por produto, escopo, prioridades e decisões. A
+skill recomenda e facilita o trabalho, mas não infere `do`.
 
 O agente não deve carregar todo o YABook para qualquer comando. A skill usa referências curtas para economizar contexto.
 
@@ -73,24 +90,45 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 - PRs abertos;
 - destino do PR ou merge.
 
-## Segurança para escrita no GitHub
+## Segurança dos comandos
 
-A skill só pode criar, editar, apagar, publicar, fazer merge ou alterar estado no GitHub quando a pessoa usuária usar `$yabook do` ou um alias documentado de `do`, como `$yabook create`.
+A trava de `do` vale somente para solicitações que usam a gramática `$yabook`.
+Pedidos comuns em linguagem natural seguem o fluxo normal do agente.
 
-Comandos que geram texto, como `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message`, devem apenas produzir o artefato solicitado. Eles não devem criar issue, editar descrição, mover item em Project, aplicar labels, abrir PR ou executar qualquer escrita no GitHub.
+Dentro da gramática YABook, a skill só pode alterar estado quando o comando
+começar com `$yabook do` ou usar um alias documentado, como `$yabook create`.
+
+Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` apenas inspecionam, conversam ou produzem propostas.
 
 Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. Se ela quiser ação real no GitHub, oriente a usar `$yabook do`.
+
+Em `main`, `dev`, release ou branch incompatível, pedidos diretos devem gerar um
+bloqueio. Confirmação comum não basta. `$yabook bypass <ação>` autoriza somente
+a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 
 ## Comandos
 
 | Comando | Como atua |
 | --- | --- |
-| `$yabook help` | Lista os comandos principais de forma curta. Não explica o handbook inteiro. |
-| `$yabook load` | Carrega um resumo operacional do YABook na conversa atual para reduzir buscas repetidas. Não cria memória permanente e não altera arquivos. |
-| `$yabook init` | Inicializa ou adapta o repositório atual ao padrão YA LABS, sem sobrescrever conteúdo existente sem aviso. |
+| `$yabook help [tópico ou objetivo]` | Lista comandos, explica uma família ou recomenda um fluxo por intenção. |
+| `$yabook load` | Recarrega o cache operacional quando branch, repositório ou regras locais mudarem. |
+| `$yabook init` | Analisa como inicializar ou adaptar o repositório, sem alterar estado. |
+| `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo. |
+| `$yabook plan start <versão>` | Inicia entrevista colaborativa para uma versão. |
+| `$yabook discuss <tema>` | Discute uma ideia, decisão ou mudança sem alterar estado. |
+| `$yabook plan status` | Avalia maturidade e decisões abertas do planejamento. |
+| `$yabook plan next` | Recomenda uma única próxima ação. |
+| `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
+| `$yabook plan review` | Revisa o planejamento contra o YABook. |
+| `$yabook steps start` | Cria um checklist para acompanhar uma sequência na conversa. |
+| `$yabook steps` | Mostra o checklist ativo. |
+| `$yabook steps done <número>` | Marca uma etapa como concluída. |
+| `$yabook steps cancel` | Encerra o acompanhamento. |
+| `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
+| `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
-| `$yabook do` | Executa somente os artefatos pedidos pela pessoa usuária: issue, branch, PR, release ou merge. |
+| `$yabook do` | Executa somente a ação pedida: init, plan, sync, issue, branch, PR, release ou merge. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
@@ -103,6 +141,9 @@ Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. S
 | `$yabook release` | Gera descrição de release e orienta tag quando aplicável. |
 | `$yabook docs` | Indica onde documentar uma informação no projeto. |
 | `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
+
+`$yabook plan discuss <tema>` permanece como alias de compatibilidade para
+`$yabook discuss <tema>`.
 
 ## Comandos encadeados
 
@@ -133,6 +174,18 @@ Regras:
 
 O `&` aqui não representa execução paralela. Ele define ordem de execução dentro da skill.
 
+## Help contextual
+
+O help possui três níveis:
+
+- `$yabook help`: índice curto agrupado por finalidade;
+- `$yabook help plan`: explica cada comando da família com exemplos;
+- `$yabook help planejar a V1 do projeto`: recomenda uma sequência e explica o
+  motivo de cada etapa.
+
+Help não executa load automático, não consulta o projeto e não dispara comandos
+mencionados no texto. A referência normativa é `references/help.md`.
+
 ## `$yabook do`
 
 `$yabook do` é o comando operacional mais flexível da skill.
@@ -142,6 +195,10 @@ Ele aceita artefatos explícitos:
 ```text
 $yabook do issue
 $yabook do branch
+$yabook do init
+$yabook do plan
+$yabook do plan roadmap
+$yabook do sync
 $yabook do pr
 $yabook do release
 $yabook do issues
@@ -160,6 +217,10 @@ $yabook do só uma issue para essa tarefa
 Regras:
 
 - criar somente o que foi pedido;
+- usar `do init` para aplicar a inicialização proposta;
+- usar `do plan` para consolidar decisões, sem commit automático;
+- usar `do plan roadmap` para criar estrutura e somente o próximo bloco;
+- usar `do sync` para atualizar somente a skill instalada e validar o resultado;
 - não fazer merge se a pessoa não pediu merge explicitamente;
 - conferir contexto local antes de criar artefatos;
 - sugerir ou aplicar labels e `Size` em issues;
@@ -186,13 +247,19 @@ O comando `$yabook issue classify` deve retornar:
 
 `Size` é campo do GitHub Project. Não é label e não deve entrar no título da issue.
 
-## Uso de `$yabook load`
+## Carregamento automático e `$yabook load`
 
-`$yabook load` serve para preparar a conversa atual.
+O primeiro comando operacional `$yabook` da conversa prepara automaticamente o
+contexto. O agente lê `session.md`, `AGENTS.md`, branch e estado do Git e então
+executa o comando solicitado sem exibir uma resposta separada de load.
 
 O arquivo `references/session.md` concentra o cache operacional completo: templates de issue, PR e release, labels, `Size`, branch, commit, classificação e regras de releitura.
 
-Durante o load, o agente deve:
+`$yabook help` pode responder sem carregar o repositório. `$yabook load` continua
+disponível para atualizar o cache depois de mudanças de branch, repositório,
+regras locais ou contexto relevante.
+
+Durante o carregamento, o agente deve:
 
 1. ler `session.md` por completo;
 2. ler `AGENTS.md` do repositório atual, se existir;
@@ -200,6 +267,25 @@ Durante o load, o agente deve:
 4. responder com um resumo curto para a pessoa usuária.
 
 Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
+
+Diagnóstico e planejamento continuam exigindo `references/planejamento.md` e descoberta atual do projeto.
+
+Sincronização exige `references/sync.md`. A verificação é somente leitura;
+qualquer atualização da instalação exige `do sync`.
+
+## Acompanhamento de etapas
+
+`$yabook steps` mantém uma sequência recomendada visível durante a conversa.
+Enquanto houver itens abertos, o agente repete um checklist compacto no final
+de cada resposta, usando `✅` para concluído, `➡️` para a próxima etapa e `⬜`
+para as demais.
+
+O checklist pode ser atualizado por subcomando ou por confirmação inequívoca em
+linguagem natural. Seu estado é temporário e não deve ser salvo em arquivo,
+memória permanente, issue ou Project.
+
+Esse recurso não substitui `$yabook plan`, não executa comandos e não remove a
+exigência de `$yabook do` para ações de escrita.
 
 Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
 
@@ -238,8 +324,10 @@ Ela não deve:
 - sobrescrever arquivos existentes sem aviso;
 - criar pastas vazias para preencher template;
 - executar merge sem pedido explícito;
+- executar um comando YABook de escrita sem `do`;
 - tratar `Size` como label;
 - criar memória permanente a partir de `$yabook load`;
+- persistir checklist de `$yabook steps` fora da conversa atual;
 - documentar no YABook conteúdo específico de produto.
 
 ## Manutenção
@@ -248,7 +336,7 @@ Ao alterar a skill:
 
 1. Atualize `SKILL.md` quando mudar gatilho, workflow ou padrão central.
 2. Atualize `references/commands.md` quando mudar comando, alias ou saída.
-3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, init ou sessão.
+3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, help, init, planejamento, sessão ou sincronização.
 4. Atualize este documento quando a mecânica da skill mudar.
 5. Rode a validação da skill e `git diff --check`.
 

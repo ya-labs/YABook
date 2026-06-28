@@ -49,6 +49,10 @@ Issues, PRs, branches e commits antigos de um projeto podem servir como contexto
 
 ## Padrão de issue
 
+Toda coisa nova relevante no projeto começa aqui. Quando surgir um problema,
+ajuste ou melhoria, transforme a necessidade em uma issue antes de criar branch
+ou implementar.
+
 Título objetivo, sem prefixo de tipo.
 
 Use labels para indicar tipo e área.

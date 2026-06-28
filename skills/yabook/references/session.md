@@ -1,12 +1,24 @@
 # `$yabook load`
 
-Use este comando para carregar o cache operacional do YABook na conversa atual.
+Use esta referência para o carregamento automático da primeira operação YABook
+e para o comando explícito `$yabook load`.
 
 ## Objetivo
 
 Reduzir buscas repetidas no repositório durante a mesma conversa.
 
-`$yabook load` não cria memória permanente e não altera arquivos.
+O carregamento não cria memória permanente e não altera arquivos.
+
+## Carregamento automático
+
+No primeiro comando operacional `$yabook` da conversa, execute o fluxo de
+carregamento abaixo silenciosamente e depois responda somente ao comando pedido.
+
+Não repita o carregamento na mesma conversa. `$yabook help` é a única exceção e
+pode responder sem contexto do repositório.
+
+Use `$yabook load` para carregar explicitamente ou atualizar o cache quando a
+branch, o repositório, as regras locais ou o contexto relevante mudarem.
 
 ## Como executar
 
@@ -27,7 +39,7 @@ Use este bloco como fonte principal após o load.
 ### Rastreabilidade
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge -> Release
+Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge -> Release
 ```
 
 Regras:
@@ -217,6 +229,54 @@ Cada projeto declara apenas as labels que usa.
 
 Se `AGENTS.md` definir outro fluxo, ele prevalece.
 
+### Diagnóstico e planejamento
+
+- `$yabook status`: branch, issue e alterações do trabalho local.
+- `$yabook diagnose`: estado real do projeto inteiro.
+- `$yabook plan status`: maturidade e lacunas do planejamento.
+- `$yabook plan next`: uma próxima ação recomendada.
+- `$yabook plan start <versão>`: entrevista colaborativa sem escrita.
+- `$yabook discuss <tema>`: discussão geral sem decisão automática.
+- `$yabook plan discuss <tema>`: alias de compatibilidade para `discuss`.
+- `$yabook plan roadmap`: proposta de milestones, épicos e próximo bloco.
+- `$yabook plan review`: revisão antes da consolidação ou do roadmap.
+- `$yabook do plan`: consolidação documental sem commit automático.
+- `$yabook do plan roadmap`: materialização idempotente do próximo bloco.
+- `$yabook sync`: comparação somente leitura entre origem e instalação.
+- `$yabook do sync`: sincronização e validação da instalação.
+
+Leia `planejamento.md` para esses comandos. O cache não substitui a descoberta
+atual do projeto nem a conferência do GitHub.
+
+Leia `discuss.md` para discussões gerais. Quando o tema afetar o planejamento,
+aplique também as regras específicas de `planejamento.md`.
+
+### Orquestração inteligente
+
+- `$yabook <intenção>` seleciona internamente os comandos adequados.
+- Comandos seguros de leitura avançam até uma decisão necessária ou escrita.
+- Comando válido é executado; uma opção melhor pode ser sugerida brevemente.
+- Comando incompatível com intenção inequívoca pode ser corrigido.
+- Ambiguidade material exige pergunta.
+- Roteamento inferido, ajustado ou composto aparece no início da resposta.
+- `do` nunca é inferido.
+- Fluxos com várias etapas apenas sugerem `$yabook steps start`, com motivo.
+
+Leia `orquestracao.md` para aplicar essas regras.
+
+### Acompanhamento de etapas
+
+- `$yabook steps start`: cria um checklist a partir da sequência discutida.
+- `$yabook steps`: mostra o checklist ativo.
+- `$yabook steps done <número>`: conclui uma etapa.
+- `$yabook steps cancel`: encerra o acompanhamento.
+- Confirmações inequívocas em linguagem natural também podem concluir etapas.
+- Enquanto houver etapas abertas, repita o checklist compacto ao final de cada
+  resposta.
+- O checklist vale somente para a conversa e não executa ações por conta própria.
+
+Leia `steps.md` para criar ou atualizar o checklist.
+
 ## Comandos que usam só o cache após o load
 
 Depois de `$yabook load`, **não releia** `github.md` nem `session.md` para:
@@ -261,6 +321,7 @@ Mesmo com o cache carregado, inspecione:
 - `git diff` ou `git diff --stat` para commit, PR e release com base no código atual;
 - issue, PR, labels, Project e `Size` reais quando for criar ou validar artefatos no GitHub;
 - código e arquivos do projeto quando o pedido depender do conteúdo alterado.
+- documentação, código e GitHub atuais para `diagnose`, `plan` e `do plan`.
 
 ## Quando reler referências mesmo após o load
 
@@ -278,6 +339,12 @@ Mapa de releitura:
 | Comando | Referência |
 | --- | --- |
 | `$yabook init` | `init.md` |
+| `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
+| `$yabook discuss ...` | `discuss.md` |
+| `$yabook <intenção em linguagem natural>` | `orquestracao.md` |
+| `$yabook do plan ...` | `planejamento.md` |
+| `$yabook steps ...` | `steps.md` |
+| `$yabook sync` e `$yabook do sync` | `sync.md` |
 | `$yabook docs` | `documentacao.md` |
 | `$yabook check`, `$yabook review` | `github.md`, `documentacao.md`, `ia.md` conforme o artefato |
 | `$yabook do` | `commands.md` + estado real do repo/GitHub |
@@ -329,4 +396,5 @@ Depois disso, use o cache desta sessão antes de consultar novamente o YABook.
 
 O contexto carregado vale apenas para a conversa atual.
 
-Em nova conversa, carregue novamente com `$yabook load`.
+Em nova conversa, o primeiro comando operacional `$yabook` executa novamente o
+carregamento automático. Use `$yabook load` apenas para recarregar o contexto.

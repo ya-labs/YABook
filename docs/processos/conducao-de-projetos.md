@@ -30,6 +30,29 @@ Antes de implementar, registre apenas o necessário para alinhar direção:
 
 Essa etapa não precisa fechar todas as decisões. Ela deve reduzir ambiguidade suficiente para criar as primeiras issues implementáveis.
 
+## Planejamento colaborativo da versão
+
+O planejamento de uma versão deve ser uma conversa guiada, não o preenchimento
+cego de um template.
+
+Antes de consolidar a V1 ou uma versão posterior, alinhe:
+
+- problema e público;
+- resultado esperado;
+- escopo e fora de escopo;
+- capacidades e fluxos principais;
+- restrições, riscos e alternativas relevantes;
+- critérios de pronto;
+- ideias que pertencem a versões futuras.
+
+Hipóteses, alternativas e decisões abertas não devem aparecer como contratos
+fechados. Depois da discussão, consolide somente o que foi aceito e preserve as
+pendências de forma explícita.
+
+Quando o projeto evoluir, uma nova capacidade pode alterar a versão atual ou
+iniciar uma versão posterior. Primeiro diagnostique o estado real e depois
+decida qual dos dois casos se aplica.
+
 ## Documentação horizontal
 
 Documentar horizontalmente significa mapear partes diferentes do projeto quando isso ajuda a entender o conjunto.
@@ -95,6 +118,54 @@ Uma issue implementável deve ter:
 - milestone e épico quando fizer parte de uma fase.
 
 Evite criar backlog completo do projeto inteiro no início. Crie apenas issues suficientes para orientar o próximo bloco de trabalho.
+
+## Diagnóstico e recuperação de direção
+
+Quando não estiver claro o que fazer em seguida, reconstrua o estado do projeto
+antes de criar novas tarefas.
+
+O diagnóstico deve cruzar:
+
+- objetivo e roadmap da versão;
+- documentação e decisões;
+- implementação real;
+- issues e Pull Requests concluídos ou abertos;
+- milestones, épicos e GitHub Project;
+- bloqueios e divergências.
+
+O resultado deve distinguir o que foi concluído, o que está em andamento, o que
+falta e qual é a próxima ação de maior valor. A recomendação pode ser uma
+decisão, validação, atualização documental ou issue implementável.
+
+Roadmap não substitui diagnóstico. O roadmap descreve direção; o GitHub registra
+execução; o diagnóstico compara ambos com a realidade do projeto.
+
+## Núcleo documental do planejamento
+
+Projetos devem manter um núcleo adaptável, sem obrigação de copiar uma árvore
+fixa quando já houver documentos equivalentes:
+
+- visão do produto;
+- escopo e critérios da versão atual;
+- roadmap macro;
+- decisões relevantes;
+- resumos das sessões de planejamento.
+
+Quando não existir estrutura equivalente, use:
+
+```text
+docs/planejamento/
+├── visao-do-produto.md
+├── roadmap.md
+├── versoes/
+│   └── v1.md
+└── sessoes/
+    └── AAAA-MM-DD-assunto.md
+```
+
+O resumo da sessão registra contexto, decisões, pendências e impactos. Não
+armazene transcrições completas por padrão nem copie status operacional para
+Markdown.
 
 ## Uso de IA
 

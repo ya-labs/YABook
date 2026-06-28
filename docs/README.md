@@ -1,4 +1,7 @@
-# Documentação do YABook
+# YABook Handbook
+
+O YABook Handbook é a documentação humana e a fonte normativa do ecossistema
+YABook. A YABook Skill usa estas regras para orquestrar o Método YA LABS.
 
 Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 
@@ -10,10 +13,12 @@ Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 | Consultar os padrões mais usados rapidamente | [Padrões rápidos](padroes-rapidos.md) |
 | Criar issue, branch, commit, PR ou release | [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md) |
 | Conduzir um projeto da descoberta até release | [Condução de projetos](processos/conducao-de-projetos.md) |
+| Criar ou expandir um projeto com a skill | [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md) |
 | Usar IA sem perder padrão e rastreabilidade | [Uso de IA](guias/uso-de-ia.md) |
 | Organizar documentação técnica | [Documentação técnica](guias/documentacao-tecnica.md) |
 | Criar um projeto novo com base YA LABS | [Template base de projeto](templates/projeto/README.md) |
 | Usar comandos YABook com IA | [Manual de uso](manual.md) |
+| Verificar ou sincronizar a skill instalada | [Manual de uso](manual.md#como-sincronizar-a-skill) |
 | Entender como a skill YABook funciona | [Guia técnico da skill YABook](guias/skill-yabook.md) |
 
 ## Templates úteis

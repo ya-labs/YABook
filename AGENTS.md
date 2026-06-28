@@ -41,6 +41,10 @@ Esses conteúdos devem ficar no repositório do respectivo projeto.
 
 ## Fluxo obrigatório de trabalho
 
+Quando surgir um problema, ajuste ou melhoria nova, transforme a demanda em uma
+issue antes de criar branch ou implementar. A pessoa pode descrever a necessidade
+em linguagem natural; a IA deve ajudar a delimitá-la sem inventar requisitos.
+
 Antes de orientar ou executar uma alteração relevante, verifique se existe uma issue relacionada.
 
 Antes de alterar arquivos, valide:
@@ -100,7 +104,7 @@ A IA deve ajudar a YA LABS a manter rastreabilidade e consistência.
 Toda alteração relevante deve conectar:
 
 ```text
-Issue -> Branch -> Commit -> Pull Request -> Merge
+Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge
 ```
 
 Esse fluxo mantém a documentação organizada e facilita a reutilização dos padrões em todos os projetos da organização.
