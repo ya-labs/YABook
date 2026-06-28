@@ -63,7 +63,7 @@ Common commands:
 - `$yabook init`
 - `$yabook diagnose`
 - `$yabook plan start v1`
-- `$yabook plan discuss`
+- `$yabook discuss`
 - `$yabook plan status`
 - `$yabook plan next`
 - `$yabook plan roadmap`
@@ -113,6 +113,7 @@ Load only the reference needed for the current task:
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
 - [planejamento.md](references/planejamento.md): diagnosis, collaborative planning, version documents, roadmap, and next-step behavior.
+- [discuss.md](references/discuss.md): general-purpose discussion before planning or execution.
 - [steps.md](references/steps.md): conversation-scoped checklists and step tracking.
 - [session.md](references/session.md): `$yabook load` behavior and full session cache.
 - [sync.md](references/sync.md): compare and synchronize the installed skill with a local or remote YABook source.
@@ -126,6 +127,7 @@ When the session is loaded in the current conversation:
 - still inspect Git state and `git diff` when the artifact depends on the current change;
 - still read `AGENTS.md` during load and apply local overrides over generic YABook rules;
 - read `planejamento.md` for `diagnose`, every `plan` command, and `do plan`;
+- read `discuss.md` for `discuss` and its `plan discuss` compatibility alias;
 - read `steps.md` for every `steps` command and while a checklist is active;
 - read `sync.md` for `sync` and `do sync`;
 - read `help.md` for every `help` request;

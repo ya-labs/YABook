@@ -236,7 +236,8 @@ Se `AGENTS.md` definir outro fluxo, ele prevalece.
 - `$yabook plan status`: maturidade e lacunas do planejamento.
 - `$yabook plan next`: uma próxima ação recomendada.
 - `$yabook plan start <versão>`: entrevista colaborativa sem escrita.
-- `$yabook plan discuss <tema>`: discussão sem decisão automática.
+- `$yabook discuss <tema>`: discussão geral sem decisão automática.
+- `$yabook plan discuss <tema>`: alias de compatibilidade para `discuss`.
 - `$yabook plan roadmap`: proposta de milestones, épicos e próximo bloco.
 - `$yabook plan review`: revisão antes da consolidação ou do roadmap.
 - `$yabook do plan`: consolidação documental sem commit automático.
@@ -246,6 +247,9 @@ Se `AGENTS.md` definir outro fluxo, ele prevalece.
 
 Leia `planejamento.md` para esses comandos. O cache não substitui a descoberta
 atual do projeto nem a conferência do GitHub.
+
+Leia `discuss.md` para discussões gerais. Quando o tema afetar o planejamento,
+aplique também as regras específicas de `planejamento.md`.
 
 ### Acompanhamento de etapas
 
@@ -323,6 +327,7 @@ Mapa de releitura:
 | --- | --- |
 | `$yabook init` | `init.md` |
 | `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
+| `$yabook discuss ...` | `discuss.md` |
 | `$yabook do plan ...` | `planejamento.md` |
 | `$yabook steps ...` | `steps.md` |
 | `$yabook sync` e `$yabook do sync` | `sync.md` |

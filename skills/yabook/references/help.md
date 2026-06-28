@@ -25,7 +25,7 @@ $yabook help <objetivo em linguagem natural>
 `$yabook help` retorna um índice curto agrupado por finalidade:
 
 - contexto: `load`, `status`, `diagnose`;
-- inicialização e planejamento: `init`, `plan`;
+- inicialização e planejamento: `init`, `discuss`, `plan`;
 - acompanhamento da conversa: `steps`;
 - execução: `do`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
@@ -67,7 +67,7 @@ Para `$yabook help plan`, inclua:
 | Comando | Uso | Exemplo |
 | --- | --- | --- |
 | `plan start <versão>` | Entrevistar e propor uma versão. | `$yabook plan start v1` |
-| `plan discuss <tema>` | Avaliar mudança e impacto. | `$yabook plan discuss adicionar integração com IA` |
+| `discuss <tema>` | Avaliar mudança e impacto. | `$yabook discuss adicionar integração com IA` |
 | `plan status` | Mostrar maturidade e decisões abertas. | `$yabook plan status` |
 | `plan next` | Recomendar uma próxima ação. | `$yabook plan next` |
 | `plan roadmap` | Propor milestones, épicos e próximo bloco. | `$yabook plan roadmap` |
@@ -76,6 +76,7 @@ Para `$yabook help plan`, inclua:
 | `do plan roadmap` | Criar a estrutura aprovada no GitHub. | `$yabook do plan roadmap` |
 
 Deixe explícito que comandos `plan` sem `do` não escrevem.
+Informe também que `plan discuss` continua aceito como alias de `discuss`.
 
 Use a mesma estrutura para famílias como `issue`, `pr`, `sync` e `do`, listando
 somente subcomandos realmente documentados.

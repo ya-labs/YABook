@@ -74,7 +74,7 @@ fluxos, riscos, alternativas e critérios de pronto.
 Use discussões adicionais quando necessário:
 
 ```text
-$yabook plan discuss estratégia de autenticação
+$yabook discuss estratégia de autenticação
 ```
 
 ### 4. Revisar e consolidar
@@ -136,7 +136,7 @@ $yabook do plan roadmap
 ### Alterar a versão atual
 
 ```text
-$yabook plan discuss adicionar integração com IA
+$yabook discuss adicionar integração com IA
 $yabook plan review
 $yabook do plan
 $yabook plan roadmap

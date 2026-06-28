@@ -13,7 +13,7 @@ Responda em português do Brasil, com texto pronto para uso.
 | `$yabook init` | Analisa como inicializar ou adaptar o padrão YA LABS, sem alterar estado. |
 | `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo do projeto. |
 | `$yabook plan start <versão>` | Inicia entrevista colaborativa para planejar uma versão. |
-| `$yabook plan discuss <tema>` | Discute uma mudança e seus impactos no planejamento. |
+| `$yabook discuss <tema>` | Discute uma ideia, decisão ou mudança sem alterar estado. |
 | `$yabook plan status` | Avalia maturidade, decisões abertas e lacunas do planejamento. |
 | `$yabook plan next` | Recomenda uma única próxima decisão ou entrega. |
 | `$yabook plan roadmap` | Propõe milestones, épicos, encaixes e próximo bloco de issues. |
@@ -203,6 +203,7 @@ Ao usar `gh pr merge --squash`, prefira `--body-file` para evitar que quebras de
 | `$yabook validate` | `$yabook check` |
 | `$yabook diagnóstico` | `$yabook diagnose` |
 | `$yabook planejamento` | `$yabook plan` |
+| `$yabook plan discuss <tema>` | `$yabook discuss <tema>` |
 
 ## Contexto por comando
 
@@ -226,6 +227,7 @@ Se a sessão já foi carregada na conversa atual:
 - Para `issue classify`, retorne labels, `Size`, justificativa curta, confiança e sugestão de quebra quando necessário.
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `diagnose`, `plan` e `do plan`, leia `planejamento.md`.
+- Para `discuss` e o alias `plan discuss`, leia `discuss.md`.
 - Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
 - Para `sync` e `do sync`, leia `sync.md`.
 - Para qualquer `help`, leia `help.md`; não execute load automático nem o

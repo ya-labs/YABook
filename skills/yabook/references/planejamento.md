@@ -58,9 +58,13 @@ proposta consolidada ainda não gravada.
 Se a versão for omitida, infira a versão em planejamento. Se houver mais de uma
 possibilidade plausível, peça a versão antes de consolidar.
 
-## `$yabook plan discuss <tema>`
+## Discussões que afetam o planejamento
 
-Use para revisar uma parte do planejamento ou avaliar uma nova capacidade.
+Use `$yabook discuss <tema>` para revisar uma parte do planejamento ou avaliar
+uma nova capacidade. `$yabook plan discuss <tema>` permanece como alias.
+
+Leia `discuss.md` para o contrato geral do comando. Quando o tema afetar o
+planejamento, separe:
 Separe:
 
 - contexto;

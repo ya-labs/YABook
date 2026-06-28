@@ -57,6 +57,17 @@ status, milestones, épicos e progresso operacional.
 
 Diagnóstico observa o projeto. Planejamento decide sua direção.
 
+### Discussão geral
+
+`$yabook discuss <tema>` analisa uma ideia, decisão ou mudança antes de
+transformá-la em planejamento, documentação ou trabalho executável.
+
+O comando adapta a análise ao assunto, separa decisões e pendências e recomenda
+o próximo comando. Ele não altera arquivos ou GitHub.
+
+`$yabook plan discuss <tema>` permanece disponível apenas como alias de
+compatibilidade.
+
 ### Planejamento colaborativo
 
 A família `plan` permite conversar antes de documentar:
@@ -64,7 +75,6 @@ A família `plan` permite conversar antes de documentar:
 | Comando | Função |
 | --- | --- |
 | `$yabook plan start v1` | Inicia a entrevista da versão. |
-| `$yabook plan discuss <tema>` | Discute uma mudança e seus impactos. |
 | `$yabook plan status` | Mostra maturidade e decisões abertas. |
 | `$yabook plan next` | Recomenda uma única próxima ação. |
 | `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
@@ -266,7 +276,7 @@ Para alterar a versão atual:
 
 ```text
 $yabook diagnose
-$yabook plan discuss adicionar integração com IA
+$yabook discuss adicionar integração com IA
 $yabook plan review
 $yabook do plan
 $yabook plan roadmap
@@ -367,7 +377,7 @@ Valide que:
 ## Perguntas para validar entendimento
 
 - Qual é a diferença entre `diagnose` e `plan status`?
-- Quando usar `plan discuss` em vez de `plan start v2`?
+- Quando usar `discuss` em vez de `plan start v2`?
 - Por que o roadmap não cria o backlog detalhado inteiro?
 - O que o primeiro comando `$yabook` carrega automaticamente?
 - Quando ainda faz sentido usar `$yabook load`?

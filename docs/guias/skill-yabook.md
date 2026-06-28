@@ -40,6 +40,7 @@ Arquivos principais:
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
+| `references/discuss.md` | Discussões gerais antes de planejar ou executar mudanças. |
 | `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
 | `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
 | `references/session.md` | Comportamento esperado do `$yabook load`. |
@@ -105,7 +106,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook init` | Analisa como inicializar ou adaptar o repositório, sem alterar estado. |
 | `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo. |
 | `$yabook plan start <versão>` | Inicia entrevista colaborativa para uma versão. |
-| `$yabook plan discuss <tema>` | Discute uma mudança e seus impactos. |
+| `$yabook discuss <tema>` | Discute uma ideia, decisão ou mudança sem alterar estado. |
 | `$yabook plan status` | Avalia maturidade e decisões abertas do planejamento. |
 | `$yabook plan next` | Recomenda uma única próxima ação. |
 | `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
@@ -131,6 +132,9 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook release` | Gera descrição de release e orienta tag quando aplicável. |
 | `$yabook docs` | Indica onde documentar uma informação no projeto. |
 | `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
+
+`$yabook plan discuss <tema>` permanece como alias de compatibilidade para
+`$yabook discuss <tema>`.
 
 ## Comandos encadeados
 

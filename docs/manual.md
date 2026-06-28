@@ -107,6 +107,7 @@ Comandos principais:
 - `$yabook load`: recarrega os padrões operacionais quando o contexto mudar.
 - `$yabook init`: analisa como inicializar o padrão, sem alterar estado.
 - `$yabook diagnose`: reconstrói progresso, lacunas, bloqueios e próximo passo.
+- `$yabook discuss`: analisa uma ideia, decisão ou mudança sem alterar estado.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook steps`: acompanha uma sequência com checklist durante a conversa.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
