@@ -164,6 +164,8 @@ Regras:
   apresentada na resposta imediatamente anterior.
 - Depois de executar a ação contextual, retome automaticamente a solicitação
   original.
+- Inclua os pré-requisitos mínimos da ação original já autorizada, como enviar a
+  branch necessária para abrir um PR, sem pedir confirmação redundante.
 - Não faça merge se a pessoa não pediu merge explicitamente.
 - Antes de criar artefatos, confira `AGENTS.md`, branch atual, issue relacionada, labels, Project e `Size`.
 - Se a ferramenta GitHub não conseguir aplicar Project ou `Size`, entregue o valor sugerido para preenchimento manual.

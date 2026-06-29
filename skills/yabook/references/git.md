@@ -68,7 +68,9 @@ Resposta: use $yabook do commit
 - Execute somente as ações mencionadas pela pessoa usuária.
 - `$yabook do commit` não autoriza `push`.
 - `$yabook do branch` não autoriza editar arquivos.
-- `$yabook do pr` não autoriza commit, push ou merge não solicitados.
+- `$yabook do pr` pode enviar a branch de origem como pré-requisito mínimo para
+  abrir ou atualizar o PR, mas não autoriza criar commit, enviar outras branches,
+  criar tags ou fazer merge.
 - Merge exige pedido explícito mesmo quando houver outro `do`.
 - `bypass` não substitui `do` para mutações da gramática YABook.
 
@@ -121,13 +123,18 @@ Existem alterações concluídas que devem formar um commit separado.
 
 Commit proposto: tipo: descrição
 
-- $yabook do: cria o commit e retoma a solicitação.
+- $yabook do: cria o commit, executa os pré-requisitos mínimos e retoma a solicitação.
 - $yabook continue: prossegue sem criar o commit.
 ```
 
 `$yabook do` sem complemento pode autorizar uma ação contextual somente quando
 existe exatamente uma ação pendente, descrita pelo agente na resposta anterior.
-A autorização expira após a execução ou mudança de contexto.
+Quando essa ação interrompeu uma solicitação `do` já autorizada, a autorização
+contextual inclui os pré-requisitos mínimos para retomar e concluir a ação
+original. Não peça nova confirmação para enviar a branch necessária a um PR.
+
+A autorização expira após a execução ou mudança de contexto e não cobre pushes,
+branches, tags ou merges fora do fluxo apresentado.
 
 `$yabook continue` rejeita apenas um checkpoint opcional. Se issue, branch ou
 outra regra tornar a separação obrigatória, não continue no worktree atual.

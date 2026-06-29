@@ -210,8 +210,9 @@ Criar ou trocar branch, preparar arquivos, criar commit, usar stash, alterar
 histórico, criar tag, buscar, integrar ou enviar alterações exige uma ação
 `$yabook do` explícita.
 
-O escopo permanece restrito ao pedido. `$yabook do commit` não autoriza `push`,
-e `$yabook do pr` não autoriza merge.
+O escopo permanece restrito ao pedido. `$yabook do commit` isolado não autoriza
+`push`. `$yabook do pr` pode enviar somente a branch necessária para abrir ou
+atualizar o PR, mas não autoriza outras branches, tags ou merge.
 
 ### Checkpoint antes de novas alterações
 
@@ -225,7 +226,8 @@ a solicitação sem exibir um aviso desatualizado.
 
 Nesse contexto:
 
-- `$yabook do` cria somente o commit proposto e retoma a solicitação original;
+- `$yabook do` cria o commit, executa os pré-requisitos mínimos já autorizados e
+  retoma a solicitação original;
 - `$yabook continue` prossegue sem o checkpoint opcional.
 
 Se a nova tarefa pertencer a outra issue ou branch, `continue` não pode ignorar

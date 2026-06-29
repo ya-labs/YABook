@@ -106,7 +106,8 @@ arquivos, criar commits, alterar histórico, usar stash, criar tags, buscar,
 integrar ou enviar alterações.
 
 Mesmo com `do`, cada ação precisa estar explicitamente solicitada. Autorizar
-commit não autoriza push; autorizar PR não autoriza merge.
+commit isolado não autoriza push. Autorizar PR permite enviar somente sua branch
+de origem e não autoriza outras branches, tags ou merge.
 
 Antes de novas edições, a skill avalia se o worktree contém um bloco concluído
 de outra responsabilidade. Quando houver um checkpoint coerente, pausa e mostra
@@ -118,7 +119,8 @@ resultado de turno anterior.
 
 `$yabook do` sem complemento autoriza apenas uma ação contextual pendente e
 inequívoca. `$yabook continue` rejeita um checkpoint opcional. Depois da escolha,
-a skill retoma a solicitação original.
+a skill retoma a solicitação original com seus pré-requisitos mínimos já
+autorizados, sem confirmações redundantes.
 
 Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` apenas inspecionam, conversam ou produzem propostas.
 

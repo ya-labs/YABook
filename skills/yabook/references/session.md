@@ -55,7 +55,8 @@ Regras:
 - Branch, switch, add, restore, commit, stash, merge, rebase, cherry-pick,
   revert, reset, tag, clean, fetch, pull e push exigem `do`.
 - A autorização vale somente para a ação explicitamente solicitada.
-- `do commit` não autoriza `push`; `do pr` não autoriza merge.
+- `do commit` isolado não autoriza `push`; `do pr` pode enviar somente a branch
+  necessária ao PR e não autoriza merge.
 - `bypass` não substitui `do` para mutações Git.
 - Pedidos diretos sem `$yabook` não autorizam mutações Git.
 
@@ -71,6 +72,7 @@ Antes de novas edições:
   pendente inequívoca;
 - aceite `$yabook continue` para rejeitar checkpoint opcional;
 - retome a solicitação original após a escolha;
+- execute seus pré-requisitos mínimos já autorizados sem nova confirmação;
 - não permita `continue` quando issue ou branch incompatível tornar a separação
   obrigatória.
 

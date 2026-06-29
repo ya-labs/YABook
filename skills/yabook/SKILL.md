@@ -65,6 +65,8 @@ by the user. Never merge unless the user explicitly asks for merge.
 Bare `$yabook do` may authorize exactly one pending contextual action proposed
 in the immediately previous response. `$yabook continue` rejects an optional
 checkpoint and resumes the original request without that Git mutation.
+When the checkpoint interrupted an already authorized `do` workflow, resuming
+includes its minimal prerequisites, such as pushing the PR head branch.
 
 ## Command Routing
 

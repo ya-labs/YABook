@@ -219,8 +219,9 @@ remoto. A trava também vale para pedidos diretos que não chamam a skill.
 histórico. Já branch, switch, add, commit, stash, merge, rebase, tag, fetch,
 pull e push exigem ação `do` explícita.
 
-O escopo não é ampliado automaticamente: `$yabook do commit` não autoriza
-`push`, e `$yabook do pr` não autoriza merge.
+O escopo não é ampliado automaticamente: `$yabook do commit` isolado não
+autoriza `push`. `$yabook do pr` pode enviar somente a branch necessária ao PR e
+não autoriza outras branches, tags ou merge.
 
 ### Checkpoint do worktree
 
@@ -233,7 +234,7 @@ Existem alterações concluídas que devem formar um commit separado.
 
 Commit proposto: tipo: descrição
 
-- $yabook do: cria o commit e retoma a solicitação.
+- $yabook do: cria o commit, executa os pré-requisitos mínimos e retoma a solicitação.
 - $yabook continue: prossegue sem criar o commit.
 ```
 
