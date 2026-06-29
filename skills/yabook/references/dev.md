@@ -35,6 +35,10 @@ Quando houver issue inequívoca, `dev` autoriza:
 - executar testes, validações e correções da implementação.
 
 Use branch `numero-descricao-curta`. Não misture issues na mesma branch.
+Ao criar a branch, aplique o fluxo nativo descrito em `github.md`: use
+`createLinkedBranch`, confirme o nome em `issue.linkedBranches` e só então
+prepare o tracking local. Se o vínculo nativo não estiver disponível, informe o
+fallback manual sem apresentar a branch apenas publicada como vinculada.
 
 ## Limites
 

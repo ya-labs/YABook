@@ -75,6 +75,11 @@ $yabook do branch
 
 O primeiro comando prepara a issue para revisão. O segundo cria a issue. Depois,
 a branch coloca a demanda no fluxo normal de implementação, commit e PR.
+Ao executar `$yabook do branch`, a skill usa o vínculo nativo do GitHub para que
+a branch apareça na seção Development da issue e confirma o vínculo antes de
+informar sucesso. Sem issue inequívoca, a criação é interrompida. Quando a
+ferramenta não permitir o vínculo, a skill deve informar a limitação e orientar
+o vínculo manual.
 
 Ao criar issues, defina labels e `Size`. `Size` vai de `1` a `5` no GitHub Project e indica o tamanho da tarefa.
 
@@ -254,6 +259,8 @@ $yabook dev
 
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
+O vínculo da branch é confirmado por leitura na própria issue; publicar uma
+branch no remoto, isoladamente, não conta como vínculo concluído.
 
 Para entregar:
 

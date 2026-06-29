@@ -70,6 +70,35 @@ Exemplo:
 
 Não use tipo, área, `issue`, `#`, acentos ou espaços.
 
+### Vínculo com a issue
+
+Ao executar `$yabook do branch`, identifique uma única issue antes de criar a
+branch. Se a conversa, a branch atual ou a referência informada apontarem para
+mais de uma issue plausível, interrompa e peça a escolha.
+
+Prefira o mecanismo nativo do GitHub:
+
+1. obtenha o Node ID da issue, o Node ID do repositório e o OID do commit base;
+2. execute a mutation GraphQL `createLinkedBranch` com `issueId`, `name`, `oid`
+   e `repositoryId` quando necessário;
+3. consulte `issue.linkedBranches` após a mutation;
+4. confirme que a ref vinculada tem o nome esperado;
+5. prepare a branch local rastreando a branch remota criada.
+
+Esse fluxo cria a branch remota e registra o vínculo exibido na seção
+Development da issue. Criar ou publicar uma branch somente com Git não comprova
+o vínculo.
+
+Quando a ferramenta disponível não suportar `createLinkedBranch`:
+
+- crie a branch pelo Git apenas se a ação estiver autorizada;
+- informe que o vínculo nativo não foi aplicado;
+- oriente a vinculação manual pela seção Development da issue;
+- não declare sucesso do vínculo sem confirmar por `linkedBranches`.
+
+O mesmo procedimento vale para a preparação automática de branch em
+`$yabook dev`.
+
 ## Commits
 
 Use:
