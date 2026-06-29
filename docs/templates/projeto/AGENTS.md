@@ -75,6 +75,10 @@ Antes de iniciar novas edições, avalie se o worktree contém alterações
 concluídas de outra responsabilidade. Quando formarem um bloco independente e
 reversível, interrompa e proponha o commit.
 
+Atualize `git status`, diff staged e unstaged e último commit imediatamente antes
+de interromper. Nunca use somente estado lembrado de uma resposta anterior. Se o
+worktree estiver limpo ou o commit já existir, continue a solicitação.
+
 Nesse contexto, `$yabook do` autoriza somente o checkpoint apresentado e retoma
 a solicitação original. `$yabook continue` rejeita um checkpoint opcional. Não
 permita `continue` quando outra issue ou branch tornar a separação obrigatória.

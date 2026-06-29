@@ -194,6 +194,9 @@ For GitHub operations, inspect existing issue, PR, labels, Project, and reposito
 
 For `$yabook do`, create or execute only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
 
+Before any checkpoint warning or Git-dependent decision, refresh the current Git
+state. Never rely only on conversation cache or results from an earlier turn.
+
 For `$yabook do plan`, the documented planning issue and branch are part of the
 requested operation when compatible traceability does not already exist. Edit
 planning files, but never commit automatically.

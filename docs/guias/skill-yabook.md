@@ -112,6 +112,10 @@ Antes de novas edições, a skill avalia se o worktree contém um bloco concluí
 de outra responsabilidade. Quando houver um checkpoint coerente, pausa e mostra
 o commit proposto.
 
+Essa decisão exige uma leitura atualizada de status, diff staged e unstaged e
+último commit. A skill não pode interromper usando somente cache da conversa ou
+resultado de turno anterior.
+
 `$yabook do` sem complemento autoriza apenas uma ação contextual pendente e
 inequívoca. `$yabook continue` rejeita um checkpoint opcional. Depois da escolha,
 a skill retoma a solicitação original.

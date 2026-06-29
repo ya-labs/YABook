@@ -80,6 +80,26 @@ o que for possível e informe o comando necessário para continuar.
 Antes de iniciar novas alterações em arquivos, inspecione o worktree e avalie se
 as mudanças pendentes formam um bloco concluído.
 
+### Atualização obrigatória do estado
+
+Nunca decida um checkpoint usando apenas cache da conversa, resultado de turno
+anterior ou estado presumido.
+
+Imediatamente antes de interromper, confira:
+
+```text
+git status --short --branch
+git diff --stat
+git diff --cached --stat
+git log -1 --oneline
+```
+
+Quando a ação depender do remoto, confira também divergência da branch e PR
+existente.
+
+Se o worktree estiver limpo ou o commit esperado já existir, não apresente o
+checkpoint. Continue a solicitação original usando o estado atualizado.
+
 Recomende commit antes de continuar quando:
 
 - o bloco anterior está funcional e validado;

@@ -63,6 +63,8 @@ Leia `git.md` sempre que uma solicitação consultar ou alterar Git.
 
 Antes de novas edições:
 
+- atualize `status`, diff staged e unstaged e último commit no mesmo turno;
+- nunca interrompa com base apenas no cache da conversa;
 - avalie se o worktree contém um bloco concluído de outra responsabilidade;
 - proponha um commit quando o bloco for independente e reversível;
 - aceite `$yabook do` como autorização contextual somente para uma ação

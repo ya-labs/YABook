@@ -219,6 +219,10 @@ Antes de editar, a IA avalia se o worktree contém um bloco concluído de outra
 responsabilidade. Quando as mudanças forem independentes, reversíveis e
 estiverem prontas, ela interrompe e propõe um commit separado.
 
+Antes de interromper, a IA deve atualizar status, diff staged e unstaged e
+último commit. Se o worktree estiver limpo ou o commit já existir, deve continuar
+a solicitação sem exibir um aviso desatualizado.
+
 Nesse contexto:
 
 - `$yabook do` cria somente o commit proposto e retoma a solicitação original;
