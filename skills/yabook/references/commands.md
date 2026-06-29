@@ -37,6 +37,7 @@ intenção em `do`.
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
 | `$yabook do` | Executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge. |
+| `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
 | `$yabook issue` | Gera título e descrição completa da issue. |
@@ -80,7 +81,10 @@ Regras:
 - Se `load` aparecer no encadeamento, use o cache carregado para os comandos seguintes.
 - Se um comando depender de alterações atuais, confirme com Git antes de responder aquele comando.
 - A trava de `do` vale para comandos `$yabook`, não para pedidos normais em
-  linguagem natural.
+  linguagem natural, exceto mutações Git.
+- A trava inclui mutações Git locais e remotas. Inspeções somente leitura podem
+  ocorrer sem `do`; qualquer alteração de estado exige uma chamada
+  `$yabook do <ação>` explícita, mesmo após um pedido direto sem `$yabook`.
 - Só comandos iniciados por `$yabook do` ou aliases documentados, como
   `$yabook create`, podem executar artefatos da gramática YABook.
 - Comandos que geram artefatos textuais, como `$yabook issue`, `$yabook pr`,
@@ -156,6 +160,12 @@ $yabook do só uma issue para essa tarefa
 Regras:
 
 - Crie somente o que foi pedido.
+- Sem complemento, autorize somente uma ação contextual pendente e inequívoca
+  apresentada na resposta imediatamente anterior.
+- Depois de executar a ação contextual, retome automaticamente a solicitação
+  original.
+- Inclua os pré-requisitos mínimos da ação original já autorizada, como enviar a
+  branch necessária para abrir um PR, sem pedir confirmação redundante.
 - Não faça merge se a pessoa não pediu merge explicitamente.
 - Antes de criar artefatos, confira `AGENTS.md`, branch atual, issue relacionada, labels, Project e `Size`.
 - Se a ferramenta GitHub não conseguir aplicar Project ou `Size`, entregue o valor sugerido para preenchimento manual.
@@ -242,6 +252,7 @@ Se a sessão já foi carregada na conversa atual:
 - Para `discuss` e o alias `plan discuss`, leia `discuss.md`.
 - Para intenção em linguagem natural, comando incompatível ou roteamento
   composto, leia `orquestracao.md`.
+- Para qualquer operação Git, leia `git.md`.
 - Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
 - Para `sync` e `do sync`, leia `sync.md`.
 - Para qualquer `help`, leia `help.md`; não execute load automático nem o

@@ -48,6 +48,34 @@ Regras:
 - Issue relevante deve ter Project, labels e `Size` quando o projeto usa YA LABS.
 - Use a issue como fonte principal quando ela já tiver contexto suficiente.
 
+### Segurança de comandos Git
+
+- Sem `do`, execute somente inspeções como `status`, `diff`, `log`, `show` e
+  consultas de branch ou remote.
+- Branch, switch, add, restore, commit, stash, merge, rebase, cherry-pick,
+  revert, reset, tag, clean, fetch, pull e push exigem `do`.
+- A autorização vale somente para a ação explicitamente solicitada.
+- `do commit` isolado não autoriza `push`; `do pr` pode enviar somente a branch
+  necessária ao PR e não autoriza merge.
+- `bypass` não substitui `do` para mutações Git.
+- Pedidos diretos sem `$yabook` não autorizam mutações Git.
+
+Leia `git.md` sempre que uma solicitação consultar ou alterar Git.
+
+Antes de novas edições:
+
+- atualize `status`, diff staged e unstaged e último commit no mesmo turno;
+- nunca interrompa com base apenas no cache da conversa;
+- avalie se o worktree contém um bloco concluído de outra responsabilidade;
+- proponha um commit quando o bloco for independente e reversível;
+- aceite `$yabook do` como autorização contextual somente para uma ação
+  pendente inequívoca;
+- aceite `$yabook continue` para rejeitar checkpoint opcional;
+- retome a solicitação original após a escolha;
+- execute seus pré-requisitos mínimos já autorizados sem nova confirmação;
+- não permita `continue` quando issue ou branch incompatível tornar a separação
+  obrigatória.
+
 ### Issue
 
 - Título objetivo, sem prefixo de tipo.
@@ -342,6 +370,7 @@ Mapa de releitura:
 | `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
 | `$yabook discuss ...` | `discuss.md` |
 | `$yabook <intenção em linguagem natural>` | `orquestracao.md` |
+| Operações Git | `git.md` |
 | `$yabook do plan ...` | `planejamento.md` |
 | `$yabook steps ...` | `steps.md` |
 | `$yabook sync` e `$yabook do sync` | `sync.md` |

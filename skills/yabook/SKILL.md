@@ -29,10 +29,20 @@ Before producing or changing anything:
 
 The `do` gate applies only when the user invokes a `$yabook` command.
 Natural-language requests that do not invoke `$yabook` remain ordinary direct
-requests and may authorize the requested change.
+requests and may authorize the requested change, except for Git mutations.
+
+In YA LABS repositories, Git mutations always require an explicit
+`$yabook do <ação>` call, even when a direct natural-language request clearly
+asks for branch, commit, merge, tag, fetch, pull, push, or another Git change.
+Read-only Git inspection remains allowed.
 
 Within the YABook command grammar, only mutate state when the active command
 starts with `$yabook do` or uses a documented alias such as `$yabook create`.
+
+The global Git gate includes local and remote mutations. Read-only inspection is
+allowed without `do`; branch creation or switching, staging, commits, stash,
+history changes, tags, fetch, pull, push, and equivalent mutations require an
+explicit `do` action. Apply [git.md](references/git.md).
 
 Commands such as `$yabook issue`, `$yabook pr`, `$yabook branch name`,
 `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook commit message`,
@@ -51,6 +61,12 @@ disable destructive-operation safeguards.
 
 Even with `$yabook do`, create or execute only the artifacts explicitly requested
 by the user. Never merge unless the user explicitly asks for merge.
+
+Bare `$yabook do` may authorize exactly one pending contextual action proposed
+in the immediately previous response. `$yabook continue` rejects an optional
+checkpoint and resumes the original request without that Git mutation.
+When the checkpoint interrupted an already authorized `do` workflow, resuming
+includes its minimal prerequisites, such as pushing the PR head branch.
 
 ## Command Routing
 
@@ -77,6 +93,7 @@ Common commands:
 - `$yabook bypass`
 - `$yabook sync`
 - `$yabook do`
+- `$yabook continue`
 - `$yabook status`
 - `$yabook check`
 - `$yabook issue`
@@ -113,6 +130,7 @@ Load only the reference needed for the current task:
 
 - [commands.md](references/commands.md): command grammar, aliases, and expected outputs.
 - [github.md](references/github.md): issues, branches, commits, PRs, labels, Projects, releases, `main`, `dev`.
+- [git.md](references/git.md): read-only Git inspection, mutation gate, and authorization scope.
 - [help.md](references/help.md): contextual help for commands, command families, and natural-language goals.
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
@@ -138,6 +156,7 @@ When the session is loaded in the current conversation:
 - read `sync.md` for `sync` and `do sync`;
 - read `help.md` for every `help` request;
 - read `orquestracao.md` for natural-language intent, command correction, or composed routing;
+- read `git.md` whenever a request may inspect or mutate Git;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns
@@ -176,6 +195,9 @@ For commands that depend on current work, inspect:
 For GitHub operations, inspect existing issue, PR, labels, Project, and repository conventions when tools are available.
 
 For `$yabook do`, create or execute only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
+
+Before any checkpoint warning or Git-dependent decision, refresh the current Git
+state. Never rely only on conversation cache or results from an earlier turn.
 
 For `$yabook do plan`, the documented planning issue and branch are part of the
 requested operation when compatible traceability does not already exist. Edit

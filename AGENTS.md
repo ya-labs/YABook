@@ -75,6 +75,30 @@ Use textos curtos primeiro. Detalhes úteis para IA devem ficar em seções espe
 
 Quando alterar arquivos neste repositório, termine a resposta com uma sugestão de commit no padrão do YABook.
 
+### Trava obrigatória de Git
+
+Comandos Git que alteram estado local ou remoto só podem ser executados quando a
+pessoa usar `$yabook do <ação>`.
+
+Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
+para o remoto” não autorizam a mutação. Oriente a pessoa a repetir o pedido com
+`$yabook do`.
+
+Inspeções somente leitura, como `git status`, `git diff`, `git log` e consulta da
+branch atual, continuam permitidas.
+
+Antes de iniciar novas edições, avalie se o worktree contém alterações
+concluídas de outra responsabilidade. Quando formarem um bloco independente e
+reversível, interrompa e proponha o commit.
+
+Atualize `git status`, diff staged e unstaged e último commit imediatamente antes
+de interromper. Nunca use somente estado lembrado de uma resposta anterior. Se o
+worktree estiver limpo ou o commit já existir, continue a solicitação.
+
+Nesse contexto, `$yabook do` autoriza somente o checkpoint apresentado e retoma
+a solicitação original. `$yabook continue` rejeita um checkpoint opcional. Não
+permita `continue` quando outra issue ou branch tornar a separação obrigatória.
+
 ## Padrões de GitHub
 
 Cada mudança relevante no YABook deve ter issue própria e seguir o fluxo documentado em:

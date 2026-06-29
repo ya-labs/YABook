@@ -15,6 +15,25 @@ Use quando for pedir para IA criar issues, preparar PRs, alterar documentação,
 - Documentação gerada deve preservar fatos reais do projeto.
 - O time continua responsável por revisar, validar e aprovar mudanças.
 
+## Trava obrigatória de Git
+
+Em projetos YA LABS, qualquer comando Git que altere estado local ou remoto
+exige uma chamada explícita `$yabook do <ação>`.
+
+Um pedido direto fora da skill não autoriza criar ou trocar branch, preparar
+arquivos, criar commit, usar stash, alterar histórico, criar tag, buscar,
+integrar ou enviar alterações. A IA deve indicar o comando YABook necessário.
+
+Inspeções somente leitura continuam permitidas para diagnóstico.
+
+Antes de novas edições, a IA deve avaliar se as alterações pendentes formam um
+bloco concluído, independente e reversível. Se a próxima mudança tiver outra
+responsabilidade, deve propor um checkpoint antes de continuar.
+
+`$yabook do` pode autorizar esse checkpoint quando houver uma única ação
+contextual pendente. `$yabook continue` rejeita um checkpoint opcional e retoma
+a solicitação original.
+
 ## Quando usar IA
 
 Use IA para:

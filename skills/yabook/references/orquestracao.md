@@ -24,6 +24,10 @@ Ao receber `$yabook <intenção>`:
 6. peça somente informações que mudem materialmente o caminho;
 7. nunca adicione `do` implicitamente.
 
+Antes de iniciar novas edições, aplique a avaliação de checkpoint descrita em
+`git.md`. Interrompa somente quando as alterações pendentes formarem um bloco
+concluído que deve permanecer separado.
+
 Exemplos:
 
 ```text
@@ -84,6 +88,10 @@ composição. Não trate comandos inferidos como se tivessem sido digitados.
 
 - Somente `$yabook do` e aliases documentados autorizam escrita na gramática
   YABook.
+- A regra inclui mutações Git locais e remotas; o roteamento pode inferir apenas
+  inspeções Git somente leitura.
+- Pedidos diretos fora da gramática `$yabook` também não autorizam mutações Git
+  em projetos YA LABS.
 - Verbos em linguagem natural depois de `$yabook` não equivalem a `do`.
 - Sem `do`, entregue proposta, análise ou orientação e informe o comando
   necessário para executar.
