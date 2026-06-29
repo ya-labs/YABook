@@ -13,13 +13,17 @@ quando outro comando encadeado autorizar essas entregas.
 
 ## Descoberta da demanda
 
-1. Atualize o estado do repositório e do GitHub.
-2. Identifique a issue pela conversa, branch ou referência explícita.
-3. Confirme objetivo, escopo e critérios de aceite.
-4. Se mais de uma issue for plausível, peça a escolha.
-5. Se não houver issue, pare e indique `$yabook do: issue`.
+1. Resolva o repositório ativo por `workspace.md` e valide seu remote.
+2. Use a raiz resolvida como `workdir`; não consulte primeiro o `cwd`.
+3. Atualize o estado desse repositório e do GitHub correspondente.
+4. Identifique a issue pela conversa, branch ou referência explícita.
+5. Confirme objetivo, escopo e critérios de aceite.
+6. Se mais de uma issue for plausível, peça a escolha.
+7. Se não houver issue, pare e indique `$yabook do: issue`.
 
 Não crie uma issue silenciosamente.
+Se workspace, branch e issue apontarem para repositórios incompatíveis,
+interrompa antes de qualquer escrita.
 
 ## Preparação automática
 

@@ -17,12 +17,13 @@ executa somente o que foi autorizado.
 Ao receber `$yabook <intenção>`:
 
 1. entenda o resultado desejado;
-2. considere conversa, repositório e regras locais;
-3. selecione o menor conjunto de comandos que atende à intenção;
-4. execute automaticamente comandos seguros de leitura;
-5. avance até encontrar uma decisão necessária ou uma escrita;
-6. peça somente informações que mudem materialmente o caminho;
-7. nunca adicione `do` implicitamente.
+2. resolva o repositório ativo por `workspace.md` quando a intenção depender dele;
+3. considere conversa, workspace resolvido e regras locais;
+4. selecione o menor conjunto de comandos que atende à intenção;
+5. execute automaticamente comandos seguros de leitura no `workdir` resolvido;
+6. avance até encontrar uma decisão necessária ou uma escrita;
+7. peça somente informações que mudem materialmente o caminho;
+8. nunca adicione `do` implicitamente.
 
 Antes de iniciar novas edições, aplique a avaliação de checkpoint descrita em
 `git.md`. Interrompa somente quando as alterações pendentes formarem um bloco
