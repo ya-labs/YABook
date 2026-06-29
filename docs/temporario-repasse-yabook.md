@@ -158,6 +158,7 @@ Não é mais necessário iniciar a conversa com `$yabook load`.
 No primeiro comando operacional `$yabook`, a skill carrega silenciosamente:
 
 - `session.md`;
+- raiz resolvida do workspace ativo;
 - `AGENTS.md` local;
 - branch;
 - `git status --short --branch`;
@@ -165,6 +166,14 @@ No primeiro comando operacional `$yabook`, a skill carrega silenciosamente:
 
 `$yabook help` é a única exceção. `$yabook load` continua disponível para
 recarregar o contexto depois de trocar repositório, branch ou regras locais.
+
+Antes dessas leituras, a skill compara caminho explícito, raiz informada pela
+IDE, arquivos ativos e `cwd`. O workspace inequívoco prevalece; o `cwd` é apenas
+o último candidato. A raiz precisa conter `.git` e ter remote compatível.
+
+Todos os comandos seguintes usam essa raiz como `workdir`. Se houver mais de um
+repositório plausível, a skill pode inspecionar o mínimo necessário, mas deve
+pedir confirmação antes de escrever em arquivos, Git ou GitHub.
 
 ### Trava de execução
 

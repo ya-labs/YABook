@@ -294,6 +294,7 @@ Você não precisa executar `$yabook load` no início da conversa.
 No primeiro comando operacional `$yabook`, a skill carrega automaticamente:
 
 - cache operacional de `session.md`;
+- repositório correspondente ao workspace ativo;
 - `AGENTS.md` local;
 - branch e estado do Git.
 
@@ -306,9 +307,15 @@ regras locais forem alteradas ou quando quiser atualizar o cache da conversa.
 Durante o carregamento, a IA deve:
 
 1. ler o cache da skill;
-2. ler o `AGENTS.md` do repositório atual, se existir;
-3. conferir branch e estado do Git;
-4. responder com um resumo curto do padrão carregado.
+2. resolver a raiz do repositório pelo workspace e pelos arquivos ativos;
+3. validar `.git`, `AGENTS.md` e remote sem assumir que o `cwd` está correto;
+4. usar essa raiz como diretório de trabalho;
+5. conferir branch e estado do Git;
+6. responder com um resumo curto do padrão carregado.
+
+Quando workspace e `cwd` apontarem para repositórios diferentes, a skill usa o
+workspace se ele for inequívoco. Se houver mais de um candidato plausível, ela
+deve perguntar antes de alterar arquivos, Git ou GitHub.
 
 Depois disso, para comandos rotineiros como `$yabook issue`, `$yabook issue classify`, `$yabook branch name`, `$yabook commit message`, `$yabook pr`, `$yabook release` e `$yabook status`, a IA deve usar o cache carregado sem reler os arquivos do YABook toda vez.
 

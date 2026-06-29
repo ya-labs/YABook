@@ -15,15 +15,17 @@ The YABook Handbook remains the human source of truth. The YABook Skill is the i
 
 Before producing or changing anything:
 
-1. Read the local `AGENTS.md` when available.
-2. Inspect the repository state before assuming stack, branch, issue, or workflow.
-3. Use documented YABook formats as the source of truth for generated artifacts.
+1. Resolve the active repository through [workspace.md](references/workspace.md).
+   Never assume the inherited `cwd` is the active workspace.
+2. Read the `AGENTS.md` from the resolved repository root when available.
+3. Inspect that repository state before assuming stack, branch, issue, or workflow.
+4. Use documented YABook formats as the source of truth for generated artifacts.
    Do not copy historical issue, PR, branch, or commit formats from the project
    when they differ from the documented YABook pattern, unless the user
    explicitly asks to preserve that project-specific legacy format.
-4. Use YABook as the default when the project follows YA LABS and has no local exception.
-5. Warn before acting outside the documented pattern.
-6. Keep outputs short, practical, and in Brazilian Portuguese unless the user asks otherwise.
+5. Use YABook as the default when the project follows YA LABS and has no local exception.
+6. Warn before acting outside the documented pattern.
+7. Keep outputs short, practical, and in Brazilian Portuguese unless the user asks otherwise.
 
 ## YABook Command Safety
 
@@ -121,10 +123,12 @@ Support chained commands with `&`, for example `$yabook init & load & commit msg
 On the first operational `$yabook` command in a conversation:
 
 1. Read `session.md` completely.
-2. Read the repository `AGENTS.md` when available.
-3. Inspect the current branch, `git status --short --branch`, and `git diff --stat`.
-4. Keep that context as the session cache.
-5. Execute the requested command without producing a separate load response.
+2. Resolve and validate the active repository through `workspace.md`.
+3. Set every repository command's working directory to that resolved root.
+4. Read the repository `AGENTS.md` when available.
+5. Inspect the current branch, `git status --short --branch`, and `git diff --stat`.
+6. Keep that context as the session cache.
+7. Execute the requested command without producing a separate load response.
 
 Do not repeat the implicit load for later commands in the same conversation.
 `$yabook help` is the only exception and may respond without repository context.
@@ -136,6 +140,7 @@ the repository, branch, workflow, or relevant local rules change.
 Load only the reference needed for the current task:
 
 - [commands.md](references/commands.md): command grammar, aliases, and expected outputs.
+- [workspace.md](references/workspace.md): active workspace resolution, repository validation, and ambiguity handling.
 - [github.md](references/github.md): issues, branches, commits, PRs, labels, Projects, releases, `main`, `dev`.
 - [git.md](references/git.md): read-only Git inspection, mutation gate, and authorization scope.
 - [help.md](references/help.md): contextual help for commands, command families, and natural-language goals.
@@ -166,6 +171,7 @@ When the session is loaded in the current conversation:
 - read `orquestracao.md` for natural-language intent, command correction, or composed routing;
 - read `git.md` whenever a request may inspect or mutate Git;
 - read `dev.md` for `dev` and any chain that includes it;
+- read `workspace.md` before the first repository-dependent command and whenever workspace evidence changes;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns

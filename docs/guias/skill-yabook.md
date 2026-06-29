@@ -327,8 +327,9 @@ O comando `$yabook issue classify` deve retornar:
 ## Carregamento automático e `$yabook load`
 
 O primeiro comando operacional `$yabook` da conversa prepara automaticamente o
-contexto. O agente lê `session.md`, `AGENTS.md`, branch e estado do Git e então
-executa o comando solicitado sem exibir uma resposta separada de load.
+contexto. O agente resolve primeiro o repositório pelo workspace ativo, lê
+`session.md` e o `AGENTS.md` da raiz confirmada, confere branch e estado do Git e
+então executa o comando solicitado sem exibir uma resposta separada de load.
 
 O arquivo `references/session.md` concentra o cache operacional completo: templates de issue, PR e release, labels, `Size`, branch, commit, classificação e regras de releitura.
 
@@ -339,9 +340,17 @@ regras locais ou contexto relevante.
 Durante o carregamento, o agente deve:
 
 1. ler `session.md` por completo;
-2. ler `AGENTS.md` do repositório atual, se existir;
-3. inspecionar o estado do Git;
-4. responder com um resumo curto para a pessoa usuária.
+2. coletar candidatos de caminho explícito, raiz da IDE, arquivos ativos e `cwd`;
+3. escolher o workspace inequívoco e subir até a raiz com `.git`;
+4. validar arquivos ativos, `AGENTS.md` e remote;
+5. definir essa raiz como `workdir` dos comandos;
+6. inspecionar o estado do Git;
+7. responder com um resumo curto para a pessoa usuária.
+
+O `cwd` é o último candidato, não a fonte principal. Se ele apontar para outro
+repositório, o agente não deve executar nele antes de conferir o workspace. Se
+mais de uma raiz continuar plausível, operações de escrita ficam bloqueadas até
+a pessoa escolher.
 
 Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
 

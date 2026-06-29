@@ -25,10 +25,12 @@ branch, o repositório, as regras locais ou o contexto relevante mudarem.
 Ao receber `$yabook load`:
 
 1. Leia este arquivo por completo. Ele é o cache da sessão.
-2. Leia `AGENTS.md` do repositório atual, se existir.
-3. Inspecione o estado do Git: `git status --short --branch`, branch atual e `git diff --stat`.
-4. Monte a resposta curta para a pessoa usuária.
-5. Guarde o cache abaixo como fonte principal até o fim da conversa.
+2. Resolva o repositório ativo conforme `workspace.md`, sem assumir o `cwd`.
+3. Valide `.git`, arquivos ativos, `AGENTS.md` e remote na raiz resolvida.
+4. Use essa raiz como `workdir` explícito para os comandos seguintes.
+5. Inspecione o estado do Git: `git status --short --branch`, branch atual e `git diff --stat`.
+6. Monte a resposta curta para a pessoa usuária.
+7. Guarde o cache abaixo como fonte principal até o fim da conversa.
 
 Não releia `github.md` nem `session.md` depois do load para comandos rotineiros listados nesta seção.
 
@@ -47,6 +49,20 @@ Regras:
 - Não trabalhe duas issues diferentes na mesma branch.
 - Issue relevante deve ter Project, labels e `Size` quando o projeto usa YA LABS.
 - Use a issue como fonte principal quando ela já tiver contexto suficiente.
+
+### Workspace e repositório
+
+- O workspace ativo prevalece sobre o `cwd` quando identificar inequivocamente
+  outro repositório.
+- Caminhos explícitos, raiz informada pela IDE e arquivos ativos são sinais
+  prioritários; `cwd` é apenas o último candidato.
+- Valide a raiz por `.git`, `AGENTS.md` e remote antes de consultar branch,
+  issue ou GitHub.
+- Execute comandos com `workdir` definido para a raiz resolvida.
+- Divergência ou ambiguidade material bloqueia escrita até confirmação.
+- Mudança de workspace invalida o repositório guardado no cache.
+
+Leia `workspace.md` para o fluxo completo.
 
 ### Segurança de comandos Git
 
@@ -385,6 +401,7 @@ Mapa de releitura:
 
 | Comando | Referência |
 | --- | --- |
+| Primeiro comando dependente do repositório ou mudança de workspace | `workspace.md` |
 | `$yabook init` | `init.md` |
 | `$yabook diagnose` e `$yabook plan ...` | `planejamento.md` |
 | `$yabook discuss ...` | `discuss.md` |
