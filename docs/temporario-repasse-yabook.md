@@ -127,6 +127,13 @@ Confirmações inequívocas em linguagem natural, como `concluí a primeira etap
 também podem atualizar o checklist. O acompanhamento vale apenas para a conversa
 atual, não executa os passos e não substitui planejamento, issues ou milestones.
 
+Se uma ação acontecer fora da sequência, a skill classifica o desvio. Ela pode
+registrar execução antecipada, reordenar etapas pendentes, adicionar correção ou
+revalidação e explicar o recalculado.
+
+Etapas concluídas permanecem no histórico. Mudanças de objetivo, escopo ou
+decisões exigem confirmação.
+
 ### Núcleo documental adaptável
 
 Quando o projeto não tiver estrutura equivalente, o padrão sugerido é:
@@ -369,6 +376,10 @@ Valide que:
 - a próxima etapa recebe `➡️`;
 - o checklist reaparece no final das respostas enquanto houver itens abertos;
 - nenhuma etapa é executada automaticamente;
+- desvios válidos recalculam somente etapas pendentes;
+- dependências quebradas geram correção ou revalidação;
+- trabalho desnecessário não entra no checklist;
+- mudanças estruturais pedem confirmação;
 - `$yabook steps cancel` encerra o acompanhamento.
 
 ## Demonstração: segurança

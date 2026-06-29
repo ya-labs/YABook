@@ -309,6 +309,14 @@ O checklist pode ser atualizado por subcomando ou por confirmação inequívoca 
 linguagem natural. Seu estado é temporário e não deve ser salvo em arquivo,
 memória permanente, issue ou Project.
 
+Enquanto estiver ativo, cada ação relevante é comparada com o fluxo atual. A
+skill distingue etapa antecipada, desvio válido, ação prematura, trabalho
+desnecessário, incompatibilidade e mudança estrutural.
+
+Ajustes objetivos podem recalcular somente etapas pendentes. Etapas concluídas
+permanecem no histórico. Mudanças de objetivo, escopo ou decisões exigem
+confirmação antes de remodelar o checklist.
+
 Esse recurso não substitui `$yabook plan`, não executa comandos e não remove a
 exigência de `$yabook do` para ações de escrita.
 

@@ -95,7 +95,9 @@ Para `$yabook help steps`, inclua:
 | `steps cancel` | Encerrar o acompanhamento. |
 
 Explique que o checklist vale apenas para a conversa atual, aparece no final das
-respostas enquanto estiver aberto e não executa os passos listados.
+respostas enquanto estiver aberto e não executa os passos listados. Informe que
+ações fora da sequência podem recalcular etapas pendentes, mas mudanças de
+objetivo, escopo ou decisão exigem confirmação.
 
 ## Help por objetivo
 

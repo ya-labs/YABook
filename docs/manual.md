@@ -160,6 +160,14 @@ o estado e `$yabook steps cancel` para encerrar o acompanhamento.
 O checklist vale somente para a conversa atual. Ele não executa os passos, não
 substitui issues ou milestones e não cria memória permanente.
 
+Enquanto o checklist estiver ativo, a YABook Skill avalia ações executadas fora
+da sequência. Ela pode registrar etapas antecipadas, reordenar itens pendentes,
+adicionar correções ou exigir nova validação.
+
+A skill explica o recalculado antes de mostrar o checklist atualizado. Etapas
+concluídas permanecem no histórico. Alterações de objetivo, escopo ou decisões
+continuam dependendo de confirmação.
+
 ### Como usar o help
 
 Use o help geral para consultar o índice de comandos:

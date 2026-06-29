@@ -212,6 +212,9 @@ Do not invent facts. When context is missing, state the assumption or ask for th
 - Prefer the exact artifact requested.
 - Keep human-facing text objective and short.
 - While a `steps` checklist is active, repeat its compact status at the end of every response.
+- While a checklist is active, evaluate relevant deviations, recalculate
+  objective pending steps, preserve completed history, and request confirmation
+  before changing scope, goals, or user decisions.
 - Put long AI context in `<details>` only when it materially helps execution.
 - Do not add validation sections to issues unless they change execution or review.
 - Always keep traceability: new demand -> Issue -> Branch -> implementation -> Commit -> Pull Request -> Merge.

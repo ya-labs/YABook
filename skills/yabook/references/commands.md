@@ -254,6 +254,8 @@ Se a sessão já foi carregada na conversa atual:
   composto, leia `orquestracao.md`.
 - Para qualquer operação Git, leia `git.md`.
 - Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
+- Enquanto houver checklist ativo, avalie ações fora da sequência e recalcule
+  ajustes objetivos antes de exibir o rodapé.
 - Para `sync` e `do sync`, leia `sync.md`.
 - Para qualquer `help`, leia `help.md`; não execute load automático nem o
   comando mencionado dentro da solicitação de ajuda.
