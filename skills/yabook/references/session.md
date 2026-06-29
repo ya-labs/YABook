@@ -299,6 +299,12 @@ Leia `orquestracao.md` para aplicar essas regras.
 - `$yabook steps done <número>`: conclui uma etapa.
 - `$yabook steps cancel`: encerra o acompanhamento.
 - Confirmações inequívocas em linguagem natural também podem concluir etapas.
+- Ações fora da sequência devem ser classificadas antes da resposta.
+- Ajustes que preservam objetivo e escopo podem recalcular etapas pendentes.
+- Etapas concluídas permanecem no histórico e nunca são reordenadas.
+- Dependências quebradas geram correção ou revalidação quando necessário.
+- Mudanças de objetivo, escopo ou decisão exigem confirmação.
+- Trabalho desnecessário não entra no checklist.
 - Enquanto houver etapas abertas, repita o checklist compacto ao final de cada
   resposta.
 - O checklist vale somente para a conversa e não executa ações por conta própria.
