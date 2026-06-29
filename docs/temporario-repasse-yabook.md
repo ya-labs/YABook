@@ -203,6 +203,18 @@ Problema, ajuste ou melhoria
 A issue não é burocracia posterior: ela é o ponto em que a demanda ganha
 objetivo, limite e critérios de aceite antes da implementação.
 
+### Branch vinculada à issue
+
+`$yabook do branch` não deve apenas criar e publicar uma branch. Com uma issue
+inequívoca, a skill deve usar o vínculo nativo do GitHub (`createLinkedBranch`)
+e confirmar a branch em `issue.linkedBranches`. Assim ela aparece na seção
+Development da issue.
+
+O mesmo vale para a branch preparada por `$yabook dev`. Se a integração não
+oferecer o vínculo nativo, a resposta deve distinguir branch criada de branch
+vinculada e orientar o fallback manual. Falha ou ausência de confirmação nunca
+deve ser apresentada como sucesso.
+
 ### Proteção de `main`, `dev` e branches incompatíveis
 
 Pedidos diretos em `main`, `dev`, release ou branch incompatível devem ser

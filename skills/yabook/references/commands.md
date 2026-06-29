@@ -192,7 +192,15 @@ Por artefato:
 - Sync: validar a origem, sincronizar somente a instalação `yabook`, remover
   excedentes do destino e validar novamente; nunca alterar ou atualizar a origem.
 - Issue: gerar título, descrição, labels, `Size` e Project quando aplicável.
-- Branch: usar `numero-descricao-curta`; basear em `main` ou `dev` conforme fluxo.
+- Branch: exigir issue inequívoca, usar `numero-descricao-curta`, escolher a base
+  conforme o fluxo e criar pelo vínculo nativo do GitHub. Preferir a mutation
+  GraphQL `createLinkedBranch`, informando `issueId`, `name` e o `oid` da base.
+  Depois, consultar `issue.linkedBranches` e confirmar que a ref retornada
+  corresponde à branch. Só então preparar a branch local com tracking da remota.
+  Se a ferramenta não oferecer o vínculo nativo, criar a branch pelo Git apenas
+  quando isso estiver dentro da autorização e informar que o vínculo deve ser
+  concluído manualmente na seção Development da issue. Nunca apresentar branch
+  publicada como branch vinculada sem a leitura de confirmação.
 - PR: avaliar o diff, criar commits coerentes quando necessário, enviar a branch
   e criar ou atualizar o PR com `Resumo rápido`, `O que mudou`, `Observações` e
   `Informações para IA`.

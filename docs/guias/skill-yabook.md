@@ -232,6 +232,27 @@ $yabook dev & do merge
 Sozinho, `dev` para antes do commit. Com `do pr`, entrega o PR completo. Com
 `do merge`, também integra depois das validações.
 
+### Criação e vínculo de branch
+
+`$yabook do branch` e a preparação executada por `$yabook dev` devem partir de
+uma issue inequívoca. O fluxo técnico preferido é:
+
+1. consultar os Node IDs da issue e do repositório;
+2. resolver o OID do commit base em `main` ou `dev`, conforme o projeto;
+3. executar `createLinkedBranch(issueId, name, oid, repositoryId)`;
+4. consultar `issue.linkedBranches`;
+5. comparar o nome da ref retornada com `numero-descricao-curta`;
+6. criar ou trocar para a branch local com tracking da remota.
+
+A mutation `createLinkedBranch` cria a branch no GitHub já associada à issue. A
+consulta posterior é obrigatória porque falha de vínculo não pode ser tratada
+como sucesso.
+
+Se a integração não disponibilizar essa mutation, a skill pode usar Git para
+criar e publicar a branch dentro da autorização recebida, mas deve informar que
+o vínculo ficou pendente e orientar a associação manual pela seção Development
+da issue.
+
 ## `$yabook do`
 
 `$yabook do` é o comando operacional mais flexível da skill.

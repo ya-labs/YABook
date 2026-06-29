@@ -205,6 +205,12 @@ For GitHub operations, inspect existing issue, PR, labels, Project, and reposito
 
 For `$yabook do`, create or execute only the artifacts explicitly requested by the user. Merge only when the user explicitly asks for merge.
 
+For `$yabook do branch` and branch preparation inside `$yabook dev`, require an
+unambiguous issue and prefer GitHub's native `createLinkedBranch` mutation.
+Confirm the result through the issue's `linkedBranches` connection before
+reporting success. A branch created only through Git is not a confirmed issue
+link; report that limitation and the manual fallback explicitly.
+
 Before any checkpoint warning or Git-dependent decision, refresh the current Git
 state. Never rely only on conversation cache or results from an earlier turn.
 
