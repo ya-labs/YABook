@@ -56,11 +56,24 @@ Regras:
   revert, reset, tag, clean, fetch, pull e push exigem `do`.
 - A autorização vale somente para a ação explicitamente solicitada.
 - `do commit` isolado não autoriza `push`; `do pr` pode enviar somente a branch
-  necessária ao PR e não autoriza merge.
+  necessária ao PR, criar commits coerentes e não autoriza merge.
+- `do merge` pode preparar o PR ausente e integrar após as validações.
+- `dev` autoriza preparar branch, implementar e validar, mas não entregar.
 - `bypass` não substitui `do` para mutações Git.
 - Pedidos diretos sem `$yabook` não autorizam mutações Git.
 
 Leia `git.md` sempre que uma solicitação consultar ou alterar Git.
+
+### Desenvolvimento da issue
+
+- `$yabook dev` identifica a issue, prepara e vincula a branch, atualiza status,
+  implementa e valida.
+- Sem issue inequívoca, pare e solicite indicação ou criação.
+- `dev` não cria commit, PR ou merge sozinho.
+- `dev & do pr` entrega um PR completo.
+- `dev & do merge` entrega e integra após validar condições.
+
+Leia `dev.md` para esse fluxo.
 
 Antes de novas edições:
 
@@ -371,6 +384,7 @@ Mapa de releitura:
 | `$yabook discuss ...` | `discuss.md` |
 | `$yabook <intenção em linguagem natural>` | `orquestracao.md` |
 | Operações Git | `git.md` |
+| `$yabook dev` | `dev.md` |
 | `$yabook do plan ...` | `planejamento.md` |
 | `$yabook steps ...` | `steps.md` |
 | `$yabook sync` e `$yabook do sync` | `sync.md` |

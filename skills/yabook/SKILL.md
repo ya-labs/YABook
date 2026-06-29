@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Intelligently orchestrate the YA LABS Method through natural-language intent, safe command routing, GitHub workflow, documentation, project initialization, collaborative planning, diagnosis, roadmaps, conversation step tracking, issues, branches, pull requests, releases, Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, describes a goal without knowing the command, uses a mismatched command, wants guidance on the correct YA LABS path, initializes or diagnoses a project, plans a version, discusses scope, tracks steps, or creates and reviews GitHub artifacts.
+description: Intelligently orchestrate the YA LABS Method through natural-language intent, safe command routing, issue-driven development, GitHub workflow, documentation, project initialization, collaborative planning, diagnosis, roadmaps, conversation step tracking, branches, pull requests, releases, Projects, Size estimation, and compliance checks. Use when the user invokes $yabook, wants to develop the current issue, describes a goal without knowing the command, uses a mismatched command, needs the correct YA LABS path, initializes or diagnoses a project, plans a version, discusses scope, tracks steps, or creates and reviews GitHub artifacts.
 ---
 
 # YABook
@@ -31,13 +31,19 @@ The `do` gate applies only when the user invokes a `$yabook` command.
 Natural-language requests that do not invoke `$yabook` remain ordinary direct
 requests and may authorize the requested change, except for Git mutations.
 
-In YA LABS repositories, Git mutations always require an explicit
-`$yabook do <ação>` call, even when a direct natural-language request clearly
-asks for branch, commit, merge, tag, fetch, pull, push, or another Git change.
-Read-only Git inspection remains allowed.
+In YA LABS repositories, Git mutations require an explicit
+`$yabook do <ação>` call or the scoped `$yabook dev` authorization, even when a
+direct natural-language request clearly asks for branch, commit, merge, tag,
+fetch, pull, push, or another Git change. Read-only Git inspection remains
+allowed.
 
-Within the YABook command grammar, only mutate state when the active command
-starts with `$yabook do` or uses a documented alias such as `$yabook create`.
+`$yabook dev` is a documented scoped exception: it authorizes the Git and
+GitHub prerequisites needed to implement the current issue, but not commit, PR,
+merge, or release unless a chained command explicitly authorizes them.
+
+Within the YABook command grammar, mutate state only when the active command
+starts with `$yabook do`, uses a documented alias such as `$yabook create`, or
+uses `$yabook dev` within its implementation scope.
 
 The global Git gate includes local and remote mutations. Read-only inspection is
 allowed without `do`; branch creation or switching, staging, commits, stash,
@@ -94,6 +100,7 @@ Common commands:
 - `$yabook sync`
 - `$yabook do`
 - `$yabook continue`
+- `$yabook dev`
 - `$yabook status`
 - `$yabook check`
 - `$yabook issue`
@@ -133,6 +140,7 @@ Load only the reference needed for the current task:
 - [git.md](references/git.md): read-only Git inspection, mutation gate, and authorization scope.
 - [help.md](references/help.md): contextual help for commands, command families, and natural-language goals.
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
+- [dev.md](references/dev.md): issue-driven implementation and its scoped authorization.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
 - [orquestracao.md](references/orquestracao.md): intent routing, command correction, guidance, and autonomy limits.
@@ -157,6 +165,7 @@ When the session is loaded in the current conversation:
 - read `help.md` for every `help` request;
 - read `orquestracao.md` for natural-language intent, command correction, or composed routing;
 - read `git.md` whenever a request may inspect or mutate Git;
+- read `dev.md` for `dev` and any chain that includes it;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns

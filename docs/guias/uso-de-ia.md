@@ -18,7 +18,11 @@ Use quando for pedir para IA criar issues, preparar PRs, alterar documentação,
 ## Trava obrigatória de Git
 
 Em projetos YA LABS, qualquer comando Git que altere estado local ou remoto
-exige uma chamada explícita `$yabook do <ação>`.
+exige uma chamada explícita `$yabook do <ação>` ou `$yabook dev` dentro do
+escopo de preparação e implementação da issue atual.
+
+`dev` não autoriza commit, PR, merge ou release quando esses objetivos não
+estiverem encadeados.
 
 Um pedido direto fora da skill não autoriza criar ou trocar branch, preparar
 arquivos, criar commit, usar stash, alterar histórico, criar tag, buscar,

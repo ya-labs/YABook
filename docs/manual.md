@@ -131,6 +131,7 @@ Comandos principais:
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
 - `$yabook do`: executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge.
+- `$yabook dev`: prepara, implementa e valida a issue atual.
 - `$yabook issue`: gera título e descrição de issue.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
 - `$yabook pr`: gera título e descrição de Pull Request.
@@ -193,7 +194,8 @@ não altera estado e não executa a sequência sugerida.
 Ao usar a skill, diferencie geração de texto de execução.
 
 A trava de `do` vale somente quando a pessoa invoca a gramática `$yabook`, com
-uma exceção: mutações Git sempre exigem `$yabook do`.
+uma exceção: mutações Git exigem `$yabook do` ou a autorização limitada de
+`$yabook dev`.
 
 Pedidos normais em linguagem natural podem autorizar outras alterações, mas não
 podem criar ou trocar branch, preparar arquivos, criar commit, alterar histórico
@@ -201,8 +203,9 @@ ou interagir com remotes.
 
 Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check` e `$yabook review` servem para conversar, gerar propostas, inspecionar contexto ou apontar conformidade.
 
-Dentro da gramática YABook, somente um comando iniciado por `$yabook do` ou
-alias documentado, como `$yabook create`, pode executar ações reais.
+Dentro da gramática YABook, um comando iniciado por `$yabook do`, um alias
+documentado como `$yabook create` ou `$yabook dev` dentro de seu escopo pode
+executar ações reais.
 
 Sem `do`, a IA pode executar
 somente inspeções como `git status`, `git diff`, `git log` e consultas de branch.
@@ -232,6 +235,28 @@ Nesse contexto:
 
 Se a nova tarefa pertencer a outra issue ou branch, `continue` não pode ignorar
 a separação obrigatória.
+
+### Como usar `$yabook dev`
+
+Use `dev` depois que a demanda estiver registrada:
+
+```text
+$yabook dev
+```
+
+A skill identifica a issue, prepara e vincula a branch, atualiza o status,
+implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
+
+Para entregar:
+
+```text
+$yabook dev & do pr
+$yabook dev & do merge
+```
+
+O primeiro fluxo cria commits coerentes, envia a branch e abre ou atualiza o PR.
+O segundo também valida as condições e faz merge. `dev` sozinho para antes do
+commit.
 
 Antes de uma alteração direta em `main`, `dev`, release ou branch incompatível,
 a IA deve bloquear a execução. Uma confirmação comum não é suficiente. Para
@@ -297,6 +322,13 @@ Se `load` aparecer no encadeamento, o cache carregado passa a valer para os coma
 
 Use `$yabook do` quando quiser que a IA execute uma ação do fluxo, não apenas gere texto.
 
+O `:` depois de `do` é opcional:
+
+```text
+$yabook do commit pr
+$yabook do: commit pr
+```
+
 O comando entende pedidos diretos e pedidos em linguagem natural. Ele deve considerar a conversa atual, a branch, o estado do Git e a issue relacionada quando existir.
 
 Exemplos:
@@ -316,6 +348,9 @@ $yabook do abra um PR e faça merge
 Regras principais:
 
 - cria somente o que foi pedido;
+- cumpre automaticamente os pré-requisitos do objetivo autorizado;
+- `do pr` pode criar commits coerentes, enviar a branch e abrir ou atualizar o PR;
+- `do merge` pode preparar o PR ausente e integrar após validar as condições;
 - consolida planejamento sem commit automático;
 - cria somente o próximo bloco de roadmap;
 - não faz merge sem pedido explícito;

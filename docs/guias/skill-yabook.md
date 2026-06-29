@@ -40,6 +40,7 @@ Arquivos principais:
 | `references/git.md` | Inspeções Git permitidas, trava de mutações e escopo de autorização. |
 | `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
+| `references/dev.md` | Desenvolvimento orientado pela issue e autorização limitada de implementação. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
@@ -94,11 +95,13 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 ## Segurança dos comandos
 
 A trava de `do` vale para solicitações que usam a gramática `$yabook` e,
-globalmente, para qualquer mutação Git em projetos YA LABS. Pedidos comuns em
+globalmente, para qualquer mutação Git em projetos YA LABS. `$yabook dev` é a
+exceção documentada para preparar e implementar a issue atual. Pedidos comuns em
 linguagem natural seguem o fluxo normal do agente apenas para outras ações.
 
 Dentro da gramática YABook, a skill só pode alterar estado quando o comando
-começar com `$yabook do` ou usar um alias documentado, como `$yabook create`.
+começar com `$yabook do`, usar um alias documentado como `$yabook create` ou
+usar `$yabook dev` dentro de seu escopo.
 
 A regra global inclui mutações Git locais e remotas. Sem `do`, a skill pode inspecionar
 status, diff, histórico, branch e remotes, mas não pode trocar branch, preparar
@@ -154,6 +157,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
 | `$yabook do` | Executa somente a ação pedida: init, plan, sync, issue, branch, PR, release ou merge. |
 | `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
+| `$yabook dev` | Prepara, implementa e valida a issue atual. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
@@ -211,9 +215,33 @@ O help possui três níveis:
 Help não executa load automático, não consulta o projeto e não dispara comandos
 mencionados no texto. A referência normativa é `references/help.md`.
 
+## `$yabook dev`
+
+`dev` é a autorização orientada ao objetivo de implementar a issue atual.
+
+Ele identifica a demanda, prepara e vincula a branch, atualiza o status,
+implementa e valida. Não cria issue silenciosamente e para diante de ambiguidade
+ou decisão pendente.
+
+```text
+$yabook dev
+$yabook dev & do pr
+$yabook dev & do merge
+```
+
+Sozinho, `dev` para antes do commit. Com `do pr`, entrega o PR completo. Com
+`do merge`, também integra depois das validações.
+
 ## `$yabook do`
 
 `$yabook do` é o comando operacional mais flexível da skill.
+
+O `:` é opcional:
+
+```text
+$yabook do commit pr
+$yabook do: commit pr
+```
 
 Ele aceita artefatos explícitos:
 
@@ -242,6 +270,9 @@ $yabook do só uma issue para essa tarefa
 Regras:
 
 - criar somente o que foi pedido;
+- cumprir automaticamente os pré-requisitos do objetivo autorizado;
+- permitir que `do pr` crie commits coerentes, envie a branch e abra ou atualize o PR;
+- permitir que `do merge` prepare o PR ausente e integre após validar condições;
 - usar `do init` para aplicar a inicialização proposta;
 - usar `do plan` para consolidar decisões, sem commit automático;
 - usar `do plan roadmap` para criar estrutura e somente o próximo bloco;

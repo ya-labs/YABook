@@ -31,7 +31,7 @@ decisão ou escrita.
 - contexto: `load`, `status`, `diagnose`;
 - inicialização e planejamento: `init`, `discuss`, `plan`;
 - acompanhamento da conversa: `steps`;
-- execução: `do`, `bypass`;
+- desenvolvimento e execução: `dev`, `do`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade e documentação: `check`, `review`, `docs`;
 - manutenção da skill: `sync`.
@@ -96,6 +96,14 @@ Para `$yabook help steps`, inclua:
 
 Explique que o checklist vale apenas para a conversa atual, aparece no final das
 respostas enquanto estiver aberto e não executa os passos listados.
+
+Para `$yabook help dev`, explique:
+
+- que a issue precisa existir ou ser indicada;
+- que `dev` prepara branch, implementa e valida;
+- que `dev` sozinho não cria commit nem PR;
+- que `dev & do pr` entrega o PR completo;
+- que `dev & do merge` também integra após as validações.
 
 ## Help por objetivo
 
