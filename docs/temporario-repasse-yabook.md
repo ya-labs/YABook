@@ -177,6 +177,9 @@ A trava de `do` vale dentro da gramática `$yabook`:
 - `$yabook sync` compara;
 - `$yabook do sync` sincroniza.
 
+`$yabook dev` é a exceção orientada ao objetivo: autoriza preparar a branch,
+implementar e validar a issue atual. Não autoriza commit, PR ou merge sozinho.
+
 Pedidos normais em linguagem natural continuam executáveis quando a branch é
 compatível.
 
@@ -192,11 +195,8 @@ e delimitar a demanda sem inventar requisitos.
 Problema, ajuste ou melhoria
 -> $yabook issue
 -> $yabook do issue
--> $yabook branch name
--> $yabook do branch
--> implementação
--> commit
--> Pull Request
+-> $yabook dev
+-> $yabook do pr
 -> merge
 ```
 
@@ -219,16 +219,18 @@ O `bypass` vale somente para a ação anexada e não substitui `do issue`,
 
 ### Trava de mutações Git
 
-Em projetos YA LABS, somente `$yabook do <ação>` autoriza alterar Git local ou
-remoto. A trava também vale para pedidos diretos que não chamam a skill.
+Em projetos YA LABS, somente `$yabook do <ação>` ou `$yabook dev` dentro de seu
+escopo autorizado podem alterar Git. A trava também vale para pedidos diretos
+que não chamam a skill.
 
 `$yabook status` e `$yabook commit message` podem consultar status, diff e
 histórico. Já branch, switch, add, commit, stash, merge, rebase, tag, fetch,
 pull e push exigem ação `do` explícita.
 
-O escopo não é ampliado automaticamente: `$yabook do commit` isolado não
-autoriza `push`. `$yabook do pr` pode enviar somente a branch necessária ao PR e
-não autoriza outras branches, tags ou merge.
+O escopo acompanha o objetivo: `$yabook do commit` isolado não autoriza `push`.
+`$yabook do pr` pode criar commits coerentes, enviar a branch e abrir ou
+atualizar o PR. `$yabook do merge` pode preparar o PR e integrar, mas não
+autoriza outras branches ou tags.
 
 ### Checkpoint do worktree
 

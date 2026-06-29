@@ -78,7 +78,8 @@ Quando alterar arquivos neste repositório, termine a resposta com uma sugestão
 ### Trava obrigatória de Git
 
 Comandos Git que alteram estado local ou remoto só podem ser executados quando a
-pessoa usar `$yabook do <ação>`.
+pessoa usar `$yabook do <ação>` ou `$yabook dev` dentro do escopo de preparação
+e implementação da issue atual.
 
 Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
 para o remoto” não autorizam a mutação. Oriente a pessoa a repetir o pedido com

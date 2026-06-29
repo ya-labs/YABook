@@ -62,7 +62,8 @@ Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo
 ### Trava obrigatória de Git
 
 Comandos Git que alteram estado local ou remoto só podem ser executados quando a
-pessoa usar `$yabook do <ação>`.
+pessoa usar `$yabook do <ação>` ou `$yabook dev` dentro do escopo de preparação
+e implementação da issue atual.
 
 Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
 para o remoto” não autorizam a mutação. A IA deve orientar a pessoa a repetir o

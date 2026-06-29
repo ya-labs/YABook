@@ -38,6 +38,7 @@ intenção em `do`.
 | `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
 | `$yabook do` | Executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge. |
 | `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
+| `$yabook dev` | Prepara, implementa e valida a issue atual. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
 | `$yabook issue` | Gera título e descrição completa da issue. |
@@ -56,6 +57,15 @@ intenção em `do`.
 ## Comandos encadeados
 
 Use `&` para executar vários comandos YABook na mesma mensagem.
+
+Aceite `:` opcional imediatamente após `do`:
+
+```text
+$yabook do commit pr
+$yabook do: commit pr
+```
+
+As duas formas são equivalentes.
 
 Formato:
 
@@ -86,7 +96,8 @@ Regras:
   ocorrer sem `do`; qualquer alteração de estado exige uma chamada
   `$yabook do <ação>` explícita, mesmo após um pedido direto sem `$yabook`.
 - Só comandos iniciados por `$yabook do` ou aliases documentados, como
-  `$yabook create`, podem executar artefatos da gramática YABook.
+  `$yabook create`, e o comando de implementação `$yabook dev` podem executar
+  os respectivos artefatos autorizados.
 - Comandos que geram artefatos textuais, como `$yabook issue`, `$yabook pr`,
   `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check`
   e `$yabook review`, não podem executar comandos de escrita no GitHub, mesmo que
@@ -182,7 +193,11 @@ Por artefato:
   excedentes do destino e validar novamente; nunca alterar ou atualizar a origem.
 - Issue: gerar título, descrição, labels, `Size` e Project quando aplicável.
 - Branch: usar `numero-descricao-curta`; basear em `main` ou `dev` conforme fluxo.
-- PR: usar título objetivo e descrição com `Resumo rápido`, `O que mudou`, `Observações` e `Informações para IA`.
+- PR: avaliar o diff, criar commits coerentes quando necessário, enviar a branch
+  e criar ou atualizar o PR com `Resumo rápido`, `O que mudou`, `Observações` e
+  `Informações para IA`.
+- Merge: cumprir os pré-requisitos de PR ainda ausentes, validar condições e
+  integrar somente após pedido explícito.
 - Release: usar formato de release do YABook e tags quando aplicável.
 - Merge: executar apenas com pedido explícito e depois de conferir risco.
 - Squash merge: usar assunto com referência ao PR, como `tipo: descrição curta (#numero)`.
@@ -253,6 +268,7 @@ Se a sessão já foi carregada na conversa atual:
 - Para intenção em linguagem natural, comando incompatível ou roteamento
   composto, leia `orquestracao.md`.
 - Para qualquer operação Git, leia `git.md`.
+- Para `dev`, leia `dev.md`.
 - Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
 - Enquanto houver checklist ativo, avalie ações fora da sequência e recalcule
   ajustes objetivos antes de exibir o rodapé.

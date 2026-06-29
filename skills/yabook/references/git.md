@@ -6,7 +6,8 @@ estado do Git.
 ## Regra principal
 
 Em projetos que adotam o Método YA LABS, somente uma chamada iniciada por
-`$yabook do` ou um alias documentado de `do` autoriza mutações Git.
+`$yabook do`, um alias documentado de `do` ou o escopo limitado de
+`$yabook dev` autoriza mutações Git.
 
 Pedidos diretos sem `$yabook`, mesmo explícitos, não autorizam alterar Git. O
 agente deve explicar a trava e indicar a chamada necessária.
@@ -68,9 +69,11 @@ Resposta: use $yabook do commit
 - Execute somente as ações mencionadas pela pessoa usuária.
 - `$yabook do commit` não autoriza `push`.
 - `$yabook do branch` não autoriza editar arquivos.
-- `$yabook do pr` pode enviar a branch de origem como pré-requisito mínimo para
-  abrir ou atualizar o PR, mas não autoriza criar commit, enviar outras branches,
-  criar tags ou fazer merge.
+- `$yabook do pr` pode criar commits coerentes das alterações da issue, enviar a
+  branch de origem e abrir ou atualizar o PR. Não autoriza outras branches, tags
+  ou merge.
+- `$yabook do merge` pode cumprir os pré-requisitos de PR ainda ausentes e fazer
+  merge após validar conflitos, checks, revisão e proteção da branch.
 - Merge exige pedido explícito mesmo quando houver outro `do`.
 - `bypass` não substitui `do` para mutações da gramática YABook.
 
@@ -135,6 +138,9 @@ original. Não peça nova confirmação para enviar a branch necessária a um PR
 
 A autorização expira após a execução ou mudança de contexto e não cobre pushes,
 branches, tags ou merges fora do fluxo apresentado.
+
+`$yabook dev` autoriza somente as mutações necessárias para preparar a branch e
+implementar a issue. Commit e entrega posterior dependem de comando encadeado.
 
 `$yabook continue` rejeita apenas um checkpoint opcional. Se issue, branch ou
 outra regra tornar a separação obrigatória, não continue no worktree atual.
