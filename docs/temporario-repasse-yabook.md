@@ -222,6 +222,24 @@ pull e push exigem ação `do` explícita.
 O escopo não é ampliado automaticamente: `$yabook do commit` não autoriza
 `push`, e `$yabook do pr` não autoriza merge.
 
+### Checkpoint do worktree
+
+Antes de novas edições, a IA verifica se as alterações pendentes formam um bloco
+concluído de outra responsabilidade. Se formarem um commit independente e
+reversível, pausa antes de continuar.
+
+```text
+Existem alterações concluídas que devem formar um commit separado.
+
+Commit proposto: tipo: descrição
+
+- $yabook do: cria o commit e retoma a solicitação.
+- $yabook continue: prossegue sem criar o commit.
+```
+
+`continue` vale apenas para checkpoint opcional. Outra issue ou branch mantém a
+separação obrigatória.
+
 ### Sincronização da skill
 
 Use:

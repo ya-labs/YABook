@@ -37,6 +37,7 @@ intenção em `do`.
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
 | `$yabook do` | Executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge. |
+| `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
 | `$yabook status` | Resume branch, issue inferida, alterações pendentes e próximo passo. |
 | `$yabook check` | Verifica conformidade com o YABook. |
 | `$yabook issue` | Gera título e descrição completa da issue. |
@@ -159,6 +160,10 @@ $yabook do só uma issue para essa tarefa
 Regras:
 
 - Crie somente o que foi pedido.
+- Sem complemento, autorize somente uma ação contextual pendente e inequívoca
+  apresentada na resposta imediatamente anterior.
+- Depois de executar a ação contextual, retome automaticamente a solicitação
+  original.
 - Não faça merge se a pessoa não pediu merge explicitamente.
 - Antes de criar artefatos, confira `AGENTS.md`, branch atual, issue relacionada, labels, Project e `Size`.
 - Se a ferramenta GitHub não conseguir aplicar Project ou `Size`, entregue o valor sugerido para preenchimento manual.

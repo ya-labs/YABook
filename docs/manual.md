@@ -213,6 +213,20 @@ histórico, criar tag, buscar, integrar ou enviar alterações exige uma ação
 O escopo permanece restrito ao pedido. `$yabook do commit` não autoriza `push`,
 e `$yabook do pr` não autoriza merge.
 
+### Checkpoint antes de novas alterações
+
+Antes de editar, a IA avalia se o worktree contém um bloco concluído de outra
+responsabilidade. Quando as mudanças forem independentes, reversíveis e
+estiverem prontas, ela interrompe e propõe um commit separado.
+
+Nesse contexto:
+
+- `$yabook do` cria somente o commit proposto e retoma a solicitação original;
+- `$yabook continue` prossegue sem o checkpoint opcional.
+
+Se a nova tarefa pertencer a outra issue ou branch, `continue` não pode ignorar
+a separação obrigatória.
+
 Antes de uma alteração direta em `main`, `dev`, release ou branch incompatível,
 a IA deve bloquear a execução. Uma confirmação comum não é suficiente. Para
 autorizar a exceção, repita a ação com:

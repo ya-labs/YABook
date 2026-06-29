@@ -62,6 +62,10 @@ disable destructive-operation safeguards.
 Even with `$yabook do`, create or execute only the artifacts explicitly requested
 by the user. Never merge unless the user explicitly asks for merge.
 
+Bare `$yabook do` may authorize exactly one pending contextual action proposed
+in the immediately previous response. `$yabook continue` rejects an optional
+checkpoint and resumes the original request without that Git mutation.
+
 ## Command Routing
 
 When the user invokes `$yabook`, route the request through [commands.md](references/commands.md).
@@ -87,6 +91,7 @@ Common commands:
 - `$yabook bypass`
 - `$yabook sync`
 - `$yabook do`
+- `$yabook continue`
 - `$yabook status`
 - `$yabook check`
 - `$yabook issue`

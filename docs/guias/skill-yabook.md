@@ -108,6 +108,14 @@ integrar ou enviar alterações.
 Mesmo com `do`, cada ação precisa estar explicitamente solicitada. Autorizar
 commit não autoriza push; autorizar PR não autoriza merge.
 
+Antes de novas edições, a skill avalia se o worktree contém um bloco concluído
+de outra responsabilidade. Quando houver um checkpoint coerente, pausa e mostra
+o commit proposto.
+
+`$yabook do` sem complemento autoriza apenas uma ação contextual pendente e
+inequívoca. `$yabook continue` rejeita um checkpoint opcional. Depois da escolha,
+a skill retoma a solicitação original.
+
 Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` apenas inspecionam, conversam ou produzem propostas.
 
 Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. Se ela quiser ação real no GitHub, oriente a usar `$yabook do`.
@@ -139,6 +147,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
 | `$yabook do` | Executa somente a ação pedida: init, plan, sync, issue, branch, PR, release ou merge. |
+| `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |

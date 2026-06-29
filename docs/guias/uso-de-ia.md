@@ -26,6 +26,14 @@ integrar ou enviar alterações. A IA deve indicar o comando YABook necessário.
 
 Inspeções somente leitura continuam permitidas para diagnóstico.
 
+Antes de novas edições, a IA deve avaliar se as alterações pendentes formam um
+bloco concluído, independente e reversível. Se a próxima mudança tiver outra
+responsabilidade, deve propor um checkpoint antes de continuar.
+
+`$yabook do` pode autorizar esse checkpoint quando houver uma única ação
+contextual pendente. `$yabook continue` rejeita um checkpoint opcional e retoma
+a solicitação original.
+
 ## Quando usar IA
 
 Use IA para:

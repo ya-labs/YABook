@@ -61,6 +61,17 @@ Regras:
 
 Leia `git.md` sempre que uma solicitação consultar ou alterar Git.
 
+Antes de novas edições:
+
+- avalie se o worktree contém um bloco concluído de outra responsabilidade;
+- proponha um commit quando o bloco for independente e reversível;
+- aceite `$yabook do` como autorização contextual somente para uma ação
+  pendente inequívoca;
+- aceite `$yabook continue` para rejeitar checkpoint opcional;
+- retome a solicitação original após a escolha;
+- não permita `continue` quando issue ou branch incompatível tornar a separação
+  obrigatória.
+
 ### Issue
 
 - Título objetivo, sem prefixo de tipo.

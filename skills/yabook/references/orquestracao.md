@@ -24,6 +24,10 @@ Ao receber `$yabook <intenção>`:
 6. peça somente informações que mudem materialmente o caminho;
 7. nunca adicione `do` implicitamente.
 
+Antes de iniciar novas edições, aplique a avaliação de checkpoint descrita em
+`git.md`. Interrompa somente quando as alterações pendentes formarem um bloco
+concluído que deve permanecer separado.
+
 Exemplos:
 
 ```text

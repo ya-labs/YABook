@@ -71,6 +71,14 @@ pedido com `$yabook do`.
 Inspeções somente leitura, como `git status`, `git diff`, `git log` e consulta da
 branch atual, continuam permitidas.
 
+Antes de iniciar novas edições, avalie se o worktree contém alterações
+concluídas de outra responsabilidade. Quando formarem um bloco independente e
+reversível, interrompa e proponha o commit.
+
+Nesse contexto, `$yabook do` autoriza somente o checkpoint apresentado e retoma
+a solicitação original. `$yabook continue` rejeita um checkpoint opcional. Não
+permita `continue` quando outra issue ou branch tornar a separação obrigatória.
+
 ## Issues, labels e Project
 
 Antes de criar uma issue, confira as labels existentes no repositório e compare com as labels declaradas para o projeto.
