@@ -37,6 +37,7 @@ Arquivos principais:
 | `agents/openai.yaml` | Metadados para agentes que usam manifesto YAML. |
 | `references/commands.md` | Lista de comandos, aliases, roteamento e formato de saída esperado. |
 | `references/github.md` | Regras de issue, branch, commit, PR, labels, Project, `Size`, `main`, `dev` e release. |
+| `references/git.md` | Inspeções Git permitidas, trava de mutações e escopo de autorização. |
 | `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
@@ -92,11 +93,20 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 
 ## Segurança dos comandos
 
-A trava de `do` vale somente para solicitações que usam a gramática `$yabook`.
-Pedidos comuns em linguagem natural seguem o fluxo normal do agente.
+A trava de `do` vale para solicitações que usam a gramática `$yabook` e,
+globalmente, para qualquer mutação Git em projetos YA LABS. Pedidos comuns em
+linguagem natural seguem o fluxo normal do agente apenas para outras ações.
 
 Dentro da gramática YABook, a skill só pode alterar estado quando o comando
 começar com `$yabook do` ou usar um alias documentado, como `$yabook create`.
+
+A regra global inclui mutações Git locais e remotas. Sem `do`, a skill pode inspecionar
+status, diff, histórico, branch e remotes, mas não pode trocar branch, preparar
+arquivos, criar commits, alterar histórico, usar stash, criar tags, buscar,
+integrar ou enviar alterações.
+
+Mesmo com `do`, cada ação precisa estar explicitamente solicitada. Autorizar
+commit não autoriza push; autorizar PR não autoriza merge.
 
 Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name` e `$yabook commit message` apenas inspecionam, conversam ou produzem propostas.
 

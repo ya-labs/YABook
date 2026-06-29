@@ -80,7 +80,10 @@ Regras:
 - Se `load` aparecer no encadeamento, use o cache carregado para os comandos seguintes.
 - Se um comando depender de alterações atuais, confirme com Git antes de responder aquele comando.
 - A trava de `do` vale para comandos `$yabook`, não para pedidos normais em
-  linguagem natural.
+  linguagem natural, exceto mutações Git.
+- A trava inclui mutações Git locais e remotas. Inspeções somente leitura podem
+  ocorrer sem `do`; qualquer alteração de estado exige uma chamada
+  `$yabook do <ação>` explícita, mesmo após um pedido direto sem `$yabook`.
 - Só comandos iniciados por `$yabook do` ou aliases documentados, como
   `$yabook create`, podem executar artefatos da gramática YABook.
 - Comandos que geram artefatos textuais, como `$yabook issue`, `$yabook pr`,
@@ -242,6 +245,7 @@ Se a sessão já foi carregada na conversa atual:
 - Para `discuss` e o alias `plan discuss`, leia `discuss.md`.
 - Para intenção em linguagem natural, comando incompatível ou roteamento
   composto, leia `orquestracao.md`.
+- Para qualquer operação Git, leia `git.md`.
 - Para `steps` e enquanto houver checklist ativo, leia e aplique `steps.md`.
 - Para `sync` e `do sync`, leia `sync.md`.
 - Para qualquer `help`, leia `help.md`; não execute load automático nem o

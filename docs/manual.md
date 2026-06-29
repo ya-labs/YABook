@@ -192,14 +192,26 @@ não altera estado e não executa a sequência sugerida.
 
 Ao usar a skill, diferencie geração de texto de execução.
 
-A trava de `do` vale somente quando a pessoa invoca a gramática `$yabook`.
-Pedidos normais em linguagem natural continuam sendo solicitações diretas e
-podem autorizar alterações.
+A trava de `do` vale somente quando a pessoa invoca a gramática `$yabook`, com
+uma exceção: mutações Git sempre exigem `$yabook do`.
+
+Pedidos normais em linguagem natural podem autorizar outras alterações, mas não
+podem criar ou trocar branch, preparar arquivos, criar commit, alterar histórico
+ou interagir com remotes.
 
 Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check` e `$yabook review` servem para conversar, gerar propostas, inspecionar contexto ou apontar conformidade.
 
 Dentro da gramática YABook, somente um comando iniciado por `$yabook do` ou
 alias documentado, como `$yabook create`, pode executar ações reais.
+
+Sem `do`, a IA pode executar
+somente inspeções como `git status`, `git diff`, `git log` e consultas de branch.
+Criar ou trocar branch, preparar arquivos, criar commit, usar stash, alterar
+histórico, criar tag, buscar, integrar ou enviar alterações exige uma ação
+`$yabook do` explícita.
+
+O escopo permanece restrito ao pedido. `$yabook do commit` não autoriza `push`,
+e `$yabook do pr` não autoriza merge.
 
 Antes de uma alteração direta em `main`, `dev`, release ou branch incompatível,
 a IA deve bloquear a execução. Uma confirmação comum não é suficiente. Para

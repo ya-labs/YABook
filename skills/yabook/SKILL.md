@@ -29,10 +29,20 @@ Before producing or changing anything:
 
 The `do` gate applies only when the user invokes a `$yabook` command.
 Natural-language requests that do not invoke `$yabook` remain ordinary direct
-requests and may authorize the requested change.
+requests and may authorize the requested change, except for Git mutations.
+
+In YA LABS repositories, Git mutations always require an explicit
+`$yabook do <ação>` call, even when a direct natural-language request clearly
+asks for branch, commit, merge, tag, fetch, pull, push, or another Git change.
+Read-only Git inspection remains allowed.
 
 Within the YABook command grammar, only mutate state when the active command
 starts with `$yabook do` or uses a documented alias such as `$yabook create`.
+
+The global Git gate includes local and remote mutations. Read-only inspection is
+allowed without `do`; branch creation or switching, staging, commits, stash,
+history changes, tags, fetch, pull, push, and equivalent mutations require an
+explicit `do` action. Apply [git.md](references/git.md).
 
 Commands such as `$yabook issue`, `$yabook pr`, `$yabook branch name`,
 `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook commit message`,
@@ -113,6 +123,7 @@ Load only the reference needed for the current task:
 
 - [commands.md](references/commands.md): command grammar, aliases, and expected outputs.
 - [github.md](references/github.md): issues, branches, commits, PRs, labels, Projects, releases, `main`, `dev`.
+- [git.md](references/git.md): read-only Git inspection, mutation gate, and authorization scope.
 - [help.md](references/help.md): contextual help for commands, command families, and natural-language goals.
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
@@ -138,6 +149,7 @@ When the session is loaded in the current conversation:
 - read `sync.md` for `sync` and `do sync`;
 - read `help.md` for every `help` request;
 - read `orquestracao.md` for natural-language intent, command correction, or composed routing;
+- read `git.md` whenever a request may inspect or mutate Git;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 
 ## Core Patterns

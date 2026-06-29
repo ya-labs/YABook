@@ -59,6 +59,18 @@ Antes de criar issue, branch, commit, Pull Request, release ou novo documento, a
 
 Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo exceção registrada no projeto.
 
+### Trava obrigatória de Git
+
+Comandos Git que alteram estado local ou remoto só podem ser executados quando a
+pessoa usar `$yabook do <ação>`.
+
+Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
+para o remoto” não autorizam a mutação. A IA deve orientar a pessoa a repetir o
+pedido com `$yabook do`.
+
+Inspeções somente leitura, como `git status`, `git diff`, `git log` e consulta da
+branch atual, continuam permitidas.
+
 ## Issues, labels e Project
 
 Antes de criar uma issue, confira as labels existentes no repositório e compare com as labels declaradas para o projeto.

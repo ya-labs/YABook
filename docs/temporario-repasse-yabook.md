@@ -210,6 +210,18 @@ $yabook bypass atualize o README diretamente na main
 O `bypass` vale somente para a ação anexada e não substitui `do issue`,
 `do branch`, `do commit`, `do pr`, `do release`, `do merge` ou `do sync`.
 
+### Trava de mutações Git
+
+Em projetos YA LABS, somente `$yabook do <ação>` autoriza alterar Git local ou
+remoto. A trava também vale para pedidos diretos que não chamam a skill.
+
+`$yabook status` e `$yabook commit message` podem consultar status, diff e
+histórico. Já branch, switch, add, commit, stash, merge, rebase, tag, fetch,
+pull e push exigem ação `do` explícita.
+
+O escopo não é ampliado automaticamente: `$yabook do commit` não autoriza
+`push`, e `$yabook do pr` não autoriza merge.
+
 ### Sincronização da skill
 
 Use:
