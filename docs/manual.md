@@ -337,15 +337,20 @@ regras locais forem alteradas ou quando quiser atualizar o cache da conversa.
 Durante o carregamento, a IA deve:
 
 1. ler o cache da skill;
-2. resolver a raiz do repositório pelo workspace e pelos arquivos ativos;
-3. validar `.git`, `AGENTS.md` e remote sem assumir que o `cwd` está correto;
-4. usar essa raiz como diretório de trabalho;
-5. conferir branch e estado do Git;
-6. responder com um resumo curto do padrão carregado.
+2. resolver a raiz primeiro pelo workspace da IDE e pelos arquivos ativos;
+3. considerar depois o repositório mencionado, o contexto confirmado e, por
+   último, o `cwd`;
+4. localizar `.git`, ler `AGENTS.md` e conferir `git remote -v`;
+5. confirmar que o remote corresponde ao projeto ativo;
+6. usar essa raiz como diretório de trabalho em todos os comandos;
+7. conferir branch e estado do Git;
+8. responder com um resumo curto do padrão carregado.
 
-Quando workspace e `cwd` apontarem para repositórios diferentes, a skill usa o
-workspace se ele for inequívoco. Se houver mais de um candidato plausível, ela
-deve perguntar antes de alterar arquivos, Git ou GitHub.
+Quando workspace, arquivos ativos, repositório mencionado, contexto, `cwd` ou
+remote apontarem para projetos diferentes, a skill não altera arquivos, Git ou
+GitHub. Ela informa a divergência e pede confirmação do repositório correto.
+O `cwd` é somente um candidato técnico e nunca prevalece sobre evidências claras
+do workspace ativo.
 
 Depois disso, para comandos rotineiros como `$yabook issue`, `$yabook issue classify`, `$yabook branch name`, `$yabook commit message`, `$yabook pr`, `$yabook release` e `$yabook status`, a IA deve usar o cache carregado sem reler os arquivos do YABook toda vez.
 

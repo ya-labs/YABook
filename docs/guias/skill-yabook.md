@@ -343,17 +343,19 @@ regras locais ou contexto relevante.
 Durante o carregamento, o agente deve:
 
 1. ler `session.md` por completo;
-2. coletar candidatos de caminho explícito, raiz da IDE, arquivos ativos e `cwd`;
-3. escolher o workspace inequívoco e subir até a raiz com `.git`;
-4. validar arquivos ativos, `AGENTS.md` e remote;
+2. coletar candidatos na ordem: raiz da IDE, arquivos ativos, repositório
+   explícito, contexto confirmado e `cwd`;
+3. subir a partir do candidato até a raiz com `.git`;
+4. validar arquivos ativos, `AGENTS.md` e `git remote -v`;
 5. definir essa raiz como `workdir` dos comandos;
 6. inspecionar o estado do Git;
 7. responder com um resumo curto para a pessoa usuária.
 
 O `cwd` é o último candidato, não a fonte principal. Se ele apontar para outro
-repositório, o agente não deve executar nele antes de conferir o workspace. Se
-mais de uma raiz continuar plausível, operações de escrita ficam bloqueadas até
-a pessoa escolher.
+repositório, o agente não deve executar nele antes de conferir o workspace.
+Qualquer divergência entre IDE, arquivos ativos, repositório mencionado,
+contexto, `cwd` e remote bloqueia operações de escrita até a pessoa confirmar a
+raiz correta.
 
 Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
 

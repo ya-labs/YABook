@@ -17,6 +17,9 @@ Before producing or changing anything:
 
 1. Resolve the active repository through [workspace.md](references/workspace.md).
    Never assume the inherited `cwd` is the active workspace.
+   IDE workspace and active-file evidence take precedence; any conflict with
+   `cwd`, conversation context, or remote blocks writes until the user confirms
+   the correct repository.
 2. Read the `AGENTS.md` from the resolved repository root when available.
 3. Inspect that repository state before assuming stack, branch, issue, or workflow.
 4. Use documented YABook formats as the source of truth for generated artifacts.

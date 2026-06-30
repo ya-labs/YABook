@@ -167,13 +167,15 @@ No primeiro comando operacional `$yabook`, a skill carrega silenciosamente:
 `$yabook help` é a única exceção. `$yabook load` continua disponível para
 recarregar o contexto depois de trocar repositório, branch ou regras locais.
 
-Antes dessas leituras, a skill compara caminho explícito, raiz informada pela
-IDE, arquivos ativos e `cwd`. O workspace inequívoco prevalece; o `cwd` é apenas
-o último candidato. A raiz precisa conter `.git` e ter remote compatível.
+Antes dessas leituras, a skill compara, nesta ordem, raiz informada pela IDE,
+arquivos ativos, repositório explícito, contexto confirmado e `cwd`. O `cwd` é
+apenas o último candidato. A raiz precisa conter `.git`, ter `AGENTS.md` lido
+quando existir e remote compatível confirmado por `git remote -v`.
 
-Todos os comandos seguintes usam essa raiz como `workdir`. Se houver mais de um
-repositório plausível, a skill pode inspecionar o mínimo necessário, mas deve
-pedir confirmação antes de escrever em arquivos, Git ou GitHub.
+Todos os comandos seguintes usam essa raiz como `workdir`. Qualquer divergência
+entre workspace, arquivos ativos, repositório mencionado, contexto, `cwd` e
+remote bloqueia escrita em arquivos, Git ou GitHub até a pessoa confirmar o
+repositório correto.
 
 ### Trava de execução
 

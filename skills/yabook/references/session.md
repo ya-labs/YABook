@@ -52,13 +52,13 @@ Regras:
 
 ### Workspace e repositório
 
-- O workspace ativo prevalece sobre o `cwd` quando identificar inequivocamente
-  outro repositório.
-- Caminhos explícitos, raiz informada pela IDE e arquivos ativos são sinais
-  prioritários; `cwd` é apenas o último candidato.
-- Valide a raiz por `.git`, `AGENTS.md` e remote antes de consultar branch,
-  issue ou GitHub.
-- Execute comandos com `workdir` definido para a raiz resolvida.
+- Resolva primeiro pela raiz informada pela IDE e pelos arquivos ativos; depois
+  considere repositório explícito, contexto confirmado e, por último, `cwd`.
+- O `cwd` é apenas um candidato técnico e nunca prevalece sobre evidências
+  claras do workspace ativo.
+- Valide a raiz por `.git`, `AGENTS.md` e `git remote -v` antes de consultar ou
+  alterar branch, issue ou GitHub.
+- Use a raiz validada como `workdir` explícito em todos os comandos seguintes.
 - Divergência ou ambiguidade material bloqueia escrita até confirmação.
 - Mudança de workspace invalida o repositório guardado no cache.
 
