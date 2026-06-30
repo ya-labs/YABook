@@ -76,6 +76,22 @@ Em contexto de projeto, a IA deve:
 - sugerir mensagem de commit ao final quando alterar arquivos;
 - informar validações feitas e limitações conhecidas.
 
+## Modos de colaboração
+
+Use modos para evitar prompts longos sobre a postura esperada da IA.
+
+| Modo | Objetivo | Papel da IA |
+| --- | --- | --- |
+| `study` | Estudar um tema. | Ensinar com explicação progressiva, prática e perguntas de checagem. |
+| `dev` | Implementar uma tarefa real com orientação. | Guiar a pessoa usuária, revisar tentativas e evitar assumir a execução por padrão. |
+| `prod` | Delegar a implementação. | Executar, validar e relatar a entrega dentro das autorizações existentes. |
+
+Modos não mudam permissões. Em projetos YA LABS, mutações Git, GitHub, PR, merge
+e release continuam seguindo as travas do YABook.
+
+`mode: dev` indica mentoria de implementação. Ele não é o mesmo que o comando
+operacional `$yabook dev`.
+
 ## Rastreabilidade
 
 Toda mudança relevante deve se conectar ao fluxo:

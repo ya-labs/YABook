@@ -34,6 +34,8 @@ intenção em `do`.
 | `$yabook steps` | Mostra o checklist ativo. |
 | `$yabook steps done <número>` | Marca uma etapa como concluída. |
 | `$yabook steps cancel` | Encerra o checklist ativo. |
+| `$yabook mode[: ]<modo>` | Define modo de colaboração da conversa ou aplica modo one-shot. |
+| `$yabook def mode <modo> for <área>` | Define modo de colaboração por área do projeto. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo de issue/branch nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a skill instalada com a origem, sem alterar arquivos. |
 | `$yabook do` | Executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge. |
@@ -275,6 +277,8 @@ Se a sessão já foi carregada na conversa atual:
 - Para `do`, leia a solicitação e execute apenas os artefatos pedidos.
 - Para `diagnose`, `plan` e `do plan`, leia `planejamento.md`.
 - Para `discuss` e o alias `plan discuss`, leia `discuss.md`.
+- Para `mode`, `mode:`, `def mode` ou definição de modo por linguagem natural,
+  leia `modes.md`.
 - Para intenção em linguagem natural, comando incompatível ou roteamento
   composto, leia `orquestracao.md`.
 - Para qualquer operação Git, leia `git.md`.

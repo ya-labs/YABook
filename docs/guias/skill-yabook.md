@@ -41,6 +41,7 @@ Arquivos principais:
 | `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/dev.md` | Desenvolvimento orientado pela issue e autorização limitada de implementação. |
+| `references/modes.md` | Modos de colaboração para estudo, desenvolvimento guiado e execução delegada. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
@@ -151,6 +152,8 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook steps` | Mostra o checklist ativo. |
 | `$yabook steps done <número>` | Marca uma etapa como concluída. |
 | `$yabook steps cancel` | Encerra o acompanhamento. |
+| `$yabook mode[: ]<modo>` | Define ou aplica um modo de colaboração. |
+| `$yabook def mode <modo> for <área>` | Define modo de colaboração por área do projeto. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
@@ -380,6 +383,40 @@ confirmação antes de remodelar o checklist.
 
 Esse recurso não substitui `$yabook plan`, não executa comandos e não remove a
 exigência de `$yabook do` para ações de escrita.
+
+## Modos de colaboração
+
+`$yabook mode` reduz a necessidade de prompts longos para ajustar como a IA deve
+atuar durante a conversa.
+
+Modos mudam postura, profundidade e autonomia. Eles não mudam permissões nem
+removem travas de Git, GitHub, issue, `do`, `bypass`, PR, merge ou release.
+
+| Modo | Uso |
+| --- | --- |
+| `study` | Estudo interativo e detalhado de um tema. |
+| `dev` | Mentoria para a pessoa usuária implementar uma tarefa real. |
+| `prod` | Execução delegada ao agente, dentro das autorizações existentes. |
+
+Exemplos:
+
+```text
+$yabook mode: dev
+$yabook mode: prod - faça os ajustes no estilo do site
+$yabook def mode dev for front-end
+```
+
+Em `mode: dev`, a IA deve guiar o próximo passo, fazer perguntas e revisar o
+código enviado. Ela não deve entregar a implementação completa por padrão.
+
+Em `mode: study`, a IA deve ensinar com teoria, prática, exemplos pequenos,
+perguntas de checagem e adaptação às dúvidas.
+
+Em `mode: prod`, a IA pode implementar, validar e relatar a entrega, desde que
+a solicitação também tenha autorização suficiente para a escrita necessária.
+
+`mode: dev` é modo de colaboração. `$yabook dev` continua sendo o comando
+operacional que prepara, implementa e valida a issue atual.
 
 Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
 
