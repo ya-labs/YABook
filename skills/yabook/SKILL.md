@@ -98,6 +98,7 @@ Common commands:
 - `$yabook plan roadmap`
 - `$yabook plan review`
 - `$yabook steps`
+- `$yabook mode`
 - `$yabook bypass`
 - `$yabook sync`
 - `$yabook do`
@@ -146,6 +147,7 @@ Load only the reference needed for the current task:
 - [help.md](references/help.md): contextual help for commands, command families, and natural-language goals.
 - [documentacao.md](references/documentacao.md): project documentation structure, Markdown vs GitHub, pruning.
 - [dev.md](references/dev.md): issue-driven implementation and its scoped authorization.
+- [modes.md](references/modes.md): collaboration modes for study, mentored development, and delegated production work.
 - [ia.md](references/ia.md): AI contract, context economy, broad vs directed reading.
 - [init.md](references/init.md): `$yabook init` behavior and safe adoption rules.
 - [orquestracao.md](references/orquestracao.md): intent routing, command correction, guidance, and autonomy limits.
@@ -171,6 +173,7 @@ When the session is loaded in the current conversation:
 - read `orquestracao.md` for natural-language intent, command correction, or composed routing;
 - read `git.md` whenever a request may inspect or mutate Git;
 - read `dev.md` for `dev` and any chain that includes it;
+- read `modes.md` for `mode`, `mode:`, `def mode`, or natural-language mode definitions;
 - read `workspace.md` before the first repository-dependent command and whenever workspace evidence changes;
 - re-read other references only for `init`, `docs`, `check`, `review`, `do`, or when context is incomplete.
 

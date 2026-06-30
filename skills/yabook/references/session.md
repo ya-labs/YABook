@@ -91,6 +91,21 @@ Leia `git.md` sempre que uma solicitação consultar ou alterar Git.
 
 Leia `dev.md` para esse fluxo.
 
+### Modos de colaboração
+
+- `study`: estudo interativo e progressivo para aprender um tema.
+- `dev`: mentoria para a pessoa usuária implementar uma tarefa real.
+- `prod`: execução delegada ao agente dentro das autorizações existentes.
+- Modos ajustam postura, explicação e autonomia; não alteram travas de Git,
+  GitHub, issue, `do`, `bypass`, PR, merge ou release.
+- `mode: dev` é modo de colaboração e não equivale ao comando operacional
+  `$yabook dev`.
+- A precedência é: modo one-shot, modo da conversa, modo por área do projeto e
+  padrão YABook.
+
+Leia `modes.md` para `mode`, `mode:`, `def mode` e definições em linguagem
+natural.
+
 Antes de novas edições:
 
 - atualize `status`, diff staged e unstaged e último commit no mesmo turno;
@@ -408,6 +423,7 @@ Mapa de releitura:
 | `$yabook <intenção em linguagem natural>` | `orquestracao.md` |
 | Operações Git | `git.md` |
 | `$yabook dev` | `dev.md` |
+| `$yabook mode...` e definições de modo | `modes.md` |
 | `$yabook do plan ...` | `planejamento.md` |
 | `$yabook steps ...` | `steps.md` |
 | `$yabook sync` e `$yabook do sync` | `sync.md` |

@@ -133,6 +133,7 @@ Comandos principais:
 - `$yabook discuss`: analisa uma ideia, decisão ou mudança sem alterar estado.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook steps`: acompanha uma sequência com checklist durante a conversa.
+- `$yabook mode`: define como a IA deve colaborar: estudo, mentoria ou execução.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
 - `$yabook do`: executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge.
@@ -173,6 +174,35 @@ adicionar correções ou exigir nova validação.
 A skill explica o recalculado antes de mostrar o checklist atualizado. Etapas
 concluídas permanecem no histórico. Alterações de objetivo, escopo ou decisões
 continuam dependendo de confirmação.
+
+### Como usar modos de colaboração
+
+Use `mode` quando quiser mudar a postura da IA sem repetir um prompt longo.
+
+```text
+$yabook mode: dev
+$yabook mode: prod - faça os ajustes no estilo do site
+$yabook mode: study - me ensine requisições HTTP no React
+```
+
+Os modos são:
+
+| Modo | Objetivo |
+| --- | --- |
+| `study` | Estudar um tema com explicação progressiva, exemplos e perguntas. |
+| `dev` | Desenvolver uma tarefa real com mentoria, mantendo a pessoa no teclado. |
+| `prod` | Delegar a execução ao agente. |
+
+Também é possível definir um modo por área do projeto:
+
+```text
+$yabook def mode dev for front-end
+$yabook def mode prod for estilos do site
+```
+
+Modos não alteram permissões. `prod` não substitui `do`, `bypass` nem as travas
+de Git/GitHub. `mode: dev` é modo de colaboração e não equivale ao comando
+operacional `$yabook dev`.
 
 ### Como usar o help
 

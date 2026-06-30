@@ -31,6 +31,7 @@ decisão ou escrita.
 - contexto: `load`, `status`, `diagnose`;
 - inicialização e planejamento: `init`, `discuss`, `plan`;
 - acompanhamento da conversa: `steps`;
+- modos de colaboração: `mode`;
 - desenvolvimento e execução: `dev`, `do`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade e documentação: `check`, `review`, `docs`;
@@ -106,6 +107,23 @@ Para `$yabook help dev`, explique:
 - que `dev` sozinho não cria commit nem PR;
 - que `dev & do pr` entrega o PR completo;
 - que `dev & do merge` também integra após as validações.
+
+Para `$yabook help mode`, explique:
+
+- que modos ajustam a forma de colaboração da IA, não permissões;
+- que `study` ensina um tema com estudo progressivo e interativo;
+- que `dev` guia a pessoa usuária a implementar uma tarefa real;
+- que `prod` delega a execução ao agente dentro das autorizações existentes;
+- que `mode: dev` não é o mesmo que o comando `$yabook dev`;
+- que `prod` não substitui `do`, `bypass` nem travas de Git/GitHub.
+
+Inclua exemplos:
+
+```text
+$yabook mode: dev
+$yabook mode: prod - faça os ajustes no estilo do site
+$yabook def mode dev for front-end
+```
 
 ## Help por objetivo
 
