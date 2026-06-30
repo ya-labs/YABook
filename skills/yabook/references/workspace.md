@@ -13,9 +13,9 @@ as inspeções e ações seguintes.
 
 Considere os sinais nesta ordem:
 
-1. repositório ou caminho indicado explicitamente pela pessoa usuária;
-2. raiz de workspace fornecida pela IDE ou pelo ambiente;
-3. caminhos absolutos ou qualificados dos arquivos ativos e abas abertas;
+1. raiz de workspace fornecida pela IDE ou pelo ambiente;
+2. caminhos absolutos ou qualificados dos arquivos ativos e abas abertas;
+3. repositório ou caminho indicado explicitamente pela pessoa usuária;
 4. repositório já confirmado na conversa, se o workspace não mudou;
 5. `cwd` do processo.
 
@@ -24,16 +24,18 @@ repositório sozinho.
 
 ## Validação do candidato
 
-Para cada candidato:
+Antes de criar ou alterar issue, branch, commit, Pull Request ou release:
 
-1. suba até encontrar a raiz que contém `.git`;
+1. suba a partir do candidato até encontrar a raiz que contém `.git`;
 2. confirme que os arquivos ativos pertencem a essa árvore, quando aplicável;
 3. leia o `AGENTS.md` dessa raiz, se existir;
-4. confira o remote e compare-o com o repositório citado, a issue ou o contexto;
-5. somente então consulte branch, status, issue, PR ou GitHub.
+4. execute `git remote -v` nessa raiz;
+5. confirme que o remote corresponde ao projeto ativo;
+6. use essa raiz como `workdir` explícito em todos os comandos seguintes;
+7. somente então consulte ou altere branch, status, issue, PR ou GitHub.
 
-Se workspace e `cwd` apontarem para repositórios diferentes e o workspace for
-inequívoco, use o workspace. Não execute primeiro no `cwd` para depois corrigir.
+O `cwd` é somente um candidato técnico e nunca prevalece sobre evidências claras
+do workspace ativo. Não execute primeiro no `cwd` para depois corrigir.
 
 ## Ambiguidade e segurança
 
@@ -45,8 +47,12 @@ Peça confirmação antes de escrever quando:
 - existirem apenas caminhos relativos que também ocorram em outro candidato;
 - conversa, workspace e branch apontarem para demandas incompatíveis.
 
-Inspeções mínimas podem ser feitas em candidatos para desambiguar, mas Git,
-GitHub e arquivos só podem ser alterados depois que uma única raiz for
+Se `cwd`, workspace, arquivos ativos, contexto e remote apontarem para projetos
+diferentes, não realize nenhuma escrita, mesmo que um candidato pareça
+inequívoco. Informe a divergência e peça confirmação do repositório correto.
+
+Inspeções mínimas podem ser feitas em candidatos somente para desambiguar.
+Git, GitHub e arquivos só podem ser alterados depois que uma única raiz for
 confirmada.
 
 ## Cache

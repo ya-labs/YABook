@@ -122,11 +122,13 @@ No primeiro comando operacional `$yabook` da conversa:
 
 1. leia `session.md` por completo;
 2. resolva o repositório ativo por `workspace.md`, sem assumir o `cwd`;
-3. valide `.git`, arquivos ativos, `AGENTS.md` e remote;
-4. use a raiz resolvida como `workdir` explícito;
-5. confira branch, `git status --short --branch` e `git diff --stat`;
-6. mantenha esse contexto como cache da conversa;
-7. execute o comando solicitado sem responder com uma seção separada de load.
+3. priorize a raiz da IDE e os arquivos ativos sobre menções, contexto e `cwd`;
+4. valide `.git`, arquivos ativos, `AGENTS.md` e `git remote -v`;
+5. bloqueie escrita se qualquer evidência apontar para outro projeto;
+6. use a raiz validada como `workdir` explícito;
+7. confira branch, `git status --short --branch` e `git diff --stat`;
+8. mantenha esse contexto como cache da conversa;
+9. execute o comando solicitado sem responder com uma seção separada de load.
 
 Não repita o carregamento nos comandos seguintes da mesma conversa.
 
