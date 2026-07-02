@@ -45,7 +45,7 @@ Consulte esta referência depois de identificar a rota. Comece pela coluna
 | `do plan` | execução | `planejamento/persistencia.md`, `git.md` | decisões e rastreabilidade | documentos equivalentes |
 | `do plan roadmap` | execução | `planejamento/roadmap.md`, `github.md` | proposta e GitHub atual | conflitos item a item |
 | `dev` | execução | `dev.md`, `git.md` | issue, branch, worktree | código e docs do escopo |
-| `do apk` | execução | `apk.md`, `git.md` | configuração, branch, worktree e artefato | comando de build configurado |
+| `do apk` | execução | `apk.md`, `git.md` | configuração, branch, worktree e artefato | nenhuma |
 | `do <artefato>` | execução | referência do artefato e `git.md` quando aplicável | autorização e estado atual | pré-requisitos mínimos |
 
 ## Limites de descoberta

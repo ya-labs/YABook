@@ -137,8 +137,8 @@ Comandos principais:
 - `$yabook mode`: define como a IA deve colaborar: estudo, mentoria ou execução.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
-- `$yabook apk`: valida o contexto e mostra como o APK será preparado, sem executar build.
-- `$yabook do apk`: executa um build novo e prepara o APK com nome rastreável.
+- `$yabook apk`: valida o contexto e mostra como o APK será preparado, sem executar build nem alterar arquivos.
+- `$yabook do apk`: usa o APK já gerado, cria a cópia rastreável e limpa cópias antigas da mesma origem.
 - `$yabook do`: executa a ação pedida, como init, plan, sync, apk, issue, branch, PR, release ou merge.
 - `$yabook dev`: prepara, implementa e valida a issue atual.
 - `$yabook issue`: gera título e descrição de issue.
@@ -158,7 +158,6 @@ O aplicativo adotante mantém `.yabook/apk.json`:
 ```json
 {
   "appName": "YApp",
-  "buildCommand": "<comando de build do aplicativo>",
   "artifactPath": "<caminho relativo do APK gerado>"
 }
 ```
@@ -169,19 +168,21 @@ Confira primeiro a prévia:
 $yabook apk
 ```
 
-Para executar um build novo e preparar o arquivo padronizado:
+Depois de gerar o APK no próprio aplicativo, execute:
 
 ```text
 $yabook do apk
 ```
 
-O APK preparado fica ao lado do artefato original. Issue e `dev` usam o commit
-curto no nome; release usa a versão. Worktree sujo, branch incompatível,
-configuração inválida, build com falha, artefato antigo e sobrescrita são
-bloqueados.
+`$yabook apk` não copia nem remove arquivos. `$yabook do apk` valida o
+contexto, usa o artefato existente em `artifactPath`, cria a cópia padronizada
+no mesmo diretório e remove cópias antigas da mesma origem, preservando o
+`appdebug.apk` padrão. Issue e `dev` usam o commit curto no nome; release usa
+a versão. Worktree sujo, branch incompatível, configuração inválida, artefato
+ausente e sobrescrita são bloqueados.
 
-O upload e os caminhos corporativos permanecem no ambiente local e não fazem
-parte do comando.
+O upload, o build e os caminhos corporativos permanecem no ambiente local e não
+fazem parte do comando.
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 

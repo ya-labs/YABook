@@ -8,10 +8,10 @@ cada entrega permanece no GitHub.
 ### 1. Implementar o contrato no YABook
 
 - Definir a leitura e a validação de `.yabook/apk.json`.
-- Implementar a prévia `$yabook apk`.
-- Implementar a preparação `$yabook do apk`.
+- Implementar a prévia por `$yabook apk`.
+- Implementar a preparação por `$yabook do apk`.
 - Cobrir nomes de issue, `dev` e release.
-- Validar build novo, artefato esperado e prevenção de sobrescrita.
+- Validar artefato existente, limpeza de cópias antigas e prevenção de sobrescrita.
 
 ### 2. Adotar no primeiro aplicativo em outra organização
 

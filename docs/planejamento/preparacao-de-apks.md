@@ -12,9 +12,10 @@ seu build e onde o artefato é produzido.
 
 ### YABook
 
-- `$yabook apk`: apresenta uma prévia somente leitura, sem gerar ou copiar APK.
-- `$yabook do apk`: valida o contexto, executa um build novo, localiza o
-  artefato e o prepara com o nome padronizado.
+- `$yabook apk`: apresenta uma prévia somente leitura, sem gerar, copiar ou
+  remover APK.
+- `$yabook do apk`: valida o contexto, localiza o artefato já gerado, prepara a
+  cópia padronizada e limpa cópias antigas da mesma origem.
 - Impede sobrescrita silenciosa de um arquivo já preparado.
 - Não realiza upload nesta primeira etapa.
 
@@ -25,14 +26,12 @@ Cada repositório adotante mantém `.yabook/apk.json`:
 ```json
 {
   "appName": "YApp",
-  "buildCommand": "<comando de build do aplicativo>",
   "artifactPath": "<caminho do APK gerado>"
 }
 ```
 
 - `appName`: nome público usado no arquivo e no destino lógico.
-- `buildCommand`: comando completo para gerar um APK novo.
-- `artifactPath`: caminho do artefato esperado após o build.
+- `artifactPath`: caminho do artefato esperado já gerado antes do comando.
 
 Comandos, caminhos e particularidades reais permanecem no repositório do
 aplicativo.
@@ -51,7 +50,7 @@ O nome deve identificar o aplicativo e a origem do build:
 
 | Origem | Nome |
 | --- | --- |
-| Issue | `YApp-issue-<numero>-<commit-curto>.apk` |
+| Issue | `YApp-<numero>-<commit-curto>.apk` |
 | `dev` | `YApp-dev-<commit-curto>.apk` |
 | Release | `YApp-v<versao>.apk` |
 
@@ -80,14 +79,19 @@ O caminho físico desse destino é configuração local e não deve ser versiona
 
 Antes de preparar o artefato, `$yabook do apk` deve:
 
-1. confirmar que `.yabook/apk.json` existe e possui os três campos obrigatórios;
+1. confirmar que `.yabook/apk.json` existe e possui os dois campos obrigatórios;
 2. identificar se a branch representa issue, `dev` ou release;
-3. bloquear worktree com alterações que tornem o build não rastreável;
-4. executar o comando de build configurado e exigir sucesso;
-5. confirmar que o artefato esperado foi gerado pelo build atual;
-6. montar o nome correspondente à origem;
-7. impedir sobrescrita sem autorização explícita;
-8. informar o arquivo preparado para o alias local.
+3. bloquear worktree com alterações que tornem a cópia não rastreável;
+4. confirmar que o artefato esperado já existe;
+5. montar o nome correspondente à origem;
+6. impedir sobrescrita sem autorização explícita;
+7. copiar o artefato preparado e validar o hash;
+8. remover cópias antigas da mesma origem, preservando `appdebug.apk`;
+9. informar o arquivo preparado para o alias local.
+
+Antes disso, `$yabook apk` deve apresentar a mesma validação em modo somente
+leitura, informando origem, artefato esperado e nome final sem copiar nem
+remover arquivos.
 
 ## Fora de escopo
 

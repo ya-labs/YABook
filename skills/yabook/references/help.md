@@ -111,11 +111,14 @@ Para `$yabook help dev`, explique:
 Para `$yabook help apk`, explique:
 
 - que `.yabook/apk.json` pertence ao repositório do aplicativo;
-- que `apk` valida o contexto e mostra a prévia sem executar build;
-- que `do apk` executa um build novo e prepara o arquivo padronizado;
+- que `apk` valida o contexto e mostra a prévia sem executar build nem alterar
+   arquivos;
+- que `do apk` usa o artefato já gerado e prepara a cópia padronizada;
 - que o upload continua manual e não faz parte desses comandos;
-- que configuração inválida, worktree sujo, branch incompatível, build com
-  falha, artefato antigo e sobrescrita são bloqueados.
+- que configuração inválida, worktree sujo, branch incompatível, artefato
+   ausente e sobrescrita são bloqueados;
+- que cópias preparadas antigas da mesma origem podem ser removidas, preservando
+   o `appdebug.apk` padrão.
 
 Inclua exemplos:
 

@@ -10,10 +10,12 @@ comercial sem incorporar detalhes internos de cada produto ao YABook.
 
 ## Decisões
 
-- O fluxo terá uma prévia somente leitura e uma execução autorizada.
+- O fluxo terá uma prévia somente leitura em `apk` e uma execução autorizada em
+  `do apk`, sem build automático.
 - A configuração mínima do aplicativo ficará em `.yabook/apk.json`.
-- Um build novo será obrigatório na preparação.
+- O build continuará sob responsabilidade da pessoa usuária e fora do YABook.
 - Issue e `dev` usarão o commit curto; release usará a versão.
+- O nome de issue não terá o prefixo `issue`, pois a pasta e o número já dão o contexto.
 - O alias local copiará o artefato preparado sem receber parâmetros.
 - O upload permanecerá manual nesta primeira etapa.
 - O exemplo normativo será fictício e não conterá dados de empresas ou
@@ -24,8 +26,8 @@ comercial sem incorporar detalhes internos de cada produto ao YABook.
 - Criar uma issue para implementar os comandos e validações no YABook.
 - Criar a issue de adoção no repositório e no Project da organização
   responsável pelo primeiro aplicativo adotante.
-- Definir critérios técnicos para reconhecer que o artefato pertence ao build
-  atual durante a implementação.
+- Definir critérios objetivos para remover apenas cópias preparadas antigas sem
+  tocar no artefato original.
 
 ## Impactos
 

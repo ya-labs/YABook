@@ -82,8 +82,9 @@ o contexto mínimo do repositório conforme
 - PR usa título objetivo e mantém vínculo com a issue.
 - Para branch criada por `do branch` ou `dev`, prefira `createLinkedBranch` e
   confirme `issue.linkedBranches`.
-- `apk` apenas apresenta a prévia; `do apk` executa o build e prepara o
-  artefato conforme `.yabook/apk.json`.
+- `apk` apenas apresenta a prévia com base em `.yabook/apk.json`; `do apk`
+  copia o APK já gerado para o nome padronizado e remove cópias preparadas
+  antigas.
 - No squash merge, use `tipo: descrição (#PR)` e registre no corpo o histórico
   da branch contra a base.
 
