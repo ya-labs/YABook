@@ -35,6 +35,7 @@ Consulte esta referência depois de identificar a rota. Comece pela coluna
 | `init` | contextual | `init.md`, `workspace.md` | estrutura e regras locais | documentos indicados por `init.md` |
 | `check`, `review` | contextual | referência do artefato | artefato alvo | fontes normativas aplicáveis |
 | `sync` | contextual | `sync.md` | origem e instalação | hashes/conteúdo divergente |
+| `apk` | local mínima | `apk.md`, `workspace.md` | configuração, branch, worktree | Git somente para montar a prévia |
 | `diagnose` | planejamento | `planejamento/diagnose.md` | descoberta progressiva | artefatos diretamente relevantes |
 | `diagnose full` | planejamento pesado | `planejamento/diagnose.md` | escopo confirmado | coleção completa com limites explícitos |
 | `plan start` | planejamento | `planejamento/start.md` | documentos de visão | perguntas que mudem o plano |
@@ -44,6 +45,7 @@ Consulte esta referência depois de identificar a rota. Comece pela coluna
 | `do plan` | execução | `planejamento/persistencia.md`, `git.md` | decisões e rastreabilidade | documentos equivalentes |
 | `do plan roadmap` | execução | `planejamento/roadmap.md`, `github.md` | proposta e GitHub atual | conflitos item a item |
 | `dev` | execução | `dev.md`, `git.md` | issue, branch, worktree | código e docs do escopo |
+| `do apk` | execução | `apk.md`, `git.md` | configuração, branch, worktree e artefato | comando de build configurado |
 | `do <artefato>` | execução | referência do artefato e `git.md` quando aplicável | autorização e estado atual | pré-requisitos mínimos |
 
 ## Limites de descoberta

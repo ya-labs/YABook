@@ -32,7 +32,7 @@ decisão ou escrita.
 - inicialização e planejamento: `init`, `discuss`, `plan`;
 - acompanhamento da conversa: `steps`;
 - modos de colaboração: `mode`;
-- desenvolvimento e execução: `dev`, `do`, `bypass`;
+- desenvolvimento e execução: `dev`, `do`, `apk`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade e documentação: `check`, `review`, `docs`;
 - manutenção da skill: `sync`.
@@ -107,6 +107,22 @@ Para `$yabook help dev`, explique:
 - que `dev` sozinho não cria commit nem PR;
 - que `dev & do pr` entrega o PR completo;
 - que `dev & do merge` também integra após as validações.
+
+Para `$yabook help apk`, explique:
+
+- que `.yabook/apk.json` pertence ao repositório do aplicativo;
+- que `apk` valida o contexto e mostra a prévia sem executar build;
+- que `do apk` executa um build novo e prepara o arquivo padronizado;
+- que o upload continua manual e não faz parte desses comandos;
+- que configuração inválida, worktree sujo, branch incompatível, build com
+  falha, artefato antigo e sobrescrita são bloqueados.
+
+Inclua exemplos:
+
+```text
+$yabook apk
+$yabook do apk
+```
 
 Para `$yabook help mode`, explique:
 
