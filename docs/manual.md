@@ -127,9 +127,10 @@ válido, mas nunca infere `do`.
 Comandos principais:
 
 - `$yabook help`: lista os comandos disponíveis.
-- `$yabook load`: recarrega os padrões operacionais quando o contexto mudar.
+- `$yabook load`: atualiza o contexto mínimo quando repositório ou branch mudar.
 - `$yabook init`: analisa como inicializar o padrão, sem alterar estado.
-- `$yabook diagnose`: reconstrói progresso, lacunas, bloqueios e próximo passo.
+- `$yabook diagnose`: reconstrói progresso, bloqueios e próximo passo progressivamente.
+- `$yabook diagnose full`: executa uma auditoria explicitamente aprofundada.
 - `$yabook discuss`: analisa uma ideia, decisão ou mudança sem alterar estado.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook steps`: acompanha uma sequência com checklist durante a conversa.
@@ -319,32 +320,16 @@ A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issue
 
 ### Como usar `$yabook load`
 
-Você não precisa executar `$yabook load` no início da conversa.
+Você não precisa executar `$yabook load` no início da conversa. A skill identifica
+primeiro o comando e carrega somente o contexto necessário para ele.
 
-No primeiro comando operacional `$yabook`, a skill carrega automaticamente:
+Use `$yabook load` quando quiser atualizar explicitamente o repositório, branch,
+remote, regras locais e resumo do worktree mantidos na conversa. O comando não
+antecipa formatos de issue, PR, release ou planejamento.
 
-- cache operacional de `session.md`;
-- repositório correspondente ao workspace ativo;
-- `AGENTS.md` local;
-- branch e estado do Git.
-
-Depois, executa o comando solicitado sem responder com um bloco separado de
-load. `$yabook help` é a única exceção e pode funcionar sem contexto local.
-
-Use `$yabook load` manualmente quando mudar de repositório ou branch, quando as
-regras locais forem alteradas ou quando quiser atualizar o cache da conversa.
-
-Durante o carregamento, a IA deve:
-
-1. ler o cache da skill;
-2. resolver a raiz primeiro pelo workspace da IDE e pelos arquivos ativos;
-3. considerar depois o repositório mencionado, o contexto confirmado e, por
-   último, o `cwd`;
-4. localizar `.git`, ler `AGENTS.md` e conferir `git remote -v`;
-5. confirmar que o remote corresponde ao projeto ativo;
-6. usar essa raiz como diretório de trabalho em todos os comandos;
-7. conferir branch e estado do Git;
-8. responder com um resumo curto do padrão carregado.
+Durante o carregamento, a IA deve resolver a raiz pelo workspace da IDE e
+arquivos ativos, validar `.git`, regras locais e remote, conferir branch e estado
+do Git e responder com um resumo curto.
 
 Quando workspace, arquivos ativos, repositório mencionado, contexto, `cwd` ou
 remote apontarem para projetos diferentes, a skill não altera arquivos, Git ou
@@ -352,12 +337,11 @@ GitHub. Ela informa a divergência e pede confirmação do repositório correto.
 O `cwd` é somente um candidato técnico e nunca prevalece sobre evidências claras
 do workspace ativo.
 
-Depois disso, para comandos rotineiros como `$yabook issue`, `$yabook issue classify`, `$yabook branch name`, `$yabook commit message`, `$yabook pr`, `$yabook release` e `$yabook status`, a IA deve usar o cache carregado sem reler os arquivos do YABook toda vez.
+Depois disso, cada comando carrega sua própria referência curta e reutiliza
+somente o contexto local ainda válido. Git e GitHub são consultados apenas quando
+o resultado depender do estado atual.
 
-Mesmo após o load, a IA ainda deve consultar o repositório quando precisar entender alterações reais, validar GitHub, executar `$yabook do`, revisar conformidade ou resolver dúvida que o cache não cobre.
-
-O cache vale apenas para a conversa atual. Em uma nova conversa, o primeiro
-comando operacional executa outro carregamento automático.
+O contexto vale apenas para a conversa atual.
 
 ### Como encadear comandos
 
@@ -373,7 +357,8 @@ $yabook load & issue classify & branch name
 
 A IA deve executar da esquerda para a direita, reaproveitar o contexto entre os comandos e responder em blocos curtos.
 
-Se `load` aparecer no encadeamento, o cache carregado passa a valer para os comandos seguintes.
+Se `load` aparecer no encadeamento, o contexto mínimo coletado pode ser
+reutilizado pelos comandos seguintes.
 
 ### Como usar `$yabook do`
 

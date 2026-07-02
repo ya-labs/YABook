@@ -5,7 +5,7 @@ Use esta referência para qualquer comando `$yabook help`.
 ## Princípios
 
 - Help nunca executa comandos nem altera estado.
-- Não faça o carregamento automático do repositório para responder help.
+- Não resolva nem carregue o repositório para responder help.
 - Explique somente o tópico ou objetivo solicitado.
 - Entregue exemplos prontos para copiar.
 - Diferencie comandos somente leitura de comandos iniciados por `do`.
@@ -28,7 +28,7 @@ decisão ou escrita.
 
 `$yabook help` retorna um índice curto agrupado por finalidade:
 
-- contexto: `load`, `status`, `diagnose`;
+- contexto: `load`, `status`, `diagnose [full]`;
 - inicialização e planejamento: `init`, `discuss`, `plan`;
 - acompanhamento da conversa: `steps`;
 - modos de colaboração: `mode`;
