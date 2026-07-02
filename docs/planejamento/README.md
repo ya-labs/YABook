@@ -6,6 +6,7 @@ YABook. Andamento, responsáveis e bloqueios continuam no GitHub.
 ## Capacidades
 
 - [Preparação de APKs](preparacao-de-apks.md)
+- [Eficiência de contexto da YABook Skill](eficiencia-de-contexto.md)
 
 ## Roadmap
 
@@ -14,3 +15,4 @@ YABook. Andamento, responsáveis e bloqueios continuam no GitHub.
 ## Sessões
 
 - [2026-07-01 — Preparação de APKs](sessoes/2026-07-01-preparacao-de-apks.md)
+- [2026-07-02 — Eficiência de contexto da YABook Skill](sessoes/2026-07-02-eficiencia-de-contexto.md)
