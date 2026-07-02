@@ -1,7 +1,7 @@
 # Gramática e aliases YABook
 
 Use somente quando houver alias, encadeamento ou dúvida de gramática. Comandos
-explícitos conhecidos seguem direto para `contexto.md`.
+explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`.
 
 ## Famílias
 

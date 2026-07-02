@@ -31,3 +31,24 @@ cada entrega permanece no GitHub.
 Apenas a etapa 1 pertence ao Project do YABook. A etapa 2 deve ser uma issue no
 repositório e no Project da organização responsável pelo aplicativo, pois possui
 contexto, riscos e validações próprios.
+
+## Eficiência de contexto da YABook Skill
+
+### 1. Auditar os comandos
+
+- Mapear contexto mínimo, referências, inspeções e saídas por rota.
+- Identificar carregamentos redundantes e custos que pertencem à plataforma.
+- Registrar uma linha de base comparável para comandos simples e complexos.
+
+### 2. Reduzir o carregamento padrão
+
+- Encaminhar comandos explícitos diretamente à referência necessária.
+- Reservar a matriz geral para ambiguidades e composição.
+- Criar um caminho rápido para demandas já delimitadas.
+- Limitar inspeções e saídas sem reduzir as travas de segurança.
+
+### 3. Proteger contra regressões
+
+- Definir orçamento aproximado por classe de comando.
+- Criar cenários que verifiquem referências e ampliações permitidas.
+- Comparar o resultado com a linha de base da issue #39.

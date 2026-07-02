@@ -11,8 +11,9 @@ numero-descricao-curta
 Não inclua tipo, área, `issue`, `#`, acentos ou espaços. Use o número da issue
 inequívoca e a base definida pelo fluxo local.
 
-Criação real exige `do branch` ou `dev`, `github.md` e `git.md`. Prefira
-`createLinkedBranch` e confirme em `issue.linkedBranches`.
+Criação real exige `do branch` ou `dev`, `github/branches.md`,
+`git/checkpoint.md` e `git/mutacoes.md`. Prefira `createLinkedBranch` e confirme
+em `issue.linkedBranches`.
 
 ## Commit
 

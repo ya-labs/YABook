@@ -1,0 +1,32 @@
+{
+  "help_general": {
+    "max_references": 1,
+    "max_commands": 0,
+    "max_output_chars": 0,
+    "max_rounds": 1
+  },
+  "artifact_with_context": {
+    "max_references": 1,
+    "max_commands": 0,
+    "max_output_chars": 0,
+    "max_rounds": 1
+  },
+  "plan_start_delimited": {
+    "max_references": 1,
+    "max_commands": 1,
+    "max_output_chars": 4000,
+    "max_rounds": 2
+  },
+  "dev_ready": {
+    "max_references": 2,
+    "max_commands": 12,
+    "max_output_chars": 12000,
+    "max_rounds": 5
+  },
+  "do_pr": {
+    "max_references": 4,
+    "max_commands": 14,
+    "max_output_chars": 16000,
+    "max_rounds": 7
+  }
+}

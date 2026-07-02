@@ -13,17 +13,29 @@ quando outro comando encadeado autorizar essas entregas.
 
 ## Descoberta da demanda
 
-1. Resolva o repositório ativo por `workspace.md` e valide seu remote.
-2. Use a raiz resolvida como `workdir`; não consulte primeiro o `cwd`.
-3. Atualize o estado desse repositório e do GitHub correspondente.
+1. Reutilize workspace, branch, issue e regras locais ainda válidos na conversa.
+2. Se o workspace não estiver resolvido, aplique `workspace.md` e valide o remote.
+3. Faça uma única inspeção inicial conforme `git/checkpoint.md`.
 4. Identifique a issue pela conversa, branch ou referência explícita.
-5. Confirme objetivo, escopo e critérios de aceite.
-6. Se mais de uma issue for plausível, peça a escolha.
-7. Se não houver issue, pare e indique `$yabook do: issue`.
+5. Confirme objetivo, escopo e critérios de aceite com o contexto disponível.
+6. Consulte GitHub somente quando faltar informação da issue, vínculo, status
+   ou preparação da branch.
+7. Se mais de uma issue for plausível, peça a escolha.
+8. Se não houver issue, pare e indique `$yabook do: issue`.
 
 Não crie uma issue silenciosamente.
 Se workspace, branch e issue apontarem para repositórios incompatíveis,
 interrompa antes de qualquer escrita.
+
+### Caminho rápido
+
+Quando workspace, issue, branch e demanda já estiverem inequívocos:
+
+- não consulte `contexto.md`, GitHub, memória ou documentação geral;
+- leia somente instruções e arquivos diretamente relacionados à mudança;
+- use buscas direcionadas antes de abrir documentos;
+- edite em uma rodada e valide em outra, salvo falha ou descoberta relevante;
+- justifique qualquer ampliação além desse caminho.
 
 ## Preparação automática
 
@@ -39,7 +51,7 @@ Quando houver issue inequívoca, `dev` autoriza:
 - executar testes, validações e correções da implementação.
 
 Use branch `numero-descricao-curta`. Não misture issues na mesma branch.
-Ao criar a branch, aplique o fluxo nativo descrito em `github.md`: use
+Ao criar a branch, aplique `github/branches.md`: use
 `createLinkedBranch`, confirme o nome em `issue.linkedBranches` e só então
 prepare o tracking local. Se o vínculo nativo não estiver disponível, informe o
 fallback manual sem apresentar a branch apenas publicada como vinculada.
