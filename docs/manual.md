@@ -137,7 +137,9 @@ Comandos principais:
 - `$yabook mode`: define como a IA deve colaborar: estudo, mentoria ou execução.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
-- `$yabook do`: executa a ação pedida, como init, plan, sync, issue, branch, PR, release ou merge.
+- `$yabook apk`: valida o contexto e mostra como o APK será preparado, sem executar build.
+- `$yabook do apk`: executa um build novo e prepara o APK com nome rastreável.
+- `$yabook do`: executa a ação pedida, como init, plan, sync, apk, issue, branch, PR, release ou merge.
 - `$yabook dev`: prepara, implementa e valida a issue atual.
 - `$yabook issue`: gera título e descrição de issue.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
@@ -148,6 +150,38 @@ Comandos principais:
 - `$yabook docs`: indica onde documentar uma informação.
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
+
+### Como preparar um APK
+
+O aplicativo adotante mantém `.yabook/apk.json`:
+
+```json
+{
+  "appName": "YApp",
+  "buildCommand": "<comando de build do aplicativo>",
+  "artifactPath": "<caminho relativo do APK gerado>"
+}
+```
+
+Confira primeiro a prévia:
+
+```text
+$yabook apk
+```
+
+Para executar um build novo e preparar o arquivo padronizado:
+
+```text
+$yabook do apk
+```
+
+O APK preparado fica ao lado do artefato original. Issue e `dev` usam o commit
+curto no nome; release usa a versão. Worktree sujo, branch incompatível,
+configuração inválida, build com falha, artefato antigo e sobrescrita são
+bloqueados.
+
+O upload e os caminhos corporativos permanecem no ambiente local e não fazem
+parte do comando.
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 

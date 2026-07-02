@@ -1,6 +1,6 @@
 # Sessão de planejamento — preparação de APKs
 
-Data: 2026-07-01  
+Data: 2026-07-01
 Rastreabilidade: issue #36
 
 ## Contexto
@@ -22,7 +22,8 @@ comercial sem incorporar detalhes internos de cada produto ao YABook.
 ## Pendências
 
 - Criar uma issue para implementar os comandos e validações no YABook.
-- Criar outra issue no primeiro aplicativo adotante.
+- Criar a issue de adoção no repositório e no Project da organização
+  responsável pelo primeiro aplicativo adotante.
 - Definir critérios técnicos para reconhecer que o artefato pertence ao build
   atual durante a implementação.
 

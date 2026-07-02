@@ -9,6 +9,7 @@ explícitos conhecidos seguem direto para `contexto.md`.
 - planejamento: `diagnose [full]`, `discuss`, `plan start|status|next|review|roadmap`;
 - conversa: `steps`, `mode`, `def mode`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
+- artefatos Android: `apk`, `do apk`;
 - execução: `do <ação>`, `dev`, `bypass <ação>`, `continue`, `sync`.
 
 Subcomandos textuais:

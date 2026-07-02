@@ -53,6 +53,7 @@ Arquivos principais:
 | `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
 | `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
+| `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
 
 ## Fluxo de execução
 
@@ -166,9 +167,11 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook def mode <modo> for <área>` | Define modo de colaboração por área do projeto. |
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
+| `$yabook apk` | Valida a configuração e mostra a prévia do APK sem executar build. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |
 | `$yabook check` | Verifica conformidade com YABook para branch, issue, PR, documentação ou fluxo informado. |
-| `$yabook do` | Executa somente a ação pedida: init, plan, sync, issue, branch, PR, release ou merge. |
+| `$yabook do` | Executa somente a ação pedida: init, plan, sync, apk, issue, branch, PR, release ou merge. |
+| `$yabook do apk` | Executa um build novo e prepara o APK com nome rastreável. |
 | `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
 | `$yabook dev` | Prepara, implementa e valida a issue atual. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
