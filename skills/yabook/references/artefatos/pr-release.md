@@ -37,7 +37,8 @@ Corpo: objetivo, entrega, issue, mudanças, validações e observações. A tag 
 para o commit integrado na branch principal.
 
 Para conteúdo textual, use issue, diff e commits relevantes. Para criar,
-atualizar, validar ou integrar, carregue também `github.md` e `git.md`.
+atualizar, validar ou integrar, carregue `github/pr-release.md`,
+`git/checkpoint.md` e `git/mutacoes.md`.
 
 No squash merge, use `tipo: descrição (#PR)` e inclua no corpo o histórico da
 branch contra a base.

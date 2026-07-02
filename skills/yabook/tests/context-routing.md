@@ -6,7 +6,7 @@ referências carregadas, fontes consultadas e respeito às travas.
 | Entrada | Rota esperada | Referências iniciais | Não deve carregar |
 | --- | --- | --- | --- |
 | `$yabook help` | `help` | `help.md` | workspace, Git, GitHub |
-| `$yabook mode: study` | `mode` | `modes.md` | workspace, GitHub |
+| `$yabook mode: study` | `mode` | `modes.md`, `modes/study.md` | workspace, GitHub |
 | `$yabook steps` | `steps` | `steps.md` | Git, artefatos |
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
 | `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, planejamento |
@@ -17,7 +17,7 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook plan review` | `plan review` | `planejamento/review.md` | `contexto.md`, issues fechadas |
 | `$yabook diagnose` | `diagnose` | `planejamento/diagnose.md` | `contexto.md`, Project inteiro, corpos em massa |
 | `$yabook diagnose full` | `diagnose full` | `planejamento/diagnose.md` | `contexto.md`, respostas brutas sem filtro |
-| `$yabook dev` | `dev` | `dev.md`, `git.md` | `contexto.md`, release sem relação |
+| `$yabook dev` | `dev` | `dev.md`, `git/checkpoint.md` | `contexto.md`, release sem relação |
 | `$yabook dev & do pr` | `dev` → `do pr` | roteamento e referências das duas rotas | merge |
 
 ## Linguagem natural

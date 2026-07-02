@@ -39,18 +39,18 @@ Arquivos principais:
 | `references/contexto.md` | Matriz de dependências e limites de descoberta por comando. |
 | `references/bypass.md` | Contrato mínimo da exceção para branch incompatível. |
 | `references/artefatos/` | Formatos textuais separados para issue, branch, commit, PR e release. |
-| `references/github.md` | Regras de issue, branch, commit, PR, labels, Project, `Size`, `main`, `dev` e release. |
-| `references/git.md` | Inspeções Git permitidas, trava de mutações e escopo de autorização. |
-| `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
+| `references/github.md` | Índice curto para issues/Projects, branches e PR/release. |
+| `references/git.md` | Índice curto para leitura, checkpoint e mutações Git. |
+| `references/help.md` | Índice geral e roteamento do help contextual. |
 | `references/documentacao.md` | Regras para estrutura documental, Markdown, poda e templates mínimos. |
 | `references/dev.md` | Desenvolvimento orientado pela issue e autorização limitada de implementação. |
-| `references/modes.md` | Modos de colaboração para estudo, desenvolvimento guiado e execução delegada. |
+| `references/modes.md` | Índice dos modos de colaboração. |
 | `references/ia.md` | Contrato operacional para IA e uso econômico de contexto. |
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
 | `references/discuss.md` | Discussões gerais antes de planejar ou executar mudanças. |
 | `references/planejamento/` | Referências separadas para diagnóstico, entrevista, status, revisão, roadmap e persistência. |
-| `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
+| `references/steps.md` | Checklist básico; replanejamento é carregado sob demanda. |
 | `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 | `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
@@ -79,6 +79,11 @@ skill recomenda e facilita o trabalho, mas não infere `do`.
 O agente não deve carregar todo o YABook para qualquer comando. Comandos
 explícitos conhecidos seguem direto para sua referência; `roteamento.md` é
 necessário somente para aliases, encadeamentos ou dúvida de gramática.
+
+Referências amplas de Git, GitHub, help, modos e steps funcionam como índices.
+Depois de identificar a capacidade, o agente carrega somente a subreferência
+necessária. Testes de orçamento usam saída resumida por padrão; `--verbose`
+exibe os detalhes por rota.
 
 Toda resposta YABook termina com uma única `Próxima etapa`. Quando o objetivo
 estiver encerrado, a seção informa que o fluxo foi concluído.

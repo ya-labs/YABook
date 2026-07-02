@@ -20,9 +20,9 @@ explícito: use diretamente a coluna `Referência inicial` já indicada em
 | Rota | Classe | Referência inicial | Contexto mínimo | Ampliação |
 | --- | --- | --- | --- | --- |
 | `help` | instantânea | `help.md` | nenhum | tópico solicitado |
-| `mode` | instantânea | `modes.md` | conversa | regras por área, se citadas |
-| `steps` | instantânea | `steps.md` | checklist da conversa | nenhuma |
-| `continue` | instantânea | `git.md` | checkpoint anterior | Git atual antes de retomar |
+| `mode` | instantânea | `modes.md`, modo solicitado | conversa | regras por área, se citadas |
+| `steps` | instantânea | `steps.md` | checklist da conversa | `steps/replanning.md` diante de desvio |
+| `continue` | instantânea | `git/checkpoint.md` | checkpoint anterior | Git atual antes de retomar |
 | `discuss` | instantânea | `discuss.md` | conversa | repositório somente se o tema exigir fatos |
 | `bypass` | local mínima | `bypass.md` | ação anexada | branch/status apenas se a ação editar |
 | `load` | local mínima | `session-minimo.md`, `workspace.md` | raiz, remote, branch, status | nenhuma |
@@ -30,10 +30,10 @@ explícito: use diretamente a coluna `Referência inicial` já indicada em
 | `branch name` | local mínima | `artefatos/branch-commit.md` | número e título da issue | issue recente somente se faltar na conversa |
 | `commit message` | local mínima | `artefatos/branch-commit.md` | diff atual | diff completo quando o stat for ambíguo |
 | `issue title` | artefato | `artefatos/issue.md` | demanda da conversa | código/docs só para delimitar requisito |
-| `issue`, `issue desc`, `classify` | artefato | `artefatos/issue.md` | demanda e regras locais | `github.md` somente ao validar ou criar |
+| `issue`, `issue desc`, `classify` | artefato | `artefatos/issue.md` | demanda e regras locais | `github/issues-projects.md` ao validar ou criar |
 | `pr title` | artefato | `artefatos/pr-release.md` | issue e diff stat | commits quando o título não for evidente |
-| `pr`, `pr desc` | artefato | `artefatos/pr-release.md` | issue, diff e commits | `github.md` ao criar, atualizar ou revisar |
-| `release` | artefato | `artefatos/pr-release.md` | versão e diff contra base | `github.md` para PRs/tags reais |
+| `pr`, `pr desc` | artefato | `artefatos/pr-release.md` | issue, diff e commits | `github/pr-release.md` ao criar, atualizar ou revisar |
+| `release` | artefato | `artefatos/pr-release.md` | versão e diff contra base | `github/pr-release.md` para PRs/tags reais |
 | `docs` | artefato | `documentacao.md` | informação solicitada | árvore/documentos equivalentes |
 | `init` | contextual | `init.md`, `workspace.md` | estrutura e regras locais | documentos indicados por `init.md` |
 | `check`, `review` | contextual | referência do artefato | artefato alvo | fontes normativas aplicáveis |
@@ -45,11 +45,11 @@ explícito: use diretamente a coluna `Referência inicial` já indicada em
 | `plan status`, `plan next` | planejamento | `planejamento/status-next.md` | documentos de planejamento | GitHub se alterar a conclusão |
 | `plan review` | planejamento | `planejamento/review.md` | visão, versão e roadmap | arquitetura/ADRs relacionados |
 | `plan roadmap` | planejamento | `planejamento/roadmap.md` | plano aprovado e metadados GitHub | issues com equivalência incerta |
-| `do plan` | execução | `planejamento/persistencia.md`, `git.md` | decisões e rastreabilidade | documentos equivalentes |
-| `do plan roadmap` | execução | `planejamento/roadmap.md`, `github.md` | proposta e GitHub atual | conflitos item a item |
-| `dev` | execução | `dev.md`, `git.md` | issue, branch, worktree | código e docs do escopo |
-| `do apk` | execução | `apk.md`, `git.md` | configuração, branch, worktree e artefato | nenhuma |
-| `do <artefato>` | execução | referência do artefato e `git.md` quando aplicável | autorização e estado atual | pré-requisitos mínimos |
+| `do plan` | execução | `planejamento/persistencia.md`, `git/checkpoint.md` | decisões e rastreabilidade | `git/mutacoes.md` quando alterar Git |
+| `do plan roadmap` | execução | `planejamento/roadmap.md`, `github/issues-projects.md` | proposta e GitHub atual | conflitos item a item |
+| `dev` | execução | `dev.md`, `git/checkpoint.md` | issue, branch, worktree | código e docs do escopo |
+| `do apk` | execução | `apk.md`, `git/checkpoint.md` | configuração, branch, worktree e artefato | `git/mutacoes.md` quando necessário |
+| `do <artefato>` | execução | referência do artefato e capacidades específicas | autorização e estado atual | pré-requisitos mínimos |
 
 As referências da tabela são carregadas diretamente. `contexto.md` não faz parte
 do conjunto inicial de nenhuma rota.

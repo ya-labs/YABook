@@ -15,7 +15,7 @@ quando outro comando encadeado autorizar essas entregas.
 
 1. Reutilize workspace, branch, issue e regras locais ainda válidos na conversa.
 2. Se o workspace não estiver resolvido, aplique `workspace.md` e valide o remote.
-3. Faça uma única inspeção inicial de branch, status, diffs e último commit.
+3. Faça uma única inspeção inicial conforme `git/checkpoint.md`.
 4. Identifique a issue pela conversa, branch ou referência explícita.
 5. Confirme objetivo, escopo e critérios de aceite com o contexto disponível.
 6. Consulte GitHub somente quando faltar informação da issue, vínculo, status
@@ -51,7 +51,7 @@ Quando houver issue inequívoca, `dev` autoriza:
 - executar testes, validações e correções da implementação.
 
 Use branch `numero-descricao-curta`. Não misture issues na mesma branch.
-Ao criar a branch, aplique o fluxo nativo descrito em `github.md`: use
+Ao criar a branch, aplique `github/branches.md`: use
 `createLinkedBranch`, confirme o nome em `issue.linkedBranches` e só então
 prepare o tracking local. Se o vínculo nativo não estiver disponível, informe o
 fallback manual sem apresentar a branch apenas publicada como vinculada.

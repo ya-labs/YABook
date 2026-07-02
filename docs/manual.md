@@ -377,6 +377,11 @@ reutiliza somente o contexto local ainda válido. A matriz geral é reservada pa
 ambiguidade, auditoria ou revisão do carregamento. Git e GitHub são consultados
 apenas quando o resultado depender do estado atual.
 
+Referências amplas são divididas por capacidade. Por exemplo, uma inspeção Git
+não carrega regras de merge, e uma issue não carrega regras de PR ou release.
+As validações de orçamento mostram apenas um resumo; use `--verbose` para
+detalhar todas as rotas.
+
 O contexto vale apenas para a conversa atual.
 
 ### Como encadear comandos

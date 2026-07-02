@@ -62,3 +62,7 @@ Metas adicionais:
 - demanda delimitada não consulta GitHub, memória ou documentação geral;
 - execução começa com uma inspeção e termina com uma validação por padrão;
 - toda ampliação acima do orçamento registra a dependência que a justificou.
+
+As referências de Git, GitHub, help, modos e steps foram divididas por
+capacidade. O teste verifica tamanho e quantidade máxima de referências por
+rota, com saída detalhada somente em `--verbose`.

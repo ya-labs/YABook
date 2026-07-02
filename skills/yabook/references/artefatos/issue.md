@@ -35,5 +35,5 @@ quando `Size` for `5`.
 - `4`: tarefa grande com várias partes;
 - `5`: alta incerteza; proponha divisão.
 
-Para criar ou validar no GitHub, carregue também `github.md` e confira labels,
+Para criar ou validar, carregue `github/issues-projects.md` e confira labels,
 Project, campos e itens equivalentes reais.
