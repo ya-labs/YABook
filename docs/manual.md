@@ -328,6 +328,11 @@ implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
 O vínculo da branch é confirmado por leitura na própria issue; publicar uma
 branch no remoto, isoladamente, não conta como vínculo concluído.
 
+Ao concluir, a resposta inclui `Como testar` com pré-requisitos, comandos,
+passos manuais e resultados esperados aplicáveis à alteração. Ela também
+diferencia o que já foi validado pelo agente do que ainda precisa ser conferido
+pela pessoa.
+
 Para entregar:
 
 ```text

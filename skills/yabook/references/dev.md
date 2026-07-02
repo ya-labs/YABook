@@ -58,6 +58,26 @@ fallback manual sem apresentar a branch apenas publicada como vinculada.
 Interrompa diante de decisão pendente, conflito, risco relevante, dependência
 externa ou critério de aceite impossível de validar.
 
+## Orientação de teste
+
+Ao concluir a implementação, toda execução de `dev` deve apresentar uma seção
+`Como testar` com passos específicos para a alteração realizada.
+
+Inclua, quando aplicável:
+
+1. pré-requisitos para executar a validação;
+2. comandos de testes automatizados;
+3. ações manuais em ordem;
+4. resultado esperado em cada verificação relevante.
+
+Diferencie testes executados pelo agente das verificações que ainda dependem da
+pessoa. Não repita comandos que já falharam como se fossem válidos e não invente
+um procedimento sem evidência no projeto. Quando não houver teste aplicável,
+informe o motivo explicitamente.
+
+Essa orientação é obrigatória também quando `dev` estiver encadeado com outro
+comando. Ela não autoriza executar ações fora do escopo da issue.
+
 ## Composição
 
 Execute comandos encadeados da esquerda para a direita, reaproveitando o estado:

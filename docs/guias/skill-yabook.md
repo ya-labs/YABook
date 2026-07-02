@@ -239,6 +239,10 @@ Ele identifica a demanda, prepara e vincula a branch, atualiza o status,
 implementa e valida. Não cria issue silenciosamente e para diante de ambiguidade
 ou decisão pendente.
 
+Ao concluir, apresenta `Como testar` com instruções específicas para a mudança,
+separando as validações já executadas das verificações manuais pendentes. Quando
+não houver teste aplicável, informa o motivo.
+
 ```text
 $yabook dev
 $yabook dev & do pr
