@@ -372,9 +372,10 @@ GitHub. Ela informa a divergência e pede confirmação do repositório correto.
 O `cwd` é somente um candidato técnico e nunca prevalece sobre evidências claras
 do workspace ativo.
 
-Depois disso, cada comando carrega sua própria referência curta e reutiliza
-somente o contexto local ainda válido. Git e GitHub são consultados apenas quando
-o resultado depender do estado atual.
+Depois disso, cada comando carrega diretamente sua própria referência curta e
+reutiliza somente o contexto local ainda válido. A matriz geral é reservada para
+ambiguidade, auditoria ou revisão do carregamento. Git e GitHub são consultados
+apenas quando o resultado depender do estado atual.
 
 O contexto vale apenas para a conversa atual.
 

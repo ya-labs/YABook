@@ -11,7 +11,7 @@ regras de comandos ainda não solicitados.
 6. Guarde somente raiz, remote, branch, regras locais e resumo do worktree.
 
 Não leia `github.md`, `git.md`, formatos de artefatos ou planejamento durante o
-load. A rota posterior carrega sua referência conforme `contexto.md`.
+load. A rota posterior carrega diretamente sua referência conforme `SKILL.md`.
 
 Atualize o contexto quando mudar workspace, branch, remote, arquivos ativos ou
 regras locais. Confirme Git e GitHub novamente quando o comando depender do

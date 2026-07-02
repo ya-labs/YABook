@@ -1,13 +1,16 @@
 # Matriz de carregamento de contexto
 
-Consulte esta referência depois de identificar a rota. Comece pela coluna
-`Referência` e amplie apenas diante das condições indicadas.
+Use esta referência para auditar dependências, revisar orçamento ou resolver
+ambiguidade entre rotas. Não a carregue durante a execução normal de um comando
+explícito: use diretamente a coluna `Referência inicial` já indicada em
+`SKILL.md`.
 
 ## Princípios
 
 - Metadados antes de corpos completos.
 - Conversa antes de nova consulta.
 - Não releia instruções já disponíveis e ainda válidas.
+- Uma inspeção inicial e uma validação final por padrão.
 - Workspace e `AGENTS.md` somente para rotas dependentes do repositório.
 - Git e GitHub somente quando o resultado depender do estado atual.
 - Pare quando houver evidência suficiente para responder com segurança.
@@ -48,6 +51,9 @@ Consulte esta referência depois de identificar a rota. Comece pela coluna
 | `do apk` | execução | `apk.md`, `git.md` | configuração, branch, worktree e artefato | nenhuma |
 | `do <artefato>` | execução | referência do artefato e `git.md` quando aplicável | autorização e estado atual | pré-requisitos mínimos |
 
+As referências da tabela são carregadas diretamente. `contexto.md` não faz parte
+do conjunto inicial de nenhuma rota.
+
 ## Limites de descoberta
 
 No primeiro passe de `diagnose`, `roadmap`, `check` ou `review`:
@@ -62,15 +68,20 @@ No primeiro passe de `diagnose`, `roadmap`, `check` ou `review`:
 `diagnose full` permite ampliar esses limites, mas ainda deve filtrar respostas,
 evitar corpos irrelevantes e resumir cada lote antes do próximo.
 
-## Metas comparativas
+## Orçamento de instruções
 
 | Classe | Meta aproximada de instruções |
 | --- | ---: |
 | instantânea | até 3.000 tokens |
 | local mínima | até 3.000 tokens |
-| artefato | até 5.000 tokens |
-| planejamento dirigido | até 8.000 tokens |
-| execução ou diagnóstico completo | proporcional ao escopo |
+| artefato | até 3.000 tokens antes de consultar fontes externas |
+| planejamento dirigido | até 3.000 tokens antes de ampliar descoberta |
+| execução | até 4.000 tokens antes de ler o conteúdo da demanda |
+| diagnóstico completo | proporcional ao escopo confirmado |
 
 Use caracteres divididos por quatro apenas como indicador comparativo. Não
 apresente essa aproximação como medição exata do plano do usuário.
+
+Quando uma rota ultrapassar o orçamento inicial, registre qual dependência
+justifica a ampliação. Histórico da conversa, instruções da plataforma e
+conteúdo da própria demanda ficam fora dessa estimativa.

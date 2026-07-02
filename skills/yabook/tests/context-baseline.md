@@ -49,3 +49,16 @@ Além do tamanho, valide:
 - as travas Git/GitHub permanecem;
 - contexto aumenta somente quando falta evidência;
 - comandos complexos preservam profundidade sob demanda.
+
+## Evolução da issue #43
+
+A matriz deixou de ser um pedágio obrigatório. Comandos explícitos carregam
+diretamente sua referência; `contexto.md` fica restrito a auditoria, revisão do
+carregamento e ambiguidade entre rotas.
+
+Metas adicionais:
+
+- rota explícita não inclui `contexto.md` no conjunto inicial;
+- demanda delimitada não consulta GitHub, memória ou documentação geral;
+- execução começa com uma inspeção e termina com uma validação por padrão;
+- toda ampliação acima do orçamento registra a dependência que a justificou.

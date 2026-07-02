@@ -12,19 +12,20 @@ Roteie o Método YA LABS usando o Handbook como fonte normativa sob demanda.
 1. Identifique o comando, alias ou intenção antes de carregar referências.
 2. Consulte [roteamento.md](references/roteamento.md) somente para aliases,
    encadeamentos ou dúvida de gramática; comandos explícitos conhecidos seguem
-   direto para a matriz.
+   direto para sua referência.
 3. Em linguagem natural, correção de comando ou composição, leia
    [orquestracao.md](references/orquestracao.md).
 4. `help`, `mode`, `steps`, `discuss` e `bypass` usam sua referência direta.
-   As demais rotas consultam [contexto.md](references/contexto.md).
+   As demais rotas explícitas também usam diretamente a referência indicada
+   abaixo. Consulte [contexto.md](references/contexto.md) somente para auditar
+   dependências, resolver ambiguidade entre rotas ou revisar o carregamento.
 5. Resolva [workspace.md](references/workspace.md) somente quando a rota depender
    do projeto. Workspace e arquivos ativos prevalecem sobre `cwd`.
 6. Leia `AGENTS.md` apenas quando suas regras ainda não estiverem disponíveis.
 7. Amplie o contexto somente quando faltar evidência.
 8. Responda em português do Brasil, de forma curta e prática.
 
-Não carregue um cache monolítico automaticamente. `$yabook load` apenas atualiza
-o contexto mínimo do repositório conforme
+`$yabook load` apenas atualiza o contexto mínimo do repositório conforme
 [session-minimo.md](references/session-minimo.md).
 
 ## Segurança
@@ -40,6 +41,11 @@ o contexto mínimo do repositório conforme
 - Execute somente o objetivo autorizado. Merge exige pedido explícito.
 - Antes de editar, atualize status, diffs staged/unstaged e último commit. Se
   houver outro bloco concluído, aplique o checkpoint de `git.md`.
+- Reutilize contexto válido. Consulte memória, GitHub ou documentos adicionais
+  somente diante de lacuna concreta.
+- Por padrão, faça uma inspeção inicial e uma validação final; amplie diante de
+  erro, ambiguidade ou risco.
+- Limite buscas e saídas aos trechos necessários.
 - Não invente fatos, requisitos ou decisões.
 
 ## Referências por capacidade

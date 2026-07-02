@@ -62,8 +62,9 @@ Quando a pessoa usuária invoca `$yabook`, o agente deve:
 1. Ler `skills/yabook/SKILL.md`.
 2. Identificar o comando, alias ou intenção; consultar `roteamento.md` somente
    para aliases, encadeamentos ou dúvida de gramática.
-3. Consultar `references/contexto.md`.
-4. Ler apenas a referência indicada para a rota.
+3. Ler diretamente a referência indicada para a rota.
+4. Consultar `references/contexto.md` apenas para ambiguidade, auditoria ou
+   revisão do carregamento.
 5. Resolver workspace, regras locais e estado somente quando o comando depender deles.
 6. Aplicar o padrão YABook ou apontar divergência.
 7. Entregar o artefato pronto, a ação executada ou a checagem objetiva.
@@ -76,8 +77,8 @@ O usuário continua responsável por produto, escopo, prioridades e decisões. A
 skill recomenda e facilita o trabalho, mas não infere `do`.
 
 O agente não deve carregar todo o YABook para qualquer comando. Comandos
-explícitos conhecidos seguem direto para a matriz; `roteamento.md` é necessário
-somente para aliases, encadeamentos ou dúvida de gramática.
+explícitos conhecidos seguem direto para sua referência; `roteamento.md` é
+necessário somente para aliases, encadeamentos ou dúvida de gramática.
 
 Toda resposta YABook termina com uma única `Próxima etapa`. Quando o objetivo
 estiver encerrado, a seção informa que o fluxo foi concluído.
@@ -342,9 +343,8 @@ O comando `$yabook issue classify` deve retornar:
 
 ## Carregamento progressivo e `$yabook load`
 
-O primeiro comando não carrega uma sessão completa. A skill reconhece a rota,
-consulta `references/contexto.md` e busca apenas as instruções e evidências
-necessárias.
+O primeiro comando não carrega uma sessão completa. A skill reconhece a rota e
+busca diretamente apenas as instruções e evidências necessárias.
 
 Comandos instantâneos, como `help`, `mode` e `steps`, não resolvem repositório.
 Comandos locais consultam somente workspace e estado mínimo. Artefatos,

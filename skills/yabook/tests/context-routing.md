@@ -9,15 +9,15 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook mode: study` | `mode` | `modes.md` | workspace, GitHub |
 | `$yabook steps` | `steps` | `steps.md` | Git, artefatos |
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
-| `$yabook branch` | `branch name` | `roteamento.md`, `contexto.md`, `artefatos/branch-commit.md` | planejamento |
-| `$yabook issue` | `issue` | `contexto.md`, `artefatos/issue.md` | planejamento, PRs não relacionados |
-| `$yabook commit msg` | `commit message` | `roteamento.md`, `contexto.md`, `artefatos/branch-commit.md` | Project |
-| `$yabook desejo saber a próxima etapa` | `plan next` | `orquestracao.md`, `contexto.md`, `planejamento/status-next.md` | diagnóstico completo |
-| `$yabook plan start v1` | `plan start v1` | `contexto.md`, `planejamento/start.md` | GitHub completo |
-| `$yabook plan review` | `plan review` | `contexto.md`, `planejamento/review.md` | issues fechadas |
-| `$yabook diagnose` | `diagnose` | `contexto.md`, `planejamento/diagnose.md` | Project inteiro, corpos em massa |
-| `$yabook diagnose full` | `diagnose full` | `contexto.md`, `planejamento/diagnose.md` | respostas brutas sem filtro |
-| `$yabook dev` | `dev` | `contexto.md`, `dev.md`, `git.md` | release sem relação |
+| `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, planejamento |
+| `$yabook issue` | `issue` | `artefatos/issue.md` | `contexto.md`, planejamento, PRs não relacionados |
+| `$yabook commit msg` | `commit message` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, Project |
+| `$yabook desejo saber a próxima etapa` | `plan next` | `orquestracao.md`, `planejamento/status-next.md` | `contexto.md`, diagnóstico completo |
+| `$yabook plan start v1` | `plan start v1` | `planejamento/start.md` | `contexto.md`, GitHub completo |
+| `$yabook plan review` | `plan review` | `planejamento/review.md` | `contexto.md`, issues fechadas |
+| `$yabook diagnose` | `diagnose` | `planejamento/diagnose.md` | `contexto.md`, Project inteiro, corpos em massa |
+| `$yabook diagnose full` | `diagnose full` | `planejamento/diagnose.md` | `contexto.md`, respostas brutas sem filtro |
+| `$yabook dev` | `dev` | `dev.md`, `git.md` | `contexto.md`, release sem relação |
 | `$yabook dev & do pr` | `dev` → `do pr` | roteamento e referências das duas rotas | merge |
 
 ## Linguagem natural
@@ -66,3 +66,13 @@ Confirme que:
 - autorização não vaza para outro segmento;
 - falha em um segmento só bloqueia dependentes;
 - `do pr` não autoriza merge.
+
+## Caminho rápido de desenvolvimento
+
+Com workspace, issue, branch e escopo já disponíveis na conversa, confirme que
+`$yabook dev`:
+
+- faz uma única inspeção inicial;
+- não consulta GitHub, memória, `contexto.md` ou documentação geral;
+- abre somente arquivos ligados à demanda;
+- faz uma validação final, salvo falha que exija ampliação.
