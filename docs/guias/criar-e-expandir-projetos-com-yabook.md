@@ -15,14 +15,13 @@ confirmação comum não é suficiente.
 `$yabook bypass <ação>` autoriza a ação anexada fora do fluxo de issue/branch,
 mas não substitui `do` para executar comandos YABook.
 
-## Carregamento automático
+## Carregamento progressivo
 
-O primeiro comando operacional `$yabook` da conversa carrega automaticamente o
-cache da skill, o `AGENTS.md` local e o estado do Git. Não é necessário executar
-`$yabook load` antes.
+O primeiro comando identifica sua rota e carrega somente as referências e fontes
+necessárias. Comandos informativos não consultam o repositório sem necessidade.
 
-Use `$yabook load` apenas para atualizar o contexto depois de mudar de
-repositório, branch ou regras locais.
+Use `$yabook load` para atualizar explicitamente workspace, remote, branch,
+regras locais e resumo do worktree.
 
 Se não souber qual fluxo usar, descreva o objetivo no help:
 

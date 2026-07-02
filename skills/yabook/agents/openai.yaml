@@ -1,7 +1,7 @@
 interface:
   display_name: "YABook"
-  short_description: "Orquestrador inteligente do Método YA LABS"
-  default_prompt: "Use $yabook como orquestrador inteligente do Método YA LABS. Interprete intenções, respeite modos de colaboração e cumpra objetivos completos; $yabook dev autoriza implementar a issue e $yabook do autoriza entregas como PR e merge."
+  short_description: "Orquestrador progressivo do Método YA LABS"
+  default_prompt: "Use $yabook para interpretar a intenção, selecionar a menor rota segura e carregar somente o contexto necessário. Preserve linguagem natural, travas de Git e autorizações explícitas."
 
 policy:
   allow_implicit_invocation: true

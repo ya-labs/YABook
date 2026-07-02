@@ -33,9 +33,12 @@ Arquivos principais:
 
 | Arquivo | Função |
 | --- | --- |
-| `SKILL.md` | Entrada da skill. Define gatilhos, workflow obrigatório, padrões centrais e regras de saída. |
+| `SKILL.md` | Roteador semântico enxuto, segurança central e regras de saída. |
 | `agents/openai.yaml` | Metadados para agentes que usam manifesto YAML. |
-| `references/commands.md` | Lista de comandos, aliases, roteamento e formato de saída esperado. |
+| `references/roteamento.md` | Gramática, aliases e comandos encadeados. |
+| `references/contexto.md` | Matriz de dependências e limites de descoberta por comando. |
+| `references/bypass.md` | Contrato mínimo da exceção para branch incompatível. |
+| `references/artefatos/` | Formatos textuais separados para issue, branch, commit, PR e release. |
 | `references/github.md` | Regras de issue, branch, commit, PR, labels, Project, `Size`, `main`, `dev` e release. |
 | `references/git.md` | Inspeções Git permitidas, trava de mutações e escopo de autorização. |
 | `references/help.md` | Help geral, ajuda por comando/família e orientação por objetivo. |
@@ -46,9 +49,9 @@ Arquivos principais:
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
 | `references/discuss.md` | Discussões gerais antes de planejar ou executar mudanças. |
-| `references/planejamento.md` | Diagnóstico, entrevista, discussão, documentos de versão e roadmap. |
+| `references/planejamento/` | Referências separadas para diagnóstico, entrevista, status, revisão, roadmap e persistência. |
 | `references/steps.md` | Checklist temporário e acompanhamento de etapas na conversa. |
-| `references/session.md` | Comportamento esperado do `$yabook load`. |
+| `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 
 ## Fluxo de execução
@@ -56,10 +59,11 @@ Arquivos principais:
 Quando a pessoa usuária invoca `$yabook`, o agente deve:
 
 1. Ler `skills/yabook/SKILL.md`.
-2. Identificar o comando ou alias em `references/commands.md`.
-3. Ler apenas as referências necessárias para o comando.
-4. Conferir `AGENTS.md` local quando existir.
-5. Conferir estado do repositório quando o comando depende de trabalho atual.
+2. Identificar o comando, alias ou intenção; consultar `roteamento.md` somente
+   para aliases, encadeamentos ou dúvida de gramática.
+3. Consultar `references/contexto.md`.
+4. Ler apenas a referência indicada para a rota.
+5. Resolver workspace, regras locais e estado somente quando o comando depender deles.
 6. Aplicar o padrão YABook ou apontar divergência.
 7. Entregar o artefato pronto, a ação executada ou a checagem objetiva.
 
@@ -70,7 +74,12 @@ explica no início qualquer roteamento inferido, corrigido ou composto.
 O usuário continua responsável por produto, escopo, prioridades e decisões. A
 skill recomenda e facilita o trabalho, mas não infere `do`.
 
-O agente não deve carregar todo o YABook para qualquer comando. A skill usa referências curtas para economizar contexto.
+O agente não deve carregar todo o YABook para qualquer comando. Comandos
+explícitos conhecidos seguem direto para a matriz; `roteamento.md` é necessário
+somente para aliases, encadeamentos ou dúvida de gramática.
+
+Toda resposta YABook termina com uma única `Próxima etapa`. Quando o objetivo
+estiver encerrado, a seção informa que o fluxo foi concluído.
 
 ## Contexto local
 
@@ -139,9 +148,10 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | Comando | Como atua |
 | --- | --- |
 | `$yabook help [tópico ou objetivo]` | Lista comandos, explica uma família ou recomenda um fluxo por intenção. |
-| `$yabook load` | Recarrega o cache operacional quando branch, repositório ou regras locais mudarem. |
+| `$yabook load` | Atualiza workspace, branch, remote e regras locais da conversa. |
 | `$yabook init` | Analisa como inicializar ou adaptar o repositório, sem alterar estado. |
-| `$yabook diagnose` | Reconstrói objetivo, progresso, lacunas, bloqueios e próximo passo. |
+| `$yabook diagnose` | Faz diagnóstico progressivo com metadados antes de corpos completos. |
+| `$yabook diagnose full` | Amplia explicitamente a auditoria com filtros e lotes resumidos. |
 | `$yabook plan start <versão>` | Inicia entrevista colaborativa para uma versão. |
 | `$yabook discuss <tema>` | Discute uma ideia, decisão ou mudança sem alterar estado. |
 | `$yabook plan status` | Avalia maturidade e decisões abertas do planejamento. |
@@ -200,7 +210,7 @@ Regras:
 - aceitar prefixo repetido em comandos seguintes sem erro;
 - aplicar aliases antes de executar;
 - reaproveitar contexto já coletado;
-- usar o cache do `load` nos comandos seguintes;
+- reutilizar apenas o contexto mínimo válido do `load`;
 - agrupar a resposta por comando;
 - evitar repetir o mesmo diagnóstico várias vezes.
 
@@ -327,29 +337,22 @@ O comando `$yabook issue classify` deve retornar:
 
 `Size` é campo do GitHub Project. Não é label e não deve entrar no título da issue.
 
-## Carregamento automático e `$yabook load`
+## Carregamento progressivo e `$yabook load`
 
-O primeiro comando operacional `$yabook` da conversa prepara automaticamente o
-contexto. O agente resolve primeiro o repositório pelo workspace ativo, lê
-`session.md` e o `AGENTS.md` da raiz confirmada, confere branch e estado do Git e
-então executa o comando solicitado sem exibir uma resposta separada de load.
+O primeiro comando não carrega uma sessão completa. A skill reconhece a rota,
+consulta `references/contexto.md` e busca apenas as instruções e evidências
+necessárias.
 
-O arquivo `references/session.md` concentra o cache operacional completo: templates de issue, PR e release, labels, `Size`, branch, commit, classificação e regras de releitura.
+Comandos instantâneos, como `help`, `mode` e `steps`, não resolvem repositório.
+Comandos locais consultam somente workspace e estado mínimo. Artefatos,
+planejamento e execução carregam suas referências específicas.
 
-`$yabook help` pode responder sem carregar o repositório. `$yabook load` continua
-disponível para atualizar o cache depois de mudanças de branch, repositório,
-regras locais ou contexto relevante.
+`$yabook load` é explícito e usa `references/session-minimo.md`. Ele:
 
-Durante o carregamento, o agente deve:
-
-1. ler `session.md` por completo;
-2. coletar candidatos na ordem: raiz da IDE, arquivos ativos, repositório
-   explícito, contexto confirmado e `cwd`;
-3. subir a partir do candidato até a raiz com `.git`;
-4. validar arquivos ativos, `AGENTS.md` e `git remote -v`;
-5. definir essa raiz como `workdir` dos comandos;
-6. inspecionar o estado do Git;
-7. responder com um resumo curto para a pessoa usuária.
+1. resolve o workspace;
+2. valida `.git`, remote e regras locais;
+3. registra branch e resumo do worktree;
+4. não carrega formatos, GitHub ou planejamento antecipadamente.
 
 O `cwd` é o último candidato, não a fonte principal. Se ele apontar para outro
 repositório, o agente não deve executar nele antes de conferir o workspace.
@@ -357,9 +360,9 @@ Qualquer divergência entre IDE, arquivos ativos, repositório mencionado,
 contexto, `cwd` e remote bloqueia operações de escrita até a pessoa confirmar a
 raiz correta.
 
-Depois de carregar, o agente deve usar esse cache para comandos rotineiros (`issue`, `issue classify`, `branch name`, `commit message`, `pr`, `release`, `status`) sem reler `github.md` nem `session.md`.
-
-Diagnóstico e planejamento continuam exigindo `references/planejamento.md` e descoberta atual do projeto.
+Depois de carregar, o agente reutiliza somente raiz, remote, branch, regras
+locais e resumo do worktree. Cada comando posterior ainda consulta sua referência
+específica. A família `plan` usa uma subreferência por operação.
 
 Sincronização exige `references/sync.md`. A verificação é somente leitura;
 qualquer atualização da instalação exige `do sync`.
@@ -420,7 +423,7 @@ a solicitação também tenha autorização suficiente para a escrita necessári
 `mode: dev` é modo de colaboração. `$yabook dev` continua sendo o comando
 operacional que prepara, implementa e valida a issue atual.
 
-Mesmo com o cache carregado, ele ainda deve consultar arquivos quando:
+Mesmo com contexto mínimo disponível, o agente consulta fontes atuais quando:
 
 - precisar de `git diff` para commit, PR ou release baseados no código atual;
 - a tarefa for `init`, `docs`, `check`, `review` ou `do` com ação real no GitHub;
@@ -460,6 +463,7 @@ Ela não deve:
 - executar um comando YABook de escrita sem `do`;
 - tratar `Size` como label;
 - criar memória permanente a partir de `$yabook load`;
+- carregar referências alheias ao comando apenas por precaução;
 - persistir checklist de `$yabook steps` fora da conversa atual;
 - documentar no YABook conteúdo específico de produto.
 
@@ -468,7 +472,7 @@ Ela não deve:
 Ao alterar a skill:
 
 1. Atualize `SKILL.md` quando mudar gatilho, workflow ou padrão central.
-2. Atualize `references/commands.md` quando mudar comando, alias ou saída.
+2. Atualize `references/roteamento.md` quando mudar comando, alias ou encadeamento.
 3. Atualize a referência específica quando mudar regra de GitHub, documentação, IA, help, init, planejamento, sessão ou sincronização.
 4. Atualize este documento quando a mecânica da skill mudar.
 5. Rode a validação da skill e `git diff --check`.

@@ -14,7 +14,7 @@ Ao final, a pessoa deve compreender:
 - como planejar a V1 ou uma versão posterior com o Codex;
 - como descobrir onde o projeto está e qual é a próxima etapa;
 - o que comandos sem `do` analisam e o que comandos com `do` executam;
-- como o carregamento automático funciona;
+- como o carregamento progressivo funciona;
 - quando usar `bypass`;
 - como verificar e sincronizar a skill;
 - como usar o help por comando ou objetivo;
@@ -151,18 +151,14 @@ docs/planejamento/
 Sessões guardam contexto, decisões, pendências e impactos. Não guardam a
 transcrição completa nem status operacional.
 
-### Carregamento automático
+### Carregamento progressivo
 
-Não é mais necessário iniciar a conversa com `$yabook load`.
+Não é necessário iniciar a conversa com `$yabook load`.
 
-No primeiro comando operacional `$yabook`, a skill carrega silenciosamente:
-
-- `session.md`;
-- raiz resolvida do workspace ativo;
-- `AGENTS.md` local;
-- branch;
-- `git status --short --branch`;
-- `git diff --stat`.
+No primeiro comando, a skill identifica a rota e carrega somente sua referência.
+Workspace, regras locais e Git são consultados apenas quando o comando depende
+do repositório. `$yabook load` permanece disponível para atualizar explicitamente
+raiz, remote, branch e resumo do worktree.
 
 `$yabook help` é a única exceção. `$yabook load` continua disponível para
 recarregar o contexto depois de trocar repositório, branch ou regras locais.
