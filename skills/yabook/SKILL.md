@@ -85,6 +85,8 @@ o contexto mínimo do repositório conforme
 - `apk` apenas apresenta a prévia com base em `.yabook/apk.json`; `do apk`
   copia o APK já gerado para o nome padronizado e remove cópias preparadas
   antigas.
+- Ao concluir `dev`, apresente `Como testar` com passos específicos, validações
+  já executadas e verificações ainda pendentes.
 - No squash merge, use `tipo: descrição (#PR)` e registre no corpo o histórico
   da branch contra a base.
 
