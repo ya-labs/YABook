@@ -22,6 +22,24 @@ Quando a issue já tiver contexto suficiente, ela deve ser a fonte principal.
 
 Busque documentação adicional apenas para confirmar regras, contratos, arquitetura ou riscos que afetem a entrega.
 
+### Limites operacionais
+
+Por padrão:
+
+- use `rg` antes de abrir arquivos;
+- leia no máximo 200 linhas por trecho;
+- limite cada saída de terminal a 4.000 caracteres;
+- limite uma rota simples a 12.000 caracteres retornados;
+- faça uma inspeção inicial e uma validação final;
+- agrupe inspeções relacionadas sem misturar responsabilidades.
+
+Os orçamentos por cenário ficam em `tests/context-runtime-budgets.json`.
+Ultrapasse um limite somente diante de erro, ambiguidade, risco ou evidência
+ausente e registre o motivo no relatório.
+
+Workspace, issue, branch e objetivo confirmados continuam válidos até existir
+sinal de mudança. Não os redescubra preventivamente.
+
 ## Quando ler documentação ampla
 
 Leia mais contexto quando:

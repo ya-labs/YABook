@@ -46,7 +46,8 @@ Roteie o Método YA LABS usando o Handbook como fonte normativa sob demanda.
   somente diante de lacuna concreta.
 - Por padrão, faça uma inspeção inicial e uma validação final; amplie diante de
   erro, ambiguidade ou risco.
-- Limite buscas e saídas aos trechos necessários.
+- Limite cada saída de ferramenta a 4.000 caracteres. Orçamentos de operações e
+  rodadas ficam em [ia.md](references/ia.md).
 - Não invente fatos, requisitos ou decisões.
 
 ## Referências diretas

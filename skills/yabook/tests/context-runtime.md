@@ -1,18 +1,37 @@
 # Cenários de execução econômica
 
-Registre as fontes e operações realmente usadas ao revisar estes cenários.
+Este teste é separado da auditoria estática:
 
-| Cenário | Referências máximas | Inspeções | Ampliação permitida |
-| --- | ---: | ---: | --- |
-| `help` geral | 1 | 0 | tópico solicitado |
-| artefato textual com contexto completo | 1 | 0 | requisito ausente |
-| `plan start` delimitado | 1 | 0 | documento equivalente |
-| `dev` com issue e branch prontas | 2 | 1 inicial + 1 final | erro, risco ou evidência ausente |
-| `do pr` | 4 | 1 inicial + validações remotas | checks, conflito ou proteção |
+- `check_context_budget.py` mede tamanho e quantidade de referências previstas;
+- `check_context_runtime.py` valida um relatório produzido a partir de uma
+  execução controlada real.
 
-Em todos os cenários:
+## Métricas
 
-- limite a saída de cada comando ao trecho necessário;
-- reutilize workspace, issue, branch e decisões ainda válidos;
-- registre a justificativa ao ultrapassar a coluna prevista;
-- não consulte `contexto.md` durante uma rota explícita.
+- `references`: arquivos de instrução efetivamente lidos;
+- `operations[].commands`: comandos independentes executados;
+- `operations[].output_chars`: caracteres realmente retornados;
+- `rounds`: ciclos do agente que terminaram em ferramenta ou resposta;
+- `rediscovered_facts`: workspace, issue, branch ou objetivo consultados
+  novamente sem sinal de mudança;
+- `expansions`: limites excedidos e sua justificativa.
+
+Os limites ficam em `context-runtime-budgets.json`. Cada saída de terminal deve
+ter até 4.000 caracteres; a soma obedece ao orçamento do cenário.
+
+## Execução
+
+1. Execute um cenário em conversa limpa ou registre o ponto inicial.
+2. Copie para JSON somente referências e operações realmente observadas.
+3. Informe os fatos reutilizados e redescobertos.
+4. Valide:
+
+```bash
+python3 skills/yabook/tests/check_context_runtime.py relatorio.json
+```
+
+Use `runtime-report.example.json` apenas como exemplo de formato, não como prova
+de uma execução real.
+
+Uma ampliação só é aceita com justificativa não vazia. `contexto.md` continua
+proibido em rota explícita.

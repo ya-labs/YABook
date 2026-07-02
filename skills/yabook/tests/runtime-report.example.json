@@ -1,0 +1,38 @@
+{
+  "scenario": "dev_ready",
+  "references": [
+    "references/dev.md",
+    "references/git/checkpoint.md"
+  ],
+  "operations": [
+    {
+      "tool": "terminal",
+      "commands": 4,
+      "output_chars": 1200
+    },
+    {
+      "tool": "search",
+      "commands": 1,
+      "output_chars": 1800
+    },
+    {
+      "tool": "edit",
+      "commands": 1,
+      "output_chars": 500
+    },
+    {
+      "tool": "terminal",
+      "commands": 3,
+      "output_chars": 1600
+    }
+  ],
+  "rounds": 5,
+  "reused_facts": [
+    "workspace",
+    "issue",
+    "branch",
+    "objective"
+  ],
+  "rediscovered_facts": [],
+  "expansions": []
+}

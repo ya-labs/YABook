@@ -85,6 +85,11 @@ Depois de identificar a capacidade, o agente carrega somente a subreferência
 necessária. Testes de orçamento usam saída resumida por padrão; `--verbose`
 exibe os detalhes por rota.
 
+A auditoria estática mede arquivos previstos. A auditoria de execução recebe um
+relatório observado e valida referências, comandos, caracteres retornados,
+rodadas e fatos redescobertos. Cada saída de ferramenta tem limite padrão de
+4.000 caracteres.
+
 Toda resposta YABook termina com uma única `Próxima etapa`. Quando o objetivo
 estiver encerrado, a seção informa que o fluxo foi concluído.
 

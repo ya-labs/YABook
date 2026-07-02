@@ -382,6 +382,10 @@ não carrega regras de merge, e uma issue não carrega regras de PR ou release.
 As validações de orçamento mostram apenas um resumo; use `--verbose` para
 detalhar todas as rotas.
 
+O teste estático não representa uma sessão real. Relatórios de execução podem
+ser validados separadamente para conferir quantidade de referências, comandos,
+caracteres retornados, rodadas e redescobertas desnecessárias.
+
 O contexto vale apenas para a conversa atual.
 
 ### Como encadear comandos
