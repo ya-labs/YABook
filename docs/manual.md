@@ -108,6 +108,18 @@ A YABook Skill é o orquestrador inteligente do Método YA LABS. A pessoa define
 o projeto e toma as decisões; a skill organiza o caminho, recomenda etapas e
 executa somente o que foi autorizado.
 
+Índice das explicações de comandos:
+
+- [Como usar linguagem natural](#como-usar-linguagem-natural)
+- [Como usar briefs](#como-usar-briefs)
+- [Como preparar um APK](#como-preparar-um-apk)
+- [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
+- [Como usar modos de colaboração](#como-usar-modos-de-colaboração)
+- [Como usar o help](#como-usar-o-help)
+- [Como usar `$yabook dev`](#como-usar-yabook-dev)
+- [Como usar `$yabook load`](#como-usar-yabook-load)
+- [Como usar `$yabook do`](#como-usar-yabook-do)
+
 ### Como usar linguagem natural
 
 Você não precisa conhecer previamente o comando correto:
@@ -142,14 +154,90 @@ Comandos principais:
 - `$yabook do`: executa a ação pedida, como init, plan, sync, apk, issue, branch, PR, release ou merge.
 - `$yabook dev`: prepara, implementa e valida a issue atual.
 - `$yabook issue`: gera título e descrição de issue.
+- `$yabook issue brief`: resume a demanda em um contrato curto para reaproveitar depois.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
+- `$yabook plan brief`: resume o planejamento atual em um contrato curto.
 - `$yabook pr`: gera título e descrição de Pull Request.
+- `$yabook pr brief`: resume a mudança pronta para revisão em um contrato curto.
 - `$yabook commit message`: sugere mensagem de commit.
 - `$yabook release`: gera descrição de release.
 - `$yabook check`: verifica conformidade com o YABook.
 - `$yabook docs`: indica onde documentar uma informação.
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
+Para ver a lista completa de comandos, variantes e comportamento interno da
+skill, abra [Skill YABook](guias/skill-yabook.md).
+
+### Economia de contexto
+
+A skill não deve carregar contexto amplo por prevenção. Ela classifica a rota
+antes de ler:
+
+| Classe | Uso |
+| --- | --- |
+| `C0` | resposta instantânea baseada em conversa e referência direta |
+| `C1` | contexto local mínimo |
+| `C2` | artefato ou análise dirigida |
+| `C3` | execução controlada |
+| `C4` | auditoria ou execução profunda sob pedido explícito |
+
+Em rotas explícitas, a skill deve abrir primeiro a referência direta do comando.
+`contexto.md` fica reservado para auditoria, ambiguidade ou revisão do
+carregamento. Quando workspace, branch, issue e objetivo já estiverem
+confirmados, a skill reutiliza esse contexto e não deve redescobrir GitHub,
+memória, documentação geral ou regras já válidas sem sinal de mudança.
+
+Por padrão:
+
+- use buscas dirigidas antes de abrir arquivos;
+- leia trechos curtos e suficientes para decidir;
+- limite saídas de terminal a 4.000 caracteres;
+- faça uma inspeção inicial e uma validação final;
+- amplie somente diante de lacuna, conflito, risco, erro ou pedido explícito.
+
+### Como usar briefs
+
+Brief é um resumo curto e reutilizável para evitar releitura de contexto longo.
+Ele serve para condensar uma issue, um planejamento ou uma entrega pronta para
+revisão em um contrato simples dentro da conversa atual.
+
+Use:
+
+```text
+$yabook issue brief
+$yabook plan brief
+$yabook pr brief
+```
+
+Cada comando tem um foco:
+
+- `issue brief`: resume a demanda antes de abrir a issue, desenvolver ou revisar escopo;
+- `plan brief`: resume decisões, dependências, pendências e próxima etapa do planejamento;
+- `pr brief`: resume o que mudou, como validar e quais riscos a revisão deve observar.
+
+O brief não é uma etapa obrigatória do fluxo. Use assim:
+
+- vá direto para `$yabook issue` quando a demanda já estiver curta, clara e pronta para virar issue;
+- use `$yabook issue brief` quando a conversa estiver longa, espalhada ou com risco de releitura cara;
+- use `plan brief` e `pr brief` quando você quiser reaproveitar um contrato curto entre planejamento, implementação e revisão.
+
+O formato esperado é curto e direto. Quando aplicável, o brief registra:
+
+- objetivo;
+- escopo;
+- fora do escopo;
+- critérios de aceite;
+- validação mínima;
+- riscos.
+
+Nem todo campo precisa aparecer sempre. A skill deve omitir campo sem utilidade
+e nunca inventar informação só para preencher o modelo.
+
+Brief não executa escrita, não cria arquivos e não altera GitHub. Ele é um
+artefato textual de baixo custo. Depois de gerar um brief válido, rotas
+seguintes devem preferi-lo antes de reler issue, planejamento ou histórico
+extenso. A ampliação só acontece quando faltar evidência, houver conflito,
+risco ou mudança relevante no objetivo, no escopo ou no diff.
 
 ### Como preparar um APK
 
@@ -323,10 +411,27 @@ Use `dev` depois que a demanda estiver registrada:
 $yabook dev
 ```
 
+Variantes:
+
+- `$yabook dev quick`: use quando a tarefa for pequena, clara, de baixo risco e com poucos arquivos envolvidos;
+- `$yabook dev`: use como padrão para a maior parte das issues de implementação;
+- `$yabook dev full`: use quando a demanda for complexa ou quando você quiser investigação profunda de propósito.
+
+Regra prática:
+
+- `dev quick`: ajuste pontual, contexto já está claro, não faz sentido abrir documentação ampla nem investigar arquitetura;
+- `dev`: implementação normal, com inspeção suficiente para editar com segurança e validar o resultado;
+- `dev full`: mudança com mais impacto, documentação estrutural, fluxo sensível, dúvida real de escopo ou pedido explícito de profundidade.
+
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
 O vínculo da branch é confirmado por leitura na própria issue; publicar uma
 branch no remoto, isoladamente, não conta como vínculo concluído.
+
+Quando workspace, issue, branch e demanda já estiverem inequívocos, `dev` deve
+seguir o caminho rápido: não consultar GitHub, memória nem documentação geral,
+abrir somente os arquivos diretamente ligados à mudança, editar em uma rodada e
+validar em outra. Qualquer ampliação acima disso precisa ter motivo explícito.
 
 Ao concluir, a resposta inclui `Como testar` com pré-requisitos, comandos,
 passos manuais e resultados esperados aplicáveis à alteração. Ela também
@@ -390,6 +495,11 @@ detalhar todas as rotas.
 O teste estático não representa uma sessão real. Relatórios de execução podem
 ser validados separadamente para conferir quantidade de referências, comandos,
 caracteres retornados, rodadas e redescobertas desnecessárias.
+
+No repositório, isso aparece em dois níveis:
+
+- `skills/yabook/tests/check_context_budget.py`: compara orçamento estático por rota;
+- `skills/yabook/tests/check_context_runtime.py`: valida um relatório de execução observada contra limites de referências, comandos, caracteres e rodadas.
 
 O contexto vale apenas para a conversa atual.
 
