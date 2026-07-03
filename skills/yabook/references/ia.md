@@ -40,6 +40,10 @@ ausente e registre o motivo no relatório.
 Workspace, issue, branch e objetivo confirmados continuam válidos até existir
 sinal de mudança. Não os redescubra preventivamente.
 
+Quando existir `.yabook/context-cache.md`, use-o somente após validar branch,
+remote, referência e fingerprints. Cache inválido é ignorado; decisões críticas
+sempre confirmam a fonte real.
+
 ## Quando ler documentação ampla
 
 Leia mais contexto quando:

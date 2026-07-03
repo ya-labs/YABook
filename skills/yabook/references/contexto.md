@@ -14,6 +14,8 @@ explícito: use diretamente a coluna `Referência inicial` já indicada em
 - Workspace e `AGENTS.md` somente para rotas dependentes do repositório.
 - Git e GitHub somente quando o resultado depender do estado atual.
 - Pare quando houver evidência suficiente para responder com segurança.
+- Prefira `.yabook/context-cache.md` válido em `C1` e `C2`; cache ausente ou
+  inválido não altera o fluxo.
 
 ## Classes de custo
 
@@ -39,7 +41,7 @@ ampliação.
 | `discuss` | `C0` | `discuss.md` | conversa | redirecione para rota dependente do projeto se precisar de fatos |
 | `continue` | `C1` | `git/checkpoint.md` | checkpoint anterior e Git atual | somente mudança desde o checkpoint |
 | `bypass` | `C1` | `bypass.md` | ação anexada | branch/status apenas se a ação editar |
-| `load` | `C1` | `session-minimo.md`, `workspace.md` | raiz, remote, branch, status | nenhuma |
+| `load` | `C1` | `session-minimo.md`, `workspace.md` | raiz, remote, branch, status e cache válido, se existir | nenhuma |
 | `status` | `C1` | `workspace.md` | branch, status, diff stat | issue da branch se necessário |
 | `branch name` | `C1` | `artefatos/branch-commit.md` | número e título da issue | issue recente somente se faltar na conversa |
 | `commit message` | `C1` | `artefatos/branch-commit.md` | diff atual | diff completo quando o stat for ambíguo |
