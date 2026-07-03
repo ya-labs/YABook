@@ -39,6 +39,9 @@ arquivos antes da descoberta real.
 Rotas instantâneas seguem diretamente para sua referência e não pagam o custo
 da matriz. Rotas dependentes do projeto usam a matriz antes de ampliar contexto.
 
+As classes normativas são `C0`, `C1`, `C2`, `C3` e `C4`. Todo cenário estático
+e runtime declara sua classe; divergência de classe nunca é justificável.
+
 ## Verificação qualitativa
 
 Além do tamanho, valide:

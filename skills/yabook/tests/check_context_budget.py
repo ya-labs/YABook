@@ -5,39 +5,47 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+VALID_CLASSES = {"C0", "C1", "C2", "C3", "C4"}
 
 # Referências iniciais, orçamento aproximado e quantidade máxima de arquivos.
 ROUTES = {
-    "help": (["references/help.md"], 1800, 1),
-    "help plan": (["references/help.md", "references/help/plan.md"], 2200, 2),
-    "mode study": (["references/modes.md", "references/modes/study.md"], 2000, 2),
-    "mode work": (["references/modes.md", "references/modes/work.md"], 2000, 2),
-    "mode prod": (["references/modes.md", "references/modes/prod.md"], 2000, 2),
-    "steps": (["references/steps.md"], 1800, 1),
-    "discuss": (["references/discuss.md"], 2000, 1),
-    "bypass": (["references/bypass.md"], 1800, 1),
-    "load": (["references/session-minimo.md", "references/workspace.md"], 2500, 2),
-    "status": (["references/workspace.md", "references/git/leitura.md"], 2500, 2),
-    "branch": (["references/roteamento.md", "references/artefatos/branch-commit.md"], 2200, 2),
-    "commit message": (["references/roteamento.md", "references/artefatos/branch-commit.md"], 2200, 2),
-    "issue": (["references/artefatos/issue.md"], 1800, 1),
-    "pr": (["references/artefatos/pr-release.md"], 1800, 1),
-    "release": (["references/artefatos/pr-release.md"], 1800, 1),
-    "docs": (["references/documentacao.md"], 2500, 1),
-    "init": (["references/init.md", "references/workspace.md"], 3000, 2),
-    "sync": (["references/sync.md"], 2500, 1),
-    "apk": (["references/apk.md", "references/workspace.md"], 3000, 2),
-    "diagnose": (["references/planejamento/diagnose.md"], 2000, 1),
-    "plan start": (["references/planejamento/start.md"], 1800, 1),
-    "plan status": (["references/planejamento/status-next.md"], 1800, 1),
-    "plan review": (["references/planejamento/review.md"], 1800, 1),
-    "plan roadmap": (["references/planejamento/roadmap.md"], 1800, 1),
-    "do plan": (["references/planejamento/persistencia.md", "references/git/checkpoint.md"], 3000, 2),
-    "dev": (["references/dev.md", "references/git/checkpoint.md"], 3200, 2),
-    "do apk": (["references/apk.md", "references/git/checkpoint.md", "references/git/mutacoes.md"], 4000, 3),
-    "do issue": (["references/artefatos/issue.md", "references/github/issues-projects.md"], 2500, 2),
-    "do branch": (["references/artefatos/branch-commit.md", "references/github/branches.md", "references/git/mutacoes.md"], 3000, 3),
-    "do pr": (["references/artefatos/pr-release.md", "references/github/pr-release.md", "references/git/checkpoint.md", "references/git/mutacoes.md"], 4000, 4),
+    "help": ("C0", ["references/help.md"], 2000, 1),
+    "help plan": ("C0", ["references/help.md", "references/help/plan.md"], 2400, 2),
+    "mode study": ("C0", ["references/modes.md", "references/modes/study.md"], 2200, 2),
+    "mode work": ("C0", ["references/modes.md", "references/modes/work.md"], 2200, 2),
+    "mode prod": ("C0", ["references/modes.md", "references/modes/prod.md"], 2200, 2),
+    "steps": ("C0", ["references/steps.md"], 2000, 1),
+    "discuss": ("C0", ["references/discuss.md"], 2200, 1),
+    "bypass": ("C1", ["references/bypass.md"], 2000, 1),
+    "load": ("C1", ["references/session-minimo.md", "references/workspace.md"], 2800, 2),
+    "status": ("C1", ["references/workspace.md", "references/git/leitura.md"], 2800, 2),
+    "branch": ("C1", ["references/roteamento.md", "references/artefatos/branch-commit.md"], 2600, 2),
+    "commit message": ("C1", ["references/roteamento.md", "references/artefatos/branch-commit.md"], 2600, 2),
+    "apk": ("C1", ["references/apk.md", "references/workspace.md"], 3200, 2),
+    "issue": ("C2", ["references/artefatos/issue.md"], 2200, 1),
+    "pr": ("C2", ["references/artefatos/pr-release.md"], 2200, 1),
+    "release": ("C2", ["references/artefatos/pr-release.md"], 2200, 1),
+    "docs": ("C2", ["references/documentacao.md"], 2800, 1),
+    "check": ("C2", ["references/quality.md"], 2200, 1),
+    "review": ("C2", ["references/quality.md"], 2200, 1),
+    "init": ("C2", ["references/init.md", "references/workspace.md"], 3200, 2),
+    "sync": ("C2", ["references/sync.md"], 2800, 1),
+    "diagnose": ("C2", ["references/planejamento/diagnose.md"], 2400, 1),
+    "plan start": ("C2", ["references/planejamento/start.md"], 2200, 1),
+    "plan status": ("C2", ["references/planejamento/status-next.md"], 2200, 1),
+    "plan review": ("C2", ["references/planejamento/review.md"], 2200, 1),
+    "plan roadmap": ("C2", ["references/planejamento/roadmap.md"], 2200, 1),
+    "dev quick": ("C3", ["references/dev.md", "references/git/checkpoint.md"], 3600, 2),
+    "dev": ("C3", ["references/dev.md", "references/git/checkpoint.md"], 3600, 2),
+    "do plan": ("C3", ["references/planejamento/persistencia.md", "references/git/checkpoint.md"], 3200, 2),
+    "do apk": ("C3", ["references/apk.md", "references/git/checkpoint.md", "references/git/mutacoes.md"], 4200, 3),
+    "do issue": ("C3", ["references/artefatos/issue.md", "references/github/issues-projects.md"], 2800, 2),
+    "do branch": ("C3", ["references/artefatos/branch-commit.md", "references/github/branches.md", "references/git/mutacoes.md"], 3200, 3),
+    "do pr": ("C3", ["references/artefatos/pr-release.md", "references/github/pr-release.md", "references/git/checkpoint.md", "references/git/mutacoes.md"], 4200, 4),
+    "diagnose full": ("C4", ["references/planejamento/diagnose.md"], 2400, 1),
+    "check full": ("C4", ["references/quality.md"], 2200, 1),
+    "review full": ("C4", ["references/quality.md"], 2200, 1),
+    "dev full": ("C4", ["references/dev.md", "references/git/checkpoint.md"], 3600, 2),
 }
 
 
@@ -52,10 +60,12 @@ parser.add_argument("--verbose", action="store_true")
 args = parser.parse_args()
 
 failures = []
-for route, (paths, budget, max_references) in ROUTES.items():
+for route, (cost_class, paths, budget, max_references) in ROUTES.items():
     tokens = approximate_tokens(paths)
     reasons = []
 
+    if cost_class not in VALID_CLASSES:
+        reasons.append(f"classe inválida: {cost_class}")
     if "references/contexto.md" in paths:
         reasons.append("contexto.md não pode ser referência inicial")
     if len(paths) > max_references:
@@ -66,7 +76,7 @@ for route, (paths, budget, max_references) in ROUTES.items():
     if args.verbose or reasons:
         status = "FALHOU" if reasons else "OK"
         print(
-            f"{status:6} {route:16} {tokens:4}/{budget} tokens "
+            f"{status:6} {cost_class} {route:16} {tokens:4}/{budget} tokens "
             f"{len(paths)}/{max_references} referências"
         )
     failures.extend(f"{route}: {reason}" for reason in reasons)

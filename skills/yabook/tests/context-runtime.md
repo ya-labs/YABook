@@ -8,6 +8,7 @@ Este teste é separado da auditoria estática:
 
 ## Métricas
 
+- `class`: classe `C0` a `C4` observada na rota;
 - `references`: arquivos de instrução efetivamente lidos;
 - `operations[].commands`: comandos independentes executados;
 - `operations[].output_chars`: caracteres realmente retornados;
@@ -34,4 +35,5 @@ Use `runtime-report.example.json` apenas como exemplo de formato, não como prov
 de uma execução real.
 
 Uma ampliação só é aceita com justificativa não vazia. `contexto.md` continua
-proibido em rota explícita.
+proibido em rota explícita. A classe observada deve corresponder à classe do
+cenário e nunca pode ser justificada como divergente.

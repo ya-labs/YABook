@@ -1,29 +1,83 @@
 {
   "help_general": {
+    "class": "C0",
     "max_references": 1,
     "max_commands": 0,
     "max_output_chars": 0,
     "max_rounds": 1
   },
   "artifact_with_context": {
+    "class": "C2",
     "max_references": 1,
     "max_commands": 0,
     "max_output_chars": 0,
     "max_rounds": 1
   },
   "plan_start_delimited": {
+    "class": "C2",
     "max_references": 1,
     "max_commands": 1,
     "max_output_chars": 4000,
     "max_rounds": 2
   },
+  "check_directed": {
+    "class": "C2",
+    "max_references": 2,
+    "max_commands": 4,
+    "max_output_chars": 8000,
+    "max_rounds": 3
+  },
+  "review_directed": {
+    "class": "C2",
+    "max_references": 2,
+    "max_commands": 4,
+    "max_output_chars": 8000,
+    "max_rounds": 3
+  },
+  "dev_quick": {
+    "class": "C3",
+    "max_references": 2,
+    "max_commands": 8,
+    "max_output_chars": 8000,
+    "max_rounds": 4
+  },
   "dev_ready": {
+    "class": "C3",
     "max_references": 2,
     "max_commands": 12,
     "max_output_chars": 12000,
     "max_rounds": 5
   },
+  "diagnose_full": {
+    "class": "C4",
+    "max_references": 3,
+    "max_commands": 16,
+    "max_output_chars": 16000,
+    "max_rounds": 8
+  },
+  "check_full": {
+    "class": "C4",
+    "max_references": 3,
+    "max_commands": 16,
+    "max_output_chars": 16000,
+    "max_rounds": 8
+  },
+  "review_full": {
+    "class": "C4",
+    "max_references": 3,
+    "max_commands": 16,
+    "max_output_chars": 16000,
+    "max_rounds": 8
+  },
+  "dev_full": {
+    "class": "C4",
+    "max_references": 4,
+    "max_commands": 20,
+    "max_output_chars": 20000,
+    "max_rounds": 10
+  },
   "do_pr": {
+    "class": "C3",
     "max_references": 4,
     "max_commands": 14,
     "max_output_chars": 16000,

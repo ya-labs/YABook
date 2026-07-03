@@ -18,7 +18,13 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook plan review` | `plan review` | `planejamento/review.md` | `contexto.md`, issues fechadas |
 | `$yabook diagnose` | `diagnose` | `planejamento/diagnose.md` | `contexto.md`, Project inteiro, corpos em massa |
 | `$yabook diagnose full` | `diagnose full` | `planejamento/diagnose.md` | `contexto.md`, respostas brutas sem filtro |
+| `$yabook check` | `check` | `quality.md`, referência do alvo | coleções completas |
+| `$yabook check full` | `check full` | `quality.md`, referência do alvo | fontes fora do escopo confirmado |
+| `$yabook review` | `review` | `quality.md`, referência do alvo | coleções completas |
+| `$yabook review full` | `review full` | `quality.md`, referência do alvo | fontes fora do escopo confirmado |
+| `$yabook dev quick` | `dev quick` | `dev.md`, `git/checkpoint.md` | documentação geral, arquitetura inteira |
 | `$yabook dev` | `dev` | `dev.md`, `git/checkpoint.md` | `contexto.md`, release sem relação |
+| `$yabook dev full` | `dev full` | `dev.md`, `git/checkpoint.md` | fontes fora do escopo confirmado |
 | `$yabook dev & do pr` | `dev` → `do pr` | roteamento e referências das duas rotas | merge |
 
 ## Linguagem natural
@@ -77,3 +83,7 @@ Com workspace, issue, branch e escopo já disponíveis na conversa, confirme que
 - não consulta GitHub, memória, `contexto.md` ou documentação geral;
 - abre somente arquivos ligados à demanda;
 - faz uma validação final, salvo falha que exija ampliação.
+
+Em `dev quick`, confirme também o limite inicial de 3 arquivos e a justificativa
+antes de ampliar. Em `dev full`, confirme escopo explícito, leitura em lotes e
+que a profundidade não ampliou permissões.
