@@ -2,92 +2,118 @@
   "help_general": {
     "class": "C0",
     "max_references": 1,
+    "max_consulted_files": 1,
     "max_commands": 0,
     "max_output_chars": 0,
-    "max_rounds": 1
+    "max_rounds": 1,
+    "max_directed_searches": 0
   },
   "artifact_with_context": {
     "class": "C2",
     "max_references": 1,
+    "max_consulted_files": 2,
     "max_commands": 0,
     "max_output_chars": 0,
-    "max_rounds": 1
+    "max_rounds": 1,
+    "max_directed_searches": 0
   },
   "brief_from_context": {
     "class": "C2",
     "max_references": 1,
+    "max_consulted_files": 1,
     "max_commands": 0,
     "max_output_chars": 0,
-    "max_rounds": 1
+    "max_rounds": 1,
+    "max_directed_searches": 0
   },
   "plan_start_delimited": {
     "class": "C2",
     "max_references": 1,
+    "max_consulted_files": 2,
     "max_commands": 1,
     "max_output_chars": 4000,
-    "max_rounds": 2
+    "max_rounds": 2,
+    "max_directed_searches": 1
   },
   "check_directed": {
     "class": "C2",
     "max_references": 2,
+    "max_consulted_files": 4,
     "max_commands": 4,
     "max_output_chars": 8000,
-    "max_rounds": 3
+    "max_rounds": 3,
+    "max_directed_searches": 2
   },
   "review_directed": {
     "class": "C2",
     "max_references": 2,
+    "max_consulted_files": 4,
     "max_commands": 4,
     "max_output_chars": 8000,
-    "max_rounds": 3
+    "max_rounds": 3,
+    "max_directed_searches": 2
   },
   "dev_quick": {
     "class": "C3",
     "max_references": 2,
+    "max_consulted_files": 5,
     "max_commands": 8,
     "max_output_chars": 8000,
-    "max_rounds": 4
+    "max_rounds": 4,
+    "max_directed_searches": 2
   },
   "dev_ready": {
     "class": "C3",
     "max_references": 2,
+    "max_consulted_files": 6,
     "max_commands": 12,
     "max_output_chars": 12000,
-    "max_rounds": 5
+    "max_rounds": 5,
+    "max_directed_searches": 3
   },
   "diagnose_full": {
     "class": "C4",
     "max_references": 3,
+    "max_consulted_files": 8,
     "max_commands": 16,
     "max_output_chars": 16000,
-    "max_rounds": 8
+    "max_rounds": 8,
+    "max_directed_searches": 4
   },
   "check_full": {
     "class": "C4",
     "max_references": 3,
+    "max_consulted_files": 8,
     "max_commands": 16,
     "max_output_chars": 16000,
-    "max_rounds": 8
+    "max_rounds": 8,
+    "max_directed_searches": 4
   },
   "review_full": {
     "class": "C4",
     "max_references": 3,
+    "max_consulted_files": 8,
     "max_commands": 16,
     "max_output_chars": 16000,
-    "max_rounds": 8
+    "max_rounds": 8,
+    "max_directed_searches": 4
   },
   "dev_full": {
     "class": "C4",
     "max_references": 4,
+    "max_consulted_files": 10,
     "max_commands": 20,
     "max_output_chars": 20000,
-    "max_rounds": 10
+    "max_rounds": 10,
+    "max_directed_searches": 5
   },
   "do_pr": {
     "class": "C3",
     "max_references": 4,
+    "max_consulted_files": 8,
     "max_commands": 14,
     "max_output_chars": 16000,
-    "max_rounds": 7
+    "max_rounds": 7,
+    "max_directed_searches": 3
   }
 }
