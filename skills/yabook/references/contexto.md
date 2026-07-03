@@ -46,6 +46,7 @@ ampliação.
 | `apk` | `C1` | `apk.md`, `workspace.md` | configuração, branch, worktree | Git somente para montar a prévia |
 | `issue title` | `C2` | `artefatos/issue.md` | demanda da conversa | código/docs só para delimitar requisito |
 | `issue`, `issue desc`, `classify` | `C2` | `artefatos/issue.md` | demanda e regras locais | `github/issues-projects.md` ao validar ou criar |
+| `issue brief`, `plan brief`, `pr brief` | `C2` | `briefs.md` | conversa e fontes já válidas | fonte longa somente diante de lacuna concreta |
 | `pr title` | `C2` | `artefatos/pr-release.md` | issue e diff stat | commits quando o título não for evidente |
 | `pr`, `pr desc` | `C2` | `artefatos/pr-release.md` | issue, diff e commits | `github/pr-release.md` ao criar, atualizar ou revisar |
 | `release` | `C2` | `artefatos/pr-release.md` | versão e diff contra base | `github/pr-release.md` para PRs/tags reais |

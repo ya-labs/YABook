@@ -42,6 +42,9 @@ da matriz. Rotas dependentes do projeto usam a matriz antes de ampliar contexto.
 As classes normativas são `C0`, `C1`, `C2`, `C3` e `C4`. Todo cenário estático
 e runtime declara sua classe; divergência de classe nunca é justificável.
 
+Briefs são rotas `C2` com uma referência inicial, sem consulta externa quando a
+conversa já sustenta objetivo, escopo, validação e riscos.
+
 ## Verificação qualitativa
 
 Além do tamanho, valide:

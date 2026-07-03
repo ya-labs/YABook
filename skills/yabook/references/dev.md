@@ -40,15 +40,16 @@ antes de ampliar novamente. `full` não amplia escopo nem permissões.
 
 ## Descoberta da demanda
 
-1. Reutilize workspace, branch, issue e regras locais ainda válidos na conversa.
+1. Reutilize workspace, branch, issue, brief e regras locais ainda válidos.
 2. Se o workspace não estiver resolvido, aplique `workspace.md` e valide o remote.
 3. Faça uma única inspeção inicial conforme `git/checkpoint.md`.
 4. Identifique a issue pela conversa, branch ou referência explícita.
-5. Confirme objetivo, escopo e critérios de aceite com o contexto disponível.
-6. Consulte GitHub somente quando faltar informação da issue, vínculo, status
+5. Prefira o brief válido; releia a fonte longa somente diante de lacuna.
+6. Confirme objetivo, escopo e critérios de aceite com o contexto disponível.
+7. Consulte GitHub somente quando faltar informação da issue, vínculo, status
    ou preparação da branch.
-7. Se mais de uma issue for plausível, peça a escolha.
-8. Se não houver issue, pare e indique `$yabook do: issue`.
+8. Se mais de uma issue for plausível, peça a escolha.
+9. Se não houver issue, pare e indique `$yabook do: issue`.
 
 Não crie uma issue silenciosamente.
 Se workspace, branch e issue apontarem para repositórios incompatíveis,

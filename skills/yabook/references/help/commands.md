@@ -28,6 +28,11 @@ nem PR. `dev & do pr` entrega o PR; `dev & do merge` também integra.
 Ambos são dirigidos por padrão. `check full` e `review full` exigem pedido
 explícito e ampliam a auditoria sem conceder permissão de escrita.
 
+## Briefs
+
+`issue brief`, `plan brief` e `pr brief` condensam contexto em até 1.200
+caracteres. São somente textuais e não substituem `do` para persistência.
+
 ## APK
 
 `apk` lê `.yabook/apk.json` e mostra a prévia sem build ou escrita. `do apk`

@@ -13,6 +13,13 @@
     "max_output_chars": 0,
     "max_rounds": 1
   },
+  "brief_from_context": {
+    "class": "C2",
+    "max_references": 1,
+    "max_commands": 0,
+    "max_output_chars": 0,
+    "max_rounds": 1
+  },
   "plan_start_delimited": {
     "class": "C2",
     "max_references": 1,
