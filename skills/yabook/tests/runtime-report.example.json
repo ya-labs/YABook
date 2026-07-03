@@ -1,5 +1,6 @@
 {
   "scenario": "dev_ready",
+  "class": "C3",
   "references": [
     "references/dev.md",
     "references/git/checkpoint.md"

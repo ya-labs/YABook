@@ -5,12 +5,12 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 
 ## Famílias
 
-- orientação: `help`, `load`, `status`, `check`, `review`;
+- orientação: `help`, `load`, `status`, `check [full]`, `review [full]`;
 - planejamento: `diagnose [full]`, `discuss`, `plan start|status|next|review|roadmap`;
 - conversa: `steps`, `mode`, `def mode`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
 - artefatos Android: `apk`, `do apk`;
-- execução: `do <ação>`, `dev`, `bypass <ação>`, `continue`, `sync`.
+- execução: `do <ação>`, `dev [quick|full]`, `bypass <ação>`, `continue`, `sync`.
 
 Subcomandos textuais:
 

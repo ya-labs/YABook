@@ -17,8 +17,16 @@ etapas pendentes sem mudar objetivo ou decisão.
 
 ## Dev
 
-A issue deve existir. `dev` prepara branch, implementa e valida, mas não cria
-commit nem PR. `dev & do pr` entrega o PR; `dev & do merge` também integra.
+A issue deve existir. `dev quick` limita descoberta para tarefa pequena, `dev`
+usa profundidade balanceada e `dev full` permite investigação profunda
+justificada. Todos preparam branch, implementam e validam, mas não criam commit
+nem PR. `dev & do pr` entrega o PR; `dev & do merge` também integra.
+
+## Check e review
+
+`check` valida conformidade e `review` analisa qualidade e riscos do alvo.
+Ambos são dirigidos por padrão. `check full` e `review full` exigem pedido
+explícito e ampliam a auditoria sem conceder permissão de escrita.
 
 ## APK
 

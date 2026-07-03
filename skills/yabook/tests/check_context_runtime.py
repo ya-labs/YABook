@@ -25,6 +25,7 @@ if scenario not in BUDGETS:
     fail(f"cenário desconhecido: {scenario}")
 
 budget = BUDGETS[scenario]
+cost_class = report.get("class")
 references = set(report.get("references", []))
 operations = report.get("operations", [])
 commands = sum(operation.get("commands", 0) for operation in operations)
@@ -34,6 +35,11 @@ rediscovered = report.get("rediscovered_facts", [])
 expansions = report.get("expansions", [])
 
 violations = []
+if cost_class != budget["class"]:
+    violations.append((
+        "class",
+        f"classe observada {cost_class!r} difere de {budget['class']!r}",
+    ))
 if "references/contexto.md" in references:
     violations.append(("contexto", "contexto.md carregado em rota explícita"))
 if len(references) > budget["max_references"]:
@@ -73,12 +79,14 @@ if violations:
     pending = [
         message
         for metric, message in violations
-        if metric not in justified or metric in {"contexto", "rediscovered_facts"}
+        if cost_class == "C0"
+        or metric not in justified
+        or metric in {"class", "contexto", "rediscovered_facts"}
     ]
     if pending:
         fail("; ".join(pending))
 
 print(
-    f"OK: {scenario} — {len(references)} referências, {commands} comandos, "
+    f"OK: {scenario} [{cost_class}] — {len(references)} referências, {commands} comandos, "
     f"{output_chars} caracteres, {rounds} rodadas"
 )

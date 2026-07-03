@@ -1,5 +1,16 @@
 # Cenários de desenvolvimento orientado pela issue
 
+## Profundidade
+
+Confirme que:
+
+- `dev quick` começa com no máximo 3 arquivos, evita GitHub já resolvido e usa
+  validação focal;
+- `dev` mantém descoberta e validação balanceadas;
+- `dev full` exige pedido explícito, informa o motivo da profundidade e trabalha
+  em lotes filtrados;
+- nenhuma variação amplia escopo, autorização de commit, PR ou merge.
+
 ## Orientação de teste
 
 Após concluir:

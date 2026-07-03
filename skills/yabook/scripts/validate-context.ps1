@@ -10,6 +10,7 @@ $budgets = @{
     'references\bypass.md' = 1200
     'references\session-minimo.md' = 2000
     'references\roteamento.md' = 4000
+    'references\quality.md' = 2800
     'references\artefatos\issue.md' = 2800
     'references\artefatos\branch-commit.md' = 2800
     'references\artefatos\pr-release.md' = 2800

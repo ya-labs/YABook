@@ -11,6 +11,33 @@ pessoa solicite separadamente cada pré-requisito operacional.
 trava de `do`. Seu escopo termina antes de commit, Pull Request e merge, salvo
 quando outro comando encadeado autorizar essas entregas.
 
+## Profundidade
+
+### `$yabook dev quick`
+
+Use para tarefa pequena, clara e de baixo risco. É uma rota `C3`.
+
+- use issue, brief ou conversa como fonte principal;
+- abra inicialmente no máximo 3 arquivos diretamente relacionados;
+- não consulte GitHub quando issue e branch já estiverem confirmadas;
+- não leia documentação geral nem revise arquitetura;
+- execute validação focal;
+- pare diante de ambiguidade material;
+- informe o motivo antes de ampliar.
+
+### `$yabook dev`
+
+É o fluxo balanceado `C3`: inspecione o necessário, implemente com segurança,
+valide o escopo e apresente `Como testar`.
+
+### `$yabook dev full`
+
+Use para demanda complexa sob pedido explícito. É uma rota `C4`.
+
+Pode investigar documentação relacionada, arquitetura e impactos maiores.
+Informe o motivo da profundidade, leia em lotes filtrados e resuma cada lote
+antes de ampliar novamente. `full` não amplia escopo nem permissões.
+
 ## Descoberta da demanda
 
 1. Reutilize workspace, branch, issue e regras locais ainda válidos na conversa.
