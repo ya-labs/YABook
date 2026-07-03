@@ -39,6 +39,7 @@ Arquivos principais:
 | `references/contexto.md` | Matriz de dependências e limites de descoberta por comando. |
 | `references/bypass.md` | Contrato mínimo da exceção para branch incompatível. |
 | `references/artefatos/` | Formatos textuais separados para issue, branch, commit, PR e release. |
+| `references/briefs.md` | Contrato dos briefs reutilizáveis de issue, planejamento e PR. |
 | `references/github.md` | Índice curto para issues/Projects, branches e PR/release. |
 | `references/git.md` | Índice curto para leitura, checkpoint e mutações Git. |
 | `references/help.md` | Índice geral e roteamento do help contextual. |
@@ -188,12 +189,15 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
+| `$yabook issue brief` | Condensa a demanda em um contrato curto reutilizável antes de abrir ou desenvolver a issue. |
 | `$yabook issue classify` | Sugere labels, `Size`, justificativa curta, confiança e quebra em issues menores quando necessário. |
 | `$yabook branch name` | Sugere branch no formato `numero-descricao-curta`, baseada na issue. |
 | `$yabook commit message` | Sugere mensagem no padrão `tipo: descrição curta`, considerando o diff atual. |
+| `$yabook plan brief` | Resume decisões, dependências, pendências e próxima etapa do planejamento atual. |
 | `$yabook pr` | Gera título e descrição completa do PR com base na conversa e no Git. |
 | `$yabook pr title` | Gera apenas o título objetivo do PR. |
 | `$yabook pr desc` | Gera apenas a descrição do PR. |
+| `$yabook pr brief` | Resume a entrega pronta para revisão com validação mínima e riscos. |
 | `$yabook release` | Gera descrição de release e orienta tag quando aplicável. |
 | `$yabook docs` | Indica onde documentar uma informação no projeto. |
 | `$yabook review` | Revisa issue, PR ou documentação contra o padrão YABook. |
@@ -241,6 +245,55 @@ O help possui três níveis:
 
 Help não executa load automático, não consulta o projeto e não dispara comandos
 mencionados no texto. A referência normativa é `references/help.md`.
+
+## Briefs reutilizáveis
+
+Os comandos de brief existem para condensar contexto longo em contratos curtos
+e reaproveitáveis dentro da conversa atual.
+
+```text
+$yabook issue brief
+$yabook plan brief
+$yabook pr brief
+```
+
+Papel de cada um:
+
+- `issue brief`: resumir a demanda antes da issue, da implementação ou da revisão de escopo;
+- `plan brief`: resumir o estado atual do planejamento sem reler a conversa inteira;
+- `pr brief`: resumir a mudança pronta para revisão, incluindo validação mínima e riscos.
+
+O brief não é etapa obrigatória antes da issue. A regra é preferi-lo quando ele
+realmente economiza releitura:
+
+- demanda curta e já delimitada: vá direto para `issue`;
+- demanda longa, espalhada ou com histórico grande: `issue brief` antes ajuda;
+- retomada de planejamento ou revisão: `plan brief` e `pr brief` ganham valor quando condensam fontes longas em um contrato curto.
+
+Esses comandos são artefatos textuais `C2`, de baixo custo, e não executam
+escrita sem `do`. O limite esperado é de até 1.200 caracteres por brief.
+
+Estrutura comum, quando os campos fizerem sentido:
+
+```md
+## Brief
+
+Objetivo:
+Escopo:
+Fora do escopo:
+Critérios de aceite:
+Validação mínima:
+Riscos:
+```
+
+A skill deve preencher apenas fatos sustentados pela conversa e pelas fontes já
+válidas. Campo sem utilidade pode ser omitido. Não se deve inventar conteúdo
+para completar o modelo.
+
+Depois de gerar um brief válido, rotas posteriores devem preferi-lo antes de
+reler issue, planejamento ou histórico extenso. A ampliação de leitura só
+acontece quando houver lacuna concreta, conflito, risco ou mudança relevante no
+objetivo, no escopo ou no diff.
 
 ## `$yabook dev`
 

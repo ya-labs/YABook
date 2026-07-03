@@ -201,6 +201,12 @@ Cada comando tem um foco:
 - `plan brief`: resume decisões, dependências, pendências e próxima etapa do planejamento;
 - `pr brief`: resume o que mudou, como validar e quais riscos a revisão deve observar.
 
+O brief não é uma etapa obrigatória do fluxo. Use assim:
+
+- vá direto para `$yabook issue` quando a demanda já estiver curta, clara e pronta para virar issue;
+- use `$yabook issue brief` quando a conversa estiver longa, espalhada ou com risco de releitura cara;
+- use `plan brief` e `pr brief` quando você quiser reaproveitar um contrato curto entre planejamento, implementação e revisão.
+
 O formato esperado é curto e direto. Quando aplicável, o brief registra:
 
 - objetivo;
@@ -393,9 +399,15 @@ $yabook dev
 
 Variantes:
 
-- `$yabook dev quick`: rota curta para tarefa pequena, clara e de baixo risco;
-- `$yabook dev`: fluxo balanceado padrão;
-- `$yabook dev full`: aprofundamento explícito para demanda complexa.
+- `$yabook dev quick`: use quando a tarefa for pequena, clara, de baixo risco e com poucos arquivos envolvidos;
+- `$yabook dev`: use como padrão para a maior parte das issues de implementação;
+- `$yabook dev full`: use quando a demanda for complexa ou quando você quiser investigação profunda de propósito.
+
+Regra prática:
+
+- `dev quick`: ajuste pontual, contexto já está claro, não faz sentido abrir documentação ampla nem investigar arquitetura;
+- `dev`: implementação normal, com inspeção suficiente para editar com segurança e validar o resultado;
+- `dev full`: mudança com mais impacto, documentação estrutural, fluxo sensível, dúvida real de escopo ou pedido explícito de profundidade.
 
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
