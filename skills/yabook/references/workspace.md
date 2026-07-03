@@ -55,7 +55,7 @@ Inspeções mínimas podem ser feitas em candidatos somente para desambiguar.
 Git, GitHub e arquivos só podem ser alterados depois que uma única raiz for
 confirmada.
 
-## Cache
+## Cache da conversa
 
 Guarde no cache da conversa:
 
@@ -67,3 +67,6 @@ Guarde no cache da conversa:
 Invalide e resolva novamente quando mudar o workspace, o conjunto relevante de
 arquivos ativos, o repositório informado, a branch ou o remote. `$yabook load`
 também força uma nova resolução.
+
+O cache opcional persistido em `.yabook/context-cache.md` segue contrato
+separado em `context-cache.md` e nunca substitui esta validação do workspace.
