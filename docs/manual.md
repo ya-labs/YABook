@@ -151,6 +151,33 @@ Comandos principais:
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
 
+### Economia de contexto
+
+A skill não deve carregar contexto amplo por prevenção. Ela classifica a rota
+antes de ler:
+
+| Classe | Uso |
+| --- | --- |
+| `C0` | resposta instantânea baseada em conversa e referência direta |
+| `C1` | contexto local mínimo |
+| `C2` | artefato ou análise dirigida |
+| `C3` | execução controlada |
+| `C4` | auditoria ou execução profunda sob pedido explícito |
+
+Em rotas explícitas, a skill deve abrir primeiro a referência direta do comando.
+`contexto.md` fica reservado para auditoria, ambiguidade ou revisão do
+carregamento. Quando workspace, branch, issue e objetivo já estiverem
+confirmados, a skill reutiliza esse contexto e não deve redescobrir GitHub,
+memória, documentação geral ou regras já válidas sem sinal de mudança.
+
+Por padrão:
+
+- use buscas dirigidas antes de abrir arquivos;
+- leia trechos curtos e suficientes para decidir;
+- limite saídas de terminal a 4.000 caracteres;
+- faça uma inspeção inicial e uma validação final;
+- amplie somente diante de lacuna, conflito, risco, erro ou pedido explícito.
+
 ### Como preparar um APK
 
 O aplicativo adotante mantém `.yabook/apk.json`:
@@ -323,10 +350,21 @@ Use `dev` depois que a demanda estiver registrada:
 $yabook dev
 ```
 
+Variantes:
+
+- `$yabook dev quick`: rota curta para tarefa pequena, clara e de baixo risco;
+- `$yabook dev`: fluxo balanceado padrão;
+- `$yabook dev full`: aprofundamento explícito para demanda complexa.
+
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
 O vínculo da branch é confirmado por leitura na própria issue; publicar uma
 branch no remoto, isoladamente, não conta como vínculo concluído.
+
+Quando workspace, issue, branch e demanda já estiverem inequívocos, `dev` deve
+seguir o caminho rápido: não consultar GitHub, memória nem documentação geral,
+abrir somente os arquivos diretamente ligados à mudança, editar em uma rodada e
+validar em outra. Qualquer ampliação acima disso precisa ter motivo explícito.
 
 Ao concluir, a resposta inclui `Como testar` com pré-requisitos, comandos,
 passos manuais e resultados esperados aplicáveis à alteração. Ela também
@@ -390,6 +428,11 @@ detalhar todas as rotas.
 O teste estático não representa uma sessão real. Relatórios de execução podem
 ser validados separadamente para conferir quantidade de referências, comandos,
 caracteres retornados, rodadas e redescobertas desnecessárias.
+
+No repositório, isso aparece em dois níveis:
+
+- `skills/yabook/tests/check_context_budget.py`: compara orçamento estático por rota;
+- `skills/yabook/tests/check_context_runtime.py`: valida um relatório de execução observada contra limites de referências, comandos, caracteres e rodadas.
 
 O contexto vale apenas para a conversa atual.
 

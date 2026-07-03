@@ -22,6 +22,12 @@ Ao final, a pessoa deve compreender:
 
 ## O que mudou nesta rodada
 
+Este repasse consolida a transição iniciada nas issues `#36` e `#37` e deve
+ser lido junto com os ajustes posteriores das issues `#32`, `#38`, `#47`,
+`#48`, `#49` e `#50`. O objetivo não é repetir cada issue, e sim registrar o
+comportamento atual que outra pessoa precisa reconhecer ao usar ou manter a
+skill.
+
 ### YABook Skill como orquestrador
 
 A YABook Skill é o orquestrador inteligente do Método YA LABS. A pessoa usuária
@@ -160,6 +166,21 @@ Workspace, regras locais e Git são consultados apenas quando o comando depende
 do repositório. `$yabook load` permanece disponível para atualizar explicitamente
 raiz, remote, branch e resumo do worktree.
 
+As rotas agora seguem classes explícitas de custo:
+
+| Classe | Uso |
+| --- | --- |
+| `C0` | resposta instantânea |
+| `C1` | contexto local mínimo |
+| `C2` | artefato ou análise dirigida |
+| `C3` | execução controlada |
+| `C4` | profundidade explícita |
+
+Comando explícito abre a própria referência direta. `contexto.md` ficou
+reservado para auditoria, revisão do carregamento e ambiguidade. Isso reduz
+redescobertas desnecessárias e evita carregar GitHub, memória ou documentação
+geral quando a conversa já sustenta a ação.
+
 `$yabook help` é a única exceção. `$yabook load` continua disponível para
 recarregar o contexto depois de trocar repositório, branch ou regras locais.
 
@@ -186,6 +207,20 @@ A trava de `do` vale dentro da gramática `$yabook`:
 
 `$yabook dev` é a exceção orientada ao objetivo: autoriza preparar a branch,
 implementar e validar a issue atual. Não autoriza commit, PR ou merge sozinho.
+
+Variantes disponíveis:
+
+- `$yabook dev quick`: tarefa pequena, clara e de baixo risco;
+- `$yabook dev`: fluxo balanceado padrão;
+- `$yabook dev full`: investigação profunda sob pedido explícito.
+
+Quando issue, branch, workspace e objetivo já estiverem claros, `dev` segue o
+caminho rápido: não consulta GitHub, memória nem documentação ampla, abre só os
+arquivos do escopo e amplia apenas com motivo explícito.
+
+Ao concluir, toda execução de `dev` precisa apresentar `Como testar` com
+pré-requisitos, comandos, passos manuais, resultados esperados e a separação
+entre o que o agente já validou e o que ainda depende da pessoa.
 
 Pedidos normais em linguagem natural continuam executáveis quando a branch é
 compatível.
@@ -311,6 +346,19 @@ $yabook help planejar a V1 do projeto
 
 Help não carrega o repositório, não altera estado e não executa os comandos que
 aparecem na explicação.
+
+## Observabilidade de contexto
+
+Além da divisão das referências, a skill agora possui duas verificações
+complementares:
+
+- orçamento estático por rota, para limitar instruções carregadas;
+- auditoria runtime por relatório, para limitar referências, comandos,
+  caracteres e rodadas observadas.
+
+O teste runtime não mede automaticamente uma sessão real do agente. Ele valida
+um relatório produzido externamente e serve para auditar se uma execução ficou
+dentro do orçamento planejado.
 
 ## Demonstração: projeto do zero
 
