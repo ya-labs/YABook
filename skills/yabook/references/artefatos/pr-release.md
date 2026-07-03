@@ -25,6 +25,9 @@ Closes #numero
 Adicione `<details>` com informações para IA somente quando houver contexto útil
 para revisão ou continuidade.
 
+Quando houver `pr brief` válido, use-o antes de reler issue, diff ou histórico.
+Revalide a fonte somente se commits, diff, objetivo ou escopo mudarem.
+
 ## Release
 
 Título:

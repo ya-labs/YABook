@@ -12,9 +12,11 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
 | `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, planejamento |
 | `$yabook issue` | `issue` | `artefatos/issue.md` | `contexto.md`, planejamento, PRs não relacionados |
+| `$yabook issue brief` | `issue brief` | `briefs.md` | GitHub, documentação ampla |
 | `$yabook commit msg` | `commit message` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, Project |
 | `$yabook desejo saber a próxima etapa` | `plan next` | `orquestracao.md`, `planejamento/status-next.md` | `contexto.md`, diagnóstico completo |
 | `$yabook plan start v1` | `plan start v1` | `planejamento/start.md` | `contexto.md`, GitHub completo |
+| `$yabook plan brief` | `plan brief` | `briefs.md` | GitHub, histórico já condensado |
 | `$yabook plan review` | `plan review` | `planejamento/review.md` | `contexto.md`, issues fechadas |
 | `$yabook diagnose` | `diagnose` | `planejamento/diagnose.md` | `contexto.md`, Project inteiro, corpos em massa |
 | `$yabook diagnose full` | `diagnose full` | `planejamento/diagnose.md` | `contexto.md`, respostas brutas sem filtro |
@@ -25,6 +27,7 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook dev quick` | `dev quick` | `dev.md`, `git/checkpoint.md` | documentação geral, arquitetura inteira |
 | `$yabook dev` | `dev` | `dev.md`, `git/checkpoint.md` | `contexto.md`, release sem relação |
 | `$yabook dev full` | `dev full` | `dev.md`, `git/checkpoint.md` | fontes fora do escopo confirmado |
+| `$yabook pr brief` | `pr brief` | `briefs.md` | GitHub, diff já confirmado |
 | `$yabook dev & do pr` | `dev` → `do pr` | roteamento e referências das duas rotas | merge |
 
 ## Linguagem natural

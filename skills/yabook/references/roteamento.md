@@ -14,8 +14,9 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 
 Subcomandos textuais:
 
-- `issue title|desc|classify`;
-- `pr title|desc`;
+- `issue title|desc|classify|brief`;
+- `pr title|desc|brief`;
+- `plan brief`;
 - `steps start|done <número>|cancel`;
 - `sync local|remote`.
 

@@ -5,7 +5,7 @@ description: Orchestrate the YA LABS Method through natural-language routing, is
 
 # YABook
 
-Roteie o Método YA LABS usando o Handbook como fonte normativa sob demanda.
+Aplique o Método YA LABS sob demanda.
 
 ## Fluxo
 
@@ -20,7 +20,7 @@ Roteie o Método YA LABS usando o Handbook como fonte normativa sob demanda.
 5. Leia `AGENTS.md` apenas quando suas regras ainda não estiverem disponíveis.
 6. Amplie quando faltar evidência. Responda em português, com concisão.
 
-`$yabook load` apenas atualiza o contexto mínimo do repositório conforme
+`load` atualiza só o contexto mínimo:
 [session-minimo.md](references/session-minimo.md).
 
 ## Economia de contexto
@@ -58,6 +58,7 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - Artefatos: [issue](references/artefatos/issue.md),
   [branch/commit](references/artefatos/branch-commit.md),
   [PR/release](references/artefatos/pr-release.md).
+- Briefs: [contrato](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
   [apk](references/apk.md), [init](references/init.md),
   [docs](references/documentacao.md).

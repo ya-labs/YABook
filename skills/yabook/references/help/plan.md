@@ -10,6 +10,7 @@ Para `$yabook help plan`, apresente:
 | `plan next` | Recomendar a próxima ação. |
 | `plan roadmap` | Propor milestones, épicos e próximo bloco. |
 | `plan review` | Revisar coerência. |
+| `plan brief` | Condensar decisões e pendências para reutilização. |
 | `do plan` | Gravar decisões aprovadas. |
 | `do plan roadmap` | Criar a estrutura aprovada no GitHub. |
 
