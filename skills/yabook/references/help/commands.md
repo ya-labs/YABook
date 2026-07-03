@@ -27,5 +27,5 @@ prepara a cópia padronizada de um artefato existente. Upload permanece manual.
 
 ## Mode
 
-Modos ajustam colaboração, não permissões. `study` ensina, `dev` orienta e
-`prod` executa dentro das autorizações. `mode: dev` não equivale a `$yabook dev`.
+Modos ajustam colaboração, não permissões. `study` ensina, `work` orienta e
+`prod` executa dentro das autorizações. `mode: work` não equivale a `$yabook dev`.

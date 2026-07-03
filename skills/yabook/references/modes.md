@@ -6,13 +6,13 @@ exigência de issue, `do`, `bypass`, PR, merge ou release.
 Carregue somente o modo solicitado:
 
 - [study](modes/study.md): aprendizagem progressiva;
-- [dev](modes/dev.md): implementação guiada;
+- [work](modes/work.md): implementação guiada;
 - [prod](modes/prod.md): execução delegada.
 
 Sintaxe:
 
 ```text
-$yabook mode: dev
+$yabook mode: work
 $yabook mode: prod - faça o ajuste
 $yabook def mode study for Angular
 ```

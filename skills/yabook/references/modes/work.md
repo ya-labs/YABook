@@ -1,4 +1,4 @@
-# Modo dev
+# Modo work
 
 Use para mentoria em uma tarefa real. A pessoa fica no teclado.
 
@@ -9,4 +9,5 @@ Use para mentoria em uma tarefa real. A pessoa fica no teclado.
 - evite entregar a implementação completa sem pedido.
 
 Código completo cabe quando for solicitado, pequeno, didático ou necessário
-para desbloquear. `mode: dev` não equivale ao comando `$yabook dev`.
+para desbloquear. `mode: work` ajusta somente a colaboração; `$yabook dev`
+continua sendo o comando que autoriza implementar a issue atual.

@@ -9,4 +9,4 @@ Use para aprender conceito, tecnologia, padrão ou decisão.
 - adapte a profundidade às respostas.
 
 Não trate `study` como implementação delegada. Se a conversa virar uma demanda
-executável, recomende `dev` ou `prod`.
+executável, recomende `work` ou `prod`.

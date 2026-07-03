@@ -11,7 +11,7 @@ ROUTES = {
     "help": (["references/help.md"], 1800, 1),
     "help plan": (["references/help.md", "references/help/plan.md"], 2200, 2),
     "mode study": (["references/modes.md", "references/modes/study.md"], 2000, 2),
-    "mode dev": (["references/modes.md", "references/modes/dev.md"], 2000, 2),
+    "mode work": (["references/modes.md", "references/modes/work.md"], 2000, 2),
     "mode prod": (["references/modes.md", "references/modes/prod.md"], 2000, 2),
     "steps": (["references/steps.md"], 1800, 1),
     "discuss": (["references/discuss.md"], 2000, 1),

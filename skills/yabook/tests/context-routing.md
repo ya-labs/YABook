@@ -7,6 +7,7 @@ referências carregadas, fontes consultadas e respeito às travas.
 | --- | --- | --- | --- |
 | `$yabook help` | `help` | `help.md` | workspace, Git, GitHub |
 | `$yabook mode: study` | `mode` | `modes.md`, `modes/study.md` | workspace, GitHub |
+| `$yabook mode: work` | `mode` | `modes.md`, `modes/work.md` | workspace, GitHub |
 | `$yabook steps` | `steps` | `steps.md` | Git, artefatos |
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
 | `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, planejamento |
