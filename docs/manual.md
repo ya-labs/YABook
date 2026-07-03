@@ -153,6 +153,8 @@ Comandos principais:
 - `$yabook docs`: indica onde documentar uma informação.
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
+Para ver a lista completa de comandos, variantes e comportamento interno da
+skill, abra [Skill YABook](guias/skill-yabook.md).
 
 ### Economia de contexto
 
