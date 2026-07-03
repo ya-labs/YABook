@@ -108,6 +108,18 @@ A YABook Skill é o orquestrador inteligente do Método YA LABS. A pessoa define
 o projeto e toma as decisões; a skill organiza o caminho, recomenda etapas e
 executa somente o que foi autorizado.
 
+Índice das explicações de comandos:
+
+- [Como usar linguagem natural](#como-usar-linguagem-natural)
+- [Como usar briefs](#como-usar-briefs)
+- [Como preparar um APK](#como-preparar-um-apk)
+- [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
+- [Como usar modos de colaboração](#como-usar-modos-de-colaboração)
+- [Como usar o help](#como-usar-o-help)
+- [Como usar `$yabook dev`](#como-usar-yabook-dev)
+- [Como usar `$yabook load`](#como-usar-yabook-load)
+- [Como usar `$yabook do`](#como-usar-yabook-do)
+
 ### Como usar linguagem natural
 
 Você não precisa conhecer previamente o comando correto:

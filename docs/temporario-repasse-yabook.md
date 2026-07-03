@@ -1,574 +1,113 @@
 # Roteiro temporário de repasse do YABook
 
-Este documento apresenta a rodada que expandiu o YABook de um conjunto de
-padrões operacionais para um fluxo de condução de projetos apoiado por IA.
+Este repasse registra somente a rodada da issue `#56`.
 
-Use o roteiro para demonstrar as mudanças e validar se outra pessoa consegue
-iniciar, planejar, diagnosticar e organizar um projeto sem orientação externa.
+## Objetivo desta rodada
 
-## Objetivo do repasse
+Atualizar a documentação do YABook para refletir mudanças recentes da skill que
+já estavam implementadas, mas ainda não estavam claras no manual e no repasse.
 
-Ao final, a pessoa deve compreender:
+## Escopo consolidado
 
-- como o YABook conduz um projeto da descoberta até a release;
-- como planejar a V1 ou uma versão posterior com o Codex;
-- como descobrir onde o projeto está e qual é a próxima etapa;
-- o que comandos sem `do` analisam e o que comandos com `do` executam;
-- como o carregamento progressivo funciona;
-- quando usar `bypass`;
-- como verificar e sincronizar a skill;
-- como usar o help por comando ou objetivo;
-- como manter uma sequência recomendada visível durante a conversa.
+Esta rodada consolidou no texto as mudanças ligadas às issues:
 
-## O que mudou nesta rodada
+- `#32`
+- `#36`
+- `#37`
+- `#38`
+- `#47`
+- `#48`
+- `#49`
+- `#50`
 
-Este repasse consolida a transição iniciada nas issues `#36` e `#37` e deve
-ser lido junto com os ajustes posteriores das issues `#32`, `#38`, `#47`,
-`#48`, `#49` e `#50`. O objetivo não é repetir cada issue, e sim registrar o
-comportamento atual que outra pessoa precisa reconhecer ao usar ou manter a
-skill.
+O repasse, porém, deve ser lido como entrega da issue `#56`: ajustar a
+documentação para explicar o comportamento atual da skill.
 
-### YABook Skill como orquestrador
+## O que foi atualizado
 
-A YABook Skill é o orquestrador inteligente do Método YA LABS. A pessoa usuária
-define projeto, prioridades e decisões; a skill interpreta a intenção, orienta
-o caminho correto e executa somente o que foi autorizado.
+Os documentos ajustados nesta rodada foram:
 
-Exemplo:
+- [Manual de uso](manual.md)
+- [Guia técnico da skill](guias/skill-yabook.md)
 
-```text
-$yabook desejo planejar a V1 do meu projeto
-```
+## Mudanças que agora estão documentadas
 
-A skill infere `plan start v1`. Se precisar corrigir ou combinar comandos,
-informa o roteamento no início. Ela avança por leituras seguras até encontrar
-uma decisão ou escrita, mas nunca infere `do`.
+### Economia de contexto
 
-Quando houver várias etapas, sugere `$yabook steps start` com um motivo curto,
-sem iniciar o checklist automaticamente.
+A documentação agora deixa explícito que a skill trabalha com classes de custo:
 
-### Condução de projetos
+- `C0`: resposta instantânea;
+- `C1`: contexto local mínimo;
+- `C2`: artefato ou análise dirigida;
+- `C3`: execução controlada;
+- `C4`: profundidade explícita.
 
-O YABook agora define um ciclo reutilizável:
+Também ficou registrado que:
 
-```text
-Descoberta
--> planejamento colaborativo
--> documentação da versão
--> roadmap
--> próximo bloco de issues
--> implementação
--> estabilização
--> release
-```
+- comandos explícitos devem abrir sua referência direta;
+- `contexto.md` fica para auditoria, revisão do carregamento ou ambiguidade;
+- contexto válido não deve ser redescoberto sem sinal de mudança;
+- ampliação de leitura só deve acontecer com motivo concreto.
 
-O planejamento cobre a versão inteira em alto nível, mas detalha somente o
-próximo bloco acionável.
+### `$yabook dev`
 
-Documentação guarda conhecimento estável. GitHub guarda backlog, responsáveis,
-status, milestones, épicos e progresso operacional.
+O manual agora diferencia melhor quando usar:
 
-### Diagnóstico do projeto
+- `$yabook dev quick`;
+- `$yabook dev`;
+- `$yabook dev full`.
 
-`$yabook diagnose` cruza documentação, código, Git e GitHub para apresentar:
+Regra consolidada:
 
-- objetivo da versão;
-- entregas concluídas;
-- trabalho em andamento;
-- pendências;
-- bloqueios;
-- divergências entre plano e execução;
-- próximo passo recomendado.
+- `dev quick`: tarefa pequena, clara, de baixo risco e com poucos arquivos;
+- `dev`: caminho padrão para a maioria das implementações;
+- `dev full`: demanda complexa, estrutural, sensível ou com pedido explícito de aprofundamento.
 
-Diagnóstico observa o projeto. Planejamento decide sua direção.
-
-### Discussão geral
-
-`$yabook discuss <tema>` analisa uma ideia, decisão ou mudança antes de
-transformá-la em planejamento, documentação ou trabalho executável.
-
-O comando adapta a análise ao assunto, separa decisões e pendências e recomenda
-o próximo comando. Ele não altera arquivos ou GitHub.
-
-`$yabook plan discuss <tema>` permanece disponível apenas como alias de
-compatibilidade.
-
-### Planejamento colaborativo
-
-A família `plan` permite conversar antes de documentar:
-
-| Comando | Função |
-| --- | --- |
-| `$yabook plan start v1` | Inicia a entrevista da versão. |
-| `$yabook plan status` | Mostra maturidade e decisões abertas. |
-| `$yabook plan next` | Recomenda uma única próxima ação. |
-| `$yabook plan roadmap` | Propõe milestones, épicos e próximo bloco. |
-| `$yabook plan review` | Revisa coerência e prontidão. |
-| `$yabook do plan` | Consolida decisões aprovadas nos documentos. |
-| `$yabook do plan roadmap` | Materializa o roadmap aprovado no GitHub. |
-
-Comandos `plan` sem `do` não alteram arquivos ou GitHub.
-
-### Acompanhamento de etapas
-
-A família `steps` transforma uma sequência recomendada em checklist temporário:
-
-| Comando | Função |
-| --- | --- |
-| `$yabook steps start` | Inicia o checklist com base na sequência discutida. |
-| `$yabook steps` | Mostra o checklist ativo. |
-| `$yabook steps done <número>` | Conclui uma etapa e destaca a próxima. |
-| `$yabook steps cancel` | Encerra o acompanhamento. |
-
-Enquanto houver etapas abertas, a IA repete um resumo compacto no final de cada
-resposta:
-
-```text
-✅ 1. Etapa concluída
-➡️ 2. Próxima etapa
-⬜ 3. Etapa pendente
-```
-
-Confirmações inequívocas em linguagem natural, como `concluí a primeira etapa`,
-também podem atualizar o checklist. O acompanhamento vale apenas para a conversa
-atual, não executa os passos e não substitui planejamento, issues ou milestones.
-
-Se uma ação acontecer fora da sequência, a skill classifica o desvio. Ela pode
-registrar execução antecipada, reordenar etapas pendentes, adicionar correção ou
-revalidação e explicar o recalculado.
-
-Etapas concluídas permanecem no histórico. Mudanças de objetivo, escopo ou
-decisões exigem confirmação.
-
-### Núcleo documental adaptável
-
-Quando o projeto não tiver estrutura equivalente, o padrão sugerido é:
-
-```text
-docs/planejamento/
-├── visao-do-produto.md
-├── roadmap.md
-├── versoes/
-│   └── v1.md
-└── sessoes/
-    └── AAAA-MM-DD-assunto.md
-```
-
-Sessões guardam contexto, decisões, pendências e impactos. Não guardam a
-transcrição completa nem status operacional.
-
-### Carregamento progressivo
-
-Não é necessário iniciar a conversa com `$yabook load`.
-
-No primeiro comando, a skill identifica a rota e carrega somente sua referência.
-Workspace, regras locais e Git são consultados apenas quando o comando depende
-do repositório. `$yabook load` permanece disponível para atualizar explicitamente
-raiz, remote, branch e resumo do worktree.
-
-As rotas agora seguem classes explícitas de custo:
-
-| Classe | Uso |
-| --- | --- |
-| `C0` | resposta instantânea |
-| `C1` | contexto local mínimo |
-| `C2` | artefato ou análise dirigida |
-| `C3` | execução controlada |
-| `C4` | profundidade explícita |
-
-Comando explícito abre a própria referência direta. `contexto.md` ficou
-reservado para auditoria, revisão do carregamento e ambiguidade. Isso reduz
-redescobertas desnecessárias e evita carregar GitHub, memória ou documentação
-geral quando a conversa já sustenta a ação.
-
-`$yabook help` é a única exceção. `$yabook load` continua disponível para
-recarregar o contexto depois de trocar repositório, branch ou regras locais.
-
-Antes dessas leituras, a skill compara, nesta ordem, raiz informada pela IDE,
-arquivos ativos, repositório explícito, contexto confirmado e `cwd`. O `cwd` é
-apenas o último candidato. A raiz precisa conter `.git`, ter `AGENTS.md` lido
-quando existir e remote compatível confirmado por `git remote -v`.
-
-Todos os comandos seguintes usam essa raiz como `workdir`. Qualquer divergência
-entre workspace, arquivos ativos, repositório mencionado, contexto, `cwd` e
-remote bloqueia escrita em arquivos, Git ou GitHub até a pessoa confirmar o
-repositório correto.
-
-### Trava de execução
-
-A trava de `do` vale dentro da gramática `$yabook`:
-
-- `$yabook issue` gera a proposta;
-- `$yabook do issue` cria a issue;
-- `$yabook plan roadmap` propõe a estrutura;
-- `$yabook do plan roadmap` cria a estrutura;
-- `$yabook sync` compara;
-- `$yabook do sync` sincroniza.
-
-`$yabook dev` é a exceção orientada ao objetivo: autoriza preparar a branch,
-implementar e validar a issue atual. Não autoriza commit, PR ou merge sozinho.
-
-Variantes disponíveis:
-
-- `$yabook dev quick`: tarefa pequena, clara e de baixo risco;
-- `$yabook dev`: fluxo balanceado padrão;
-- `$yabook dev full`: investigação profunda sob pedido explícito.
-
-Quando issue, branch, workspace e objetivo já estiverem claros, `dev` segue o
-caminho rápido: não consulta GitHub, memória nem documentação ampla, abre só os
-arquivos do escopo e amplia apenas com motivo explícito.
-
-Ao concluir, toda execução de `dev` precisa apresentar `Como testar` com
-pré-requisitos, comandos, passos manuais, resultados esperados e a separação
-entre o que o agente já validou e o que ainda depende da pessoa.
-
-Pedidos normais em linguagem natural continuam executáveis quando a branch é
-compatível.
-
-### Entrada do fluxo de trabalho
-
-O foco do fluxo YABook é transformar uma coisa nova em trabalho executável.
-
-Quando surgir um problema, ajuste, melhoria, funcionalidade ou necessidade de
-documentação, a pessoa pode descrevê-lo em linguagem natural. A IA deve entender
-e delimitar a demanda sem inventar requisitos.
-
-```text
-Problema, ajuste ou melhoria
--> $yabook issue
--> $yabook do issue
--> $yabook dev
--> $yabook do pr
--> merge
-```
-
-A issue não é burocracia posterior: ela é o ponto em que a demanda ganha
-objetivo, limite e critérios de aceite antes da implementação.
-
-### Branch vinculada à issue
-
-`$yabook do branch` não deve apenas criar e publicar uma branch. Com uma issue
-inequívoca, a skill deve usar o vínculo nativo do GitHub (`createLinkedBranch`)
-e confirmar a branch em `issue.linkedBranches`. Assim ela aparece na seção
-Development da issue.
-
-O mesmo vale para a branch preparada por `$yabook dev`. Se a integração não
-oferecer o vínculo nativo, a resposta deve distinguir branch criada de branch
-vinculada e orientar o fallback manual. Falha ou ausência de confirmação nunca
-deve ser apresentada como sucesso.
-
-### Proteção de `main`, `dev` e branches incompatíveis
-
-Pedidos diretos em `main`, `dev`, release ou branch incompatível devem ser
-bloqueados.
-
-Uma confirmação comum não libera a execução. A exceção precisa ser explícita:
-
-```text
-$yabook bypass atualize o README diretamente na main
-```
-
-O `bypass` vale somente para a ação anexada e não substitui `do issue`,
-`do branch`, `do commit`, `do pr`, `do release`, `do merge` ou `do sync`.
-
-### Trava de mutações Git
-
-Em projetos YA LABS, somente `$yabook do <ação>` ou `$yabook dev` dentro de seu
-escopo autorizado podem alterar Git. A trava também vale para pedidos diretos
-que não chamam a skill.
-
-`$yabook status` e `$yabook commit message` podem consultar status, diff e
-histórico. Já branch, switch, add, commit, stash, merge, rebase, tag, fetch,
-pull e push exigem ação `do` explícita.
-
-O escopo acompanha o objetivo: `$yabook do commit` isolado não autoriza `push`.
-`$yabook do pr` pode criar commits coerentes, enviar a branch e abrir ou
-atualizar o PR. `$yabook do merge` pode preparar o PR e integrar, mas não
-autoriza outras branches ou tags.
-
-### Checkpoint do worktree
-
-Antes de novas edições, a IA verifica se as alterações pendentes formam um bloco
-concluído de outra responsabilidade. Se formarem um commit independente e
-reversível, pausa antes de continuar.
-
-```text
-Existem alterações concluídas que devem formar um commit separado.
-
-Commit proposto: tipo: descrição
-
-- $yabook do: cria o commit, executa os pré-requisitos mínimos e retoma a solicitação.
-- $yabook continue: prossegue sem criar o commit.
-```
-
-`continue` vale apenas para checkpoint opcional. Outra issue ou branch mantém a
-separação obrigatória.
-
-### Sincronização da skill
-
-Use:
-
-```text
-$yabook sync
-$yabook sync local
-$yabook sync remote
-```
-
-Esses comandos apenas comparam a instalação com a origem.
-
-Para atualizar:
-
-```text
-$yabook do sync
-$yabook do sync local
-$yabook do sync remote
-```
-
-O modo local prefere o checkout YABook atual ou `YABOOK_REPO_PATH`. O modo
-remoto usa o repositório oficial sem executar `pull` no checkout local.
-
-A sincronização valida antes e depois, ignora diferenças de quebra de linha e
-altera somente a instalação `yabook`.
-
-### Help contextual
-
-O help agora possui três níveis:
-
-```text
-$yabook help
-$yabook help plan
-$yabook help planejar a V1 do projeto
-```
-
-- o primeiro apresenta o índice;
-- o segundo explica uma família e mostra exemplos;
-- o terceiro recomenda um fluxo e explica o motivo de cada etapa.
-
-Help não carrega o repositório, não altera estado e não executa os comandos que
-aparecem na explicação.
+Também ficou explícito que toda execução de `dev` deve terminar com `Como testar`.
 
 ### Briefs reutilizáveis
 
-Os briefs foram adicionados para reduzir releitura de contexto longo entre
-planejamento, implementação e revisão.
+Os comandos abaixo agora estão explicados de forma mais direta:
 
-Use:
+- `$yabook issue brief`
+- `$yabook plan brief`
+- `$yabook pr brief`
 
-```text
-$yabook issue brief
-$yabook plan brief
-$yabook pr brief
-```
+Pontos consolidados:
 
-Explique para a pessoa usuária assim:
+- brief é um contrato curto e reutilizável;
+- brief não é etapa obrigatória antes da issue;
+- `issue brief` é preferível quando a conversa estiver longa ou espalhada;
+- em demanda curta e clara, pode ir direto para `$yabook issue`;
+- rotas posteriores devem preferir brief válido antes de reler contexto longo.
 
-- `issue brief`: um resumo curto da demanda para alinhar objetivo, escopo e critérios antes de abrir ou desenvolver a issue;
-- `plan brief`: um resumo curto do planejamento atual para retomar decisões sem reler a conversa inteira;
-- `pr brief`: um resumo curto da entrega pronta para revisão, com validação mínima e riscos.
+### Observabilidade de contexto
 
-O ponto principal é que brief não substitui issue, plano ou PR. Ele só
-condensa o contexto já existente em um contrato reutilizável dentro da conversa.
+Também ficou documentada a diferença entre:
 
-Campos esperados quando fizerem sentido:
+- orçamento estático por rota;
+- auditoria runtime por relatório observado.
 
-- objetivo;
-- escopo;
-- fora do escopo;
-- critérios de aceite;
-- validação mínima;
-- riscos.
+O texto agora deixa claro que o teste runtime não mede sozinho uma sessão real
+do agente: ele valida um relatório produzido externamente.
 
-Se o contexto já estiver bem delimitado, rotas posteriores devem preferir o
-brief válido antes de reler issue, planejamento ou histórico extenso. Se o
-objetivo mudar, o escopo mudar ou o diff mudar, o brief pode ficar inválido e a
-skill precisa dizer o que mudou antes de ampliar a leitura.
+### Atalho para comandos completos da skill
 
-## Observabilidade de contexto
+O manual agora aponta explicitamente para o guia técnico da skill quando a
+pessoa quiser ver a lista completa de comandos, variantes e comportamento
+interno:
 
-Além da divisão das referências, a skill agora possui duas verificações
-complementares:
+- [Skill YABook](guias/skill-yabook.md)
 
-- orçamento estático por rota, para limitar instruções carregadas;
-- auditoria runtime por relatório, para limitar referências, comandos,
-  caracteres e rodadas observadas.
+## O que outra pessoa deve verificar
 
-O teste runtime não mede automaticamente uma sessão real do agente. Ele valida
-um relatório produzido externamente e serve para auditar se uma execução ficou
-dentro do orçamento planejado.
+Ao continuar este trabalho, a próxima pessoa deve conferir:
 
-## Demonstração: projeto do zero
+1. se o manual está claro para alguém que usa a skill sem conhecer o histórico das issues;
+2. se o guia técnico da skill está consistente com `SKILL.md` e com as referências em `skills/yabook/`;
+3. se novas mudanças da skill continuarão sendo refletidas nesses documentos sem deixar repasses antigos acumulados.
 
-Execute em um repositório de teste:
+## Critério de encerramento desta rodada
 
-```text
-$yabook init
-$yabook do init
-$yabook plan start v1
-$yabook plan review
-$yabook do plan
-$yabook plan roadmap
-$yabook do plan roadmap
-$yabook plan next
-```
-
-Durante a demonstração, confirme:
-
-- `init` apenas propõe;
-- `do init` aplica;
-- `plan start` conduz perguntas em blocos curtos;
-- hipóteses não viram decisões automaticamente;
-- `do plan` não cria commit;
-- o roadmap reutiliza itens existentes;
-- somente o próximo bloco recebe issues detalhadas.
-
-## Demonstração: expandir projeto existente
-
-Para uma nova versão:
-
-```text
-$yabook diagnose
-$yabook plan start v2
-$yabook plan review
-$yabook do plan
-$yabook plan roadmap
-$yabook do plan roadmap
-```
-
-Para alterar a versão atual:
-
-```text
-$yabook diagnose
-$yabook discuss adicionar integração com IA
-$yabook plan review
-$yabook do plan
-$yabook plan roadmap
-$yabook do plan roadmap
-```
-
-## Demonstração: projeto sem direção
-
-```text
-$yabook diagnose
-$yabook plan status
-$yabook plan next
-```
-
-Valide a diferença:
-
-- `status`: trabalho local atual;
-- `diagnose`: estado do projeto inteiro;
-- `plan status`: maturidade do planejamento;
-- `plan next`: uma próxima ação recomendada.
-
-## Demonstração: acompanhamento de etapas
-
-Depois que o help ou o planejamento recomendar uma sequência, execute:
-
-```text
-$yabook steps start
-```
-
-Em seguida, informe:
-
-```text
-concluí a primeira etapa
-```
-
-Valide que:
-
-- somente um checklist fica ativo;
-- a primeira etapa recebe `✅`;
-- a próxima etapa recebe `➡️`;
-- o checklist reaparece no final das respostas enquanto houver itens abertos;
-- nenhuma etapa é executada automaticamente;
-- desvios válidos recalculam somente etapas pendentes;
-- dependências quebradas geram correção ou revalidação;
-- trabalho desnecessário não entra no checklist;
-- mudanças estruturais pedem confirmação;
-- `$yabook steps cancel` encerra o acompanhamento.
-
-## Demonstração: segurança
-
-### Comando sem `do`
-
-```text
-$yabook issue
-```
-
-Resultado esperado: proposta textual, sem criação no GitHub.
-
-### Comando com `do`
-
-```text
-$yabook do issue
-```
-
-Resultado esperado: criação somente depois de conferir contexto, labels,
-Project e `Size`.
-
-### Pedido direto em branch protegida
-
-Em `main` ou `dev`, peça:
-
-```text
-atualize o README
-```
-
-Resultado esperado: bloqueio e orientação para usar `bypass`.
-
-Depois:
-
-```text
-$yabook bypass atualize o README
-```
-
-Resultado esperado: execução apenas dessa ação, com a exceção registrada na
-resposta.
-
-## Demonstração: help e sync
-
-```text
-$yabook help plan
-$yabook help criar uma issue e uma branch
-$yabook sync local
-```
-
-Valide que:
-
-- o help explica sem executar;
-- o help por objetivo monta o menor fluxo;
-- sync apenas compara;
-- se houver diferença, a resposta sugere `$yabook do sync local`.
-
-## Perguntas para validar entendimento
-
-- Qual é a diferença entre `diagnose` e `plan status`?
-- Quando usar `discuss` em vez de `plan start v2`?
-- Por que o roadmap não cria o backlog detalhado inteiro?
-- O que o primeiro comando `$yabook` carrega automaticamente?
-- Quando ainda faz sentido usar `$yabook load`?
-- Por que uma confirmação comum não substitui `bypass`?
-- Por que `bypass` não substitui `do`?
-- Como verificar a sincronização sem alterar arquivos?
-- Como pedir ajuda para um objetivo em linguagem natural?
-- Onde ficam decisões estáveis e onde fica o andamento operacional?
-
-## Critérios de sucesso
-
-O repasse foi bem-sucedido quando a pessoa consegue:
-
-- explicar o ciclo de condução de projetos;
-- iniciar o planejamento de uma versão;
-- recuperar a direção de um projeto;
-- distinguir análise de execução;
-- prever quando o agente bloqueará uma alteração;
-- escolher entre `load`, `diagnose`, `plan`, `sync` e `help`;
-- executar o próximo passo sem inventar formato ou duplicar documentação.
-
-## Referências
-
-- [Manual de uso](manual.md)
-- [Condução de projetos](processos/conducao-de-projetos.md)
-- [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md)
-- [Guia técnico da skill](guias/skill-yabook.md)
-- [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md)
+Esta rodada termina quando o repasse deixar de funcionar como histórico longo e
+passar a registrar apenas a mudança documental atual da issue `#56`.
