@@ -142,8 +142,11 @@ Comandos principais:
 - `$yabook do`: executa a ação pedida, como init, plan, sync, apk, issue, branch, PR, release ou merge.
 - `$yabook dev`: prepara, implementa e valida a issue atual.
 - `$yabook issue`: gera título e descrição de issue.
+- `$yabook issue brief`: resume a demanda em um contrato curto para reaproveitar depois.
 - `$yabook issue classify`: sugere labels e `Size` para a tarefa.
+- `$yabook plan brief`: resume o planejamento atual em um contrato curto.
 - `$yabook pr`: gera título e descrição de Pull Request.
+- `$yabook pr brief`: resume a mudança pronta para revisão em um contrato curto.
 - `$yabook commit message`: sugere mensagem de commit.
 - `$yabook release`: gera descrição de release.
 - `$yabook check`: verifica conformidade com o YABook.
@@ -177,6 +180,44 @@ Por padrão:
 - limite saídas de terminal a 4.000 caracteres;
 - faça uma inspeção inicial e uma validação final;
 - amplie somente diante de lacuna, conflito, risco, erro ou pedido explícito.
+
+### Como usar briefs
+
+Brief é um resumo curto e reutilizável para evitar releitura de contexto longo.
+Ele serve para condensar uma issue, um planejamento ou uma entrega pronta para
+revisão em um contrato simples dentro da conversa atual.
+
+Use:
+
+```text
+$yabook issue brief
+$yabook plan brief
+$yabook pr brief
+```
+
+Cada comando tem um foco:
+
+- `issue brief`: resume a demanda antes de abrir a issue, desenvolver ou revisar escopo;
+- `plan brief`: resume decisões, dependências, pendências e próxima etapa do planejamento;
+- `pr brief`: resume o que mudou, como validar e quais riscos a revisão deve observar.
+
+O formato esperado é curto e direto. Quando aplicável, o brief registra:
+
+- objetivo;
+- escopo;
+- fora do escopo;
+- critérios de aceite;
+- validação mínima;
+- riscos.
+
+Nem todo campo precisa aparecer sempre. A skill deve omitir campo sem utilidade
+e nunca inventar informação só para preencher o modelo.
+
+Brief não executa escrita, não cria arquivos e não altera GitHub. Ele é um
+artefato textual de baixo custo. Depois de gerar um brief válido, rotas
+seguintes devem preferi-lo antes de reler issue, planejamento ou histórico
+extenso. A ampliação só acontece quando faltar evidência, houver conflito,
+risco ou mudança relevante no objetivo, no escopo ou no diff.
 
 ### Como preparar um APK
 

@@ -347,6 +347,42 @@ $yabook help planejar a V1 do projeto
 Help não carrega o repositório, não altera estado e não executa os comandos que
 aparecem na explicação.
 
+### Briefs reutilizáveis
+
+Os briefs foram adicionados para reduzir releitura de contexto longo entre
+planejamento, implementação e revisão.
+
+Use:
+
+```text
+$yabook issue brief
+$yabook plan brief
+$yabook pr brief
+```
+
+Explique para a pessoa usuária assim:
+
+- `issue brief`: um resumo curto da demanda para alinhar objetivo, escopo e critérios antes de abrir ou desenvolver a issue;
+- `plan brief`: um resumo curto do planejamento atual para retomar decisões sem reler a conversa inteira;
+- `pr brief`: um resumo curto da entrega pronta para revisão, com validação mínima e riscos.
+
+O ponto principal é que brief não substitui issue, plano ou PR. Ele só
+condensa o contexto já existente em um contrato reutilizável dentro da conversa.
+
+Campos esperados quando fizerem sentido:
+
+- objetivo;
+- escopo;
+- fora do escopo;
+- critérios de aceite;
+- validação mínima;
+- riscos.
+
+Se o contexto já estiver bem delimitado, rotas posteriores devem preferir o
+brief válido antes de reler issue, planejamento ou histórico extenso. Se o
+objetivo mudar, o escopo mudar ou o diff mudar, o brief pode ficar inválido e a
+skill precisa dizer o que mudou antes de ampliar a leitura.
+
 ## Observabilidade de contexto
 
 Além da divisão das referências, a skill agora possui duas verificações
