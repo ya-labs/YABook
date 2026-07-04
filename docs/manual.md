@@ -251,37 +251,33 @@ risco ou mudança relevante no objetivo, no escopo ou no diff.
 
 ### Como usar a telemetria de contexto
 
-A telemetria de contexto é o resumo exportável de uma execução já observada da
-skill.
+A telemetria de contexto é um resumo técnico de uma execução da skill.
 
-Ela existe para registrar métricas reais da execução sem expor conteúdo
-sensível e sem transformar o envio externo em dependência obrigatória do fluxo.
+Em português simples: ela pega uma execução que já aconteceu e transforma isso
+em um arquivo resumido com números úteis, como:
 
-Na prática, a telemetria exporta um payload sanitizado com:
+- qual rota foi usada, por exemplo `dev` ou `plan`;
+- quantos comandos foram executados;
+- quanto texto foi retornado;
+- se houve ampliação de contexto;
+- se a skill precisou redescobrir coisas que já sabia.
 
-- rota executada;
-- classe observada;
-- contagens de métricas;
-- operações agregadas por ferramenta;
-- flags de brief, cache, ampliações e redescobertas.
+Ela existe para permitir análise e comparação sem expor conteúdo sensível.
 
-Ela não exporta:
+Ou seja: ela não exporta a conversa inteira, não exporta os arquivos lidos em
+detalhe e não inventa números que a execução real não mostrou.
 
-- `references` crus;
-- `consulted_files` crus;
-- `directed_searches` cruas;
-- texto integral do relatório;
-- valor inventado para métrica `unavailable`.
+Antes de gerar a telemetria, você precisa ter um relatório da execução.
 
-Antes de exportar a telemetria, você precisa ter um relatório de runtime já
-validado localmente.
+Esse “relatório de runtime” é só um arquivo JSON com o que aconteceu naquela
+execução da skill. Pense nele como um extrato técnico da operação.
 
-Fluxo básico:
+Fluxo simples:
 
-1. produzir um relatório de runtime observado;
-2. validar esse relatório localmente;
-3. exportar o payload sanitizado;
-4. usar esse payload como base para leitura externa ou para o dashboard.
+1. você tem um relatório da execução;
+2. valida esse relatório para garantir que ele está correto;
+3. gera a telemetria a partir dele;
+4. usa essa telemetria para análise externa ou para alimentar o dashboard.
 
 Comandos principais:
 
@@ -290,44 +286,50 @@ python skills/yabook/tests/check_context_runtime.py relatorio.json
 python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json
 ```
 
-Se quiser salvar o payload exportado em arquivo:
+Se quiser gravar o resultado em um arquivo:
 
 ```text
 python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json --output skills/yabook/dashboard/context-telemetry.json
 ```
 
-Quando a configuração não existir ou a telemetria estiver desativada, a skill
-não quebra a execução principal. O envio externo é opt-in e não bloqueante.
+Importante:
+
+- a telemetria é opcional;
+- se ela estiver desligada, a execução principal continua normalmente;
+- se o envio externo falhar, isso não deve quebrar o fluxo principal.
 
 ---
 
 ### Como usar o dashboard de contexto
 
-O dashboard de contexto é a camada visual da telemetria exportada pela skill.
+O dashboard de contexto é a tela visual que mostra esses dados de telemetria de
+um jeito fácil de entender.
 
-Ele não mede a execução diretamente. Antes dele existir, você precisa ter um ou
-mais payloads gerados a partir do contrato oficial da telemetria externa
-opt-in.
+Em vez de abrir arquivos JSON na mão, você abre uma página e enxerga os dados
+organizados.
+
+Ele não mede nada sozinho. Ele só lê os arquivos de telemetria já gerados
+antes.
 
 Use o dashboard quando quiser:
 
-- comparar rotas como `dev`, `plan` e `check`;
-- enxergar regressões de comandos, caracteres retornados e ampliações;
-- verificar quando a skill começou a redescobrir fatos desnecessariamente;
-- mostrar a leitura das métricas sem abrir JSON manualmente.
+- comparar execuções como `dev`, `plan` e `check`;
+- perceber quando uma rota começou a ficar mais cara;
+- ver ampliações e redescobertas com mais clareza;
+- entender os números sem precisar ler JSON manualmente.
 
 Ele não é necessário quando:
 
-- você tem só uma execução isolada e o JSON já responde a dúvida;
-- ainda está validando o contrato da exportação local;
-- o objetivo é corrigir a origem dos dados, não analisar o histórico.
+- você tem só um caso isolado e o JSON já responde a dúvida;
+- ainda está arrumando a geração da telemetria;
+- o objetivo é corrigir a coleta, não analisar o histórico.
 
 Fluxo prático:
 
-1. gere ou separe payloads já exportados pelo contrato oficial;
-2. consolide esses payloads em um dataset do dashboard;
-3. sirva a pasta estática localmente;
-4. abra a página no navegador.
+1. gere um ou mais arquivos de telemetria;
+2. transforme esses arquivos em um dataset do dashboard;
+3. abra um servidor local simples;
+4. visualize a página no navegador.
 
 Comandos:
 
@@ -344,12 +346,12 @@ http://localhost:4173/skills/yabook/dashboard/
 
 O painel mostra principalmente:
 
-- rotas e regressões: compara execuções da mesma rota e destaca pioras;
-- distribuição por classe: mostra o volume por classe `C0` a `C4`;
-- origem e confiabilidade: explica de onde saiu cada indicador;
-- qualidade das métricas: separa `exact`, `approx` e `unavailable`;
-- métricas com ampliação: mostra em quais métricas a skill precisou ampliar;
-- operações agregadas: resume comandos e `output_chars` por ferramenta.
+- rotas e regressões: onde a execução piorou;
+- distribuição por classe: como as execuções se espalham entre `C0` e `C4`;
+- origem e confiabilidade: de onde veio cada indicador;
+- qualidade das métricas: o que é exato, aproximado ou indisponível;
+- métricas com ampliação: em quais pontos a skill precisou abrir mais contexto;
+- operações agregadas: resumo do uso de ferramentas.
 
 Limites importantes:
 
