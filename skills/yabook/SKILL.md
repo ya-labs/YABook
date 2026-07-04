@@ -35,9 +35,10 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Sem `do`, comandos YABook analisam, orientam ou geram texto.
 - Nunca infira `do`.
-- `$yabook dev` autoriza preparar, implementar e validar a issue atual, mas não
+- `$yabook dev` é o atalho para preparar, implementar e validar a issue atual;
+  ele não é um gate exclusivo para editar arquivos nem substitui `do` para
   commit, PR, merge ou release.
-- Mutações Git exigem `$yabook do <ação>` ou o escopo limitado de `dev`. Leia
+- Mutações Git seguem `$yabook do <ação>`. Leia
   [git/mutacoes.md](references/git/mutacoes.md) somente quando houver mutação.
 - `bypass` ignora apenas a exigência de issue/branch compatível para a ação
   anexada. Leia [bypass.md](references/bypass.md); ele não substitui `do`.

@@ -2,8 +2,10 @@
 
 Use quando a rota puder alterar Git local ou remoto.
 
-Somente `$yabook do`, um alias documentado de `do` ou o escopo limitado de
-`$yabook dev` autoriza mutações. Pedidos diretos não autorizam.
+Somente `$yabook do` ou um alias documentado de `do` autoriza mutações Git
+específicas. `$yabook dev` é o atalho de implementação da issue atual e não um
+gate exclusivo para editar arquivos. Pedidos diretos genéricos fora da issue
+atual não autorizam mutações.
 
 Exemplos de mutações:
 
@@ -37,7 +39,8 @@ git push
 - `do merge` pode cumprir pré-requisitos do PR e integrar após as validações.
 - Merge exige pedido explícito.
 - `bypass` não substitui `do`.
-- `dev` termina antes de commit, PR ou merge.
+- `dev` termina antes de commit, PR ou merge e não substitui `do` para essas
+  etapas.
 
 Quando faltar autorização para uma dependência, execute somente o possível e
 informe o comando necessário.

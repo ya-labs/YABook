@@ -20,7 +20,9 @@ etapas pendentes sem mudar objetivo ou decisão.
 A issue deve existir. `dev quick` limita descoberta para tarefa pequena, `dev`
 usa profundidade balanceada e `dev full` permite investigação profunda
 justificada. Todos preparam branch, implementam e validam, mas não criam commit
-nem PR. `dev & do pr` entrega o PR; `dev & do merge` também integra.
+nem PR. `dev` é o atalho para essa implementação; um pedido direto inequívoco
+de implementar a issue atual também segue a mesma rota. `dev & do pr` entrega o
+PR; `dev & do merge` também integra.
 
 ## Check e review
 

@@ -7,9 +7,9 @@ Use esta referência para `$yabook dev`.
 Desenvolver a demanda atual de ponta a ponta até a validação, sem exigir que a
 pessoa solicite separadamente cada pré-requisito operacional.
 
-`dev` é uma autorização explícita de implementação e uma exceção documentada à
-trava de `do`. Seu escopo termina antes de commit, Pull Request e merge, salvo
-quando outro comando encadeado autorizar essas entregas.
+`dev` é o atalho operacional para a implementação da issue atual. Ele não é um
+gate exclusivo para editar arquivos e termina antes de commit, Pull Request e
+merge, salvo quando outro comando encadeado autorizar essas entregas.
 
 ## Profundidade
 
@@ -67,7 +67,7 @@ Quando workspace, issue, branch e demanda já estiverem inequívocos:
 
 ## Preparação automática
 
-Quando houver issue inequívoca, `dev` autoriza:
+Quando houver issue inequívoca, `dev` aciona:
 
 - avaliar checkpoints pendentes;
 - atualizar a base necessária;
@@ -86,7 +86,7 @@ fallback manual sem apresentar a branch apenas publicada como vinculada.
 
 ## Limites
 
-`dev` sozinho não autoriza:
+`dev` sozinho não amplia:
 
 - ampliar escopo ou decidir produto;
 - incluir mudanças alheias à issue;
@@ -116,7 +116,7 @@ um procedimento sem evidência no projeto. Quando não houver teste aplicável,
 informe o motivo explicitamente.
 
 Essa orientação é obrigatória também quando `dev` estiver encadeado com outro
-comando. Ela não autoriza executar ações fora do escopo da issue.
+comando. Ela não permite executar ações fora do escopo da issue.
 
 ## Composição
 
