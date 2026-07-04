@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "exported_at": "2026-07-04T12:00:00+00:00",
+  "scenario": "dev_ready",
+  "route": "dev",
+  "class": "C3",
+  "measurements": {
+    "references": {
+      "quality": "exact",
+      "value": 2
+    },
+    "consulted_files": {
+      "quality": "exact",
+      "value": 3
+    },
+    "commands": {
+      "quality": "exact",
+      "value": 9
+    },
+    "output_chars": {
+      "quality": "exact",
+      "value": 5100
+    },
+    "rounds": {
+      "quality": "exact",
+      "value": 5
+    },
+    "directed_searches": {
+      "quality": "exact",
+      "value": 1
+    },
+    "rediscovered_facts": {
+      "quality": "exact",
+      "value": 0
+    },
+    "tokens": {
+      "quality": "unavailable"
+    }
+  },
+  "operations": [
+    {
+      "tool": "terminal",
+      "commands": 7,
+      "output_chars": 2800
+    },
+    {
+      "tool": "search",
+      "commands": 1,
+      "output_chars": 1800
+    },
+    {
+      "tool": "edit",
+      "commands": 1,
+      "output_chars": 500
+    }
+  ],
+  "summary": {
+    "reused_facts_count": 4,
+    "rediscovered_facts_count": 0,
+    "expansion_count": 0,
+    "expansion_metrics": [],
+    "brief_available": false,
+    "brief_used": false,
+    "cache_available": false,
+    "cache_used": false,
+    "cache_status": "absent"
+  }
+}
