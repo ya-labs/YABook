@@ -286,11 +286,18 @@ python skills/yabook/tests/check_context_runtime.py relatorio.json
 python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json
 ```
 
+O primeiro comando confere se o relatório da execução está válido.
+
+O segundo comando transforma esse relatório em telemetria pronta para uso.
+
 Se quiser gravar o resultado em um arquivo:
 
 ```text
 python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json --output skills/yabook/dashboard/context-telemetry.json
 ```
+
+Esse terceiro formato faz a mesma exportação, mas já salva o resultado em um
+arquivo para você reutilizar depois, inclusive no dashboard.
 
 Importante:
 
