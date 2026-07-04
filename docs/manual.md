@@ -122,6 +122,8 @@ executa somente o que foi autorizado.
 - [Como usar `$yabook load`](#como-usar-yabook-load)
 - [Como usar `$yabook do`](#como-usar-yabook-do)
 
+---
+
 ### Como usar linguagem natural
 
 Você não precisa conhecer previamente o comando correto:
@@ -170,6 +172,8 @@ Use a skill para reduzir orientação repetida. A documentação continua sendo 
 Para ver a lista completa de comandos, variantes e comportamento interno da
 skill, abra [Skill YABook](guias/skill-yabook.md).
 
+---
+
 ### Economia de contexto
 
 A skill não deve carregar contexto amplo por prevenção. Ela classifica a rota
@@ -196,6 +200,8 @@ Por padrão:
 - limite saídas de terminal a 4.000 caracteres;
 - faça uma inspeção inicial e uma validação final;
 - amplie somente diante de lacuna, conflito, risco, erro ou pedido explícito.
+
+---
 
 ### Como usar briefs
 
@@ -240,6 +246,8 @@ artefato textual de baixo custo. Depois de gerar um brief válido, rotas
 seguintes devem preferi-lo antes de reler issue, planejamento ou histórico
 extenso. A ampliação só acontece quando faltar evidência, houver conflito,
 risco ou mudança relevante no objetivo, no escopo ou no diff.
+
+---
 
 ### Como usar a telemetria de contexto
 
@@ -290,6 +298,8 @@ python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config
 
 Quando a configuração não existir ou a telemetria estiver desativada, a skill
 não quebra a execução principal. O envio externo é opt-in e não bloqueante.
+
+---
 
 ### Como usar o dashboard de contexto
 
@@ -354,6 +364,8 @@ Se quiser uma ajuda rápida sem abrir o manual, use:
 $yabook help dashboard
 ```
 
+---
+
 ### Como preparar um APK
 
 O aplicativo adotante mantém `.yabook/apk.json`:
@@ -389,6 +401,8 @@ fazem parte do comando.
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 
+---
+
 ### Como acompanhar uma sequência de etapas
 
 Quando a IA recomendar vários passos e você quiser mantê-los visíveis durante a
@@ -413,6 +427,8 @@ adicionar correções ou exigir nova validação.
 A skill explica o recalculado antes de mostrar o checklist atualizado. Etapas
 concluídas permanecem no histórico. Alterações de objetivo, escopo ou decisões
 continuam dependendo de confirmação.
+
+---
 
 ### Como usar modos de colaboração
 
@@ -442,6 +458,8 @@ $yabook def mode prod for estilos do site
 Modos não alteram permissões. `prod` não substitui `do`, `bypass` nem as travas
 de Git/GitHub. `mode: dev` é modo de colaboração e não equivale ao comando
 operacional `$yabook dev`.
+
+---
 
 ### Como usar o help
 
@@ -480,6 +498,8 @@ Para `help dashboard`, a resposta esperada é:
 - como abrir a página localmente;
 - quais são os limites do recurso.
 
+---
+
 ### Trava dos comandos YABook
 
 Ao usar a skill, diferencie geração de texto de execução.
@@ -508,6 +528,8 @@ O escopo permanece restrito ao pedido. `$yabook do commit` isolado não autoriza
 `push`. `$yabook do pr` pode enviar somente a branch necessária para abrir ou
 atualizar o PR, mas não autoriza outras branches, tags ou merge.
 
+---
+
 ### Checkpoint antes de novas alterações
 
 Antes de editar, a IA avalia se o worktree contém um bloco concluído de outra
@@ -526,6 +548,8 @@ Nesse contexto:
 
 Se a nova tarefa pertencer a outra issue ou branch, `continue` não pode ignorar
 a separação obrigatória.
+
+---
 
 ### Como usar `$yabook dev`
 
@@ -587,6 +611,8 @@ substitui `do issue`, `do branch`, `do commit`, `do pr`, `do release` ou
 
 A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issues ou PRs antigos em outro padrão. Use o formato histórico do projeto apenas quando a pessoa usuária pedir explicitamente.
 
+---
+
 ### Como usar `$yabook load`
 
 Você não precisa executar `$yabook load` no início da conversa. A skill identifica
@@ -627,6 +653,8 @@ No repositório, isso aparece em dois níveis:
 
 O contexto vale apenas para a conversa atual.
 
+---
+
 ### Como encadear comandos
 
 Use `&` para pedir vários comandos YABook na mesma mensagem.
@@ -643,6 +671,8 @@ A IA deve executar da esquerda para a direita, reaproveitar o contexto entre os 
 
 Se `load` aparecer no encadeamento, o contexto mínimo coletado pode ser
 reutilizado pelos comandos seguintes.
+
+---
 
 ### Como usar `$yabook do`
 
@@ -690,6 +720,8 @@ Para iniciar trabalho novo, descreva primeiro o problema, ajuste ou melhoria.
 Use `$yabook issue` para revisar como a demanda será registrada e
 `$yabook do issue` para criá-la antes da branch e da implementação.
 
+---
+
 ### Como instalar a skill no agente
 
 A skill versionada fica em:
@@ -711,6 +743,8 @@ $yabook help
 Se o agente aceitar referência direta por caminho ou repositório, aponte para `skills/yabook/`.
 
 Não copie o YABook inteiro para dentro do agente. A skill deve carregar o comportamento operacional; a documentação continua no repositório para consulta.
+
+---
 
 ### Como sincronizar a skill
 
@@ -745,6 +779,8 @@ A sincronização:
 Sem modo explícito, a skill prefere uma origem local válida e usa o remoto como
 fallback.
 
+---
+
 ## Onde consultar padrões
 
 - [Padrões rápidos](padroes-rapidos.md): issue, branch, commit e PR.
@@ -753,6 +789,8 @@ fallback.
 - [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md): tutorial de inicialização, diagnóstico e planejamento.
 - [Documentação técnica](guias/documentacao-tecnica.md): como organizar documentação de projeto.
 - [Template base de projeto](templates/projeto/README.md): estrutura inicial para novos projetos.
+
+---
 
 ## O que não colocar no YABook
 
@@ -767,6 +805,8 @@ Não coloque no YABook:
 
 Essas informações devem ficar no repositório do próprio projeto.
 
+---
+
 ## Checklist de conformidade
 
 Use esta lista ao iniciar um projeto ou revisar um PR:
@@ -777,6 +817,8 @@ Use esta lista ao iniciar um projeto ou revisar um PR:
 - Issues, branches, commits e PRs seguem o padrão da YA LABS.
 - Exceções ao YABook estão explícitas no projeto.
 - Não há documentação genérica, duplicada ou sem uso prático.
+
+---
 
 ## Regra prática
 
