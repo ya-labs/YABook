@@ -31,14 +31,15 @@
       }
 
       main {
-        max-width: 1200px;
+        max-width: 1380px;
         margin: 0 auto;
-        padding: 32px 20px 48px;
+        padding: 32px 24px 56px;
       }
 
       h1,
       h2 {
         margin: 0 0 12px;
+        text-wrap: balance;
       }
 
       p,
@@ -52,13 +53,22 @@
       .panel {
         background: rgba(17, 32, 58, 0.9);
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 16px;
         padding: 20px;
-        box-shadow: 0 14px 40px rgba(2, 6, 23, 0.35);
       }
 
       .intro {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
+      }
+
+      .intro h1 {
+        font-size: 2.25rem;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+      }
+
+      .intro p {
+        max-width: 78ch;
       }
 
       .muted {
@@ -75,45 +85,108 @@
       .kpi {
         background: var(--panel-soft);
         border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 18px 16px;
       }
 
       .kpi strong {
         display: block;
-        font-size: 2rem;
-        margin-top: 8px;
+        font-size: 2.25rem;
+        line-height: 1;
+        margin-top: 12px;
       }
 
       .grid {
         display: grid;
-        gap: 20px;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        row-gap: 20px;
+        align-items: start;
+      }
+
+      .panel {
+        min-width: 0;
+      }
+
+      .panel h2 {
+        font-size: 1.15rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+
+      .panel--routes {
+        grid-column: span 7;
+      }
+
+      .panel--classes {
+        grid-column: span 5;
+      }
+
+      .panel--catalog,
+      .panel--operations {
+        grid-column: 1 / -1;
+      }
+
+      .panel--quality {
+        grid-column: span 7;
+      }
+
+      .panel--expansions {
+        grid-column: span 5;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        padding-bottom: 4px;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .table--routes {
+        min-width: 760px;
+      }
+
+      .table--catalog {
+        min-width: 1080px;
+      }
+
+      .table--quality {
+        min-width: 760px;
+      }
+
+      .table--operations {
+        min-width: 640px;
       }
 
       th,
       td {
         text-align: left;
-        padding: 10px 8px;
+        padding: 11px 8px;
         border-top: 1px solid rgba(157, 178, 207, 0.16);
         vertical-align: top;
+        overflow-wrap: anywhere;
       }
 
       th {
         color: var(--muted);
         font-weight: 600;
         border-top: none;
+        font-size: 0.95rem;
+      }
+
+      tbody tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .badge {
         display: inline-flex;
         align-items: center;
-        padding: 2px 10px;
+        padding: 4px 10px;
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 600;
@@ -148,6 +221,43 @@
         margin-top: 10px;
       }
 
+      .stack {
+        min-width: 0;
+      }
+
+      .route-name {
+        display: inline-block;
+        font-size: 1rem;
+        margin-bottom: 6px;
+      }
+
+      .timestamp,
+      .metric-source {
+        display: inline-block;
+        font-size: 0.95rem;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .regression-list {
+        margin-top: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .regression-item {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(251, 113, 133, 0.08);
+        color: #ffd6dd;
+        line-height: 1.45;
+      }
+
+      .regression-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
       .error {
         border-color: rgba(251, 113, 133, 0.5);
         color: #fecdd3;
@@ -156,6 +266,52 @@
       code {
         font-family: Consolas, monospace;
         color: #c4e0ff;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      @media (max-width: 1180px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .panel--routes,
+        .panel--classes,
+        .panel--catalog,
+        .panel--quality,
+        .panel--expansions,
+        .panel--operations {
+          grid-column: span 1;
+        }
+
+        .panel--catalog,
+        .panel--operations {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 760px) {
+        main {
+          padding: 24px 16px 40px;
+        }
+
+        .intro h1 {
+          font-size: 1.85rem;
+        }
+
+        .grid,
+        .kpis {
+          grid-template-columns: 1fr;
+        }
+
+        .panel--routes,
+        .panel--classes,
+        .panel--catalog,
+        .panel--quality,
+        .panel--expansions,
+        .panel--operations {
+          grid-column: span 1;
+        }
       }
     </style>
   </head>
@@ -175,91 +331,103 @@
       <section class="kpis" id="kpis"></section>
 
       <section class="grid">
-        <article class="panel">
+        <article class="panel panel--routes">
           <h2>Rotas e regressões</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Rota</th>
-                <th>Última classe</th>
-                <th>Execuções</th>
-                <th>Ampliações</th>
-                <th>Redescobertas</th>
-                <th>Regressão</th>
-              </tr>
-            </thead>
-            <tbody id="routes"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="table--routes">
+              <thead>
+                <tr>
+                  <th>Rota</th>
+                  <th>Última classe</th>
+                  <th>Execuções</th>
+                  <th>Ampliações</th>
+                  <th>Redescobertas</th>
+                  <th>Regressão</th>
+                </tr>
+              </thead>
+              <tbody id="routes"></tbody>
+            </table>
+          </div>
         </article>
 
-        <article class="panel">
+        <article class="panel panel--classes">
           <h2>Distribuição por classe</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Classe</th>
-                <th>Execuções</th>
-              </tr>
-            </thead>
-            <tbody id="classes"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Classe</th>
+                  <th>Execuções</th>
+                </tr>
+              </thead>
+              <tbody id="classes"></tbody>
+            </table>
+          </div>
         </article>
 
-        <article class="panel">
+        <article class="panel panel--catalog">
           <h2>Origem e confiabilidade</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Indicador</th>
-                <th>Origem</th>
-                <th>Confiabilidade</th>
-                <th>Leitura</th>
-              </tr>
-            </thead>
-            <tbody id="catalog"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="table--catalog">
+              <thead>
+                <tr>
+                  <th>Indicador</th>
+                  <th>Origem</th>
+                  <th>Confiabilidade</th>
+                  <th>Leitura</th>
+                </tr>
+              </thead>
+              <tbody id="catalog"></tbody>
+            </table>
+          </div>
         </article>
 
-        <article class="panel">
+        <article class="panel panel--quality">
           <h2>Qualidade das métricas</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Métrica</th>
-                <th>Exact</th>
-                <th>Approx</th>
-                <th>Unavailable</th>
-              </tr>
-            </thead>
-            <tbody id="quality"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="table--quality">
+              <thead>
+                <tr>
+                  <th>Métrica</th>
+                  <th>Exact</th>
+                  <th>Approx</th>
+                  <th>Unavailable</th>
+                </tr>
+              </thead>
+              <tbody id="quality"></tbody>
+            </table>
+          </div>
         </article>
 
-        <article class="panel">
+        <article class="panel panel--expansions">
           <h2>Métricas com ampliação</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Métrica</th>
-                <th>Execuções</th>
-              </tr>
-            </thead>
-            <tbody id="expansions"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Métrica</th>
+                  <th>Execuções</th>
+                </tr>
+              </thead>
+              <tbody id="expansions"></tbody>
+            </table>
+          </div>
         </article>
 
-        <article class="panel">
+        <article class="panel panel--operations">
           <h2>Operações agregadas</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Ferramenta</th>
-                <th>Comandos</th>
-                <th>Output chars</th>
-              </tr>
-            </thead>
-            <tbody id="operations"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="table--operations">
+              <thead>
+                <tr>
+                  <th>Ferramenta</th>
+                  <th>Comandos</th>
+                  <th>Output chars</th>
+                </tr>
+              </thead>
+              <tbody id="operations"></tbody>
+            </table>
+          </div>
         </article>
       </section>
     </main>
@@ -301,18 +469,33 @@
         document.getElementById("routes").innerHTML = routes
           .map((route) => {
             const regression = route.regressions.length
-              ? route.regressions
-                  .map((item) => `${item.metric}: ${item.previous} → ${item.current} (+${item.delta})`)
-                  .join("<br>")
+              ? `
+                ${badge(`${route.regressions.length} alerta(s)`, "regression")}
+                <div class="regression-list">
+                  ${route.regressions
+                    .map(
+                      (item) => `
+                        <div class="regression-item">
+                          <strong>${item.metric}</strong>
+                          <span>${item.previous} → ${item.current} (+${item.delta})</span>
+                        </div>
+                      `
+                    )
+                    .join("")}
+                </div>
+              `
               : badge("Sem regressão", "ok");
             return `
               <tr>
-                <td><strong>${route.route}</strong><br><span class="muted">${route.latest_exported_at}</span></td>
+                <td>
+                  <strong class="route-name">${route.route}</strong><br>
+                  <span class="muted timestamp">${route.latest_exported_at}</span>
+                </td>
                 <td>${route.latest_class}</td>
                 <td>${route.runs}</td>
                 <td>${route.latest_expansions}</td>
                 <td>${route.latest_rediscovered_facts}</td>
-                <td>${route.regressions.length ? badge(`${route.regressions.length} alerta(s)`, "regression") + `<div class="stack">${regression}</div>` : regression}</td>
+                <td>${regression}</td>
               </tr>
             `;
           })
@@ -345,7 +528,7 @@
           .map(
             (item) => `
               <tr>
-                <td><code>${item.metric}</code><br><span class="muted">${item.source}</span></td>
+                <td><code>${item.metric}</code><br><span class="muted metric-source">${item.source}</span></td>
                 <td>${item.exact}</td>
                 <td>${item.approx}</td>
                 <td>${item.unavailable}</td>
