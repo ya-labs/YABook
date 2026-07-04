@@ -503,6 +503,103 @@ No repositório, isso aparece em dois níveis:
 
 O contexto vale apenas para a conversa atual.
 
+### Como gerar o relatório de runtime
+
+Antes de falar de telemetria ou dashboard, o primeiro passo é gerar o relatório
+de runtime.
+
+Esse relatório é um arquivo JSON simples que resume como uma execução do YABook
+aconteceu na prática. Ele registra, por exemplo:
+
+- qual rota foi usada, como `dev`;
+- quantos arquivos foram consultados;
+- quantos comandos foram executados;
+- quanto texto voltou das ferramentas;
+- quantas rodadas a execução teve.
+
+Pense nele como um "recibo técnico" da execução. Ele não serve para o usuário
+final do produto. Ele serve para a equipe verificar se a skill está ficando
+mais econômica, previsível e honesta no uso de contexto.
+
+Fluxo simples:
+
+- executar o cenário que você quer observar;
+- montar o capture da execução;
+- gerar o relatório final;
+- validar o relatório;
+- só depois, se fizer sentido, exportar telemetria ou abrir o dashboard.
+
+Arquivos de referência:
+
+- `skills/yabook/tests/runtime-capture.example.json`: exemplo do capture mais simples;
+- `skills/yabook/tests/runtime-report.example.json`: exemplo do relatório final já pronto.
+
+Comando para gerar o relatório final:
+
+```text
+python skills/yabook/scripts/build_context_runtime_report.py skills/yabook/tests/runtime-capture.example.json --output tmp/runtime-report.generated.json
+```
+
+Esse comando pega um capture mais curto e monta o relatório completo para você.
+Ele também calcula métricas derivadas automaticamente e usa a classe correta do
+cenário quando isso não vier preenchido.
+
+Comando para validar o relatório gerado:
+
+```text
+python skills/yabook/tests/check_context_runtime.py tmp/runtime-report.generated.json
+```
+
+Esse comando confere se o relatório está no formato esperado e se ele respeita
+os limites definidos para aquela rota.
+
+Regra importante:
+
+- o relatório deve registrar só o que realmente foi observado;
+- não invente métricas para "parecer melhor";
+- quando o runtime não expuser um dado, como tokens reais por operação, marque
+  esse dado como indisponível em vez de fabricar um valor.
+
+### Como exportar a telemetria
+
+Depois que o relatório de runtime já estiver gerado e validado, você pode
+exportar uma versão sanitizada dele para uso externo.
+
+Comando:
+
+```text
+python skills/yabook/scripts/export_context_telemetry.py tmp/runtime-report.generated.json --config .yabook/context-telemetry.json
+```
+
+Esse comando lê o relatório validado e gera a telemetria externa no formato
+oficial da skill. Ele exporta só contagens, classes e agregados, sem enviar
+conteúdo sensível da execução.
+
+Se quiser salvar a saída em arquivo:
+
+```text
+python skills/yabook/scripts/export_context_telemetry.py tmp/runtime-report.generated.json --config .yabook/context-telemetry.json --output tmp/context-telemetry.json
+```
+
+Esse arquivo exportado é o que pode ser usado depois por leitura externa ou por
+um dashboard.
+
+### Como isso se conecta com o dashboard
+
+O dashboard não observa a execução diretamente.
+
+Ele apenas lê o arquivo exportado da telemetria e organiza os dados em uma
+visualização mais fácil de entender.
+
+Em resumo:
+
+```text
+execução observada
+-> relatório de runtime
+-> telemetria exportada
+-> dashboard
+```
+
 ### Como encadear comandos
 
 Use `&` para pedir vários comandos YABook na mesma mensagem.
