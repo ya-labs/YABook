@@ -112,6 +112,8 @@ executa somente o que foi autorizado.
 
 - [Como usar linguagem natural](#como-usar-linguagem-natural)
 - [Como usar briefs](#como-usar-briefs)
+- [Como usar a telemetria de contexto](#como-usar-a-telemetria-de-contexto)
+- [Como usar o dashboard de contexto](#como-usar-o-dashboard-de-contexto)
 - [Como preparar um APK](#como-preparar-um-apk)
 - [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
 - [Como usar modos de colaboração](#como-usar-modos-de-colaboração)
@@ -119,6 +121,8 @@ executa somente o que foi autorizado.
 - [Como usar `$yabook dev`](#como-usar-yabook-dev)
 - [Como usar `$yabook load`](#como-usar-yabook-load)
 - [Como usar `$yabook do`](#como-usar-yabook-do)
+
+---
 
 ### Como usar linguagem natural
 
@@ -168,6 +172,8 @@ Use a skill para reduzir orientação repetida. A documentação continua sendo 
 Para ver a lista completa de comandos, variantes e comportamento interno da
 skill, abra [Skill YABook](guias/skill-yabook.md).
 
+---
+
 ### Economia de contexto
 
 A skill não deve carregar contexto amplo por prevenção. Ela classifica a rota
@@ -194,6 +200,8 @@ Por padrão:
 - limite saídas de terminal a 4.000 caracteres;
 - faça uma inspeção inicial e uma validação final;
 - amplie somente diante de lacuna, conflito, risco, erro ou pedido explícito.
+
+---
 
 ### Como usar briefs
 
@@ -239,6 +247,134 @@ seguintes devem preferi-lo antes de reler issue, planejamento ou histórico
 extenso. A ampliação só acontece quando faltar evidência, houver conflito,
 risco ou mudança relevante no objetivo, no escopo ou no diff.
 
+---
+
+### Como usar a telemetria de contexto
+
+A telemetria de contexto é um resumo técnico de uma execução da skill.
+
+Em português simples: ela pega uma execução que já aconteceu e transforma isso
+em um arquivo resumido com números úteis, como:
+
+- qual rota foi usada, por exemplo `dev` ou `plan`;
+- quantos comandos foram executados;
+- quanto texto foi retornado;
+- se houve ampliação de contexto;
+- se a skill precisou redescobrir coisas que já sabia.
+
+Ela existe para permitir análise e comparação sem expor conteúdo sensível.
+
+Ou seja: ela não exporta a conversa inteira, não exporta os arquivos lidos em
+detalhe e não inventa números que a execução real não mostrou.
+
+Antes de gerar a telemetria, você precisa ter um relatório da execução.
+
+Esse “relatório de runtime” é só um arquivo JSON com o que aconteceu naquela
+execução da skill. Pense nele como um extrato técnico da operação.
+
+Fluxo simples:
+
+1. você tem um relatório da execução;
+2. valida esse relatório para garantir que ele está correto;
+3. gera a telemetria a partir dele;
+4. usa essa telemetria para análise externa ou para alimentar o dashboard.
+
+Comandos principais:
+
+```text
+python skills/yabook/tests/check_context_runtime.py relatorio.json
+python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json
+```
+
+O primeiro comando confere se o relatório da execução está válido.
+
+O segundo comando transforma esse relatório em telemetria pronta para uso.
+
+Se quiser gravar o resultado em um arquivo:
+
+```text
+python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json --output skills/yabook/dashboard/context-telemetry.json
+```
+
+Esse terceiro formato faz a mesma exportação, mas já salva o resultado em um
+arquivo para você reutilizar depois, inclusive no dashboard.
+
+Importante:
+
+- a telemetria é opcional;
+- se ela estiver desligada, a execução principal continua normalmente;
+- se o envio externo falhar, isso não deve quebrar o fluxo principal.
+
+---
+
+### Como usar o dashboard de contexto
+
+O dashboard de contexto é a tela visual que mostra esses dados de telemetria de
+um jeito fácil de entender.
+
+Em vez de abrir arquivos JSON na mão, você abre uma página e enxerga os dados
+organizados.
+
+Ele não mede nada sozinho. Ele só lê os arquivos de telemetria já gerados
+antes.
+
+Use o dashboard quando quiser:
+
+- comparar execuções como `dev`, `plan` e `check`;
+- perceber quando uma rota começou a ficar mais cara;
+- ver ampliações e redescobertas com mais clareza;
+- entender os números sem precisar ler JSON manualmente.
+
+Ele não é necessário quando:
+
+- você tem só um caso isolado e o JSON já responde a dúvida;
+- ainda está arrumando a geração da telemetria;
+- o objetivo é corrigir a coleta, não analisar o histórico.
+
+Fluxo prático:
+
+1. gere um ou mais arquivos de telemetria;
+2. transforme esses arquivos em um dataset do dashboard;
+3. abra um servidor local simples;
+4. visualize a página no navegador.
+
+Comandos:
+
+```text
+python skills/yabook/scripts/build_context_dashboard.py export-1.json export-2.json --output skills/yabook/dashboard/context-dashboard.json
+python -m http.server 4173
+```
+
+Depois abra:
+
+```text
+http://localhost:4173/skills/yabook/dashboard/
+```
+
+O painel mostra principalmente:
+
+- rotas e regressões: onde a execução piorou;
+- distribuição por classe: como as execuções se espalham entre `C0` e `C4`;
+- origem e confiabilidade: de onde veio cada indicador;
+- qualidade das métricas: o que é exato, aproximado ou indisponível;
+- métricas com ampliação: em quais pontos a skill precisou abrir mais contexto;
+- operações agregadas: resumo do uso de ferramentas.
+
+Limites importantes:
+
+- o dashboard é somente leitura;
+- ele não aceita relatório bruto de runtime como fonte principal;
+- métricas `unavailable` continuam sem valor inventado;
+- ele não substitui a validação local nem o contrato da exportação.
+
+Se quiser uma ajuda rápida sem abrir o manual, use:
+
+```text
+$yabook help dashboard
+```
+
+---
+
 ### Como preparar um APK
 
 O aplicativo adotante mantém `.yabook/apk.json`:
@@ -274,6 +410,8 @@ fazem parte do comando.
 
 Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
 
+---
+
 ### Como acompanhar uma sequência de etapas
 
 Quando a IA recomendar vários passos e você quiser mantê-los visíveis durante a
@@ -298,6 +436,8 @@ adicionar correções ou exigir nova validação.
 A skill explica o recalculado antes de mostrar o checklist atualizado. Etapas
 concluídas permanecem no histórico. Alterações de objetivo, escopo ou decisões
 continuam dependendo de confirmação.
+
+---
 
 ### Como usar modos de colaboração
 
@@ -328,6 +468,8 @@ Modos não alteram permissões. `prod` não substitui `do`, `bypass` nem as trav
 de Git/GitHub. `mode: dev` é modo de colaboração e não equivale ao comando
 operacional `$yabook dev`.
 
+---
+
 ### Como usar o help
 
 Use o help geral para consultar o índice de comandos:
@@ -342,6 +484,7 @@ Passe um comando ou família para receber explicação, sintaxe e exemplos:
 $yabook help plan
 $yabook help sync
 $yabook help issue classify
+$yabook help dashboard
 ```
 
 Também é possível descrever um objetivo:
@@ -355,6 +498,16 @@ $yabook help preparar uma release
 Nesse formato, a skill recomenda o menor fluxo, explica por que cada comando
 será usado e diferencia análise de execução. O help não carrega o repositório,
 não altera estado e não executa a sequência sugerida.
+
+Para `help dashboard`, a resposta esperada é:
+
+- o que é o dashboard;
+- quando ele vale a pena;
+- como gerar o dataset;
+- como abrir a página localmente;
+- quais são os limites do recurso.
+
+---
 
 ### Trava dos comandos YABook
 
@@ -384,6 +537,8 @@ O escopo permanece restrito ao pedido. `$yabook do commit` isolado não autoriza
 `push`. `$yabook do pr` pode enviar somente a branch necessária para abrir ou
 atualizar o PR, mas não autoriza outras branches, tags ou merge.
 
+---
+
 ### Checkpoint antes de novas alterações
 
 Antes de editar, a IA avalia se o worktree contém um bloco concluído de outra
@@ -402,6 +557,8 @@ Nesse contexto:
 
 Se a nova tarefa pertencer a outra issue ou branch, `continue` não pode ignorar
 a separação obrigatória.
+
+---
 
 ### Como usar `$yabook dev`
 
@@ -463,6 +620,8 @@ substitui `do issue`, `do branch`, `do commit`, `do pr`, `do release` ou
 
 A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issues ou PRs antigos em outro padrão. Use o formato histórico do projeto apenas quando a pessoa usuária pedir explicitamente.
 
+---
+
 ### Como usar `$yabook load`
 
 Você não precisa executar `$yabook load` no início da conversa. A skill identifica
@@ -502,6 +661,8 @@ No repositório, isso aparece em dois níveis:
 - `skills/yabook/tests/check_context_runtime.py`: valida um relatório de execução observada contra limites de referências, comandos, caracteres e rodadas.
 
 O contexto vale apenas para a conversa atual.
+
+---
 
 ### Como gerar o relatório de runtime
 
@@ -617,6 +778,8 @@ A IA deve executar da esquerda para a direita, reaproveitar o contexto entre os 
 Se `load` aparecer no encadeamento, o contexto mínimo coletado pode ser
 reutilizado pelos comandos seguintes.
 
+---
+
 ### Como usar `$yabook do`
 
 Use `$yabook do` quando quiser que a IA execute uma ação do fluxo, não apenas gere texto.
@@ -663,6 +826,8 @@ Para iniciar trabalho novo, descreva primeiro o problema, ajuste ou melhoria.
 Use `$yabook issue` para revisar como a demanda será registrada e
 `$yabook do issue` para criá-la antes da branch e da implementação.
 
+---
+
 ### Como instalar a skill no agente
 
 A skill versionada fica em:
@@ -684,6 +849,8 @@ $yabook help
 Se o agente aceitar referência direta por caminho ou repositório, aponte para `skills/yabook/`.
 
 Não copie o YABook inteiro para dentro do agente. A skill deve carregar o comportamento operacional; a documentação continua no repositório para consulta.
+
+---
 
 ### Como sincronizar a skill
 
@@ -718,6 +885,8 @@ A sincronização:
 Sem modo explícito, a skill prefere uma origem local válida e usa o remoto como
 fallback.
 
+---
+
 ## Onde consultar padrões
 
 - [Padrões rápidos](padroes-rapidos.md): issue, branch, commit e PR.
@@ -726,6 +895,8 @@ fallback.
 - [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md): tutorial de inicialização, diagnóstico e planejamento.
 - [Documentação técnica](guias/documentacao-tecnica.md): como organizar documentação de projeto.
 - [Template base de projeto](templates/projeto/README.md): estrutura inicial para novos projetos.
+
+---
 
 ## O que não colocar no YABook
 
@@ -740,6 +911,8 @@ Não coloque no YABook:
 
 Essas informações devem ficar no repositório do próprio projeto.
 
+---
+
 ## Checklist de conformidade
 
 Use esta lista ao iniciar um projeto ou revisar um PR:
@@ -750,6 +923,8 @@ Use esta lista ao iniciar um projeto ou revisar um PR:
 - Issues, branches, commits e PRs seguem o padrão da YA LABS.
 - Exceções ao YABook estão explícitas no projeto.
 - Não há documentação genérica, duplicada ou sem uso prático.
+
+---
 
 ## Regra prática
 

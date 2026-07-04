@@ -90,3 +90,19 @@ A exportação:
 - envia apenas contagens, classes, flags e agregados;
 - não envia arquivos consultados, buscas direcionadas cruas nem texto integral;
 - não bloqueia a execução principal quando a rede falhar.
+
+## Dashboard hospedado
+
+Quando existir um conjunto de payloads exportados pelo contrato oficial,
+consolide-os para leitura visual com:
+
+```text
+python skills/yabook/scripts/build_context_dashboard.py export-1.json export-2.json --output skills/yabook/dashboard/context-dashboard.json
+```
+
+O dashboard:
+
+- lê apenas o payload oficial exportado;
+- destaca regressões por rota, classes, ampliações e redescobertas;
+- informa origem e confiabilidade dos indicadores;
+- continua somente leitura, sem coleta paralela.

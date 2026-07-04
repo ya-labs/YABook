@@ -45,3 +45,20 @@ frentes complementares:
 
 A sessão de planejamento correspondente está em
 `docs/planejamento/sessoes/2026-07-02-aprofundar-engenharia-de-custo-yabook.md`.
+
+## Evolução aprovada após a exportação
+
+Com a telemetria externa opt-in já definida e o dashboard hospedado iniciado, a
+próxima camada aprovada para essa frente é tornar o painel mais utilizável sem
+ampliar ainda a gramática operacional da skill.
+
+Direção aprovada:
+
+- manter `README` curto para descoberta do dashboard;
+- ensinar o uso prático no `docs/manual.md`;
+- oferecer `help dashboard` para consulta rápida com comandos e limites;
+- adiar um comando operacional de build/serve até existir evidência de uso
+  recorrente.
+
+A sessão dessa decisão está em
+`docs/planejamento/sessoes/2026-07-04-dashboard-de-contexto.md`.

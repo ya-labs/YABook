@@ -57,6 +57,12 @@ contexto, riscos e validações próprios.
 
 - Exportar métricas locais para telemetria externa opt-in, sem conteúdo sensível.
 - Disponibilizar dashboard hospedado somente depois da exportação confiável.
+- Documentar o dashboard em três níveis:
+  - `README` curto para descoberta;
+  - `docs/manual.md` para uso prático, interpretação e limites;
+  - `help dashboard` para consulta rápida sem depender do manual.
+- Deixar um comando operacional de build/serve como evolução posterior, caso o
+  uso do dashboard se torne recorrente no fluxo da skill.
 - Avaliar memória semântica em prova técnica controlada, com invalidação e
   critérios explícitos.
 - Estudar sincronização automática em background apenas com contrato de

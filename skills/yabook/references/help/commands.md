@@ -40,6 +40,25 @@ caracteres. São somente textuais e não substituem `do` para persistência.
 `apk` lê `.yabook/apk.json` e mostra a prévia sem build ou escrita. `do apk`
 prepara a cópia padronizada de um artefato existente. Upload permanece manual.
 
+## Dashboard
+
+`help dashboard` explica o dashboard de contexto sem executar nada. A resposta
+deve cobrir:
+
+- o que é o dashboard e sua relação com a telemetria exportada;
+- quando ele é útil e quando não é necessário;
+- que o painel é somente leitura;
+- como gerar o dataset com `build_context_dashboard.py`;
+- como abrir localmente por servidor HTTP simples.
+
+Exemplos esperados:
+
+```text
+$yabook help dashboard
+python skills/yabook/scripts/build_context_dashboard.py export-1.json export-2.json --output skills/yabook/dashboard/context-dashboard.json
+python -m http.server 4173
+```
+
 ## Mode
 
 Modos ajustam colaboração, não permissões. `study` ensina, `work` orienta e
