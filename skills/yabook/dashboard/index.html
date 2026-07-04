@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YABook · Dashboard de métricas de contexto</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08111f;
+        --panel: #11203a;
+        --panel-soft: #162844;
+        --line: #29456f;
+        --text: #ecf4ff;
+        --muted: #9db2cf;
+        --good: #4ade80;
+        --warn: #fbbf24;
+        --bad: #fb7185;
+        --info: #60a5fa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, Segoe UI, Arial, sans-serif;
+        background: linear-gradient(180deg, #07101c 0%, #0d1728 100%);
+        color: var(--text);
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 12px;
+      }
+
+      p,
+      li,
+      td,
+      th {
+        line-height: 1.5;
+      }
+
+      .intro,
+      .panel {
+        background: rgba(17, 32, 58, 0.9);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 14px 40px rgba(2, 6, 23, 0.35);
+      }
+
+      .intro {
+        margin-bottom: 20px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .kpis {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin: 20px 0;
+      }
+
+      .kpi {
+        background: var(--panel-soft);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px;
+      }
+
+      .kpi strong {
+        display: block;
+        font-size: 2rem;
+        margin-top: 8px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 10px 8px;
+        border-top: 1px solid rgba(157, 178, 207, 0.16);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        border-top: none;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .badge-exact {
+        color: #d1fae5;
+        background: rgba(74, 222, 128, 0.16);
+      }
+
+      .badge-approx {
+        color: #fde68a;
+        background: rgba(251, 191, 36, 0.16);
+      }
+
+      .badge-unavailable {
+        color: #bfdbfe;
+        background: rgba(96, 165, 250, 0.16);
+      }
+
+      .badge-regression {
+        color: #fecdd3;
+        background: rgba(251, 113, 133, 0.16);
+      }
+
+      .badge-ok {
+        color: #d1fae5;
+        background: rgba(74, 222, 128, 0.16);
+      }
+
+      .stack > * + * {
+        margin-top: 10px;
+      }
+
+      .error {
+        border-color: rgba(251, 113, 133, 0.5);
+        color: #fecdd3;
+      }
+
+      code {
+        font-family: Consolas, monospace;
+        color: #c4e0ff;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro">
+        <h1>Dashboard de métricas de contexto do YABook</h1>
+        <p class="muted">
+          Camada de leitura para métricas exportadas pelo contrato oficial da telemetria opt-in.
+          Esta página não coleta dados novos nem calcula métricas inventadas.
+        </p>
+        <p class="muted" id="meta">Carregando dataset...</p>
+      </section>
+
+      <section id="error" class="intro error" hidden></section>
+
+      <section class="kpis" id="kpis"></section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Rotas e regressões</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Rota</th>
+                <th>Última classe</th>
+                <th>Execuções</th>
+                <th>Ampliações</th>
+                <th>Redescobertas</th>
+                <th>Regressão</th>
+              </tr>
+            </thead>
+            <tbody id="routes"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <h2>Distribuição por classe</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Classe</th>
+                <th>Execuções</th>
+              </tr>
+            </thead>
+            <tbody id="classes"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <h2>Origem e confiabilidade</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Indicador</th>
+                <th>Origem</th>
+                <th>Confiabilidade</th>
+                <th>Leitura</th>
+              </tr>
+            </thead>
+            <tbody id="catalog"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <h2>Qualidade das métricas</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                <th>Exact</th>
+                <th>Approx</th>
+                <th>Unavailable</th>
+              </tr>
+            </thead>
+            <tbody id="quality"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <h2>Métricas com ampliação</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                <th>Execuções</th>
+              </tr>
+            </thead>
+            <tbody id="expansions"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <h2>Operações agregadas</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Ferramenta</th>
+                <th>Comandos</th>
+                <th>Output chars</th>
+              </tr>
+            </thead>
+            <tbody id="operations"></tbody>
+          </table>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const DATASET_URL = "./context-dashboard.example.json";
+
+      function badge(label, type) {
+        return `<span class="badge badge-${type}">${label}</span>`;
+      }
+
+      function setError(message) {
+        const node = document.getElementById("error");
+        node.hidden = false;
+        node.innerHTML = `<strong>Falha ao carregar o dashboard.</strong><p>${message}</p>`;
+      }
+
+      function renderKpis(overview) {
+        const rows = [
+          ["Execuções", overview.total_runs],
+          ["Rotas", overview.routes],
+          ["Regressões", overview.regressions],
+          ["Com ampliação", overview.runs_with_expansion],
+          ["Com redescoberta", overview.runs_with_rediscovery],
+        ];
+        document.getElementById("kpis").innerHTML = rows
+          .map(
+            ([label, value]) => `
+              <article class="kpi">
+                <span class="muted">${label}</span>
+                <strong>${value}</strong>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function renderRoutes(routes) {
+        document.getElementById("routes").innerHTML = routes
+          .map((route) => {
+            const regression = route.regressions.length
+              ? route.regressions
+                  .map((item) => `${item.metric}: ${item.previous} → ${item.current} (+${item.delta})`)
+                  .join("<br>")
+              : badge("Sem regressão", "ok");
+            return `
+              <tr>
+                <td><strong>${route.route}</strong><br><span class="muted">${route.latest_exported_at}</span></td>
+                <td>${route.latest_class}</td>
+                <td>${route.runs}</td>
+                <td>${route.latest_expansions}</td>
+                <td>${route.latest_rediscovered_facts}</td>
+                <td>${route.regressions.length ? badge(`${route.regressions.length} alerta(s)`, "regression") + `<div class="stack">${regression}</div>` : regression}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderClasses(classes) {
+        document.getElementById("classes").innerHTML = classes
+          .map((item) => `<tr><td>${item.class}</td><td>${item.runs}</td></tr>`)
+          .join("");
+      }
+
+      function renderCatalog(items) {
+        document.getElementById("catalog").innerHTML = items
+          .map(
+            (item) => `
+              <tr>
+                <td>${item.indicator}</td>
+                <td><code>${item.source}</code></td>
+                <td>${badge(item.reliability, item.reliability)}</td>
+                <td>${item.meaning}</td>
+              </tr>
+            `
+          )
+          .join("");
+      }
+
+      function renderQuality(items) {
+        document.getElementById("quality").innerHTML = items
+          .map(
+            (item) => `
+              <tr>
+                <td><code>${item.metric}</code><br><span class="muted">${item.source}</span></td>
+                <td>${item.exact}</td>
+                <td>${item.approx}</td>
+                <td>${item.unavailable}</td>
+              </tr>
+            `
+          )
+          .join("");
+      }
+
+      function renderExpansions(items) {
+        document.getElementById("expansions").innerHTML =
+          items.length === 0
+            ? `<tr><td colspan="2" class="muted">Nenhuma ampliação registrada nos arquivos carregados.</td></tr>`
+            : items.map((item) => `<tr><td>${item.metric}</td><td>${item.runs}</td></tr>`).join("");
+      }
+
+      function renderOperations(items) {
+        document.getElementById("operations").innerHTML = items
+          .map((item) => `<tr><td>${item.tool}</td><td>${item.commands}</td><td>${item.output_chars}</td></tr>`)
+          .join("");
+      }
+
+      async function init() {
+        try {
+          const response = await fetch(DATASET_URL, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const data = await response.json();
+          document.getElementById("meta").textContent =
+            `Dataset gerado em ${data.generated_at} · contrato oficial v${data.source_contract_version} · somente leitura: ${data.read_only ? "sim" : "não"}`;
+          renderKpis(data.overview);
+          renderRoutes(data.routes);
+          renderClasses(data.classes);
+          renderCatalog(data.indicator_catalog);
+          renderQuality(data.quality);
+          renderExpansions(data.expansion_metrics);
+          renderOperations(data.operations);
+        } catch (error) {
+          setError(
+            `Sirva esta pasta por HTTP e garanta que o arquivo ${DATASET_URL} exista. Detalhe: ${error.message}`
+          );
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
