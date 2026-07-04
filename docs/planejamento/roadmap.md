@@ -52,3 +52,17 @@ contexto, riscos e validações próprios.
 - Definir orçamento aproximado por classe de comando.
 - Criar cenários que verifiquem referências e ampliações permitidas.
 - Comparar o resultado com a linha de base da issue #39.
+
+### 4. Evoluir observabilidade e automação segura
+
+- Exportar métricas locais para telemetria externa opt-in, sem conteúdo sensível.
+- Disponibilizar dashboard hospedado somente depois da exportação confiável.
+- Avaliar memória semântica em prova técnica controlada, com invalidação e
+  critérios explícitos.
+- Estudar sincronização automática em background apenas com contrato de
+  consistência, auditoria e reversão.
+
+Permanecem fora do escopo estrutural:
+
+- inventar métricas quando o runtime não expuser o dado real;
+- remover validações obrigatórias para reduzir custo.
