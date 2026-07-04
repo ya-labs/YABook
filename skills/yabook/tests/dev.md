@@ -10,6 +10,9 @@ Confirme que:
 - `dev full` exige pedido explícito, informa o motivo da profundidade e trabalha
   em lotes filtrados;
 - nenhuma variação amplia escopo, autorização de commit, PR ou merge.
+- um pedido direto inequívoco para implementar a issue atual também pode
+  autorizar a edição dentro do escopo, inclusive em `prod`, sem exigir `dev`
+  como gate exclusivo.
 
 ## Orientação de teste
 

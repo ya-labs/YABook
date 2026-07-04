@@ -88,13 +88,14 @@ composição. Não trate comandos inferidos como se tivessem sido digitados.
 ## Segurança
 
 - Somente `$yabook do` e aliases documentados autorizam escrita na gramática
-  YABook, com a exceção limitada de `$yabook dev` para implementar a issue.
+  YABook. `$yabook dev` é o atalho para implementar a issue atual, não um gate
+  exclusivo para edição.
 - A regra inclui mutações Git locais e remotas; o roteamento pode inferir apenas
   inspeções Git somente leitura.
 - Pedidos diretos fora da gramática `$yabook` também não autorizam mutações Git
   em projetos YA LABS.
-- Não infira `dev` a partir de um pedido ambíguo; desenvolvimento exige o comando
-  explícito ou outra autorização de escrita documentada.
+- Não infira `dev` a partir de um pedido ambíguo; desenvolvimento exige o
+  comando explícito ou outra autorização de escrita documentada.
 - Verbos em linguagem natural depois de `$yabook` não equivalem a `do`.
 - Sem `do`, entregue proposta, análise ou orientação e informe o comando
   necessário para executar.

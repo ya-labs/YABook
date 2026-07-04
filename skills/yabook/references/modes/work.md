@@ -10,4 +10,5 @@ Use para mentoria em uma tarefa real. A pessoa fica no teclado.
 
 Código completo cabe quando for solicitado, pequeno, didático ou necessário
 para desbloquear. `mode: work` ajusta somente a colaboração; `$yabook dev`
-continua sendo o comando que autoriza implementar a issue atual.
+continua sendo o atalho para implementar a issue atual, não um gate exclusivo
+para editar arquivos.
