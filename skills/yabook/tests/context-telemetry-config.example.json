@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "endpoint": "https://telemetry.example.com/yabook/context",
+  "token_env": "YABOOK_TELEMETRY_TOKEN",
+  "timeout_seconds": 5,
+  "headers": {
+    "X-YABook-Source": "runtime-report"
+  }
+}

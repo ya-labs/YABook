@@ -53,3 +53,21 @@ de uma execução real.
 Uma ampliação só é aceita com justificativa não vazia. `contexto.md` continua
 proibido em rota explícita. A classe observada deve corresponder à classe do
 cenário e nunca pode ser justificada como divergente.
+
+## Exportação externa opt-in
+
+Quando a telemetria externa estiver habilitada, exporte somente o payload
+sanitizado descrito em `context-telemetry.md`.
+
+Use:
+
+```text
+python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json
+```
+
+A exportação:
+
+- depende de um relatório já validado localmente;
+- envia apenas contagens, classes, flags e agregados;
+- não envia arquivos consultados, buscas direcionadas cruas nem texto integral;
+- não bloqueia a execução principal quando a rede falhar.
