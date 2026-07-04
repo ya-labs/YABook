@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-04T17:03:35.941974+00:00",
+  "source_contract_version": 1,
+  "dashboard_kind": "context_telemetry",
+  "read_only": true,
+  "notes": [
+    "Este dashboard consome somente o payload oficial exportado pela telemetria externa opt-in.",
+    "Indicadores indisponíveis permanecem sem valor inventado.",
+    "A visualização é somente leitura e não coleta novos dados."
+  ],
+  "overview": {
+    "total_runs": 2,
+    "routes": 1,
+    "regressions": 0,
+    "runs_with_expansion": 0,
+    "runs_with_rediscovery": 0
+  },
+  "indicator_catalog": [
+    {
+      "indicator": "Execuções por rota",
+      "source": "payload.route",
+      "reliability": "exact",
+      "meaning": "Quantidade de execuções agrupadas por rota oficial."
+    },
+    {
+      "indicator": "Classe observada",
+      "source": "payload.class",
+      "reliability": "exact",
+      "meaning": "Classe C0 a C4 registrada pelo relatório exportado."
+    },
+    {
+      "indicator": "Ampliações",
+      "source": "payload.summary.expansion_count / expansion_metrics",
+      "reliability": "exact",
+      "meaning": "Mostra quantas ampliações ocorreram e quais métricas exigiram expansão."
+    },
+    {
+      "indicator": "Redescoberta",
+      "source": "payload.measurements.rediscovered_facts / payload.summary.rediscovered_facts_count",
+      "reliability": "exact",
+      "meaning": "Indica redescobertas de fatos que já eram conhecidos no contexto."
+    },
+    {
+      "indicator": "Tokens",
+      "source": "payload.measurements.tokens",
+      "reliability": "unavailable",
+      "meaning": "Permanece indisponível quando o runtime não expõe o valor real."
+    }
+  ],
+  "routes": [
+    {
+      "route": "dev",
+      "runs": 2,
+      "latest_class": "C3",
+      "latest_exported_at": "2026-07-04T12:00:00+00:00",
+      "latest_expansions": 0,
+      "latest_rediscovered_facts": 0,
+      "latest_commands": 9,
+      "latest_output_chars": 5100,
+      "regressions": [],
+      "regression_count": 0
+    }
+  ],
+  "classes": [
+    {
+      "class": "C3",
+      "runs": 2
+    }
+  ],
+  "quality": [
+    {
+      "metric": "commands",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.commands"
+    },
+    {
+      "metric": "consulted_files",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.consulted_files"
+    },
+    {
+      "metric": "directed_searches",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.directed_searches"
+    },
+    {
+      "metric": "output_chars",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.output_chars"
+    },
+    {
+      "metric": "rediscovered_facts",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.rediscovered_facts"
+    },
+    {
+      "metric": "references",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.references"
+    },
+    {
+      "metric": "rounds",
+      "exact": 2,
+      "approx": 0,
+      "unavailable": 0,
+      "source": "payload.measurements.rounds"
+    },
+    {
+      "metric": "tokens",
+      "exact": 0,
+      "approx": 0,
+      "unavailable": 2,
+      "source": "payload.measurements.tokens"
+    }
+  ],
+  "expansion_metrics": [],
+  "operations": [
+    {
+      "tool": "terminal",
+      "commands": 14,
+      "output_chars": 5600
+    },
+    {
+      "tool": "edit",
+      "commands": 2,
+      "output_chars": 1000
+    },
+    {
+      "tool": "search",
+      "commands": 2,
+      "output_chars": 3600
+    }
+  ],
+  "runs": [
+    {
+      "version": 1,
+      "exported_at": "2026-07-04T12:00:00+00:00",
+      "scenario": "dev_ready",
+      "route": "dev",
+      "class": "C3",
+      "measurements": {
+        "references": {
+          "quality": "exact",
+          "value": 2
+        },
+        "consulted_files": {
+          "quality": "exact",
+          "value": 3
+        },
+        "commands": {
+          "quality": "exact",
+          "value": 9
+        },
+        "output_chars": {
+          "quality": "exact",
+          "value": 5100
+        },
+        "rounds": {
+          "quality": "exact",
+          "value": 5
+        },
+        "directed_searches": {
+          "quality": "exact",
+          "value": 1
+        },
+        "rediscovered_facts": {
+          "quality": "exact",
+          "value": 0
+        },
+        "tokens": {
+          "quality": "unavailable"
+        }
+      },
+      "operations": [
+        {
+          "tool": "terminal",
+          "commands": 7,
+          "output_chars": 2800
+        },
+        {
+          "tool": "search",
+          "commands": 1,
+          "output_chars": 1800
+        },
+        {
+          "tool": "edit",
+          "commands": 1,
+          "output_chars": 500
+        }
+      ],
+      "summary": {
+        "reused_facts_count": 4,
+        "rediscovered_facts_count": 0,
+        "expansion_count": 0,
+        "expansion_metrics": [],
+        "brief_available": false,
+        "brief_used": false,
+        "cache_available": false,
+        "cache_used": false,
+        "cache_status": "absent"
+      }
+    },
+    {
+      "version": 1,
+      "exported_at": "2026-07-04T12:00:00+00:00",
+      "scenario": "dev_ready",
+      "route": "dev",
+      "class": "C3",
+      "measurements": {
+        "references": {
+          "quality": "exact",
+          "value": 2
+        },
+        "consulted_files": {
+          "quality": "exact",
+          "value": 3
+        },
+        "commands": {
+          "quality": "exact",
+          "value": 9
+        },
+        "output_chars": {
+          "quality": "exact",
+          "value": 5100
+        },
+        "rounds": {
+          "quality": "exact",
+          "value": 5
+        },
+        "directed_searches": {
+          "quality": "exact",
+          "value": 1
+        },
+        "rediscovered_facts": {
+          "quality": "exact",
+          "value": 0
+        },
+        "tokens": {
+          "quality": "unavailable"
+        }
+      },
+      "operations": [
+        {
+          "tool": "terminal",
+          "commands": 7,
+          "output_chars": 2800
+        },
+        {
+          "tool": "search",
+          "commands": 1,
+          "output_chars": 1800
+        },
+        {
+          "tool": "edit",
+          "commands": 1,
+          "output_chars": 500
+        }
+      ],
+      "summary": {
+        "reused_facts_count": 4,
+        "rediscovered_facts_count": 0,
+        "expansion_count": 0,
+        "expansion_metrics": [],
+        "brief_available": false,
+        "brief_used": false,
+        "cache_available": false,
+        "cache_used": false,
+        "cache_status": "absent"
+      }
+    }
+  ]
+}
