@@ -19,5 +19,8 @@ Para tópico específico, carregue somente:
 - comandos: [help/commands.md](help/commands.md);
 - objetivo em linguagem natural: [help/objectives.md](help/objectives.md).
 
+`dashboard` é um tópico reconhecido de help. Ele continua somente leitura e
+deve explicar o recurso, os comandos para gerar/abrir e os limites do painel.
+
 Se o tópico for desconhecido, sugira até três comandos próximos sem inventar
 novos comandos.

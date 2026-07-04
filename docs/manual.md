@@ -112,6 +112,7 @@ executa somente o que foi autorizado.
 
 - [Como usar linguagem natural](#como-usar-linguagem-natural)
 - [Como usar briefs](#como-usar-briefs)
+- [Como usar o dashboard de contexto](#como-usar-o-dashboard-de-contexto)
 - [Como preparar um APK](#como-preparar-um-apk)
 - [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
 - [Como usar modos de colaboração](#como-usar-modos-de-colaboração)
@@ -239,6 +240,69 @@ seguintes devem preferi-lo antes de reler issue, planejamento ou histórico
 extenso. A ampliação só acontece quando faltar evidência, houver conflito,
 risco ou mudança relevante no objetivo, no escopo ou no diff.
 
+### Como usar o dashboard de contexto
+
+O dashboard de contexto é a camada visual da telemetria exportada pela skill.
+
+Ele não mede a execução diretamente. Antes dele existir, você precisa ter um ou
+mais payloads gerados a partir do contrato oficial da telemetria externa
+opt-in.
+
+Use o dashboard quando quiser:
+
+- comparar rotas como `dev`, `plan` e `check`;
+- enxergar regressões de comandos, caracteres retornados e ampliações;
+- verificar quando a skill começou a redescobrir fatos desnecessariamente;
+- mostrar a leitura das métricas sem abrir JSON manualmente.
+
+Ele não é necessário quando:
+
+- você tem só uma execução isolada e o JSON já responde a dúvida;
+- ainda está validando o contrato da exportação local;
+- o objetivo é corrigir a origem dos dados, não analisar o histórico.
+
+Fluxo prático:
+
+1. gere ou separe payloads já exportados pelo contrato oficial;
+2. consolide esses payloads em um dataset do dashboard;
+3. sirva a pasta estática localmente;
+4. abra a página no navegador.
+
+Comandos:
+
+```text
+python skills/yabook/scripts/build_context_dashboard.py export-1.json export-2.json --output skills/yabook/dashboard/context-dashboard.json
+python -m http.server 4173
+```
+
+Depois abra:
+
+```text
+http://localhost:4173/skills/yabook/dashboard/
+```
+
+O painel mostra principalmente:
+
+- rotas e regressões: compara execuções da mesma rota e destaca pioras;
+- distribuição por classe: mostra o volume por classe `C0` a `C4`;
+- origem e confiabilidade: explica de onde saiu cada indicador;
+- qualidade das métricas: separa `exact`, `approx` e `unavailable`;
+- métricas com ampliação: mostra em quais métricas a skill precisou ampliar;
+- operações agregadas: resume comandos e `output_chars` por ferramenta.
+
+Limites importantes:
+
+- o dashboard é somente leitura;
+- ele não aceita relatório bruto de runtime como fonte principal;
+- métricas `unavailable` continuam sem valor inventado;
+- ele não substitui a validação local nem o contrato da exportação.
+
+Se quiser uma ajuda rápida sem abrir o manual, use:
+
+```text
+$yabook help dashboard
+```
+
 ### Como preparar um APK
 
 O aplicativo adotante mantém `.yabook/apk.json`:
@@ -342,6 +406,7 @@ Passe um comando ou família para receber explicação, sintaxe e exemplos:
 $yabook help plan
 $yabook help sync
 $yabook help issue classify
+$yabook help dashboard
 ```
 
 Também é possível descrever um objetivo:
@@ -355,6 +420,14 @@ $yabook help preparar uma release
 Nesse formato, a skill recomenda o menor fluxo, explica por que cada comando
 será usado e diferencia análise de execução. O help não carrega o repositório,
 não altera estado e não executa a sequência sugerida.
+
+Para `help dashboard`, a resposta esperada é:
+
+- o que é o dashboard;
+- quando ele vale a pena;
+- como gerar o dataset;
+- como abrir a página localmente;
+- quais são os limites do recurso.
 
 ### Trava dos comandos YABook
 
