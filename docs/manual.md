@@ -112,6 +112,7 @@ executa somente o que foi autorizado.
 
 - [Como usar linguagem natural](#como-usar-linguagem-natural)
 - [Como usar briefs](#como-usar-briefs)
+- [Como usar a telemetria de contexto](#como-usar-a-telemetria-de-contexto)
 - [Como usar o dashboard de contexto](#como-usar-o-dashboard-de-contexto)
 - [Como preparar um APK](#como-preparar-um-apk)
 - [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
@@ -239,6 +240,56 @@ artefato textual de baixo custo. Depois de gerar um brief válido, rotas
 seguintes devem preferi-lo antes de reler issue, planejamento ou histórico
 extenso. A ampliação só acontece quando faltar evidência, houver conflito,
 risco ou mudança relevante no objetivo, no escopo ou no diff.
+
+### Como usar a telemetria de contexto
+
+A telemetria de contexto é o resumo exportável de uma execução já observada da
+skill.
+
+Ela existe para registrar métricas reais da execução sem expor conteúdo
+sensível e sem transformar o envio externo em dependência obrigatória do fluxo.
+
+Na prática, a telemetria exporta um payload sanitizado com:
+
+- rota executada;
+- classe observada;
+- contagens de métricas;
+- operações agregadas por ferramenta;
+- flags de brief, cache, ampliações e redescobertas.
+
+Ela não exporta:
+
+- `references` crus;
+- `consulted_files` crus;
+- `directed_searches` cruas;
+- texto integral do relatório;
+- valor inventado para métrica `unavailable`.
+
+Antes de exportar a telemetria, você precisa ter um relatório de runtime já
+validado localmente.
+
+Fluxo básico:
+
+1. produzir um relatório de runtime observado;
+2. validar esse relatório localmente;
+3. exportar o payload sanitizado;
+4. usar esse payload como base para leitura externa ou para o dashboard.
+
+Comandos principais:
+
+```text
+python skills/yabook/tests/check_context_runtime.py relatorio.json
+python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json
+```
+
+Se quiser salvar o payload exportado em arquivo:
+
+```text
+python skills/yabook/scripts/export_context_telemetry.py relatorio.json --config .yabook/context-telemetry.json --output skills/yabook/dashboard/context-telemetry.json
+```
+
+Quando a configuração não existir ou a telemetria estiver desativada, a skill
+não quebra a execução principal. O envio externo é opt-in e não bloqueante.
 
 ### Como usar o dashboard de contexto
 
