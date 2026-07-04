@@ -1,5 +1,8 @@
 __pycache__/
 *.py[cod]
 tmp/context-telemetry-output.json
-tmp/context-dashboard.json
 tmp/context-dashboard-test/
+tmp/context-dashboard.json
+tmp/runtime-capture-test.json
+tmp/runtime-report-test.json
+tmp/runtime-report.generated*.json

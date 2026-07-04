@@ -1,0 +1,66 @@
+{
+  "scenario": "dev_ready",
+  "route": "dev",
+  "references": [
+    "references/dev.md",
+    "references/git/checkpoint.md"
+  ],
+  "consulted_files": [
+    "skills/yabook/tests/context-runtime.md",
+    "skills/yabook/tests/context-runtime-budgets.json",
+    "skills/yabook/tests/runtime-report.example.json"
+  ],
+  "operations": [
+    {
+      "tool": "terminal",
+      "commands": 4,
+      "output_chars": 1200
+    },
+    {
+      "tool": "search",
+      "commands": 1,
+      "output_chars": 1800
+    },
+    {
+      "tool": "edit",
+      "commands": 1,
+      "output_chars": 500
+    },
+    {
+      "tool": "terminal",
+      "commands": 3,
+      "output_chars": 1600
+    }
+  ],
+  "rounds": 5,
+  "directed_searches": [
+    {
+      "tool": "rg",
+      "query": "runtime observabilidade orçamento",
+      "reason": "localizar validadores e documentação do cenário"
+    }
+  ],
+  "brief": {
+    "available": false,
+    "used": false
+  },
+  "cache": {
+    "available": false,
+    "used": false,
+    "status": "absent"
+  },
+  "reused_facts": [
+    "workspace",
+    "issue",
+    "branch",
+    "objective"
+  ],
+  "rediscovered_facts": [],
+  "expansions": [],
+  "measurements": {
+    "tokens": {
+      "quality": "unavailable",
+      "note": "o runtime local não expõe tokens reais por operação"
+    }
+  }
+}
