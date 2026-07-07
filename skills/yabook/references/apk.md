@@ -40,12 +40,21 @@ Leia a branch atual e classifique:
 
 | Origem | Branch | Nome preparado |
 | --- | --- | --- |
-| Issue | `numero-descricao-curta` | `<app>-<numero>-<commit-curto>.apk` |
-| Desenvolvimento | `dev` | `<app>-dev-<commit-curto>.apk` |
-| Release | `release/x.y.z` ou `release/vx.y.z` | `<app>-vx.y.z.apk` |
+| Issue | `numero-descricao-curta` | `<app>-<numero>-<sequencial>.apk` |
+| Desenvolvimento | `dev` | `<app>-dev-v<versao-sem-pontos>-<sequencial>.apk` |
+| Release | `release/x.y.z` ou `release/vx.y.z` | `<app>-v<versao-sem-pontos>.apk` |
 
-Use `git rev-parse --short HEAD` para o commit curto. Remova o `v` inicial da
-branch de release antes de montar o nome para não duplicá-lo.
+Use `git rev-parse --short HEAD` para obter a evidência técnica do build. Em
+issue e `dev`, informe esse commit curto na saída do comando, mas não o inclua
+no nome público do arquivo.
+
+Para issue e `dev`, calcule o próximo sequencial a partir dos APKs preparados
+existentes para a mesma origem lógica. Se não houver preparado anterior, use
+`1`. Ainda assim, interrompa se o destino calculado já existir.
+
+Em `dev`, use a versão declarada do aplicativo sem pontos. Se a versão não puder
+ser determinada de forma inequívoca, bloqueie a preparação. Em release, remova o
+`v` inicial da branch, valide a versão numérica e monte o nome sem pontos.
 
 Bloqueie `main`, branches não reconhecidas e release sem versão numérica.
 
@@ -82,8 +91,8 @@ Execute sem build automático.
 6. Remova outros APKs já preparados no mesmo diretório que correspondam ao
    mesmo `appName` e à mesma origem lógica, preservando o artefato original e o
    APK padrão `appdebug.apk`.
-7. Informe o caminho final, os arquivos preparados removidos e lembre que o
-   upload permanece manual.
+7. Informe o caminho final, o commit curto de origem quando aplicável, os
+   arquivos preparados removidos e lembre que o upload permanece manual.
 
 ## Bloqueios
 
