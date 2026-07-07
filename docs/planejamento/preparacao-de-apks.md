@@ -50,13 +50,18 @@ O nome deve identificar o aplicativo e a origem do build:
 
 | Origem | Nome |
 | --- | --- |
-| Issue | `YApp-<numero>-<commit-curto>.apk` |
-| `dev` | `YApp-dev-<commit-curto>.apk` |
-| Release | `YApp-v<versao>.apk` |
+| Issue | `YApp-<numero>-<sequencial>.apk` |
+| `dev` | `YApp-dev-v<versao-sem-pontos>-<sequencial>.apk` |
+| Release | `YApp-v<versao-sem-pontos>.apk` |
 
 Regras:
 
-- issue e `dev` usam o commit curto do código que gerou o artefato;
+- issue e `dev` usam sequencial para facilitar identificação manual no destino
+  corporativo;
+- `dev` e release usam a versão do aplicativo sem pontos: `4.0.3.0` vira
+  `v4030`;
+- issue e `dev` continuam informando o commit curto do código que gerou o
+  artefato na saída do YABook, mas ele não entra no nome público;
 - release usa a versão aprovada;
 - builds em outras branches devem ser bloqueados ou tratados por uma regra
   futura explicitamente aprovada.
@@ -83,11 +88,12 @@ Antes de preparar o artefato, `$yabook do apk` deve:
 2. identificar se a branch representa issue, `dev` ou release;
 3. bloquear worktree com alterações que tornem a cópia não rastreável;
 4. confirmar que o artefato esperado já existe;
-5. montar o nome correspondente à origem;
+5. montar o nome correspondente à origem e ao próximo sequencial aplicável;
 6. impedir sobrescrita sem autorização explícita;
 7. copiar o artefato preparado e validar o hash;
 8. remover cópias antigas da mesma origem, preservando `appdebug.apk`;
-9. informar o arquivo preparado para o alias local.
+9. informar o arquivo preparado, o commit curto usado como evidência técnica e
+   o destino esperado para o alias local.
 
 Antes disso, `$yabook apk` deve apresentar a mesma validação em modo somente
 leitura, informando origem, artefato esperado e nome final sem copiar nem
