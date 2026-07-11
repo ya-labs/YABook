@@ -319,11 +319,14 @@ $yabook dev & do merge
 Sozinho, `dev` para antes do commit. Com `do pr`, entrega o PR completo. Com
 `do merge`, também integra depois das validações.
 
+Toda execução de `$yabook dev` deve encerrar com uma revisão técnica usando os
+títulos exatos `O que foi feito`, `Como foi feito`, `Por que foi feito assim` e
+`Observações para revisão`. Resumo livre, lista de alterações, seção `Agora`,
+seção `Validações` ou texto equivalente não substituem esse bloco.
+
 `$yabook dev step` é a variante incremental. Ela exige uma etapa atual
-inequívoca, executa somente essa etapa e não avança para os próximos itens sem
-confirmação. Ao concluir, a resposta deve explicar `O que foi feito`, `Como foi
-feito`, `Por que foi feito assim` e `Observações para revisão`, para que a
-pessoa consiga auditar a entrega passo a passo.
+inequívoca, executa somente essa etapa, não avança para os próximos itens sem
+confirmação e mantém a revisão técnica restrita à etapa atual.
 
 ### Criação e vínculo de branch
 

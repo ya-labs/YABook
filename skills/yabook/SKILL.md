@@ -83,8 +83,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - `apk` apenas apresenta a prévia com base em `.yabook/apk.json`; `do apk`
   copia o APK já gerado para o nome padronizado e remove cópias preparadas
   antigas.
-- Ao concluir `dev`, apresente `Como testar` com passos específicos, validações
-  já executadas e verificações ainda pendentes.
+- Ao concluir `dev`, apresente `Como testar` e o relatório `O que foi feito`,
+  `Como foi feito`, `Por que foi feito assim` e `Observações para revisão`.
 - No squash merge, use `tipo: descrição (#PR)` e registre no corpo o histórico
   da branch contra a base.
 

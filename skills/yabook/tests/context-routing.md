@@ -94,5 +94,5 @@ antes de ampliar. Em `dev full`, confirme escopo explícito, leitura em lotes e
 que a profundidade não ampliou permissões.
 
 Em `dev step`, confirme que somente a etapa atual foi executada, que etapas
-seguintes não avançaram sem confirmação e que a resposta trouxe `O que foi
-feito`, `Como foi feito`, `Por que foi feito assim` e `Observações para revisão`.
+seguintes não avançaram sem confirmação e que a resposta cumpriu o relatório
+técnico obrigatório de `dev` com os quatro títulos exatos.

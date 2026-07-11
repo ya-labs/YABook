@@ -37,9 +37,16 @@ Confirme que a resposta:
 A mesma orientação deve aparecer quando `dev` estiver encadeado com `do pr` ou
 `do merge`.
 
-Em `dev step`, confirme também que a resposta inclui a revisão técnica da etapa:
+## Relatório técnico
+
+Após qualquer execução de `dev`, confirme que a resposta inclui um bloco
+obrigatório com estes títulos exatos:
 
 - `O que foi feito`;
 - `Como foi feito`;
 - `Por que foi feito assim`;
 - `Observações para revisão`.
+
+Resumo livre, lista de alterações, seção `Agora`, seção `Validações` ou texto
+equivalente não substituem esse bloco. Em `dev step`, o relatório deve ficar
+restrito à etapa atual.

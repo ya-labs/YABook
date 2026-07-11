@@ -22,11 +22,12 @@ A issue deve existir. `dev quick` limita descoberta para tarefa pequena, `dev`
 usa profundidade balanceada, `dev step` desenvolve somente a etapa atual de um
 checklist e `dev full` permite investigação profunda justificada. Todos
 preparam branch, implementam e validam dentro do escopo autorizado, mas não
-criam commit nem PR. `dev step` nunca executa todos os steps e deve relatar `O
-que foi feito`, `Como foi feito`, `Por que foi feito assim` e `Observações para
-revisão`. `dev` é o atalho para essa implementação; um pedido direto inequívoco
-de implementar a issue atual também segue a mesma rota. `dev & do pr` entrega o
-PR; `dev & do merge` também integra.
+criam commit nem PR. Todo `dev` deve encerrar com `Como testar` e relatório
+técnico usando os títulos exatos `O que foi feito`, `Como foi feito`, `Por que
+foi feito assim` e `Observações para revisão`; resumo livre não substitui esse
+bloco. `dev step` nunca executa todos os steps. `dev` é o atalho para essa
+implementação; um pedido direto inequívoco de implementar a issue atual também
+segue a mesma rota. `dev & do pr` entrega o PR; `dev & do merge` também integra.
 
 ## Check e review
 

@@ -31,7 +31,7 @@ para executar todos os itens abertos.
 Depois de desenvolver uma etapa, relate a entrega para auditoria passo a passo:
 
 ```md
-## Etapa desenvolvida
+## Desenvolvimento realizado
 
 ### O que foi feito
 
@@ -42,8 +42,11 @@ Depois de desenvolver uma etapa, relate a entrega para auditoria passo a passo:
 ### Observações para revisão
 ```
 
-Esse relato é obrigatório porque permite que a pessoa revise o desenvolvimento,
-entenda as decisões tomadas e aponte ajustes antes da próxima etapa.
+Esse bloco com os títulos exatos é obrigatório em `dev` e `dev step`. Ele não
+pode ser substituído por resumo livre, lista de alterações, `Agora`,
+`Validações` ou texto equivalente, porque permite que a pessoa revise o
+desenvolvimento, entenda as decisões tomadas e aponte ajustes antes da próxima
+etapa.
 
 Enquanto houver etapas abertas, finalize com:
 

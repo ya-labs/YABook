@@ -28,7 +28,7 @@ Use para tarefa pequena, clara e de baixo risco. É uma rota `C3`.
 ### `$yabook dev`
 
 É o fluxo balanceado `C3`: inspecione o necessário, implemente com segurança,
-valide o escopo e apresente `Como testar`.
+valide o escopo e apresente `Como testar` com o relatório técnico obrigatório.
 
 ### `$yabook dev step`
 
@@ -40,8 +40,7 @@ etapa atual. É uma rota `C3`.
 - não avance para etapas seguintes sem confirmação;
 - não transforme validação geral, preparação, commit ou PR em etapa própria;
 - valide o que for necessário para a etapa executada;
-- ao concluir, explique `O que foi feito`, `Como foi feito`, `Por que foi feito
-  assim` e `Observações para revisão`.
+- ao concluir, cumpra o mesmo relatório técnico obrigatório de qualquer `dev`.
 
 O relato pós-etapa faz parte da entrega. Ele deve permitir que a pessoa audite o
 desenvolvimento passo a passo, entenda as decisões e dê parecer antes do avanço.
@@ -134,11 +133,12 @@ informe o motivo explicitamente.
 Essa orientação é obrigatória também quando `dev` estiver encadeado com outro
 comando. Ela não permite executar ações fora do escopo da issue.
 
-Em `dev step`, mantenha `Como testar` focado na etapa executada e inclua também
-a revisão técnica da etapa:
+Toda execução de `dev` também deve apresentar um relatório técnico com os
+títulos exatos abaixo. Esse bloco não pode ser substituído por resumo livre,
+lista de alterações, seção `Agora`, seção `Validações` ou texto equivalente.
 
 ```md
-## Etapa desenvolvida
+## Desenvolvimento realizado
 
 ### O que foi feito
 
@@ -148,6 +148,13 @@ a revisão técnica da etapa:
 
 ### Observações para revisão
 ```
+
+Use esse relatório para explicar a entrega de forma auditável: o que mudou, como
+foi implementado, por que essa abordagem foi escolhida e quais decisões,
+alternativas, riscos ou pontos de parecer ainda merecem revisão da pessoa.
+
+Em `dev step`, mantenha `Como testar` e o relatório técnico focados somente na
+etapa executada.
 
 ## Composição
 

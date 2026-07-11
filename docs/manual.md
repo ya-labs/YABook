@@ -593,12 +593,12 @@ Regra prática:
 - `dev`: implementação normal, com inspeção suficiente para editar com segurança e validar o resultado;
 - `dev full`: mudança com mais impacto, documentação estrutural, fluxo sensível, dúvida real de escopo ou pedido explícito de profundidade.
 
-Depois de `$yabook dev step`, a IA deve encerrar com uma revisão técnica da
-etapa. Esse relato serve para auditar o desenvolvimento passo a passo antes de
-avançar:
+Depois de qualquer `$yabook dev`, a IA deve encerrar com uma revisão técnica da
+entrega. Esse relato serve para auditar o desenvolvimento passo a passo antes de
+avançar ou revisar:
 
 ```md
-## Etapa desenvolvida
+## Desenvolvimento realizado
 
 ### O que foi feito
 
@@ -608,6 +608,11 @@ avançar:
 
 ### Observações para revisão
 ```
+
+Esse bloco é obrigatório e deve usar os títulos exatos. Resumo livre, lista de
+alterações, seção `Agora`, seção `Validações` ou texto equivalente não
+substituem a revisão técnica. Em `$yabook dev step`, o bloco deve ficar restrito
+à etapa atual.
 
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
