@@ -7,17 +7,17 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 
 - orientação: `help`, `load`, `status`, `check [full]`, `review [full]`;
 - planejamento: `diagnose [full]`, `discuss`, `plan start|status|next|review|roadmap`;
-- conversa: `steps`, `mode`, `def mode`;
+- conversa: `steps`, `step`, `mode`, `def mode`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
 - artefatos Android: `apk`, `do apk`;
-- execução: `do <ação>`, `dev [quick|full]`, `bypass <ação>`, `continue`, `sync`.
+- execução: `do <ação>`, `dev [quick|step|full]`, `bypass <ação>`, `continue`, `sync`.
 
 Subcomandos textuais:
 
 - `issue title|desc|classify|brief`;
 - `pr title|desc|brief`;
 - `plan brief`;
-- `steps start|done <número>|cancel`;
+- `steps start|done <número>|cancel`, `step`;
 - `sync local|remote`.
 
 ## Aliases

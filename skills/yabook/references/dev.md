@@ -30,6 +30,22 @@ Use para tarefa pequena, clara e de baixo risco. É uma rota `C3`.
 É o fluxo balanceado `C3`: inspecione o necessário, implemente com segurança,
 valide o escopo e apresente `Como testar`.
 
+### `$yabook dev step`
+
+Use quando houver um checklist ativo e a pessoa quiser desenvolver somente a
+etapa atual. É uma rota `C3`.
+
+- execute apenas a etapa marcada como atual;
+- se não houver etapa atual inequívoca, pare e peça definição;
+- não avance para etapas seguintes sem confirmação;
+- não transforme validação geral, preparação, commit ou PR em etapa própria;
+- valide o que for necessário para a etapa executada;
+- ao concluir, explique `O que foi feito`, `Como foi feito`, `Por que foi feito
+  assim` e `Observações para revisão`.
+
+O relato pós-etapa faz parte da entrega. Ele deve permitir que a pessoa audite o
+desenvolvimento passo a passo, entenda as decisões e dê parecer antes do avanço.
+
 ### `$yabook dev full`
 
 Use para demanda complexa sob pedido explícito. É uma rota `C4`.
@@ -117,6 +133,21 @@ informe o motivo explicitamente.
 
 Essa orientação é obrigatória também quando `dev` estiver encadeado com outro
 comando. Ela não permite executar ações fora do escopo da issue.
+
+Em `dev step`, mantenha `Como testar` focado na etapa executada e inclua também
+a revisão técnica da etapa:
+
+```md
+## Etapa desenvolvida
+
+### O que foi feito
+
+### Como foi feito
+
+### Por que foi feito assim
+
+### Observações para revisão
+```
 
 ## Composição
 

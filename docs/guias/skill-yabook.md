@@ -173,6 +173,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook plan review` | Revisa o planejamento contra o YABook. |
 | `$yabook steps start` | Cria um checklist para acompanhar uma sequência na conversa. |
 | `$yabook steps` | Mostra o checklist ativo. |
+| `$yabook step` | Detalha somente a etapa atual do checklist. |
 | `$yabook steps done <número>` | Marca uma etapa como concluída. |
 | `$yabook steps cancel` | Encerra o acompanhamento. |
 | `$yabook mode[: ]<modo>` | Define ou aplica um modo de colaboração. |
@@ -186,6 +187,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook do apk` | Usa o APK já gerado, prepara a cópia rastreável e limpa cópias antigas da mesma origem. |
 | `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
 | `$yabook dev` | Prepara, implementa e valida a issue atual. |
+| `$yabook dev step` | Implementa somente a etapa atual de um checklist ativo. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
@@ -309,12 +311,19 @@ não houver teste aplicável, informa o motivo.
 
 ```text
 $yabook dev
+$yabook dev step
 $yabook dev & do pr
 $yabook dev & do merge
 ```
 
 Sozinho, `dev` para antes do commit. Com `do pr`, entrega o PR completo. Com
 `do merge`, também integra depois das validações.
+
+`$yabook dev step` é a variante incremental. Ela exige uma etapa atual
+inequívoca, executa somente essa etapa e não avança para os próximos itens sem
+confirmação. Ao concluir, a resposta deve explicar `O que foi feito`, `Como foi
+feito`, `Por que foi feito assim` e `Observações para revisão`, para que a
+pessoa consiga auditar a entrega passo a passo.
 
 ### Criação e vínculo de branch
 
@@ -444,9 +453,18 @@ Enquanto houver itens abertos, o agente repete um checklist compacto no final
 de cada resposta, usando `✅` para concluído, `➡️` para a próxima etapa e `⬜`
 para as demais.
 
+`$yabook steps` fala da lista inteira. `$yabook step` fala somente da etapa
+atual, detalhando objetivo, abordagem, dúvidas e possíveis ajustes sem executar
+alterações.
+
 O checklist pode ser atualizado por subcomando ou por confirmação inequívoca em
 linguagem natural. Seu estado é temporário e não deve ser salvo em arquivo,
 memória permanente, issue ou Project.
+
+Ao criar uma lista com `$yabook steps start`, o agente deve propor etapas
+objetivas de desenvolvimento do ajuste. Não use etapa inicial genérica de
+preparação, leitura de contexto ou setup, nem etapa final genérica de validação,
+teste geral, commit ou PR. Validações específicas pertencem à execução da etapa.
 
 Enquanto estiver ativo, cada ação relevante é comparada com o fluxo atual. A
 skill distingue etapa antecipada, desvio válido, ação prematura, trabalho

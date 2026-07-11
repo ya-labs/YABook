@@ -9,6 +9,8 @@ Confirme que:
 - `dev` mantém descoberta e validação balanceadas;
 - `dev full` exige pedido explícito, informa o motivo da profundidade e trabalha
   em lotes filtrados;
+- `dev step` exige etapa atual inequívoca, executa somente essa etapa e não
+  avança para os próximos itens sem confirmação;
 - nenhuma variação amplia escopo, autorização de commit, PR ou merge.
 - um pedido direto inequívoco para implementar a issue atual também pode
   autorizar a edição dentro do escopo, inclusive em `prod`, sem exigir `dev`
@@ -34,3 +36,10 @@ Confirme que a resposta:
 
 A mesma orientação deve aparecer quando `dev` estiver encadeado com `do pr` ou
 `do merge`.
+
+Em `dev step`, confirme também que a resposta inclui a revisão técnica da etapa:
+
+- `O que foi feito`;
+- `Como foi feito`;
+- `Por que foi feito assim`;
+- `Observações para revisão`.

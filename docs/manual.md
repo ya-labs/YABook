@@ -150,6 +150,7 @@ Comandos principais:
 - `$yabook discuss`: analisa uma ideia, decisão ou mudança sem alterar estado.
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook steps`: acompanha uma sequência com checklist durante a conversa.
+- `$yabook step`: detalha a etapa atual do checklist, sem executar alterações.
 - `$yabook mode`: define como a IA deve colaborar: estudo, mentoria ou execução.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
@@ -429,6 +430,16 @@ o estado e `$yabook steps cancel` para encerrar o acompanhamento.
 O checklist vale somente para a conversa atual. Ele não executa os passos, não
 substitui issues ou milestones e não cria memória permanente.
 
+Use `$yabook step` quando quiser discutir somente a etapa atual. A IA deve
+explicar objetivo, abordagem, dúvidas e possíveis ajustes dessa etapa, sem
+executar alterações.
+
+Ao iniciar etapas com `$yabook steps start`, a lista deve conter apenas passos
+objetivos de desenvolvimento do ajuste. Evite etapas genéricas de preparação,
+leitura de contexto, setup, validação final, teste geral, commit ou PR.
+Validações específicas podem acontecer dentro da etapa executada, mas não devem
+virar um item final genérico sem entrega própria.
+
 Enquanto o checklist estiver ativo, a YABook Skill avalia ações executadas fora
 da sequência. Ela pode registrar etapas antecipadas, reordenar itens pendentes,
 adicionar correções ou exigir nova validação.
@@ -571,14 +582,32 @@ $yabook dev
 Variantes:
 
 - `$yabook dev quick`: use quando a tarefa for pequena, clara, de baixo risco e com poucos arquivos envolvidos;
+- `$yabook dev step`: use quando houver checklist ativo e você quiser que a IA implemente somente a etapa atual;
 - `$yabook dev`: use como padrão para a maior parte das issues de implementação;
 - `$yabook dev full`: use quando a demanda for complexa ou quando você quiser investigação profunda de propósito.
 
 Regra prática:
 
 - `dev quick`: ajuste pontual, contexto já está claro, não faz sentido abrir documentação ampla nem investigar arquitetura;
+- `dev step`: execução incremental da etapa atual, sem avançar para os próximos itens sem confirmação;
 - `dev`: implementação normal, com inspeção suficiente para editar com segurança e validar o resultado;
 - `dev full`: mudança com mais impacto, documentação estrutural, fluxo sensível, dúvida real de escopo ou pedido explícito de profundidade.
+
+Depois de `$yabook dev step`, a IA deve encerrar com uma revisão técnica da
+etapa. Esse relato serve para auditar o desenvolvimento passo a passo antes de
+avançar:
+
+```md
+## Etapa desenvolvida
+
+### O que foi feito
+
+### Como foi feito
+
+### Por que foi feito assim
+
+### Observações para revisão
+```
 
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
