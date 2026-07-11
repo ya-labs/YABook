@@ -11,16 +11,20 @@ Para um comando específico, explique apenas:
 
 ## Steps
 
-Explique `steps start`, `steps`, `steps done <número>` e `steps cancel`. O
-checklist vale para a conversa, não executa passos e pode recalcular somente
-etapas pendentes sem mudar objetivo ou decisão.
+Explique `steps start`, `steps`, `step`, `steps done <número>` e `steps cancel`.
+O checklist vale para a conversa, não executa passos e pode recalcular somente
+etapas pendentes sem mudar objetivo ou decisão. `steps` fala da lista inteira;
+`step` fala apenas da etapa atual.
 
 ## Dev
 
 A issue deve existir. `dev quick` limita descoberta para tarefa pequena, `dev`
-usa profundidade balanceada e `dev full` permite investigação profunda
-justificada. Todos preparam branch, implementam e validam, mas não criam commit
-nem PR. `dev` é o atalho para essa implementação; um pedido direto inequívoco
+usa profundidade balanceada, `dev step` desenvolve somente a etapa atual de um
+checklist e `dev full` permite investigação profunda justificada. Todos
+preparam branch, implementam e validam dentro do escopo autorizado, mas não
+criam commit nem PR. `dev step` nunca executa todos os steps e deve relatar `O
+que foi feito`, `Como foi feito`, `Por que foi feito assim` e `Observações para
+revisão`. `dev` é o atalho para essa implementação; um pedido direto inequívoco
 de implementar a issue atual também segue a mesma rota. `dev & do pr` entrega o
 PR; `dev & do merge` também integra.
 

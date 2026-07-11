@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Orchestrate the YA LABS Method through natural-language routing, issue-driven development, planning, GitHub artifacts, documentation, and safe execution. Use when the user invokes $yabook, describes a YA LABS workflow goal, needs the correct command, plans or diagnoses a project, develops an issue, or creates and reviews GitHub artifacts.
+description: Orchestrate the YA LABS Method through $yabook commands, issue-driven development, planning, GitHub artifacts, documentation, and safe execution.
 ---
 
 # YABook
@@ -78,8 +78,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - Branch usa `numero-descricao-curta`.
 - Commit usa `tipo: descrição curta`.
 - PR usa título objetivo e mantém vínculo com a issue.
-- Para branch criada por `do branch` ou `dev`, prefira `createLinkedBranch` e
-  confirme `issue.linkedBranches`.
+- Em `do branch` ou `dev`, prefira `createLinkedBranch` e confirme
+  `issue.linkedBranches`.
 - `apk` apenas apresenta a prévia com base em `.yabook/apk.json`; `do apk`
   copia o APK já gerado para o nome padronizado e remove cópias preparadas
   antigas.
@@ -92,7 +92,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Entregue somente o artefato ou resultado solicitado.
 - Mostre roteamento apenas quando ele for inferido, corrigido ou composto.
-- Enquanto `steps` estiver ativo, repita seu estado compacto.
+- Enquanto `steps` estiver ativo, repita seu estado compacto. `dev step`
+  executa só a etapa atual.
 - Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil;
   quando não houver outra ação, informe que o fluxo foi concluído.
 - Quando alterar arquivos, sugira uma mensagem de commit.

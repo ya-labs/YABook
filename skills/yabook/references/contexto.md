@@ -38,6 +38,7 @@ ampliação.
 | `help` | `C0` | `help.md` | nenhum | tópico solicitado, sem repositório |
 | `mode` | `C0` | `modes.md`, modo solicitado | conversa | regras por área já citadas |
 | `steps` | `C0` | `steps.md` | checklist da conversa | `steps/replanning.md` diante de desvio |
+| `step` | `C0` | `steps.md` | etapa atual da conversa | `steps/replanning.md` diante de desvio |
 | `discuss` | `C0` | `discuss.md` | conversa | redirecione para rota dependente do projeto se precisar de fatos |
 | `continue` | `C1` | `git/checkpoint.md` | checkpoint anterior e Git atual | somente mudança desde o checkpoint |
 | `bypass` | `C1` | `bypass.md` | ação anexada | branch/status apenas se a ação editar |
@@ -62,6 +63,7 @@ ampliação.
 | `plan review` | `C2` | `planejamento/review.md` | visão, versão e roadmap | arquitetura/ADRs relacionados |
 | `plan roadmap` | `C2` | `planejamento/roadmap.md` | plano aprovado e metadados GitHub | issues com equivalência incerta |
 | `dev quick` | `C3` | `dev.md`, `git/checkpoint.md` | issue, branch, worktree e até 3 arquivos | motivo obrigatório antes de ampliar |
+| `dev step` | `C3` | `dev.md`, `git/checkpoint.md`, `steps.md` | issue, branch, worktree e etapa atual | motivo obrigatório antes de ampliar |
 | `dev` | `C3` | `dev.md`, `git/checkpoint.md` | issue, branch, worktree | código e docs do escopo |
 | `do plan` | `C3` | `planejamento/persistencia.md`, `git/checkpoint.md` | decisões e rastreabilidade | `git/mutacoes.md` quando alterar Git |
 | `do plan roadmap` | `C3` | `planejamento/roadmap.md`, `github/issues-projects.md` | proposta e GitHub atual | conflitos item a item |
