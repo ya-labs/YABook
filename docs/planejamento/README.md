@@ -5,6 +5,7 @@ YABook. Andamento, responsáveis e bloqueios continuam no GitHub.
 
 ## Capacidades
 
+- [YABook Desktop — visão e limites do MVP](yabook-desktop.md)
 - [Preparação de APKs](preparacao-de-apks.md)
 - [Eficiência de contexto da YABook Skill](eficiencia-de-contexto.md)
 
