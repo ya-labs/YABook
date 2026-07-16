@@ -1,0 +1,12 @@
+{
+  "name": "yabook",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "desktop:dev": "npm run tauri:dev --workspace=@yabook/desktop",
+    "desktop:build": "npm run tauri:build --workspace=@yabook/desktop",
+    "desktop:check": "npm run check --workspace=@yabook/desktop"
+  }
+}
