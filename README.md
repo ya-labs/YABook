@@ -16,6 +16,18 @@ trabalho com segurança.
 
 Ele existe para reduzir improviso: pessoas e agentes de IA passam a seguir o mesmo contrato para documentação, GitHub, issues, branches, commits, Pull Requests, releases e organização do projeto.
 
+## Áreas do repositório
+
+- [Manual da YA LABS](manual/README.md): padrões, processos, guias e modelos
+  reutilizáveis da organização.
+- [Produto YABook](produto/README.md): visão, planejamento e decisões próprias
+  do ecossistema YABook.
+- [YABook Skill](skills/yabook/): instruções, referências, scripts e testes da
+  skill.
+
+`manual/` e `produto/` estão em migração a partir de `docs/`. Os índices de
+cada área indicam a fonte de consulta enquanto seus conteúdos não forem movidos.
+
 ## O que o YABook entrega
 
 - Um padrão único para condução de tarefas no GitHub.
