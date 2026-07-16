@@ -24,3 +24,4 @@ YABook. Andamento, responsáveis e bloqueios continuam no GitHub.
 - [2026-07-02 — Eficiência de contexto da YABook Skill](sessoes/2026-07-02-eficiencia-de-contexto.md)
 - [2026-07-02 — Aprofundar engenharia de custo da skill YABook](sessoes/2026-07-02-aprofundar-engenharia-de-custo-yabook.md)
 - [2026-07-04 — Dashboard de contexto da YABook Skill](sessoes/2026-07-04-dashboard-de-contexto.md)
+- [2026-07-16 — Planejamento do YABook Desktop](sessoes/2026-07-16-planejamento-yabook-desktop.md)
