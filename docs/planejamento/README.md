@@ -6,10 +6,10 @@ YABook. Andamento, responsáveis e bloqueios continuam no GitHub.
 ## Capacidades
 
 - [YABook Desktop — visão e limites do MVP](YABook%20Desktop/yabook-desktop.md)
-- [YABook Desktop — modelo documental](YABook%20Desktop/modelo-documental-yabook-desktop.md)
-- [YABook Desktop — configuração documental](YABook%20Desktop/configuracao-documental-yabook-desktop.md)
-- [YABook Desktop — experiência de leitura](YABook%20Desktop/experiencia-de-leitura-yabook-desktop.md)
-- [YABook Desktop — arquitetura e distribuição](YABook%20Desktop/arquitetura-e-distribuicao-yabook-desktop.md)
+- [YABook Desktop — modelo documental](YABook%20Desktop/modelo-documental.md)
+- [YABook Desktop — configuração documental](YABook%20Desktop/configuracao-documental.md)
+- [YABook Desktop — experiência de leitura](YABook%20Desktop/experiencia-de-leitura.md)
+- [YABook Desktop — arquitetura e distribuição](YABook%20Desktop/arquitetura-e-distribuicao.md)
 - [Preparação de APKs](preparacao-de-apks.md)
 - [Eficiência de contexto da YABook Skill](eficiencia-de-contexto.md)
 
