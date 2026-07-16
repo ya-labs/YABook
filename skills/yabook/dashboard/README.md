@@ -14,7 +14,7 @@ Ele:
 
 Para aprender a usar na prática:
 
-- consulte [`docs/manual.md`](../../../docs/manual.md);
+- consulte [`manual/guias/manual-de-uso.md`](../../../manual/guias/manual-de-uso.md);
 - use `$yabook help dashboard`.
 
 ## Arquivos

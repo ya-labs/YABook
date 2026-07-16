@@ -112,7 +112,7 @@ Cada projeto deve declarar apenas as labels que realmente usa, sem criar variaç
 
 ## Padrões operacionais
 
-Os formatos oficiais de issue, branch, commit e Pull Request ficam em [Padrões rápidos](../padroes-rapidos.md).
+Os formatos oficiais de issue, branch, commit e Pull Request ficam em [Padrões rápidos](../padroes/padroes-rapidos.md).
 
 Não repita esses formatos em documentos específicos de projeto. Referencie o padrão central e registre exceções apenas quando o projeto realmente precisar fugir dele.
 

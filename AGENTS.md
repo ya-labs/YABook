@@ -104,8 +104,8 @@ permita `continue` quando outra issue ou branch tornar a separação obrigatóri
 
 Cada mudança relevante no YABook deve ter issue própria e seguir o fluxo documentado em:
 
-- `docs/padroes-rapidos.md`
-- `docs/processos/fluxo-de-trabalho-github.md`
+- `manual/padroes/padroes-rapidos.md`
+- `manual/processos/fluxo-de-trabalho-github.md`
 
 Não duplique formatos de issue, branch, commit ou Pull Request neste arquivo. Use os documentos centrais como fonte de verdade.
 

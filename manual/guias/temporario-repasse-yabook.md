@@ -27,8 +27,8 @@ documentação para explicar o comportamento atual da skill.
 
 Os documentos ajustados nesta rodada foram:
 
-- [Manual de uso](manual.md)
-- [Guia técnico da skill](guias/skill-yabook.md)
+- [Manual de uso](manual-de-uso.md)
+- [Guia técnico da skill](skill-yabook.md)
 
 ## Mudanças que agora estão documentadas
 
@@ -97,7 +97,7 @@ O manual agora aponta explicitamente para o guia técnico da skill quando a
 pessoa quiser ver a lista completa de comandos, variantes e comportamento
 interno:
 
-- [Skill YABook](guias/skill-yabook.md)
+- [Skill YABook](skill-yabook.md)
 
 ## O que outra pessoa deve verificar
 
