@@ -44,7 +44,7 @@ frentes complementares:
 - observabilidade local com relatórios e testes de orçamento.
 
 A sessão de planejamento correspondente está em
-`docs/planejamento/sessoes/2026-07-02-aprofundar-engenharia-de-custo-yabook.md`.
+`../sessoes/2026-07-02-aprofundar-engenharia-de-custo-yabook.md`.
 
 ## Evolução aprovada após a exportação
 
@@ -55,10 +55,10 @@ ampliar ainda a gramática operacional da skill.
 Direção aprovada:
 
 - manter `README` curto para descoberta do dashboard;
-- ensinar o uso prático no `docs/manual.md`;
+- ensinar o uso prático no `../../manual/guias/manual-de-uso.md`;
 - oferecer `help dashboard` para consulta rápida com comandos e limites;
 - adiar um comando operacional de build/serve até existir evidência de uso
   recorrente.
 
 A sessão dessa decisão está em
-`docs/planejamento/sessoes/2026-07-04-dashboard-de-contexto.md`.
+`../sessoes/2026-07-04-dashboard-de-contexto.md`.

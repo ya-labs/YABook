@@ -32,7 +32,7 @@ Exemplos:
 
 ## Estrutura documental
 
-A matriz de pastas fica no [Guia de consulta da documentação](../templates/projeto/docs/guia-da-documentacao.md), que é a fonte única para decidir onde cada assunto deve ser registrado.
+A matriz de pastas fica no [Guia de consulta da documentação](../modelos/projeto/docs/guia-da-documentacao.md), que é a fonte única para decidir onde cada assunto deve ser registrado.
 
 Use essa estrutura como referência, não como checklist obrigatório. Projetos pequenos não precisam criar pastas vazias sem uso imediato.
 

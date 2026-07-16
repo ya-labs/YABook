@@ -51,6 +51,5 @@ issues pequenas, sem criar o aplicativo nesta etapa.
 7. [Empacotar e validar o MVP do YABook Desktop (#84)](https://github.com/ya-labs/YABook/issues/84).
 
 O detalhamento, as dependências e os limites dessas entregas estão em
-[roadmap.md](../roadmap.md). Durante a futura migração documental, esta sessão
-deve ser classificada como registro de planejamento do produto e movida para
-`produto/sessoes/`.
+[roadmap.md](../planejamento/roadmap.md). Esta sessão foi classificada como
+registro de planejamento do produto e permanece em `produto/sessoes/`.

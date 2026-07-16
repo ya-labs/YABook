@@ -44,7 +44,7 @@ O primeiro comando de cada par analisa ou propõe. O comando iniciado por
 Não crie pastas vazias nem documentos só para "completar a estrutura".
 
 O tutorial completo está em
-[Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md).
+[Criar e expandir projetos com YABook](criar-e-expandir-projetos-com-yabook.md).
 
 ## Uso no dia a dia
 
@@ -62,7 +62,7 @@ Problema, ajuste ou melhoria
 -> Merge
 ```
 
-Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](padroes-rapidos.md).
+Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](../padroes/padroes-rapidos.md).
 
 Com a skill:
 
@@ -88,7 +88,7 @@ issue a partir da `main`. Não altere `main` diretamente sem
 `$yabook bypass <ação>`. Crie `dev` apenas quando começar o desenvolvimento de
 produto. O fluxo completo de `main`, `dev`, `release/x.y.z` e
 `archive/dev-x.y.z` fica em
-[Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md).
+[Fluxo de trabalho com GitHub](../processos/fluxo-de-trabalho-github.md).
 
 ## Uso com IA
 
@@ -171,7 +171,7 @@ Comandos principais:
 
 Use a skill para reduzir orientação repetida. A documentação continua sendo a fonte humana de consulta.
 Para ver a lista completa de comandos, variantes e comportamento interno da
-skill, abra [Skill YABook](guias/skill-yabook.md).
+skill, abra [Skill YABook](skill-yabook.md).
 
 ---
 
@@ -409,7 +409,7 @@ ausente e sobrescrita são bloqueados.
 O upload, o build e os caminhos corporativos permanecem no ambiente local e não
 fazem parte do comando.
 
-Para entender como a skill funciona por dentro, consulte [Skill YABook](guias/skill-yabook.md).
+Para entender como a skill funciona por dentro, consulte [Skill YABook](skill-yabook.md).
 
 ---
 
@@ -923,12 +923,12 @@ fallback.
 
 ## Onde consultar padrões
 
-- [Padrões rápidos](padroes-rapidos.md): issue, branch, commit e PR.
-- [Fluxo de trabalho com GitHub](processos/fluxo-de-trabalho-github.md): labels, Project, `main`, `dev`, release e tags.
-- [Uso de IA](guias/uso-de-ia.md): contrato operacional para assistentes.
-- [Criar e expandir projetos com YABook](guias/criar-e-expandir-projetos-com-yabook.md): tutorial de inicialização, diagnóstico e planejamento.
-- [Documentação técnica](guias/documentacao-tecnica.md): como organizar documentação de projeto.
-- [Template base de projeto](templates/projeto/README.md): estrutura inicial para novos projetos.
+- [Padrões rápidos](../padroes/padroes-rapidos.md): issue, branch, commit e PR.
+- [Fluxo de trabalho com GitHub](../processos/fluxo-de-trabalho-github.md): labels, Project, `main`, `dev`, release e tags.
+- [Uso de IA](uso-de-ia.md): contrato operacional para assistentes.
+- [Criar e expandir projetos com YABook](criar-e-expandir-projetos-com-yabook.md): tutorial de inicialização, diagnóstico e planejamento.
+- [Documentação técnica](documentacao-tecnica.md): como organizar documentação de projeto.
+- [Template base de projeto](../modelos/projeto/README.md): estrutura inicial para novos projetos.
 
 ---
 

@@ -18,7 +18,8 @@ precisar abrir documentação longa ou redescobrir comandos”.
 
 - O `README` do dashboard deve ser curto e servir principalmente para anunciar a
   existência do recurso.
-- O uso prático do dashboard deve ser documentado no `docs/manual.md`, com foco
+- O uso prático do dashboard deve ser documentado no
+  `../../manual/guias/manual-de-uso.md`, com foco
   em:
   - como gerar o dataset;
   - como abrir localmente;

@@ -112,7 +112,7 @@ Antes de criar ou alterar artefatos de projeto, a IA deve:
 4. Usar a estrutura existente do projeto.
 5. Avisar quando houver divergência entre pedido, projeto e YABook.
 
-Os formatos oficiais de issue, branch, commit e PR ficam em [Padrões rápidos](../padroes-rapidos.md). Labels, Project, `main`, `dev`, release e tags ficam em [Fluxo de trabalho com GitHub](../processos/fluxo-de-trabalho-github.md).
+Os formatos oficiais de issue, branch, commit e PR ficam em [Padrões rápidos](../padroes/padroes-rapidos.md). Labels, Project, `main`, `dev`, release e tags ficam em [Fluxo de trabalho com GitHub](../processos/fluxo-de-trabalho-github.md).
 
 Não use variações locais salvo quando o projeto registrar a exceção.
 

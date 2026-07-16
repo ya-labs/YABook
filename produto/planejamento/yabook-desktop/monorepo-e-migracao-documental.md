@@ -53,57 +53,30 @@ O `README.md` da raiz apresenta o repositório e aponta para `manual/`,
 `produto/`, `apps/desktop/` quando existir e `skills/yabook/`. Os READMEs de
 `manual/` e `produto/` são os índices de suas respectivas áreas.
 
-## Relação com a documentação atual
+## Resultado da migração documental
 
-Hoje o conteúdo se concentra em `docs/`, que combina padrões organizacionais,
-planejamento do produto, templates e documentos temporários. A migração deve
-classificar cada item antes de movê-lo:
+A migração foi executada na issue #78, preservando o histórico dos arquivos com
+`git mv` e separando conteúdo organizacional de conteúdo específico do produto.
 
-| Origem atual | Destino provável | Critério de classificação |
+| Categoria | Destino | Decisão aplicada |
 | --- | --- | --- |
-| `docs/guias/`, `docs/processos/`, `docs/padroes-rapidos.md`, `docs/manual.md` | `manual/` | Regra ou orientação reutilizável pela organização. |
-| `docs/templates/` | `manual/modelos/` | Modelo reutilizável, sem fluxo de negócio próprio. |
-| `docs/planejamento/YABook Desktop/` | `produto/planejamento/yabook-desktop/` | Decisão e planejamento específicos do produto. |
-| `docs/sessoes/` | `produto/sessoes/` ou `manual/` | Destino definido pelo tema e pelo público do registro. |
-| `docs/temporario-repasse-yabook.md` | Avaliar antes de migrar | Documento temporário não deve ganhar destino permanente sem revisão. |
+| Handbook, guias, processos e padrões | `manual/` | Conteúdo reutilizável pela organização. |
+| Modelos de projeto | `manual/modelos/` | Modelos reutilizáveis, sem fluxo de negócio próprio. |
+| Planejamento do YABook e do Desktop | `produto/planejamento/` | Decisões e capacidades específicas do produto. |
+| Sessões de planejamento | `produto/sessoes/` | Registros produzidos pelo comando `plan` para o produto YABook. |
+| Repasse histórico da skill | `manual/guias/temporario-repasse-yabook.md` | Mantido como histórico consultável, sem transformá-lo em padrão normativo. |
 
-Itens ambíguos não devem ser movidos por similaridade de nome. A classificação
-considera a responsabilidade do conteúdo, e não apenas a pasta em que ele está
-hoje.
+Os índices de `manual/` e `produto/` substituem a navegação anterior. A
+referência a `docs/` foi removida do repositório depois da atualização de links,
+instruções e referências específicas da skill.
 
-## Estratégia de migração
+## Estratégia aplicada
 
-### 1. Inventariar e decidir destinos
-
-Criar uma issue exclusiva de migração documental e uma tabela de mapeamento
-com origem, destino, responsável, links afetados e decisão para cada item. Esta
-etapa não move arquivos.
-
-### 2. Criar a estrutura e os índices
-
-Adicionar os diretórios-alvo e seus READMEs de navegação. Os diretórios antigos
-continuam existindo, de modo que links atuais e a YABook Skill permanecem
-funcionais durante a transição.
-
-### 3. Migrar o handbook em lotes pequenos
-
-Mover primeiro conteúdos claramente organizacionais para `manual/`, com um
-commit por grupo coerente. Após cada lote, atualizar links relativos, índices e
-referências da skill que apontem para o caminho alterado.
-
-### 4. Migrar a documentação de produto
-
-Mover a documentação já classificada do YABook para `produto/`, preservando a
-separação entre planejamento, arquitetura, decisões, pesquisas e sessões. O
-planejamento do Desktop deve manter sua pasta própria enquanto houver vários
-documentos relacionados.
-
-### 5. Validar e remover o legado
-
-Antes de remover `docs/`, executar busca por referências aos caminhos antigos,
-revisar links Markdown e validar os comandos e testes da YABook Skill. A
-remoção só ocorre quando não restarem referências internas ou instruções de uso
-dependentes da estrutura antiga.
+1. A estrutura e os índices de `manual/` e `produto/` foram criados.
+2. Handbook e modelos foram movidos para `manual/`.
+3. Planejamento e sessões foram movidos para `produto/`.
+4. Links, índices, instruções e referências específicas foram atualizados antes
+   da remoção do caminho legado.
 
 ### 6. Criar o aplicativo em issue independente
 

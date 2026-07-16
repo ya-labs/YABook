@@ -129,7 +129,7 @@ Status: **Backlog** · Size: **3** · Depende das issues #81, #82 e #83
 - Disponibilizar dashboard hospedado somente depois da exportação confiável.
 - Documentar o dashboard em três níveis:
   - `README` curto para descoberta;
-  - `docs/manual.md` para uso prático, interpretação e limites;
+  - `../../manual/guias/manual-de-uso.md` para uso prático, interpretação e limites;
   - `help dashboard` para consulta rápida sem depender do manual.
 - Deixar um comando operacional de build/serve como evolução posterior, caso o
   uso do dashboard se torne recorrente no fluxo da skill.

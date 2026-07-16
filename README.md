@@ -25,8 +25,6 @@ Ele existe para reduzir improviso: pessoas e agentes de IA passam a seguir o mes
 - [YABook Skill](skills/yabook/): instruções, referências, scripts e testes da
   skill.
 
-`manual/` e `produto/` estão em migração a partir de `docs/`. Os índices de
-cada área indicam a fonte de consulta enquanto seus conteúdos não forem movidos.
 
 ## O que o YABook entrega
 
@@ -52,14 +50,14 @@ Use o YABook quando você precisa:
 
 Se você nunca usou o YABook, leia nesta ordem:
 
-1. [Manual de uso](docs/manual.md)
-2. [Padrões rápidos](docs/padroes-rapidos.md)
-3. [Condução de projetos](docs/processos/conducao-de-projetos.md)
-4. [Criar e expandir projetos com YABook](docs/guias/criar-e-expandir-projetos-com-yabook.md)
-5. [Guia técnico da skill YABook](docs/guias/skill-yabook.md)
-6. [Documentação do YABook](docs/README.md)
-7. [Fluxo de trabalho com GitHub](docs/processos/fluxo-de-trabalho-github.md)
-8. [Uso de IA](docs/guias/uso-de-ia.md)
+1. [Manual de uso](manual/guias/manual-de-uso.md)
+2. [Padrões rápidos](manual/padroes/padroes-rapidos.md)
+3. [Condução de projetos](manual/processos/conducao-de-projetos.md)
+4. [Criar e expandir projetos com YABook](manual/guias/criar-e-expandir-projetos-com-yabook.md)
+5. [Guia técnico da skill YABook](manual/guias/skill-yabook.md)
+6. [Manual da YA LABS](manual/README.md)
+7. [Fluxo de trabalho com GitHub](manual/processos/fluxo-de-trabalho-github.md)
+8. [Uso de IA](manual/guias/uso-de-ia.md)
 
 ## Condução de projetos
 
@@ -77,9 +75,9 @@ O modelo combina:
 - detalhamento somente do próximo bloco de issues acionáveis;
 - estabilização e critérios de pronto antes da release.
 
-Leia [Condução de projetos](docs/processos/conducao-de-projetos.md) para o
+Leia [Condução de projetos](manual/processos/conducao-de-projetos.md) para o
 método organizacional. Para aplicar o fluxo com a skill, use
-[Criar e expandir projetos com YABook](docs/guias/criar-e-expandir-projetos-com-yabook.md).
+[Criar e expandir projetos com YABook](manual/guias/criar-e-expandir-projetos-com-yabook.md).
 
 ## Como aplicar em um projeto
 

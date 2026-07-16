@@ -1,6 +1,6 @@
 # Produto YABook
 
-Esta área reunirá documentação específica do produto YABook, sem misturá-la aos
+Esta área reúne documentação específica do produto YABook, sem misturá-la aos
 padrões organizacionais do manual.
 
 ## Organização prevista
@@ -12,8 +12,7 @@ padrões organizacionais do manual.
 - `pesquisas/`: descobertas, provas técnicas e referências;
 - `sessoes/`: registros de planejamento produzidos pela skill.
 
-## Estado da migração
+## Consulte
 
-O planejamento do YABook, incluindo o MVP do Desktop, ainda está em
-`docs/planejamento/`. Ele será migrado nos lotes seguintes da issue #78. Até
-lá, use o [índice atual de planejamento](../docs/planejamento/README.md).
+- [Planejamento do YABook](planejamento/README.md)
+- [Sessões de planejamento](sessoes/)
