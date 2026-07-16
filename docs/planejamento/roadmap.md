@@ -32,6 +32,77 @@ Apenas a etapa 1 pertence ao Project do YABook. A etapa 2 deve ser uma issue no
 repositório e no Project da organização responsável pelo aplicativo, pois possui
 contexto, riscos e validações próprios.
 
+## YABook Desktop
+
+O MVP foi definido na [issue #18](https://github.com/ya-labs/YABook/issues/18).
+Sua implementação é agrupada pelo [épico #77](https://github.com/ya-labs/YABook/issues/77)
+e pelo [milestone #1](https://github.com/ya-labs/YABook/milestone/1), ambos
+denominados **YABook Desktop — MVP local**. As entregas abaixo foram criadas
+como subissues nativas do épico e mantêm ordem de dependência.
+
+### 1. [Migrar a estrutura documental para o monorepo (#78)](https://github.com/ya-labs/YABook/issues/78)
+
+Status: **Pronto para dev** · Size: **4**
+
+- Inventariar a documentação atual e aprovar o mapa de origem e destino.
+- Criar os índices de `manual/` e `produto/`.
+- Migrar em lotes pequenos, com links e referências atualizados no mesmo lote.
+- Manter `skills/yabook/` no caminho atual até a migração específica da skill.
+
+### 2. [Criar o scaffold do aplicativo desktop (#79)](https://github.com/ya-labs/YABook/issues/79)
+
+Status: **Backlog** · Size: **3** · Depende da issue #78
+
+- Criar `apps/desktop/` com Tauri, React e TypeScript.
+- Preparar a execução local e o contrato inicial entre interface e núcleo.
+- Não implementar funcionalidades de biblioteca, leitura ou configuração nesta
+  entrega.
+
+### 3. [Implementar a biblioteca local e a descoberta documental (#80)](https://github.com/ya-labs/YABook/issues/80)
+
+Status: **Backlog** · Size: **4** · Depende da issue #79
+
+- Cadastrar fontes locais, organizações opcionais e projetos avulsos.
+- Persistir catálogo e preferências pessoais em SQLite local.
+- Descobrir raízes documentais sem criar `.yabook/config.json` automaticamente.
+
+### 4. [Implementar leitura e navegação documental (#81)](https://github.com/ya-labs/YABook/issues/81)
+
+Status: **Backlog** · Size: **4** · Depende da issue #80
+
+- Exibir árvore de raízes, pastas aninhadas e documentos Markdown.
+- Oferecer breadcrumbs, índice de títulos, links relativos, histórico,
+  favoritos, recentes e ações externas explícitas.
+- Manter a leitura separada da edição de Markdown.
+
+### 5. [Implementar personalização documental compartilhável (#82)](https://github.com/ya-labs/YABook/issues/82)
+
+Status: **Backlog** · Size: **3** · Depende das issues #80 e #81
+
+- Ler, validar, pré-visualizar e salvar `.yabook/config.json` mediante
+  confirmação explícita.
+- Permitir rótulos, ordem, itens ocultos e documento inicial pela interface.
+- Separar rascunhos locais da configuração compartilhada do projeto.
+
+### 6. [Implementar busca e atualização por alterações externas (#83)](https://github.com/ya-labs/YABook/issues/83)
+
+Status: **Backlog** · Size: **3** · Depende das issues #80 e #81
+
+- Criar o índice reconstruível por projeto e a busca limitada às raízes ativas.
+- Refletir alterações, indisponibilidades e remoções sem perder o cadastro
+  local ou o contexto de leitura.
+
+### 7. [Empacotar e validar o MVP do YABook Desktop (#84)](https://github.com/ya-labs/YABook/issues/84)
+
+Status: **Backlog** · Size: **3** · Depende das issues #81, #82 e #83
+
+- Gerar instalador NSIS para Windows 11 x64 e AppImage para Linux Mint 21.3
+  Cinnamon x64.
+- Validar uso offline após a instalação, documentos reais e os critérios de
+  utilidade definidos para o MVP.
+- Manter autoatualização, lojas, telemetria e outras plataformas fora desta
+  entrega.
+
 ## Eficiência de contexto da YABook Skill
 
 ### 1. Auditar os comandos
