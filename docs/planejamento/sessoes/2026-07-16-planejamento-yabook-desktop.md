@@ -1,9 +1,8 @@
 # Sessão de planejamento — YABook Desktop
 
 Data: 2026-07-16
-Rastreabilidade: [issue #18](https://github.com/ya-labs/YABook/issues/18),
-[épico #77](https://github.com/ya-labs/YABook/issues/77) e
-[milestone #1](https://github.com/ya-labs/YABook/milestone/1)
+Rastreabilidade: [issue #18](https://github.com/ya-labs/YABook/issues/18) e
+[épico #77](https://github.com/ya-labs/YABook/issues/77)
 
 ## Contexto
 

@@ -35,10 +35,9 @@ contexto, riscos e validações próprios.
 ## YABook Desktop
 
 O MVP foi definido na [issue #18](https://github.com/ya-labs/YABook/issues/18).
-Sua implementação é agrupada pelo [épico #77](https://github.com/ya-labs/YABook/issues/77)
-e pelo [milestone #1](https://github.com/ya-labs/YABook/milestone/1), ambos
-denominados **YABook Desktop — MVP local**. As entregas abaixo foram criadas
-como subissues nativas do épico e mantêm ordem de dependência.
+Sua implementação é agrupada pelo [épico #77](https://github.com/ya-labs/YABook/issues/77).
+As entregas abaixo foram criadas como subissues nativas do épico e mantêm ordem
+de dependência.
 
 ### 1. [Migrar a estrutura documental para o monorepo (#78)](https://github.com/ya-labs/YABook/issues/78)
 
