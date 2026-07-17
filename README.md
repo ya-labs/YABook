@@ -22,6 +22,8 @@ Ele existe para reduzir improviso: pessoas e agentes de IA passam a seguir o mes
   reutilizáveis da organização.
 - [Produto YABook](produto/README.md): visão, planejamento e decisões próprias
   do ecossistema YABook.
+- [YABook Desktop](apps/desktop/README.md): aplicativo local em Tauri, React e
+  TypeScript.
 - [YABook Skill](skills/yabook/): instruções, referências, scripts e testes da
   skill.
 
