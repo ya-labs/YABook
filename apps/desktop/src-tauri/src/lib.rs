@@ -3,7 +3,8 @@ pub mod catalog;
 use tauri::Manager;
 
 use catalog::{
-    create_organization, create_project, list_organizations, list_projects, CatalogDatabase,
+    create_organization, create_project, discover_documentation_roots, list_organizations,
+    list_projects, CatalogDatabase,
 };
 use serde::Serialize;
 
@@ -39,7 +40,8 @@ pub fn run() {
             create_organization,
             list_organizations,
             create_project,
-            list_projects
+            list_projects,
+            discover_documentation_roots
         ])
         .run(tauri::generate_context!())
         .expect("error while running YABook Desktop");

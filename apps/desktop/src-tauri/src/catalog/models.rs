@@ -39,3 +39,10 @@ pub struct DocumentationRoot {
     pub initial_document_path: Option<String>,
     pub position: i64,
 }
+
+pub struct DocumentationRootDraft {
+    pub display_name: String,
+    pub relative_path: String,
+    pub initial_document_path: Option<String>,
+    pub position: i64,
+}
