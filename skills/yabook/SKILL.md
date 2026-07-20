@@ -92,8 +92,14 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Entregue somente o artefato ou resultado solicitado.
 - Mostre roteamento apenas quando ele for inferido, corrigido ou composto.
-- Enquanto `steps` estiver ativo, repita seu estado compacto. `dev step`
-  executa só a etapa atual.
+- Enquanto houver checklist `steps` ativo, inclua uma única vez seu estado
+  compacto na resposta final de qualquer comando YABook — inclusive em
+  orientação, preparação de artefato, execução, validação ou bloqueio. Coloque
+  o bloco após o resultado principal e imediatamente antes de `Próxima etapa`.
+  Preserve os estados ✅, ➡️ e ⬜ conforme o checklist atual, sem inventar
+  progresso nem avançá-lo automaticamente; a etapa atual deve permanecer ➡️.
+  Não mostre o bloco quando não houver checklist ativo. `dev step` executa só a
+  etapa atual.
 - Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil;
   quando não houver outra ação, informe que o fluxo foi concluído.
 - Quando alterar arquivos, sugira uma mensagem de commit.

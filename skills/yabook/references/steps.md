@@ -48,7 +48,12 @@ pode ser substituído por resumo livre, lista de alterações, `Agora`,
 desenvolvimento, entenda as decisões tomadas e aponte ajustes antes da próxima
 etapa.
 
-Enquanto houver etapas abertas, finalize com:
+Enquanto houver checklist ativo, toda resposta YABook deve incluir, uma única
+vez e somente na resposta final, o estado compacto abaixo. Posicione-o após o
+resultado principal e imediatamente antes de `Próxima etapa`, inclusive em
+orientação, preparação de artefato, execução, validação e bloqueio. Reproduza
+o estado real sem avançar automaticamente: a etapa atual é ➡️, as confirmadas
+são ✅ e as demais são ⬜. Não inclua o bloco se não houver checklist ativo.
 
 ```text
 Etapas em andamento
@@ -57,6 +62,9 @@ Etapas em andamento
 ➡️ 2. Próxima etapa
 ⬜ 3. Etapa pendente
 ```
+
+O formato do exemplo não altera a regra de conclusão: marque uma etapa somente
+por confirmação ou evidência.
 
 Se uma ação sair da ordem ou exigir ajuste, carregue
 [steps/replanning.md](steps/replanning.md). Mudanças de objetivo, escopo,
