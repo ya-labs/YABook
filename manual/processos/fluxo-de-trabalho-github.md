@@ -89,7 +89,8 @@ Use Markdown para conhecimento estável. Use GitHub para backlog, responsáveis,
 
 ## Labels
 
-Labels classificam o tipo e a área da issue. Branch e título de PR não devem repetir essa classificação.
+Labels classificam o tipo, o domínio ou o agrupamento especial da issue. Branch
+e título de PR não devem repetir essa classificação.
 
 Esta tabela é a base oficial de nomenclatura, cor e uso das labels da YA LABS:
 
@@ -99,16 +100,19 @@ Esta tabela é a base oficial de nomenclatura, cor e uso das labels da YA LABS:
 | `feature` | Tipo | `#0E8A16` | Nova entrega funcional. |
 | `docs` | Tipo | `#0075CA` | Documentação, guias, contratos, ADRs ou ajustes textuais. |
 | `refactor` | Tipo | `#C5DEF5` | Alteração interna sem nova funcionalidade ou correção de bug. |
-| `tooling` | Tipo | `#5319E7` | Scripts, automações e ferramentas de desenvolvimento. |
-| `frontend` | Área | `#FBCA04` | Interface, telas e componentes. |
-| `backend` | Área | `#1D76DB` | Regras internas, APIs, comandos e integrações. |
-| `infra` | Área | `#006B75` | Deploy, ambiente, rede e serviços. |
-| `ui/ux` | Área | `#D876E3` | Experiência, layout e critérios visuais. |
-| `architecture` | Área | `#5319E7` | Decisões estruturais. |
-| `process` | Área | `#5319E7` | Fluxo de trabalho e governança. |
+| `frontend` | Domínio | `#FBCA04` | Interface, telas e componentes. |
+| `backend` | Domínio | `#1D76DB` | Regras internas, APIs, comandos e integrações. |
+| `infra` | Domínio | `#006B75` | Deploy, ambiente, rede e serviços. |
+| `ui/ux` | Domínio | `#D876E3` | Experiência, layout e critérios visuais. |
+| `architecture` | Domínio | `#5319E7` | Decisões estruturais. |
+| `process` | Domínio | `#5319E7` | Fluxo de trabalho e governança. |
+| `ai` | Domínio | `#5319E7` | Skills, agentes, prompts e instruções de IA. |
+| `tooling` | Domínio | `#5319E7` | Scripts, automações e ferramentas de desenvolvimento. |
 | `epic` | Especial | `#5319E7` | Agrupador macro de capacidade. |
 
-Cada projeto deve declarar apenas as labels que realmente usa, sem criar variações de nome quando a label oficial atender ao caso.
+Sugira somente as labels oficiais que melhor organizem a demanda, sem exigir
+uma combinação fixa de categorias. Cada projeto deve adotar essa nomenclatura
+sem criar variações de nome quando a label oficial atender ao caso.
 
 ## Padrões operacionais
 

@@ -73,8 +73,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Comandos encadeados com `&` executam da esquerda para a direita e reutilizam
   somente o contexto coletado que continuar válido.
-- Issue usa título objetivo, labels de tipo/área e `Size` de `1` a `5` no
-  Project.
+- Issue usa título objetivo, labels oficiais úteis à organização e `Size` de
+  `1` a `5` no Project.
 - Branch usa `numero-descricao-curta`.
 - Commit usa `tipo: descrição curta`.
 - PR usa título objetivo e mantém vínculo com a issue.

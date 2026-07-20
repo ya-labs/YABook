@@ -192,7 +192,7 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |
 | `$yabook issue brief` | Condensa a demanda em um contrato curto reutilizável antes de abrir ou desenvolver a issue. |
-| `$yabook issue classify` | Sugere labels, `Size`, justificativa curta, confiança e quebra em issues menores quando necessário. |
+| `$yabook issue classify` | Analisa labels, `Size`, justificativa curta, confiança e quebra em issues menores, separados do artefato final. |
 | `$yabook branch name` | Sugere branch no formato `numero-descricao-curta`, baseada na issue. |
 | `$yabook commit message` | Sugere mensagem no padrão `tipo: descrição curta`, considerando o diff atual. |
 | `$yabook plan brief` | Resume decisões, dependências, pendências e próxima etapa do planejamento atual. |
@@ -411,12 +411,15 @@ Para squash merge:
 
 O comando `$yabook issue classify` deve retornar:
 
-- labels de tipo;
-- labels de área;
+- labels oficiais úteis à organização da demanda;
 - `Size` de `1` a `5`;
 - justificativa curta;
 - nível de confiança;
 - sugestão de quebra quando `Size` for `5`.
+
+Justificativa, confiança e sugestão de quebra são análise auxiliar. `$yabook
+issue` entrega somente o artefato operacional e usa as labels canônicas do
+YABook, sem inventar nomes ou exigir uma combinação fixa de categorias.
 
 `Size` é campo do GitHub Project. Não é label e não deve entrar no título da issue.
 
