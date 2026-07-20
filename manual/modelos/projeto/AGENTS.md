@@ -95,7 +95,8 @@ Ao criar issue em projeto da YA LABS:
 - atribua o usuário solicitante como responsável padrão, salvo orientação diferente;
 - vincule a issue ao GitHub Project aplicável;
 - defina `Size` de `1` a `5` quando o Project usar esse campo;
-- aplique as labels de tipo e área compatíveis com o escopo.
+- aplique as labels oficiais de tipo, domínio ou agrupamento especial que forem
+  compatíveis com o escopo.
 
 Quando o repositório não fizer parte da YA LABS ou quando não houver GitHub Project definido, pergunte ao usuário se a issue deve receber responsável, labels ou vínculo com Project.
 

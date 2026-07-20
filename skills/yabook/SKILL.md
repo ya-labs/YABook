@@ -73,8 +73,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Comandos encadeados com `&` executam da esquerda para a direita e reutilizam
   somente o contexto coletado que continuar válido.
-- Issue usa título objetivo, labels de tipo/área e `Size` de `1` a `5` no
-  Project.
+- Issue usa título objetivo, labels oficiais úteis à organização e `Size` de
+  `1` a `5` no Project.
 - Branch usa `numero-descricao-curta`.
 - Commit usa `tipo: descrição curta`.
 - PR usa título objetivo e mantém vínculo com a issue.
@@ -92,8 +92,19 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Entregue somente o artefato ou resultado solicitado.
 - Mostre roteamento apenas quando ele for inferido, corrigido ou composto.
-- Enquanto `steps` estiver ativo, repita seu estado compacto. `dev step`
-  executa só a etapa atual.
-- Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil;
-  quando não houver outra ação, informe que o fluxo foi concluído.
+- Enquanto houver checklist `steps` ativo, inclua uma única vez seu estado
+  compacto na resposta final de qualquer comando YABook — inclusive em
+  orientação, preparação de artefato, execução, validação ou bloqueio. Coloque
+  o bloco após o resultado principal e imediatamente antes de `Próxima etapa`.
+  Preserve os estados ✅, ➡️ e ⬜ conforme o checklist atual, sem inventar
+  progresso nem avançá-lo automaticamente; a etapa atual deve permanecer ➡️.
+  Não mostre o bloco quando não houver checklist ativo. `dev step` executa só a
+  etapa atual.
+- Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil
+  para continuar o fluxo; quando não houver outra ação, informe que o fluxo foi
+  concluído. Em prévias de artefato sem `do`, não use essa seção apenas para
+  repetir `$yabook do <ação>`: informe a autorização para materializar o
+  artefato no resultado e indique em `Próxima etapa` o que vem depois, como
+  revisão, merge após aprovação ou continuidade em outra issue. Não infira
+  autorização de merge.
 - Quando alterar arquivos, sugira uma mensagem de commit.

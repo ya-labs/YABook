@@ -9,15 +9,18 @@ Demanda -> Issue -> Branch -> Implementação -> Commit -> PR -> Merge -> Releas
 Não trabalhe duas issues na mesma branch.
 
 `issue` propõe o artefato; `do issue` cria o conteúdo aprovado. Use título
-objetivo, labels de tipo e área e `Size` no Project.
+objetivo, labels oficiais úteis à organização e `Size` no Project.
 
 Labels oficiais:
 
-- tipo: `bug`, `feature`, `docs`, `refactor`, `tooling`;
-- área: `frontend`, `backend`, `infra`, `ui/ux`, `architecture`, `process`;
+- tipo: `bug`, `feature`, `docs`, `refactor`;
+- domínio: `frontend`, `backend`, `infra`, `ui/ux`, `architecture`, `process`,
+  `ai`, `tooling`;
 - especial: `epic`.
 
-Cada projeto declara somente as labels que utiliza.
+Sugira uma ou mais labels canônicas quando elas melhorarem a organização da
+demanda; não exija uma combinação fixa de categorias. Cada projeto deve adotar
+essa nomenclatura sem criar variações de nome.
 
 ## Size
 

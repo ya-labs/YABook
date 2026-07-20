@@ -55,7 +55,7 @@ ou implementar.
 
 Título objetivo, sem prefixo de tipo.
 
-Use labels para indicar tipo e área.
+Use labels oficiais para indicar tipo, domínio ou agrupamento especial.
 
 Use `Size` no GitHub Project para indicar tamanho. Não coloque tamanho no título.
 
