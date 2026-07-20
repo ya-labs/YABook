@@ -92,7 +92,11 @@ rodadas e fatos redescobertos. Cada saída de ferramenta tem limite padrão de
 4.000 caracteres.
 
 Toda resposta YABook termina com uma única `Próxima etapa`. Quando o objetivo
-estiver encerrado, a seção informa que o fluxo foi concluído.
+estiver encerrado, a seção informa que o fluxo foi concluído. Em prévias de
+artefato sem `do`, a seção não deve apenas repetir o comando de autorização:
+essa autorização é informada junto do resultado, enquanto a próxima etapa
+orienta o que acontece após a materialização, como revisão, merge após
+aprovação ou continuidade em outra issue.
 
 ## Contexto local
 

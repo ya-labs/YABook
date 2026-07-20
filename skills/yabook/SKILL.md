@@ -100,6 +100,11 @@ antes de ampliar. Não leia por prevenção. Regras completas:
   progresso nem avançá-lo automaticamente; a etapa atual deve permanecer ➡️.
   Não mostre o bloco quando não houver checklist ativo. `dev step` executa só a
   etapa atual.
-- Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil;
-  quando não houver outra ação, informe que o fluxo foi concluído.
+- Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil
+  para continuar o fluxo; quando não houver outra ação, informe que o fluxo foi
+  concluído. Em prévias de artefato sem `do`, não use essa seção apenas para
+  repetir `$yabook do <ação>`: informe a autorização para materializar o
+  artefato no resultado e indique em `Próxima etapa` o que vem depois, como
+  revisão, merge após aprovação ou continuidade em outra issue. Não infira
+  autorização de merge.
 - Quando alterar arquivos, sugira uma mensagem de commit.
