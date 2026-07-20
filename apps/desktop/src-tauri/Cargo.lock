@@ -4697,6 +4697,7 @@ dependencies = [
 name = "yabook_desktop"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
