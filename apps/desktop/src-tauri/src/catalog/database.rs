@@ -1,6 +1,11 @@
-use std::{path::Path, sync::Mutex};
+use std::{
+    path::Path,
+    sync::{Mutex, MutexGuard},
+};
 
-use rusqlite::{Connection, Result};
+use rusqlite::{params, Connection, OptionalExtension, Result};
+
+use super::models::{Organization, Project};
 
 pub struct CatalogDatabase {
     connection: Mutex<Connection>,
@@ -24,12 +29,122 @@ impl CatalogDatabase {
     }
 
     pub fn schema_version(&self) -> Result<u32> {
-        let connection = self
-            .connection
-            .lock()
-            .expect("banco do catálogo disponível");
+        let connection = self.connection();
 
         connection.pragma_query_value(None, "user_version", |row| row.get::<_, u32>(0))
+    }
+
+    pub fn create_organization(&self, display_name: &str) -> Result<Organization> {
+        let connection = self.connection();
+
+        connection.execute(
+            "INSERT INTO organizations (display_name) VALUES (?1)",
+            [display_name],
+        )?;
+
+        Ok(Organization {
+            id: connection.last_insert_rowid(),
+            display_name: display_name.into(),
+            handbook_root_id: None,
+        })
+    }
+
+    pub fn list_organizations(&self) -> Result<Vec<Organization>> {
+        let connection = self.connection();
+        let mut statement = connection.prepare(
+            "
+            SELECT id, display_name, handbook_root_id
+            FROM organizations
+            ORDER BY display_name COLLATE NOCASE, id
+            ",
+        )?;
+        let organizations = statement
+            .query_map([], |row| {
+                Ok(Organization {
+                    id: row.get(0)?,
+                    display_name: row.get(1)?,
+                    handbook_root_id: row.get(2)?,
+                })
+            })?
+            .collect::<Result<Vec<_>>>()?;
+
+        Ok(organizations)
+    }
+
+    pub fn organization_exists(&self, organization_id: i64) -> Result<bool> {
+        let connection = self.connection();
+        let id = connection
+            .query_row(
+                "SELECT id FROM organizations WHERE id = ?1",
+                [organization_id],
+                |row| row.get::<_, i64>(0),
+            )
+            .optional()?;
+
+        Ok(id.is_some())
+    }
+
+    pub fn create_project(
+        &self,
+        organization_id: Option<i64>,
+        display_name: &str,
+        source_path: &str,
+    ) -> Result<Project> {
+        let connection = self.connection();
+
+        connection.execute(
+            "
+            INSERT INTO projects (organization_id, display_name, source_path)
+            VALUES (?1, ?2, ?3)
+            ",
+            params![organization_id, display_name, source_path],
+        )?;
+
+        Ok(Project {
+            id: connection.last_insert_rowid(),
+            organization_id,
+            display_name: display_name.into(),
+            source_path: source_path.into(),
+        })
+    }
+
+    pub fn list_projects(&self) -> Result<Vec<Project>> {
+        let connection = self.connection();
+        let mut statement = connection.prepare(
+            "
+            SELECT id, organization_id, display_name, source_path
+            FROM projects
+            ORDER BY display_name COLLATE NOCASE, id
+            ",
+        )?;
+        let projects = statement
+            .query_map([], |row| {
+                Ok(Project {
+                    id: row.get(0)?,
+                    organization_id: row.get(1)?,
+                    display_name: row.get(2)?,
+                    source_path: row.get(3)?,
+                })
+            })?
+            .collect::<Result<Vec<_>>>()?;
+
+        Ok(projects)
+    }
+
+    fn connection(&self) -> MutexGuard<'_, Connection> {
+        self.connection
+            .lock()
+            .expect("banco do catálogo disponível")
+    }
+
+    #[cfg(test)]
+    fn open_in_memory() -> Result<Self> {
+        let connection = Connection::open_in_memory()?;
+        migrate(&connection)?;
+
+        Ok(Self {
+            connection: Mutex::new(connection),
+        })
     }
 }
 
@@ -86,7 +201,7 @@ fn migrate(connection: &Connection) -> Result<()> {
 mod tests {
     use rusqlite::Connection;
 
-    use super::migrate;
+    use super::{migrate, CatalogDatabase};
 
     #[test]
     fn creates_the_initial_catalog_schema() {
@@ -112,5 +227,31 @@ mod tests {
 
         assert_eq!(version, 1);
         assert_eq!(table_count, 4);
+    }
+
+    #[test]
+    fn persists_projects_with_or_without_an_organization() {
+        let catalog = CatalogDatabase::open_in_memory().expect("abre catálogo em memória");
+        let organization = catalog
+            .create_organization("YA LABS")
+            .expect("cria organização");
+
+        let linked_project = catalog
+            .create_project(Some(organization.id), "YABook", "/tmp/yabook")
+            .expect("cria projeto vinculado");
+        let standalone_project = catalog
+            .create_project(None, "Projeto pessoal", "/tmp/pessoal")
+            .expect("cria projeto avulso");
+
+        let organizations = catalog.list_organizations().expect("lista organizações");
+        let projects = catalog.list_projects().expect("lista projetos");
+
+        assert_eq!(organizations.len(), 1);
+        assert!(catalog
+            .organization_exists(organization.id)
+            .expect("valida organização"));
+        assert_eq!(projects.len(), 2);
+        assert_eq!(linked_project.organization_id, Some(organization.id));
+        assert_eq!(standalone_project.organization_id, None);
     }
 }

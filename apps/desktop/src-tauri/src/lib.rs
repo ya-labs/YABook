@@ -2,7 +2,9 @@ pub mod catalog;
 
 use tauri::Manager;
 
-use catalog::CatalogDatabase;
+use catalog::{
+    create_organization, create_project, list_organizations, list_projects, CatalogDatabase,
+};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -32,7 +34,13 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_app_status])
+        .invoke_handler(tauri::generate_handler![
+            get_app_status,
+            create_organization,
+            list_organizations,
+            create_project,
+            list_projects
+        ])
         .run(tauri::generate_context!())
         .expect("error while running YABook Desktop");
 }
