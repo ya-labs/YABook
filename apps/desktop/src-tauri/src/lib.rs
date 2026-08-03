@@ -1,3 +1,11 @@
+pub mod catalog;
+
+use tauri::Manager;
+
+use catalog::{
+    create_organization, create_project, discover_documentation_roots, list_organizations,
+    list_projects, CatalogDatabase,
+};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -19,7 +27,22 @@ fn get_app_status() -> AppStatus {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_app_status])
+        .setup(|app| {
+            let app_data_dir = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&app_data_dir)?;
+
+            app.manage(CatalogDatabase::open(app_data_dir.join("catalog.sqlite3"))?);
+
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            get_app_status,
+            create_organization,
+            list_organizations,
+            create_project,
+            list_projects,
+            discover_documentation_roots
+        ])
         .run(tauri::generate_context!())
         .expect("error while running YABook Desktop");
 }
