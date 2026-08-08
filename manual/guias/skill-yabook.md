@@ -55,6 +55,7 @@ Arquivos principais:
 | `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 | `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
+| `references/configure.md` | Entrevista e contrato da configuração local `.yabook/AGENTS.md`. |
 
 ## Fluxo de execução
 
@@ -66,7 +67,7 @@ Quando a pessoa usuária invoca `$yabook`, o agente deve:
 3. Ler diretamente a referência indicada para a rota.
 4. Consultar `references/contexto.md` apenas para ambiguidade, auditoria ou
    revisão do carregamento.
-5. Resolver workspace, regras locais e estado somente quando o comando depender deles.
+5. Resolver workspace, `AGENTS.md`, `.yabook/AGENTS.md` e estado somente quando o comando depender deles.
 6. Aplicar o padrão YABook ou apontar divergência.
 7. Entregar o artefato pronto, a ação executada ou a checagem objetiva.
 
@@ -104,11 +105,26 @@ Para comandos que dependem do trabalho atual, o agente deve conferir:
 
 - conversa atual;
 - `AGENTS.md` local;
+- `.yabook/AGENTS.md`, quando existir;
 - branch atual;
 - issue inferida pela branch, quando houver;
 - `git status --short --branch`;
 - `git diff --stat`;
 - `git diff`, quando necessário.
+
+### Configuração local por repositório
+
+`$yabook configure` entrevista a pessoa e propõe comandos e fluxos específicos
+do projeto sem escrever. `$yabook do configure` materializa a proposta confirmada
+em `.yabook/AGENTS.md`. O arquivo pode documentar sintaxe, pré-condições,
+comportamento sem/com `do`, validações, APKs, builds, ambientes e entregas.
+
+Ele é carregado apenas em rotas que dependem do repositório; `help`, `mode`,
+`steps`, `step` e `discuss` não o carregam por prevenção. A precedência é regras
+globais do YABook e do ambiente, `AGENTS.md` do projeto e, por último,
+`.yabook/AGENTS.md`. Portanto, a configuração local adapta o método, mas nunca
+remove `do`, autoriza Git/GitHub implicitamente ou altera proteções de branch,
+commit, PR, merge ou release.
 
 Para comandos que criam ou alteram GitHub, o agente também deve conferir, quando a ferramenta estiver disponível:
 
@@ -185,6 +201,8 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook apk` | Valida a configuração e mostra a prévia do APK sem executar build nem alterar arquivos. |
+| `$yabook configure [commands]` | Entrevista e propõe a configuração local do repositório sem alterar arquivos. |
+| `$yabook do configure` | Cria ou atualiza `.yabook/AGENTS.md` a partir da proposta confirmada. |
 | `$yabook rebase [base]` | Inspeciona branch, base, worktree, upstream, divergência e risco de histórico compartilhado; não altera Git. |
 | `$yabook do rebase` | Executa somente o rebase seguro previamente inspecionado; não autoriza push, PR, merge ou release. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |

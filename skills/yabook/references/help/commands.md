@@ -49,6 +49,15 @@ caracteres. São somente textuais e não substituem `do` para persistência.
 `apk` lê `.yabook/apk.json` e mostra a prévia sem build ou escrita. `do apk`
 prepara a cópia padronizada de um artefato existente. Upload permanece manual.
 
+## Configure
+
+`configure` entrevista e propõe a configuração local versionável do repositório,
+sem escrever. `configure commands` foca inicialmente nos comandos personalizados.
+`do configure` cria ou atualiza `.yabook/AGENTS.md` a partir da proposta
+confirmada. A configuração adapta fluxos como APK, build, validação e entrega,
+mas não remove `do` nem altera proteções globais de Git, GitHub, branches, PRs,
+merges ou releases.
+
 ## Dashboard
 
 `help dashboard` explica o dashboard de contexto sem executar nada. A resposta
