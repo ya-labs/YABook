@@ -13,10 +13,10 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook steps start plan` | `steps start plan` | `steps.md`, `planejamento/geral.md` | Git, artefatos |
 | `$yabook step` | `step` | `steps.md` | Git, artefatos |
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
-| `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, planejamento |
-| `$yabook issue` | `issue` | `artefatos/issue.md` | `contexto.md`, planejamento, PRs não relacionados |
+| `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md`, `artefatos/contratos.md` | `contexto.md`, planejamento |
+| `$yabook issue` | `issue` | `artefatos/issue.md`, `artefatos/contratos.md` | `contexto.md`, planejamento, PRs não relacionados |
 | `$yabook issue brief` | `issue brief` | `briefs.md` | GitHub, documentação ampla |
-| `$yabook commit msg` | `commit message` | `roteamento.md`, `artefatos/branch-commit.md` | `contexto.md`, Project |
+| `$yabook commit msg` | `commit message` | `roteamento.md`, `artefatos/branch-commit.md`, `artefatos/contratos.md` | `contexto.md`, Project |
 | `$yabook desejo saber a próxima etapa` | `plan next` | `orquestracao.md`, `planejamento/status-next.md` | `contexto.md`, diagnóstico completo |
 | `$yabook plan` | `plan` | `planejamento/geral.md` | diagnóstico, GitHub completo |
 | `$yabook plan start v1` | `plan start v1` | `planejamento/start.md` | `contexto.md`, GitHub completo |

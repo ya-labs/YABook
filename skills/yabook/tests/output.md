@@ -1,5 +1,18 @@
 # Cenários de saída e próxima etapa
 
+## Contratos de artefato
+
+Confirme que os comandos retornam somente os campos previstos em
+`references/artefatos/contratos.md` e não incluem análise, confiança,
+autorização operacional ou orientação de fluxo dentro do artefato.
+
+Valide os cenários de aceitação e rejeição da referência para issue, branch,
+commit e PR. Em cada rejeição, confirme interrupção antes de `do` e diagnóstico
+com `Campo inválido`, `Motivo` e `Correção necessária`.
+
+Para issue e PR, confirme o bloco recolhido `Informações para IA`, seus cinco
+tópicos obrigatórios e a ausência de uma listagem redundante de arquivos.
+
 ## Prévia de artefato
 
 Para `$yabook issue`, `$yabook commit message`, `$yabook pr` e outros comandos
