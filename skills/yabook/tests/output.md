@@ -15,14 +15,27 @@ tópicos obrigatórios e a ausência de uma listagem redundante de arquivos.
 
 ## Prévia de artefato
 
-Para `$yabook issue`, `$yabook commit message`, `$yabook pr` e outros comandos
-que geram prévia sem `do`, confirme que:
+Para `$yabook issue`, `$yabook branch`, `$yabook commit message`, `$yabook pr`,
+`$yabook release` e outros comandos que geram prévia sem `do`, confirme que:
 
-- o resultado pode informar a autorização necessária para materializar o
-  artefato;
+- a autorização necessária para materializar o artefato aparece no resultado
+  principal, fora de `Próxima etapa`;
 - não é criado checklist apenas para exibir uma continuação;
-- com checklist já ativo, a orientação não repete apenas `$yabook do <ação>` e
-  não autoriza nem infere merge.
+- `Próxima etapa` não contém apenas `$yabook do <ação>`;
+- quando conhecida e segura, `Próxima etapa` aponta para a ação posterior à
+  materialização, como revisar a issue ou branch criada, abrir PR após commit
+  aprovado ou seguir para merge após aprovação;
+- quando não houver continuação posterior segura, a resposta informa que o
+  fluxo depende de revisão ou aprovação da pessoa, sem inventar comando ou
+  decisão;
+- a verificação final de saída detecta como inválida a repetição isolada de
+  `$yabook do <ação>` em `Próxima etapa`;
+- a orientação não autoriza nem infere commit, PR, merge ou release.
+
+Para `$yabook do issue`, `$yabook do branch`, `$yabook do commit`, `$yabook do
+pr` e `$yabook do release`, confirme que o fluxo autorizado pode executar seus
+pré-requisitos mínimos conforme o contrato específico, sem ampliar a
+autorização para a próxima ação do fluxo.
 
 ## Checklist e próxima etapa
 
@@ -32,11 +45,15 @@ Com checklist ativo, confirme que:
 - a etapa atual não avança apenas pela entrega do agente;
 - `Próxima etapa` aponta para uma entrega fora do escopo do comando atual;
 - o comando sugerido só aparece quando a rota é aplicável;
+- em prévia sem `do`, `Próxima etapa` continua posterior à materialização e
+  não repete isoladamente a autorização necessária;
 - a resposta não inventa comando, issue, decisão ou objetivo.
 
-Sem checklist ativo, confirme que não há guia `Próxima etapa`.
+Sem checklist ativo, confirme que o checklist compacto não é exibido e que
+`Próxima etapa` ainda aponta para uma única continuação útil, posterior ao
+comando atual.
 
 ## Saída encerrada
 
-Confirme que o resultado informa fluxo concluído quando não houver continuação
-útil ou confiável, sem incluir o guia `Próxima etapa` se não houver checklist.
+Confirme que `Próxima etapa` informa fluxo concluído quando não houver
+continuação útil ou confiável.
