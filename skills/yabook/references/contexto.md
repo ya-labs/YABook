@@ -44,6 +44,7 @@ ampliação.
 | `bypass` | `C1` | `bypass.md` | ação anexada | branch/status apenas se a ação editar |
 | `load` | `C1` | `session-minimo.md`, `workspace.md` | raiz, remote, branch, status e cache válido, se existir | nenhuma |
 | `status` | `C1` | `workspace.md` | branch, status, diff stat | issue da branch se necessário |
+| `rebase` | `C2` | `rebase.md` | workspace, branch, worktree, upstream e base candidata | issue, PR e remoto quando a base ou o risco não forem inequívocos |
 | `branch name` | `C1` | `artefatos/branch-commit.md` | número e título da issue | issue recente somente se faltar na conversa |
 | `commit message` | `C1` | `artefatos/branch-commit.md` | diff atual | diff completo quando o stat for ambíguo |
 | `apk` | `C1` | `apk.md`, `workspace.md` | configuração, branch, worktree | Git somente para montar a prévia |
@@ -68,6 +69,7 @@ ampliação.
 | `do plan` | `C3` | `planejamento/persistencia.md`, `git/checkpoint.md` | decisões e rastreabilidade | `git/mutacoes.md` quando alterar Git |
 | `do plan roadmap` | `C3` | `planejamento/roadmap.md`, `github/issues-projects.md` | proposta e GitHub atual | conflitos item a item |
 | `do apk` | `C3` | `apk.md`, `git/checkpoint.md` | configuração, branch, worktree e artefato | `git/mutacoes.md` quando necessário |
+| `do rebase` | `C3` | `rebase.md`, `git/checkpoint.md`, `git/mutacoes.md` | inspeção atual, autorização, worktree e base confirmada | PR/remoto somente para confirmar risco ou divergência |
 | `do <artefato>` | `C3` | referência do artefato e capacidades específicas | autorização e estado atual | pré-requisitos mínimos |
 | `diagnose full` | `C4` | `planejamento/diagnose.md` | escopo confirmado | lotes filtrados com motivo |
 | `check full`, `review full` | `C4` | `quality.md`, referência do artefato | escopo confirmado | lotes filtrados com motivo |

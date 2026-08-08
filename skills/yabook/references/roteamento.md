@@ -5,7 +5,7 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 
 ## Famílias
 
-- orientação: `help`, `load`, `status`, `check [full]`, `review [full]`;
+- orientação: `help`, `load`, `status`, `check [full]`, `review [full]`, `rebase [base]`;
 - planejamento: `diagnose [full]`, `discuss`, `plan [start <versão>|status|next|review|roadmap]`;
 - conversa: `steps`, `step`, `mode`, `def mode`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
@@ -19,6 +19,7 @@ Subcomandos textuais:
 - `plan brief`;
 - `steps start [init|plan]|done <número>|cancel`, `step`;
 - `sync local|remote`.
+- `rebase [base]`, em que `base` é uma branch base informada explicitamente.
 
 ## Aliases
 

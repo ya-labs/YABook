@@ -63,7 +63,7 @@ antes de ampliar. Não leia por prevenção. Regras completas:
   issue, branch, commit e PR.
 - Briefs: [contrato](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
-  [apk](references/apk.md), [init](references/init.md),
+  [apk](references/apk.md), [rebase](references/rebase.md), [init](references/init.md),
   [docs](references/documentacao.md).
 - Qualidade: [check/review](references/quality.md).
 - Planejamento: [índice](references/planejamento/index.md).

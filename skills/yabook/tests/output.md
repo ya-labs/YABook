@@ -37,6 +37,19 @@ pr` e `$yabook do release`, confirme que o fluxo autorizado pode executar seus
 pré-requisitos mínimos conforme o contrato específico, sem ampliar a
 autorização para a próxima ação do fluxo.
 
+## Rebase seguro
+
+Para `$yabook rebase`, confirme que a resposta não altera estado e informa a
+branch atual, base candidata, upstream, divergências, commits envolvidos, risco
+de histórico compartilhado e a autorização necessária para executar.
+
+Para `$yabook do rebase`, confirme que a skill bloqueia `main`, `dev`,
+`release/*` e branch protegida, além de worktree com alterações. Em conflito,
+ela para, explica como inspecionar e resolver cada arquivo e só retoma após
+nova autorização explícita; nunca usa `--abort`, `--skip`, `--continue`,
+`restore`, `reset`, stash ou push forçado automaticamente. Após sucesso,
+informa as validações executadas, pendentes e se o PR precisa ser atualizado.
+
 ## Checklist e próxima etapa
 
 Com checklist ativo, confirme que:

@@ -156,6 +156,8 @@ Comandos principais:
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
 - `$yabook apk`: valida o contexto e mostra como o APK será preparado, sem executar build nem alterar arquivos.
 - `$yabook do apk`: usa o APK já gerado, cria a cópia rastreável e limpa cópias antigas da mesma origem.
+- `$yabook rebase [base]`: inspeciona a situação da branch e orienta um rebase seguro, sem alterar Git.
+- `$yabook do rebase`: executa somente o rebase já inspecionado e autorizado.
 - `$yabook do`: executa a ação pedida, como init, plan, sync, apk, issue, branch, PR, release ou merge.
 - `$yabook dev`: prepara, implementa e valida a issue atual.
 - `$yabook issue`: gera título e descrição de issue.

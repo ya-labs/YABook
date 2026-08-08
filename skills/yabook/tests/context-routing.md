@@ -15,6 +15,8 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
 | `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md`, `artefatos/contratos.md` | `contexto.md`, planejamento |
 | `$yabook issue` | `issue` | `artefatos/issue.md`, `artefatos/contratos.md` | `contexto.md`, planejamento, PRs não relacionados |
+| `$yabook rebase` | `rebase` | `rebase.md` | formatos de artefato, planejamento, mutações Git |
+| `$yabook do rebase` | `do rebase` | `rebase.md`, `git/checkpoint.md`, `git/mutacoes.md` | merge, PR, release |
 | `$yabook issue brief` | `issue brief` | `briefs.md` | GitHub, documentação ampla |
 | `$yabook commit msg` | `commit message` | `roteamento.md`, `artefatos/branch-commit.md`, `artefatos/contratos.md` | `contexto.md`, Project |
 | `$yabook desejo saber a próxima etapa` | `plan next` | `orquestracao.md`, `planejamento/status-next.md` | `contexto.md`, diagnóstico completo |
