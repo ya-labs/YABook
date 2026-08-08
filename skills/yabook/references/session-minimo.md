@@ -6,7 +6,9 @@ regras de comandos ainda não solicitados.
 1. Resolva a raiz por `workspace.md`.
 2. Valide `.git`, arquivos ativos e remote.
 3. Use a raiz como `workdir`.
-4. Aplique o `AGENTS.md` somente se ainda não estiver disponível ou tiver mudado.
+4. Aplique o `AGENTS.md` somente se ainda não estiver disponível ou tiver mudado;
+   em rotas dependentes do repositório, aplique também `.yabook/AGENTS.md` quando
+   existir, respeitando a precedência de `workspace.md`.
 5. Inspecione branch, `git status --short --branch`, `git diff --stat` e remote.
 6. Se `.yabook/context-cache.md` existir, valide-o conforme
    `context-cache.md`; reutilize somente fatos válidos.

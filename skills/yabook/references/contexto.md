@@ -11,7 +11,8 @@ explícito: use diretamente a coluna `Referência inicial` já indicada em
 - Conversa antes de nova consulta.
 - Não releia instruções já disponíveis e ainda válidas.
 - Uma inspeção inicial e uma validação final por padrão.
-- Workspace e `AGENTS.md` somente para rotas dependentes do repositório.
+- Workspace, `AGENTS.md` e `.yabook/AGENTS.md` somente para rotas dependentes
+  do repositório. A configuração local ausente não é erro.
 - Git e GitHub somente quando o resultado depender do estado atual.
 - Pare quando houver evidência suficiente para responder com segurança.
 - Prefira `.yabook/context-cache.md` válido em `C1` e `C2`; cache ausente ou
@@ -48,6 +49,7 @@ ampliação.
 | `branch name` | `C1` | `artefatos/branch-commit.md` | número e título da issue | issue recente somente se faltar na conversa |
 | `commit message` | `C1` | `artefatos/branch-commit.md` | diff atual | diff completo quando o stat for ambíguo |
 | `apk` | `C1` | `apk.md`, `workspace.md` | configuração, branch, worktree | Git somente para montar a prévia |
+| `configure [commands]` | `C2` | `configure.md`, `workspace.md` | regras existentes e entrevista | arquivos ou fluxos citados pela pessoa |
 | `issue title` | `C2` | `artefatos/issue.md` | demanda da conversa | código/docs só para delimitar requisito |
 | `issue`, `issue desc`, `classify` | `C2` | `artefatos/issue.md` | demanda e regras locais | `github/issues-projects.md` ao validar ou criar |
 | `issue brief`, `plan brief`, `pr brief` | `C2` | `briefs.md` | conversa e fontes já válidas | fonte longa somente diante de lacuna concreta |
@@ -69,6 +71,7 @@ ampliação.
 | `do plan` | `C3` | `planejamento/persistencia.md`, `git/checkpoint.md` | decisões e rastreabilidade | `git/mutacoes.md` quando alterar Git |
 | `do plan roadmap` | `C3` | `planejamento/roadmap.md`, `github/issues-projects.md` | proposta e GitHub atual | conflitos item a item |
 | `do apk` | `C3` | `apk.md`, `git/checkpoint.md` | configuração, branch, worktree e artefato | `git/mutacoes.md` quando necessário |
+| `do configure` | `C3` | `configure.md`, `git/checkpoint.md` | proposta confirmada e configuração atual | arquivo citado para preservar regra válida |
 | `do rebase` | `C3` | `rebase.md`, `git/checkpoint.md`, `git/mutacoes.md` | inspeção atual, autorização, worktree e base confirmada | PR/remoto somente para confirmar risco ou divergência |
 | `do <artefato>` | `C3` | referência do artefato e capacidades específicas | autorização e estado atual | pré-requisitos mínimos |
 | `diagnose full` | `C4` | `planejamento/diagnose.md` | escopo confirmado | lotes filtrados com motivo |

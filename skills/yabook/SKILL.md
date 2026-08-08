@@ -17,7 +17,8 @@ Aplique o Método YA LABS sob demanda.
    [contexto.md](references/contexto.md) só para auditoria ou ambiguidade.
 4. Resolva [workspace.md](references/workspace.md) somente quando a rota depender
    do projeto. Workspace e arquivos ativos prevalecem sobre `cwd`.
-5. Leia `AGENTS.md` apenas quando suas regras ainda não estiverem disponíveis.
+5. Em rota de repositório, aplique `.yabook/AGENTS.md` se existir e informe a
+   regra local aplicada.
 6. Amplie quando faltar evidência. Responda em português, com concisão.
 
 `load` atualiza só o contexto mínimo:
@@ -64,7 +65,7 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - Briefs: [contrato](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
   [apk](references/apk.md), [rebase](references/rebase.md), [init](references/init.md),
-  [docs](references/documentacao.md).
+  [docs](references/documentacao.md), [configure](references/configure.md).
 - Qualidade: [check/review](references/quality.md).
 - Planejamento: [índice](references/planejamento/index.md).
 - Contexto sob demanda: [workspace](references/workspace.md),

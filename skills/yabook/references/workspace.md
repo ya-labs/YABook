@@ -28,7 +28,8 @@ Antes de criar ou alterar issue, branch, commit, Pull Request ou release:
 
 1. suba a partir do candidato até encontrar a raiz que contém `.git`;
 2. confirme que os arquivos ativos pertencem a essa árvore, quando aplicável;
-3. leia o `AGENTS.md` dessa raiz, se existir;
+3. leia o `AGENTS.md` dessa raiz, se existir; em seguida, leia
+   `.yabook/AGENTS.md` se existir;
 4. execute `git remote -v` nessa raiz;
 5. confirme que o remote corresponde ao projeto ativo;
 6. use essa raiz como `workdir` explícito em todos os comandos seguintes;
@@ -63,6 +64,13 @@ Guarde no cache da conversa:
 - remote confirmado;
 - sinais usados na escolha;
 - branch e issue depois da resolução.
+
+## Configuração local do YABook
+
+Em rotas de repositório, leia `.yabook/AGENTS.md` após `AGENTS.md` se existir;
+ausência não é erro. A precedência é global, `AGENTS.md`, configuração local:
+esta não remove `do` nem permissões ou proteções de Git/GitHub. Rotas `help`,
+`mode`, `steps`, `step` e `discuss` não a leem sem pedido explícito.
 
 Invalide e resolva novamente quando mudar o workspace, o conjunto relevante de
 arquivos ativos, o repositório informado, a branch ou o remote. `$yabook load`

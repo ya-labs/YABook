@@ -10,7 +10,8 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 - conversa: `steps`, `step`, `mode`, `def mode`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
 - artefatos Android: `apk`, `do apk`;
-- execução: `do <ação>`, `dev [quick|step|full]`, `bypass <ação>`, `continue`, `sync`.
+- execução: `do <ação>`, `dev [quick|step|full]`, `bypass <ação>`, `continue`,
+  `sync`, `configure [commands]`.
 
 Subcomandos textuais:
 
@@ -61,6 +62,8 @@ de escrita de um segmento não se estende aos demais.
 ## Segurança
 
 - Sem `do`, produza texto, inspeção ou orientação.
+- `configure` conduz uma entrevista e propõe a configuração local; `do configure`
+  pode criar ou atualizar `.yabook/AGENTS.md` somente a partir dessa proposta.
 - `dev` termina antes de commit.
 - `do pr` pode cumprir commit e push necessários ao PR.
 - `do merge` pode preparar o PR, mas merge continua explícito.
