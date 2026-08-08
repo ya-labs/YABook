@@ -14,6 +14,11 @@ git log -1 --oneline
 
 Quando a ação depender do remoto, confira também divergência e PR existente.
 
+Para rebase, o checkpoint é obrigatório e deve incluir a branch atual, o
+upstream, a base candidata, os commits exclusivos e a divergência com a base e
+com o remoto. Alterações staged ou unstaged bloqueiam o rebase; não use stash,
+restore ou reset automaticamente para liberar o worktree.
+
 Se o worktree estiver limpo ou o commit esperado já existir, continue sem
 apresentar checkpoint.
 

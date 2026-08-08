@@ -36,6 +36,9 @@ git push
 - `do branch` não autoriza editar arquivos.
 - `do pr` pode criar commits coerentes, enviar a branch e criar ou atualizar o
   PR; não autoriza merge.
+- `do rebase` autoriza somente o rebase previamente inspecionado. Não autoriza
+  `push --force-with-lease`, push comum, PR, merge, release ou resolução
+  silenciosa de conflitos.
 - `do merge` pode cumprir pré-requisitos do PR e integrar após as validações.
 - Merge exige pedido explícito.
 - `bypass` não substitui `do`.

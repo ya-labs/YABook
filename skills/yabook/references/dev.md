@@ -115,6 +115,8 @@ fallback manual sem apresentar a branch apenas publicada como vinculada.
 - fazer push de commits de implementação;
 - abrir Pull Request;
 - fazer merge ou release.
+- rebasear a branch: mesmo quando a base precisar de atualização, interrompa e
+  indique `$yabook rebase`; a mutação exige `$yabook do rebase`.
 
 Interrompa diante de decisão pendente, conflito, risco relevante, dependência
 externa ou critério de aceite impossível de validar.
