@@ -4,6 +4,7 @@ Leia somente a subreferência da rota:
 
 | Comando | Referência |
 | --- | --- |
+| `plan` | `geral.md` |
 | `diagnose [full]` | `diagnose.md` |
 | `plan start <versão>` | `start.md` |
 | `plan status`, `plan next` | `status-next.md` |

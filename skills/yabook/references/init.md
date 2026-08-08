@@ -1,6 +1,7 @@
 # Inicialização YABook
 
-Use esta referência para `$yabook init` e `$yabook do init`.
+Use esta referência para `$yabook init`, `$yabook steps start init` e
+`$yabook do init`.
 
 ## Objetivo
 
@@ -8,8 +9,11 @@ Analisar ou preparar a base mínima para documentação, IA e fluxo GitHub.
 
 ## Separação entre análise e execução
 
-- `$yabook init`: inspeciona o repositório e apresenta arquivos que seriam criados
-  ou adaptados, conflitos, exceções e próximos passos. Não altera estado.
+- `$yabook init`: conduz descoberta e entrevista sobre a base do projeto,
+  inspeciona o necessário e apresenta arquivos que seriam criados ou adaptados,
+  conflitos e exceções. Não cria checklist nem altera estado.
+- `$yabook steps start init`: conduz a mesma descoberta e entrevista com
+  checklist contextual ativo apenas na conversa.
 - `$yabook do init`: aplica somente a proposta aprovada. Não sobrescreve conteúdo
   existente sem apontar o conflito e não cria commit automaticamente.
 
@@ -75,6 +79,10 @@ Informar:
 - adaptações propostas;
 - conflitos e exceções;
 - escopo que `$yabook do init` executaria.
+
+Faça perguntas curtas quando objetivo, stack, documentação, regras de IA ou
+fluxo GitHub ainda não estiverem evidentes. Não suponha que a ausência de um
+arquivo exige criá-lo antes de confirmar sua utilidade.
 
 ## Resultado do `$yabook do init`
 

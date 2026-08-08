@@ -1,7 +1,8 @@
 # `$yabook plan start <versão>`
 
 Descubra primeiro documentos equivalentes de visão e versão. Conduza entrevista
-em blocos curtos e pergunte somente o que alterar materialmente o plano:
+em blocos curtos; a versão identifica o recorte, mas não exige escopo decidido
+antes da conversa. Pergunte somente o que alterar materialmente o plano:
 
 - problema e público;
 - resultado esperado;

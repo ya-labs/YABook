@@ -1,6 +1,7 @@
 # `$yabook diagnose [full]`
 
-Reconstrua o estado real sem transformar ausência de evidência em conclusão.
+Reconstrua o estado real com evidências, sem transformar ausência de evidência
+em conclusão nem decidir direção de produto.
 
 ## Diagnóstico padrão
 

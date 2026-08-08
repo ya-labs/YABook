@@ -7,6 +7,7 @@ completo do repositório.
 documentos conflitantes e condição para ficar pronto para roadmap.
 
 `plan next` recomenda uma única decisão, validação, documento ou issue com maior
-capacidade de desbloquear trabalho. Não crie o artefato.
+capacidade de desbloquear trabalho. Não crie o artefato nem inicie a entrevista
+geral de `plan`.
 
 Consulte GitHub somente se o estado operacional puder mudar a conclusão.

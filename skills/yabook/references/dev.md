@@ -38,12 +38,18 @@ etapa atual. É uma rota `C3`.
 - execute apenas a etapa marcada como atual;
 - se não houver etapa atual inequívoca, pare e peça definição;
 - não avance para etapas seguintes sem confirmação;
-- não transforme validação geral, preparação, commit ou PR em etapa própria;
-- valide o que for necessário para a etapa executada;
-- ao concluir, cumpra o mesmo relatório técnico obrigatório de qualquer `dev`.
+- execute conforme o contexto do checklist, definido em `steps.md`;
+- no contexto `desenvolvimento`, não transforme validação geral, preparação,
+  commit ou PR em etapa própria, valide o necessário e mantenha exigência de
+  issue e branch compatíveis;
+- nos contextos `init`, `planejamento` e `discussão`, não exija issue ou branch
+  e não implemente nem crie arquivos sem a autorização aplicável;
+- só avance por confirmação explícita ou por nova ação inequívoca da pessoa
+  usuária que confirme a etapa anterior.
 
-O relato pós-etapa faz parte da entrega. Ele deve permitir que a pessoa audite o
-desenvolvimento passo a passo, entenda as decisões e dê parecer antes do avanço.
+O relato pós-etapa faz parte da entrega. Em `desenvolvimento`, use o relatório
+técnico obrigatório e `Como testar`; nos demais contextos, registre somente o
+resultado contextual para parecer antes do avanço.
 
 ### `$yabook dev full`
 
@@ -113,10 +119,13 @@ fallback manual sem apresentar a branch apenas publicada como vinculada.
 Interrompa diante de decisão pendente, conflito, risco relevante, dependência
 externa ou critério de aceite impossível de validar.
 
-## Orientação de teste
+## Orientação de teste no contexto de desenvolvimento
 
-Ao concluir a implementação, toda execução de `dev` deve apresentar uma seção
-`Como testar` com passos específicos para a alteração realizada.
+Ao concluir a implementação, `dev` e `dev step` no contexto
+`desenvolvimento` devem apresentar uma seção `Como testar` com passos
+específicos para a alteração realizada. Os contextos `init`, `planejamento` e
+`discussão` relatam a investigação, decisão ou análise atual e não simulam
+validação de implementação.
 
 Inclua, quando aplicável:
 
@@ -130,12 +139,14 @@ pessoa. Não repita comandos que já falharam como se fossem válidos e não inv
 um procedimento sem evidência no projeto. Quando não houver teste aplicável,
 informe o motivo explicitamente.
 
-Essa orientação é obrigatória também quando `dev` estiver encadeado com outro
-comando. Ela não permite executar ações fora do escopo da issue.
+Essa orientação é obrigatória também quando `dev` de desenvolvimento estiver
+encadeado com outro comando. Ela não permite executar ações fora do escopo da
+issue.
 
-Toda execução de `dev` também deve apresentar um relatório técnico com os
-títulos exatos abaixo. Esse bloco não pode ser substituído por resumo livre,
-lista de alterações, seção `Agora`, seção `Validações` ou texto equivalente.
+Toda execução de `dev` de desenvolvimento também deve apresentar um relatório
+técnico com os títulos exatos abaixo. Esse bloco não pode ser substituído por
+resumo livre, lista de alterações, seção `Agora`, seção `Validações` ou texto
+equivalente.
 
 ```md
 ## Desenvolvimento realizado
@@ -153,8 +164,8 @@ Use esse relatório para explicar a entrega de forma auditável: o que mudou, co
 foi implementado, por que essa abordagem foi escolhida e quais decisões,
 alternativas, riscos ou pontos de parecer ainda merecem revisão da pessoa.
 
-Em `dev step`, mantenha `Como testar` e o relatório técnico focados somente na
-etapa executada.
+Em `dev step` de desenvolvimento, mantenha `Como testar` e o relatório técnico
+focados somente na etapa executada.
 
 ## Composição
 

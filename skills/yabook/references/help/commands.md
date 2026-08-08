@@ -11,18 +11,22 @@ Para um comando específico, explique apenas:
 
 ## Steps
 
-Explique `steps start`, `steps`, `step`, `steps done <número>` e `steps cancel`.
-O checklist vale para a conversa, não executa passos e pode recalcular somente
-etapas pendentes sem mudar objetivo ou decisão. `steps` fala da lista inteira;
-`step` fala apenas da etapa atual.
+Explique `steps start`, `steps start init`, `steps start plan`, `steps`, `step`,
+`steps done <número>` e `steps cancel`. O checklist vale para a conversa, não
+executa passos e pode recalcular somente etapas pendentes sem mudar objetivo ou
+decisão. `steps start init` e `steps start plan` iniciam as entrevistas
+correspondentes com checklist ativo; `steps` fala da lista inteira; `step` fala
+apenas da etapa atual.
 
 ## Dev
 
-A issue deve existir. `dev quick` limita descoberta para tarefa pequena, `dev`
-usa profundidade balanceada, `dev step` desenvolve somente a etapa atual de um
-checklist e `dev full` permite investigação profunda justificada. Todos
-preparam branch, implementam e validam dentro do escopo autorizado, mas não
-criam commit nem PR. Todo `dev` deve encerrar com `Como testar` e relatório
+Em desenvolvimento, a issue deve existir. `dev quick` limita descoberta para
+tarefa pequena, `dev` usa profundidade balanceada, `dev step` executa somente a
+etapa atual conforme o contexto do checklist e `dev full` permite investigação
+profunda justificada. No contexto `desenvolvimento`, `dev step` prepara branch,
+implementa e valida; nos contextos `init`, `planejamento` e `discussão`, ele
+investiga, conduz decisão ou analisa sem exigir issue ou branch. Todo `dev` e
+`dev step` de desenvolvimento deve encerrar com `Como testar` e relatório
 técnico usando os títulos exatos `O que foi feito`, `Como foi feito`, `Por que
 foi feito assim` e `Observações para revisão`; resumo livre não substitui esse
 bloco. `dev step` nunca executa todos os steps. `dev` é o atalho para essa
