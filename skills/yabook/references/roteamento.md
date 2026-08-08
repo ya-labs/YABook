@@ -6,7 +6,7 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 ## Famílias
 
 - orientação: `help`, `load`, `status`, `check [full]`, `review [full]`;
-- planejamento: `diagnose [full]`, `discuss`, `plan start|status|next|review|roadmap`;
+- planejamento: `diagnose [full]`, `discuss`, `plan [start <versão>|status|next|review|roadmap]`;
 - conversa: `steps`, `step`, `mode`, `def mode`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
 - artefatos Android: `apk`, `do apk`;
@@ -17,7 +17,7 @@ Subcomandos textuais:
 - `issue title|desc|classify|brief`;
 - `pr title|desc|brief`;
 - `plan brief`;
-- `steps start|done <número>|cancel`, `step`;
+- `steps start [init|plan]|done <número>|cancel`, `step`;
 - `sync local|remote`.
 
 ## Aliases

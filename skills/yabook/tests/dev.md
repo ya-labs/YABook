@@ -10,7 +10,11 @@ Confirme que:
 - `dev full` exige pedido explícito, informa o motivo da profundidade e trabalha
   em lotes filtrados;
 - `dev step` exige etapa atual inequívoca, executa somente essa etapa e não
-  avança para os próximos itens sem confirmação;
+  avança para os próximos itens sem confirmação explícita ou nova ação
+  inequívoca da pessoa usuária;
+- em checklist de desenvolvimento, mantém issue, branch e validação; em
+  `init`, `planejamento` e `discussão`, atua no contexto atual sem exigir issue
+  ou branch e sem implementar fora da autorização;
 - nenhuma variação amplia escopo, autorização de commit, PR ou merge.
 - um pedido direto inequívoco para implementar a issue atual também pode
   autorizar a edição dentro do escopo, inclusive em `prod`, sem exigir `dev`
@@ -48,5 +52,6 @@ obrigatório com estes títulos exatos:
 - `Observações para revisão`.
 
 Resumo livre, lista de alterações, seção `Agora`, seção `Validações` ou texto
-equivalente não substituem esse bloco. Em `dev step`, o relatório deve ficar
-restrito à etapa atual.
+equivalente não substituem esse bloco. Em `dev step` de desenvolvimento, o
+relatório deve ficar restrito à etapa atual. Nos demais contextos, confirme o
+relato da investigação, decisão ou análise atual sem exigir esse relatório.

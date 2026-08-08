@@ -10,6 +10,11 @@ documentação ou trabalho executável.
 `discuss` é somente leitura. O comando não altera arquivos, GitHub, Git ou o
 estado do projeto.
 
+Uma discussão pode ser acompanhada por `steps` quando seu contexto já estiver
+inequívoco. Nesse caso, `dev step` pesquisa e conduz somente a análise atual;
+não exige issue ou branch e não conclui a etapa sem confirmação explícita ou
+nova ação inequívoca da pessoa usuária.
+
 ## Como conduzir
 
 Use o contexto da conversa e descubra somente o necessário para entender o tema.
