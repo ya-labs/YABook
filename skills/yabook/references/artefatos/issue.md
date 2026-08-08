@@ -1,5 +1,7 @@
 # Issues
 
+Consulte [contratos.md](contratos.md) antes de gerar, criar ou validar a issue.
+
 ## Formato
 
 - Título objetivo, sem prefixo de tipo.
@@ -23,13 +25,14 @@
 -
 ```
 
-Use `<details>` somente para contexto de IA que altere execução ou continuidade.
+Inclua sempre o bloco `Informações para IA` de `contratos.md`. Use-o somente
+para contexto factual que altere execução ou continuidade.
 
 ## Saída de `$yabook issue`
 
-Entregue somente o artefato operacional: título, corpo, labels oficiais
-sugeridas e `Size` para o Project. Não inclua justificativa, confiança ou
-sugestão de quebra no artefato final.
+Entregue os campos previstos em `contratos.md`: título, corpo, labels oficiais
+sugeridas e `Size` para o Project. Não inclua justificativa, confiança,
+autorização operacional ou sugestão de quebra no artefato final.
 
 Para sugerir labels, carregue `github/issues-projects.md` e use o catálogo
 canônico do YABook, mesmo que o repositório ainda não tenha todas as labels
@@ -50,4 +53,4 @@ artefato final da issue.
 - `5`: alta incerteza; proponha divisão.
 
 Para criar ou validar, confira Project, campos e itens equivalentes reais. A
-criação com `do issue` mantém seu fluxo operacional.
+criação com `do issue` valida o contrato antes de manter seu fluxo operacional.

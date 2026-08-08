@@ -44,3 +44,10 @@ git push
 
 Quando faltar autorização para uma dependência, execute somente o possível e
 informe o comando necessário.
+
+## Validação de artefatos
+
+Antes de `do issue`, `do branch`, `do commit` ou `do pr`, carregue e aplique
+`artefatos/contratos.md`. Se um campo obrigatório estiver ausente, inválido ou
+divergente do contexto confirmado, interrompa antes da mutação. Não reescreva
+decisões de conteúdo para fazer o artefato passar na validação.

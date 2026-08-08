@@ -59,6 +59,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - Artefatos: [issue](references/artefatos/issue.md),
   [branch/commit](references/artefatos/branch-commit.md),
   [PR/release](references/artefatos/pr-release.md).
+- Contratos de artefatos: [canônicos](references/artefatos/contratos.md) para
+  issue, branch, commit e PR.
 - Briefs: [contrato](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
   [apk](references/apk.md), [init](references/init.md),
@@ -78,6 +80,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - Branch usa `numero-descricao-curta`.
 - Commit usa `tipo: descrição curta`.
 - PR usa título objetivo e mantém vínculo com a issue.
+- Antes de qualquer `do` de issue, branch, commit ou PR, valide o contrato do
+  artefato e interrompa diante de campos ausentes ou inválidos.
 - Em `do branch` ou `dev`, prefira `createLinkedBranch` e confirme
   `issue.linkedBranches`.
 - `apk` apenas apresenta a prévia com base em `.yabook/apk.json`; `do apk`
