@@ -96,8 +96,19 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 
 - Entregue somente o artefato ou resultado solicitado.
 - Mostre roteamento apenas quando ele for inferido, corrigido ou composto.
-- Com checklist ativo, siga `steps.md`: mostre seu estado uma vez e um guia
-  `Próxima etapa` breve, posterior ao comando atual. Só sugira comando quando
-  aplicável e não invente comando, issue, decisão ou objetivo. Sem checklist,
-  não mostre esse guia. `dev step` executa a etapa atual conforme seu contexto.
+- Enquanto houver checklist `steps` ativo, inclua uma única vez seu estado
+  compacto na resposta final de qualquer comando YABook. Coloque o bloco após
+  o resultado principal e imediatamente antes de `Próxima etapa`, sem inventar
+  progresso nem avançar automaticamente a etapa atual.
+- Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil
+  posterior ao comando atual. Em prévias de artefato sem `do`, informe no
+  resultado principal a autorização necessária para materializá-lo, mas não
+  use `Próxima etapa` apenas para repetir `$yabook do <ação>`: indique a ação
+  útil posterior, quando ela for conhecida. Quando não houver continuação
+  segura, informe que o fluxo depende de revisão ou aprovação da pessoa, sem
+  inventar comando, decisão ou autorização de merge.
+- Antes da resposta final de uma prévia de artefato sem `do`, verifique que a
+  autorização necessária está fora de `Próxima etapa` e que essa seção não
+  contém apenas `$yabook do <ação>`. `dev step` executa a etapa atual conforme
+  seu contexto.
 - Quando alterar arquivos, sugira uma mensagem de commit.
