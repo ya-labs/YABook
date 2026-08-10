@@ -153,6 +153,8 @@ Comandos principais:
 - `$yabook step`: detalha a etapa atual do checklist, sem executar alterações.
 - `$yabook mode`: define como a IA deve colaborar: estudo, mentoria ou execução.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
+- `$yabook guardrails`: verifica os guardrails globais do perfil Codex sem alterá-los.
+- `$yabook do guardrails install|remove`: instala ou remove somente o bloco global marcado do YABook.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
 - `$yabook apk`: valida o contexto e mostra como o APK será preparado, sem executar build nem alterar arquivos.
 - `$yabook do apk`: usa o APK já gerado, cria a cópia rastreável e limpa cópias antigas da mesma origem.

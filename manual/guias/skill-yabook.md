@@ -56,6 +56,7 @@ Arquivos principais:
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 | `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
 | `references/configure.md` | Entrevista e contrato da configuração local `.yabook/AGENTS.md`. |
+| `references/guardrails.md` | Contrato do bloco global do YABook em `~/.codex/AGENTS.md`. |
 
 ## Fluxo de execução
 
@@ -126,6 +127,19 @@ globais do YABook e do ambiente, `AGENTS.md` do projeto e, por último,
 remove `do`, autoriza Git/GitHub implicitamente ou altera proteções de branch,
 commit, PR, merge ou release.
 
+### Guardrails globais do Codex
+
+`$yabook guardrails` verifica o bloco global do YABook em
+`~/.codex/AGENTS.md`, sem escrever. `$yabook do guardrails install` e
+`$yabook do guardrails remove` alteram somente esse bloco marcado, preservando
+as instruções pessoais existentes. A alteração vale em nova sessão do Codex.
+
+O bloco reforça a inspeção de checkpoint antes de novas edições, a trava de
+`do` para mutações Git e o bloqueio de edição direta em `main`, `dev` e release.
+Nessas branches, `$yabook bypass <ação>` libera somente a edição anexada na
+solicitação atual; commit, push, merge e outras mutações Git continuam exigindo
+`$yabook do <ação>`.
+
 Para comandos que criam ou alteram GitHub, o agente também deve conferir, quando a ferramenta estiver disponível:
 
 - issue relacionada;
@@ -172,9 +186,10 @@ Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue
 
 Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. Se ela quiser ação real no GitHub, oriente a usar `$yabook do`.
 
-Em `main`, `dev`, release ou branch incompatível, pedidos diretos devem gerar um
-bloqueio. Confirmação comum não basta. `$yabook bypass <ação>` autoriza somente
-a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
+Em `main`, `dev`, release ou branch incompatível, pedidos diretos de edição
+devem gerar um bloqueio. Confirmação comum não basta. `$yabook bypass <ação>`
+autoriza somente a edição anexada fora do fluxo de issue/branch; não substitui
+comandos `do` para mutações Git.
 
 ## Comandos
 
@@ -203,6 +218,8 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook apk` | Valida a configuração e mostra a prévia do APK sem executar build nem alterar arquivos. |
 | `$yabook configure [commands]` | Entrevista e propõe a configuração local do repositório sem alterar arquivos. |
 | `$yabook do configure` | Cria ou atualiza `.yabook/AGENTS.md` a partir da proposta confirmada. |
+| `$yabook guardrails` | Audita os guardrails globais sem alterar o perfil Codex. |
+| `$yabook do guardrails install\|remove` | Instala ou remove somente o bloco global marcado do YABook. |
 | `$yabook rebase [base]` | Inspeciona branch, base, worktree, upstream, divergência e risco de histórico compartilhado; não altera Git. |
 | `$yabook do rebase` | Executa somente o rebase seguro previamente inspecionado; não autoriza push, PR, merge ou release. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |

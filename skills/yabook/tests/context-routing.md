@@ -13,6 +13,8 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook steps start plan` | `steps start plan` | `steps.md`, `planejamento/geral.md` | Git, artefatos |
 | `$yabook step` | `step` | `steps.md` | Git, artefatos |
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
+| `$yabook guardrails` | `guardrails` | `guardrails.md` | workspace, Git, GitHub, planejamento |
+| `$yabook do guardrails install` | `do guardrails` | `guardrails.md` | workspace, Git, GitHub, planejamento |
 | `$yabook branch` | `branch name` | `roteamento.md`, `artefatos/branch-commit.md`, `artefatos/contratos.md` | `contexto.md`, planejamento |
 | `$yabook issue` | `issue` | `artefatos/issue.md`, `artefatos/contratos.md` | `contexto.md`, planejamento, PRs não relacionados |
 | `$yabook rebase` | `rebase` | `rebase.md` | formatos de artefato, planejamento, mutações Git |
