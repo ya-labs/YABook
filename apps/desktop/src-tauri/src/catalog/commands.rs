@@ -1,11 +1,11 @@
-use std::path::Path;
+use std::{fs, path::{Path, PathBuf}};
 
 use tauri::State;
 
 use super::{
     models::{
         CreateOrganizationInput, CreateProjectInput, DocumentationRoot, DocumentationRootDraft,
-        Organization, Project,
+        DocumentContent, DocumentTreeEntry, Organization, Project,
     },
     CatalogDatabase,
 };
@@ -77,6 +77,48 @@ pub fn discover_documentation_roots(
         .map_err(|error| format!("Não foi possível registrar as raízes documentais: {error}"))
 }
 
+#[tauri::command]
+pub fn list_document_tree(
+    root_id: i64,
+    catalog: State<'_, CatalogDatabase>,
+) -> Result<Vec<DocumentTreeEntry>, String> {
+    let root = catalog.documentation_root(root_id)
+        .map_err(|error| format!("Não foi possível consultar a raiz documental: {error}"))?
+        .ok_or_else(|| "A raiz documental selecionada não existe mais.".to_string())?;
+    let project = catalog.project(root.project_id)
+        .map_err(|error| format!("Não foi possível consultar o projeto: {error}"))?
+        .ok_or_else(|| "O projeto da raiz documental não existe mais.".to_string())?;
+    let base = accessible_root(Path::new(&project.source_path), &root.relative_path)?;
+
+    read_tree(&base, &base)
+}
+
+#[tauri::command]
+pub fn read_document(
+    root_id: i64,
+    relative_path: String,
+    catalog: State<'_, CatalogDatabase>,
+) -> Result<DocumentContent, String> {
+    let root = catalog.documentation_root(root_id)
+        .map_err(|error| format!("Não foi possível consultar a raiz documental: {error}"))?
+        .ok_or_else(|| "A raiz documental selecionada não existe mais.".to_string())?;
+    let project = catalog.project(root.project_id)
+        .map_err(|error| format!("Não foi possível consultar o projeto: {error}"))?
+        .ok_or_else(|| "O projeto da raiz documental não existe mais.".to_string())?;
+    let base = accessible_root(Path::new(&project.source_path), &root.relative_path)?;
+    let path = resolve_document(&base, &relative_path)?;
+    let content = fs::read_to_string(&path)
+        .map_err(|_| "O documento não está mais disponível ou não pôde ser lido.".to_string())?;
+
+    Ok(DocumentContent {
+        project_id: project.id,
+        root_id,
+        relative_path: relative_path.replace('\\', "/"),
+        absolute_path: path.to_string_lossy().into_owned(),
+        content,
+    })
+}
+
 fn required_name(value: &str, subject: &str) -> Result<String, String> {
     let value = value.trim();
 
@@ -132,6 +174,49 @@ fn discover_root_drafts(source_path: &Path) -> Result<Vec<DocumentationRootDraft
     }
 
     Ok(roots)
+}
+
+fn accessible_root(source_path: &Path, relative_path: &str) -> Result<PathBuf, String> {
+    let source = fs::canonicalize(source_path)
+        .map_err(|_| "A fonte do projeto não existe mais ou não está acessível.".to_string())?;
+    let root = fs::canonicalize(source.join(relative_path))
+        .map_err(|_| "A raiz documental não está mais disponível.".to_string())?;
+    if !root.is_dir() || !root.starts_with(&source) {
+        return Err("A raiz documental não está acessível com segurança.".into());
+    }
+    Ok(root)
+}
+
+fn resolve_document(base: &Path, relative_path: &str) -> Result<PathBuf, String> {
+    let requested = Path::new(relative_path);
+    if requested.is_absolute() || requested.components().any(|part| matches!(part, std::path::Component::ParentDir)) {
+        return Err("O caminho do documento é inválido.".into());
+    }
+    let path = fs::canonicalize(base.join(requested))
+        .map_err(|_| "O documento não está mais disponível.".to_string())?;
+    if !path.is_file() || !path.starts_with(base) || path.extension().and_then(|item| item.to_str()) != Some("md") {
+        return Err("O item selecionado não é um documento Markdown disponível nesta raiz.".into());
+    }
+    Ok(path)
+}
+
+fn read_tree(base: &Path, current: &Path) -> Result<Vec<DocumentTreeEntry>, String> {
+    let mut entries = fs::read_dir(current)
+        .map_err(|_| "A raiz documental não está mais disponível.".to_string())?
+        .filter_map(Result::ok)
+        .filter_map(|entry| {
+            let path = entry.path();
+            let metadata = entry.metadata().ok()?;
+            if metadata.is_dir() || path.extension().and_then(|item| item.to_str()) == Some("md") { Some((entry, metadata.is_dir())) } else { None }
+        })
+        .collect::<Vec<_>>();
+    entries.sort_by_key(|(entry, is_directory)| (!is_directory, entry.file_name().to_string_lossy().to_lowercase()));
+    entries.into_iter().map(|(entry, is_directory)| {
+        let path = entry.path();
+        let relative = path.strip_prefix(base).map_err(|_| "Não foi possível montar a árvore documental.".to_string())?
+            .to_string_lossy().replace('\\', "/");
+        Ok(DocumentTreeEntry { path: relative, name: entry.file_name().to_string_lossy().into_owned(), is_directory, children: if is_directory { read_tree(base, &path)? } else { Vec::new() } })
+    }).collect()
 }
 
 #[cfg(test)]

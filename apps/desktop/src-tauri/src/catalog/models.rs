@@ -46,3 +46,22 @@ pub struct DocumentationRootDraft {
     pub initial_document_path: Option<String>,
     pub position: i64,
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentTreeEntry {
+    pub path: String,
+    pub name: String,
+    pub is_directory: bool,
+    pub children: Vec<DocumentTreeEntry>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentContent {
+    pub project_id: i64,
+    pub root_id: i64,
+    pub relative_path: String,
+    pub absolute_path: String,
+    pub content: String,
+}
