@@ -154,6 +154,15 @@ impl CatalogDatabase {
             .optional()
     }
 
+    pub fn documentation_root(&self, root_id: i64) -> Result<Option<DocumentationRoot>> {
+        let connection = self.connection();
+        connection.query_row(
+            "SELECT id, project_id, display_name, relative_path, initial_document_path, position FROM documentation_roots WHERE id = ?1",
+            [root_id],
+            |row| Ok(DocumentationRoot { id: row.get(0)?, project_id: row.get(1)?, display_name: row.get(2)?, relative_path: row.get(3)?, initial_document_path: row.get(4)?, position: row.get(5)? }),
+        ).optional()
+    }
+
     pub fn replace_documentation_roots(
         &self,
         project_id: i64,

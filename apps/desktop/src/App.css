@@ -112,6 +112,49 @@ h2 {
   min-width: 0;
 }
 
+.reader-side {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  width: min(100%, 250px);
+}
+
+.reader {
+  min-height: 65vh;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.toolbar button,
+.link-button {
+  background: transparent;
+  border: 1px solid #b9c8d1;
+  border-radius: .35rem;
+  color: #21495c;
+  padding: .4rem .55rem;
+  text-align: left;
+}
+
+.link-button { border: 0; padding: .3rem 0; width: 100%; }
+.link-button:hover, .active-doc { color: #196d89; font-weight: 700; }
+.tree { list-style: none; margin: .35rem 0; padding-left: .7rem; }
+.tree li { margin: .2rem 0; overflow-wrap: anywhere; }
+.breadcrumbs { color: #59707d; font-size: .85rem; overflow-wrap: anywhere; }
+.markdown { line-height: 1.65; overflow-wrap: anywhere; }
+.markdown img { height: auto; max-width: 100%; }
+.markdown pre { background: #17212b; border-radius: .4rem; color: #f4f7f9; overflow: auto; padding: 1rem; }
+.markdown table { border-collapse: collapse; display: block; max-width: 100%; overflow-x: auto; }
+.markdown td, .markdown th { border: 1px solid #dce5ea; padding: .4rem .6rem; }
+.compact-list { color: #59707d; font-size: .8rem; white-space: pre-wrap; word-break: break-all; }
+.registration { margin-top: 1.5rem; }
+.registration form { margin-top: .75rem; }
+.heading-2 { margin-left: .6rem; }.heading-3 { margin-left: 1.2rem; }.heading-4, .heading-5, .heading-6 { margin-left: 1.8rem; }
+
 .sidebar section,
 .panel {
   background: #fff;
@@ -226,4 +269,6 @@ button[type="submit"] {
   .sidebar {
     width: 100%;
   }
+
+  .reader-side { width: 100%; }
 }
