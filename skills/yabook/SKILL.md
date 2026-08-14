@@ -65,7 +65,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 - Briefs: [contrato](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
   [apk](references/apk.md), [rebase](references/rebase.md), [init](references/init.md),
-  [docs](references/documentacao.md), [configure](references/configure.md).
+  [docs](references/documentacao.md), [configure](references/configure.md),
+  [guardrails](references/guardrails.md).
 - Qualidade: [check/review](references/quality.md).
 - Planejamento: [índice](references/planejamento/index.md).
 - Contexto sob demanda: [workspace](references/workspace.md),
