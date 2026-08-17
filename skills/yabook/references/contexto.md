@@ -41,6 +41,7 @@ ampliação.
 | `steps` | `C0` | `steps.md` | checklist da conversa | `steps/replanning.md` diante de desvio |
 | `step` | `C0` | `steps.md` | etapa atual da conversa | `steps/replanning.md` diante de desvio |
 | `discuss` | `C0` | `discuss.md` | conversa | redirecione para rota dependente do projeto se precisar de fatos |
+| `resume` | `C0` | `resume.md` | último recorte temático ativo ou marco explícito | não amplia; informe ambiguidade sem misturar contextos |
 | `continue` | `C1` | `git/checkpoint.md` | checkpoint anterior e Git atual | somente mudança desde o checkpoint |
 | `bypass` | `C1` | `bypass.md` | ação anexada | branch/status apenas se a ação editar |
 | `load` | `C1` | `session-minimo.md`, `workspace.md` | raiz, remote, branch, status e cache válido, se existir | nenhuma |

@@ -50,6 +50,7 @@ Arquivos principais:
 | `references/init.md` | Comportamento esperado do `$yabook init`. |
 | `references/orquestracao.md` | Interpretação de intenção, correção de comandos e limites de autonomia. |
 | `references/discuss.md` | Discussões gerais antes de planejar ou executar mudanças. |
+| `references/resume.md` | Repasse neutro do recorte temático atual para outro chat. |
 | `references/planejamento/` | Referências separadas para diagnóstico, entrevista, status, revisão, roadmap e persistência. |
 | `references/steps.md` | Checklist básico; replanejamento é carregado sob demanda. |
 | `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
@@ -203,6 +204,8 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook steps start` | Cria um checklist para acompanhar uma sequência na conversa. |
 | `$yabook steps` | Mostra o checklist ativo. |
 | `$yabook step` | Detalha somente a etapa atual do checklist. |
+| `$yabook resume` | Resume o último recorte temático ativo para encaminhar a outro chat. |
+| `$yabook resume até "<marco>"` | Resume desde o marco informado até o momento atual. |
 | `$yabook steps done <número>` | Marca uma etapa como concluída. |
 | `$yabook steps cancel` | Encerra o acompanhamento. |
 | `$yabook mode[: ]<modo>` | Define ou aplica um modo de colaboração. |
@@ -241,6 +244,30 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 
 `$yabook plan discuss <tema>` permanece como alias de compatibilidade para
 `$yabook discuss <tema>`.
+
+## `$yabook resume`
+
+`resume` é um comando de conversa somente leitura, classificado como `C0`. Ele
+gera um texto neutro para encaminhar o contexto temático atual a qualquer outro
+chat, sem pressupor um destino administrativo ou de desenvolvimento.
+
+Na forma padrão, a skill seleciona o último bloco temático, iniciado após a
+última mudança inequívoca de assunto. A seleção é semântica, não baseada em uma
+quantidade fixa de mensagens. Na forma explícita, o marco é inclusivo:
+
+```text
+$yabook resume
+$yabook resume até "quando definimos o formato de saída"
+```
+
+A saída registra objetivo ou ajuste, contexto necessário, decisões confirmadas,
+restrições ou evidências, pendências e um pedido sugerido ao próximo chat. Ela
+usa somente fatos presentes no recorte. Quando o assunto ou o marco for
+ambíguo, a skill informa a ambiguidade e pede um limite mais específico, sem
+misturar contextos.
+
+O comando não resolve workspace nem consulta arquivos, Git, GitHub, outros
+chats ou histórico completo da conversa por prevenção.
 
 ## Comandos encadeados
 
@@ -463,7 +490,8 @@ YABook, sem inventar nomes ou exigir uma combinação fixa de categorias.
 O primeiro comando não carrega uma sessão completa. A skill reconhece a rota e
 busca diretamente apenas as instruções e evidências necessárias.
 
-Comandos instantâneos, como `help`, `mode` e `steps`, não resolvem repositório.
+Comandos instantâneos, como `help`, `mode`, `steps` e `resume`, não resolvem
+repositório.
 Comandos locais consultam somente workspace e estado mínimo. Artefatos,
 planejamento e execução carregam suas referências específicas.
 
