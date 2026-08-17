@@ -56,6 +56,7 @@ Arquivos principais:
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 | `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
 | `references/configure.md` | Entrevista e contrato da configuração local `.yabook/AGENTS.md`. |
+| `references/guardrails.md` | Contrato do comportamento global do YABook no perfil Codex. |
 
 ## Fluxo de execução
 
@@ -125,6 +126,14 @@ globais do YABook e do ambiente, `AGENTS.md` do projeto e, por último,
 `.yabook/AGENTS.md`. Portanto, a configuração local adapta o método, mas nunca
 remove `do`, autoriza Git/GitHub implicitamente ou altera proteções de branch,
 commit, PR, merge ou release.
+
+### Guardrails globais do Codex
+
+`$yabook guardrails` audita o comportamento padrão do YABook no
+`~/.codex/AGENTS.md`. Com `do guardrails install|remove`, a skill altera somente
+o bloco marcado, preserva instruções pessoais e informa que a mudança vale em
+nova sessão. O bloco aplica checkpoint, `do`/`bypass`, `Próxima etapa` e sugestão
+de commit mesmo sem invocação explícita de `$yabook`.
 
 Para comandos que criam ou alteram GitHub, o agente também deve conferir, quando a ferramenta estiver disponível:
 
@@ -203,6 +212,8 @@ a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
 | `$yabook apk` | Valida a configuração e mostra a prévia do APK sem executar build nem alterar arquivos. |
 | `$yabook configure [commands]` | Entrevista e propõe a configuração local do repositório sem alterar arquivos. |
 | `$yabook do configure` | Cria ou atualiza `.yabook/AGENTS.md` a partir da proposta confirmada. |
+| `$yabook guardrails` | Audita o comportamento global do YABook sem alterar o perfil Codex. |
+| `$yabook do guardrails install\|remove` | Instala ou remove somente o bloco global marcado do YABook. |
 | `$yabook rebase [base]` | Inspeciona branch, base, worktree, upstream, divergência e risco de histórico compartilhado; não altera Git. |
 | `$yabook do rebase` | Executa somente o rebase seguro previamente inspecionado; não autoriza push, PR, merge ou release. |
 | `$yabook status` | Resume branch atual, issue inferida, alterações pendentes e próximo passo recomendado. |

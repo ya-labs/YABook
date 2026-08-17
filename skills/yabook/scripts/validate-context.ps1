@@ -8,6 +8,7 @@ $skillRoot = Split-Path -Parent $PSScriptRoot
 $budgets = @{
     'SKILL.md' = 4800
     'references\bypass.md' = 1200
+    'references\guardrails.md' = 5000
     'references\briefs.md' = 2800
     'references\context-cache.md' = 6000
     'references\session-minimo.md' = 2000
