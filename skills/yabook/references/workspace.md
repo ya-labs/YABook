@@ -70,7 +70,7 @@ Guarde no cache da conversa:
 Em rotas de repositório, leia `.yabook/AGENTS.md` após `AGENTS.md` se existir;
 ausência não é erro. A precedência é global, `AGENTS.md`, configuração local:
 esta não remove `do` nem permissões ou proteções de Git/GitHub. Rotas `help`,
-`mode`, `steps`, `step` e `discuss` não a leem sem pedido explícito.
+`mode`, `steps`, `step`, `discuss` e `resume` não a leem sem pedido explícito.
 
 Invalide e resolva novamente quando mudar o workspace, o conjunto relevante de
 arquivos ativos, o repositório informado, a branch ou o remote. `$yabook load`

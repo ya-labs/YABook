@@ -17,6 +17,7 @@ ROUTES = {
     "steps": ("C0", ["references/steps.md"], 2500, 1),
     "step": ("C0", ["references/steps.md"], 2500, 1),
     "discuss": ("C0", ["references/discuss.md"], 2200, 1),
+    "resume": ("C0", ["references/resume.md"], 2400, 1),
     "bypass": ("C1", ["references/bypass.md"], 2000, 1),
     "load": ("C1", ["references/session-minimo.md", "references/workspace.md"], 2800, 2),
     "status": ("C1", ["references/workspace.md", "references/git/leitura.md"], 2800, 2),

@@ -7,7 +7,7 @@ altera estado.
 
 - contexto: `load`, `status`, `diagnose`;
 - planejamento: `init`, `discuss`, `plan`;
-- conversa: `steps`, `mode`;
+- conversa: `steps`, `mode`, `resume`;
 - execução: `dev`, `do`, `apk`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade: `check`, `review`, `docs`;

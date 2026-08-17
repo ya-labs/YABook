@@ -18,6 +18,16 @@ decisão. `steps start init` e `steps start plan` iniciam as entrevistas
 correspondentes com checklist ativo; `steps` fala da lista inteira; `step` fala
 apenas da etapa atual.
 
+## Resume
+
+`resume` gera um repasse neutro do último recorte temático ativo da conversa.
+`resume até "<marco, assunto ou mensagem>"` usa o marco como início inclusivo e
+resume até o momento atual. É uma rota `C0` somente leitura: não consulta
+workspace, arquivos, Git, GitHub, outros chats ou histórico completo. Se o
+recorte for ambíguo, pede um marco mais específico sem misturar assuntos. A
+saída inclui objetivo ou ajuste, contexto necessário, decisões, restrições ou
+evidências, pendências e um pedido sugerido ao próximo chat.
+
 ## Dev
 
 Em desenvolvimento, a issue deve existir. `dev quick` limita descoberta para

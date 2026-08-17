@@ -5,8 +5,6 @@ description: Orchestrate the YA LABS Method through $yabook commands, issue-driv
 
 # YABook
 
-Aplique o Método YA LABS sob demanda.
-
 ## Fluxo
 
 1. Identifique o comando, alias ou intenção antes de carregar referências.
@@ -56,7 +54,8 @@ antes de ampliar. Não leia por prevenção. Regras completas:
 ## Referências diretas
 
 - Conversa: [help](references/help.md), [mode](references/modes.md),
-  [steps](references/steps.md), [discuss](references/discuss.md).
+  [steps](references/steps.md), [discuss](references/discuss.md),
+  [resume](references/resume.md).
 - Artefatos: [issue](references/artefatos/issue.md),
   [branch/commit](references/artefatos/branch-commit.md),
   [PR/release](references/artefatos/pr-release.md).

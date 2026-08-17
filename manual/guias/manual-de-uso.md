@@ -116,6 +116,7 @@ executa somente o que foi autorizado.
 - [Como usar o dashboard de contexto](#como-usar-o-dashboard-de-contexto)
 - [Como preparar um APK](#como-preparar-um-apk)
 - [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
+- [Como transferir o contexto com resume](#como-transferir-o-contexto-com-resume)
 - [Como usar modos de colaboração](#como-usar-modos-de-colaboração)
 - [Como usar o help](#como-usar-o-help)
 - [Como usar `$yabook dev`](#como-usar-yabook-dev)
@@ -151,6 +152,7 @@ Comandos principais:
 - `$yabook plan`: entrevista, discute, revisa e estrutura versões.
 - `$yabook steps`: acompanha uma sequência com checklist durante a conversa.
 - `$yabook step`: detalha a etapa atual do checklist, sem executar alterações.
+- `$yabook resume`: prepara um repasse neutro do contexto temático atual para outro chat.
 - `$yabook mode`: define como a IA deve colaborar: estudo, mentoria ou execução.
 - `$yabook bypass <ação>`: autoriza uma ação direta fora do fluxo nesta solicitação.
 - `$yabook sync`: verifica se a skill instalada está sincronizada com a origem.
@@ -449,6 +451,35 @@ adicionar correções ou exigir nova validação.
 A skill explica o recalculado antes de mostrar o checklist atualizado. Etapas
 concluídas permanecem no histórico. Alterações de objetivo, escopo ou decisões
 continuam dependendo de confirmação.
+
+---
+
+### Como transferir o contexto com resume
+
+Use `resume` quando quiser continuar o assunto atual em outro chat sem levar
+toda a conversa:
+
+```text
+$yabook resume
+```
+
+A skill seleciona semanticamente o último bloco temático, iniciado após a última
+mudança inequívoca de assunto. Ela não conta uma quantidade fixa de mensagens.
+Para definir o início do recorte, informe um marco, assunto ou mensagem:
+
+```text
+$yabook resume até "quando decidimos usar um recorte semântico"
+```
+
+Nesse formato, o marco é incluído e o resumo segue até o momento atual. A saída
+é neutra e contém objetivo ou ajuste, contexto necessário, decisões confirmadas,
+restrições ou evidências, pendências e um pedido sugerido ao próximo chat.
+
+`resume` é somente leitura e pertence à classe `C0`. Ele usa apenas o contexto
+já disponível, sem consultar automaticamente repositório, arquivos, Git, GitHub,
+outros chats ou histórico completo. Se não for possível identificar o recorte
+com segurança, a skill informa a ambiguidade e pede um marco mais específico em
+vez de misturar assuntos.
 
 ---
 

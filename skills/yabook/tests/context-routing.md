@@ -12,6 +12,8 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook steps start init` | `steps start init` | `steps.md`, `init.md` | Git, artefatos |
 | `$yabook steps start plan` | `steps start plan` | `steps.md`, `planejamento/geral.md` | Git, artefatos |
 | `$yabook step` | `step` | `steps.md` | Git, artefatos |
+| `$yabook resume` | `resume` | `resume.md` | workspace, Git, GitHub, histórico completo |
+| `$yabook resume até "a decisão sobre o nome"` | `resume` | `resume.md` | workspace, Git, GitHub, histórico completo |
 | `$yabook bypass ajuste o README na main` | `bypass` | `bypass.md` | planejamento, Project, release |
 | `$yabook guardrails` | `guardrails` | `guardrails.md` | workspace, Git, GitHub, planejamento |
 | `$yabook do guardrails install` | `do guardrails` | `guardrails.md` | workspace, Git, GitHub, planejamento |
