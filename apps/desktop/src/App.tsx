@@ -7,7 +7,7 @@ import "./App.css";
 
 type Organization = { id: number; displayName: string };
 type Project = { id: number; displayName: string; sourcePath: string; organizationId: number | null };
-type DocumentationRoot = { id: number; displayName: string; relativePath: string; initialDocumentPath: string | null };
+type DocumentationRoot = { id: number; displayName: string; relativePath: string; initialDocumentPath: string | null; position: number };
 type TreeEntry = { path: string; name: string; isDirectory: boolean; children: TreeEntry[] };
 type DocumentContent = { rootId: number; relativePath: string; absolutePath: string; content: string };
 type DocumentationConfiguration = { version: number; project?: { id?: string; name?: string }; documentation: { roots: { id: string; label?: string; path: string; entry?: string; order?: number; overrides?: { path: string; label?: string; order?: number; hidden?: boolean }[] }[] } };
