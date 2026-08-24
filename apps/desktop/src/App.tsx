@@ -10,6 +10,9 @@ type Project = { id: number; displayName: string; sourcePath: string; organizati
 type DocumentationRoot = { id: number; displayName: string; relativePath: string; initialDocumentPath: string | null };
 type TreeEntry = { path: string; name: string; isDirectory: boolean; children: TreeEntry[] };
 type DocumentContent = { rootId: number; relativePath: string; absolutePath: string; content: string };
+type DocumentationConfiguration = { version: number; project?: { id?: string; name?: string }; documentation: { roots: { id: string; label?: string; path: string; entry?: string; order?: number; overrides?: { path: string; label?: string; order?: number; hidden?: boolean }[] }[] } };
+type DocumentationDiscovery = { roots: DocumentationRoot[]; configuration: DocumentationConfiguration | null; configurationError: string | null };
+type ConfigurationPreview = { content: string };
 type ProjectForm = { displayName: string; sourcePath: string; organizationId: string };
 const emptyProjectForm: ProjectForm = { displayName: "", sourcePath: "", organizationId: "" };
 
@@ -27,6 +30,9 @@ function App() {
   const [recents, setRecents] = useState<string[]>(() => JSON.parse(localStorage.getItem("yabook-recents") ?? "[]"));
   const [organizationName, setOrganizationName] = useState("");
   const [projectForm, setProjectForm] = useState<ProjectForm>(emptyProjectForm);
+  const [configurationDraft, setConfigurationDraft] = useState("");
+  const [configurationPreview, setConfigurationPreview] = useState("");
+  const [configurationNotice, setConfigurationNotice] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>();
 
@@ -48,9 +54,13 @@ function App() {
   async function selectProject(projectId: number, source = projects) {
     setSelectedProjectId(projectId); setDocument(undefined); setTree([]); setError(undefined);
     try {
-      const discoveredRoots = await invoke<DocumentationRoot[]>("discover_documentation_roots", { projectId });
-      setRoots(discoveredRoots);
-      const root = discoveredRoots[0];
+      const discovery = await invoke<DocumentationDiscovery>("discover_documentation_roots", { projectId });
+      setRoots(discovery.roots);
+      setConfigurationNotice(discovery.configurationError ?? undefined);
+      const draftKey = configurationDraftKey(projectId);
+      setConfigurationDraft(localStorage.getItem(draftKey) ?? JSON.stringify(discovery.configuration ?? configurationFromRoots(source.find((project) => project.id === projectId), discovery.roots), null, 2));
+      setConfigurationPreview("");
+      const root = discovery.roots[0];
       if (root) await selectRoot(root);
       else setSelectedRoot(undefined);
     } catch (reason) { setError(messageFrom(reason)); }
@@ -101,6 +111,35 @@ function App() {
     } catch (reason) { setError(messageFrom(reason)); }
   }
 
+  function updateConfigurationDraft(value: string) {
+    setConfigurationDraft(value);
+    if (selectedProjectId) localStorage.setItem(configurationDraftKey(selectedProjectId), value);
+    setConfigurationPreview("");
+  }
+
+  function parsedConfiguration() {
+    try { return JSON.parse(configurationDraft) as DocumentationConfiguration; }
+    catch { throw new Error("O rascunho precisa conter JSON válido antes da prévia."); }
+  }
+
+  async function previewConfiguration() {
+    if (!selectedProjectId) return;
+    try {
+      const preview = await invoke<ConfigurationPreview>("preview_documentation_configuration", { projectId: selectedProjectId, configuration: parsedConfiguration() });
+      setConfigurationPreview(preview.content); setConfigurationNotice(undefined);
+    } catch (reason) { setConfigurationNotice(messageFrom(reason)); }
+  }
+
+  async function saveConfiguration() {
+    if (!selectedProjectId || !window.confirm("Salvar este rascunho como .yabook/config.json do projeto?")) return;
+    try {
+      await invoke("save_documentation_configuration", { projectId: selectedProjectId, input: { configuration: parsedConfiguration(), confirmed: true } });
+      localStorage.removeItem(configurationDraftKey(selectedProjectId));
+      setConfigurationNotice("Configuração compartilhada salva.");
+      await selectProject(selectedProjectId);
+    } catch (reason) { setConfigurationNotice(messageFrom(reason)); }
+  }
+
   const headings = useMemo(() => document ? Array.from(document.content.matchAll(/^(#{1,6})\s+(.+)$/gm)) : [], [document]);
   const favorite = document && favorites.includes(locationKey(selectedRoot!, document.relativePath));
   const selectedProject = projects.find((project) => project.id === selectedProjectId);
@@ -124,6 +163,7 @@ function App() {
       </> : <p className="empty">Selecione uma raiz e um documento para começar.</p>}</section></section>
       <aside className="reader-side"><section className="panel"><h2>Índice</h2><ul className="item-list">{headings.map((item, index) => <li key={index} className={`heading-${item[1].length}`}><a href={`#${slug(item[2])}`}>{item[2]}</a></li>)}</ul></section><section className="panel"><h2>Recentes</h2><p className="compact-list">{recents.join("\n") || "Nenhum documento aberto."}</p></section><section className="panel"><h2>Favoritos</h2><p className="compact-list">{favorites.join("\n") || "Nenhum favorito."}</p></section></aside>
     </section>
+    <section className="panel configuration"><h2>Personalização documental</h2><p>Este rascunho fica somente neste computador até o salvamento confirmado.</p>{configurationNotice && <p className="feedback status">{configurationNotice}</p>}<textarea aria-label="Rascunho de configuração compartilhada" value={configurationDraft} onChange={(event) => updateConfigurationDraft(event.target.value)} spellCheck={false} /><div className="toolbar"><button onClick={() => void previewConfiguration()} disabled={!selectedProjectId}>Validar e pré-visualizar</button><button onClick={() => void saveConfiguration()} disabled={!selectedProjectId || !configurationPreview}>Salvar como padrão do projeto</button><button onClick={() => selectedProjectId && updateConfigurationDraft(JSON.stringify(configurationFromRoots(selectedProject, roots), null, 2))} disabled={!selectedProjectId}>Restaurar descoberta</button></div>{configurationPreview && <pre className="configuration-preview">{configurationPreview}</pre>}</section>
     <section className="panel registration"><h2>Adicionar projeto</h2><form onSubmit={createProject} className="project-form"><input value={projectForm.displayName} onChange={(event) => setProjectForm({ ...projectForm, displayName: event.target.value })} placeholder="Nome do projeto" required /><input value={projectForm.sourcePath} onChange={(event) => setProjectForm({ ...projectForm, sourcePath: event.target.value })} placeholder="Caminho do diretório" required /><select value={projectForm.organizationId} onChange={(event) => setProjectForm({ ...projectForm, organizationId: event.target.value })}><option value="">Projeto avulso</option>{organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.displayName}</option>)}</select><button type="submit">Cadastrar</button></form><form onSubmit={createOrganization} className="compact-form"><input value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} placeholder="Nova organização" required /><button type="submit">Adicionar organização</button></form></section>
   </main>;
 }
@@ -131,6 +171,8 @@ function App() {
 function Tree({ entries, current, onSelect }: { entries: TreeEntry[]; current?: string; onSelect: (path: string) => void }) { return <ul className="tree">{entries.map((entry) => <li key={entry.path}>{entry.isDirectory ? <><strong>{entry.name}</strong><Tree entries={entry.children} current={current} onSelect={onSelect} /></> : <button className={entry.path === current ? "link-button active-doc" : "link-button"} onClick={() => onSelect(entry.path)}>{entry.name}</button>}</li>)}</ul>; }
 function firstDocument(entries: TreeEntry[]): TreeEntry | undefined { for (const entry of entries) { if (!entry.isDirectory) return entry; const child = firstDocument(entry.children); if (child) return child; } }
 function locationKey(root: DocumentationRoot, path: string) { return `${root.id}:${path}`; }
+function configurationDraftKey(projectId: number) { return `yabook-configuration-draft-${projectId}`; }
+function configurationFromRoots(project: Project | undefined, roots: DocumentationRoot[]): DocumentationConfiguration { return { version: 1, project: project ? { name: project.displayName } : undefined, documentation: { roots: roots.map((root, index) => ({ id: `root-${index + 1}`, label: root.displayName, path: root.relativePath, entry: root.initialDocumentPath ?? undefined, order: root.position })) } }; }
 function normalizePath(current: string, href: string) { const base = current.split("/").slice(0, -1); for (const part of href.split("/")) { if (part === "..") base.pop(); else if (part && part !== ".") base.push(part); } return base.join("/"); }
 function resolveAsset(absolutePath: string, src: string) { return normalizePath(absolutePath.replace(/\\/g, "/"), src); }
 function slug(value: unknown): string { return String(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""); }

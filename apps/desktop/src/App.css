@@ -20,6 +20,20 @@ select {
   font: inherit;
 }
 
+textarea {
+  border: 1px solid #b9c8d1;
+  border-radius: 0.4rem;
+  box-sizing: border-box;
+  font: 0.85rem ui-monospace, SFMono-Regular, Consolas, monospace;
+  min-height: 17rem;
+  padding: 0.75rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.configuration { margin-top: 1.5rem; }
+.configuration-preview { background: #17212b; border-radius: .4rem; color: #f4f7f9; max-height: 24rem; overflow: auto; padding: 1rem; white-space: pre-wrap; }
+
 button {
   cursor: pointer;
 }
