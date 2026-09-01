@@ -119,6 +119,9 @@ pub fn list_document_tree(
     let base = accessible_root(Path::new(&project.source_path), &root.relative_path)?;
 
     let mut tree = read_tree(&base, &base)?;
+    if root.relative_path == "." && root.initial_document_path.as_deref() == Some("README.md") {
+        tree.retain(|entry| entry.path == "README.md");
+    }
     if let Ok(Some(configuration)) = read_shared_configuration(Path::new(&project.source_path)) {
         if validate_configuration(Path::new(&project.source_path), &configuration).is_ok() {
             if let Some(configured_root) = configuration.documentation.roots.iter().find(|item| {
@@ -474,46 +477,54 @@ fn resolve_document(base: &Path, relative_path: &str) -> Result<PathBuf, String>
 }
 
 fn read_tree(base: &Path, current: &Path) -> Result<Vec<DocumentTreeEntry>, String> {
-    let mut entries = fs::read_dir(current)
+    let mut entries = Vec::new();
+    for entry in fs::read_dir(current)
         .map_err(|_| "A raiz documental não está mais disponível.".to_string())?
         .filter_map(Result::ok)
-        .filter_map(|entry| {
-            let path = entry.path();
-            let metadata = entry.metadata().ok()?;
-            if metadata.is_dir() || path.extension().and_then(|item| item.to_str()) == Some("md") {
-                Some((entry, metadata.is_dir()))
-            } else {
-                None
+    {
+        let path = entry.path();
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if metadata.is_dir() {
+            if ignored_document_directory(&name) {
+                continue;
             }
-        })
-        .collect::<Vec<_>>();
-    entries.sort_by_key(|(entry, is_directory)| {
-        (
-            !is_directory,
-            entry.file_name().to_string_lossy().to_lowercase(),
-        )
-    });
-    entries
-        .into_iter()
-        .map(|(entry, is_directory)| {
-            let path = entry.path();
-            let relative = path
-                .strip_prefix(base)
-                .map_err(|_| "Não foi possível montar a árvore documental.".to_string())?
-                .to_string_lossy()
-                .replace('\\', "/");
-            Ok(DocumentTreeEntry {
-                path: relative,
-                name: entry.file_name().to_string_lossy().into_owned(),
-                is_directory,
-                children: if is_directory {
-                    read_tree(base, &path)?
-                } else {
-                    Vec::new()
-                },
-            })
-        })
-        .collect()
+            let children = read_tree(base, &path)?;
+            if children.is_empty() {
+                continue;
+            }
+            entries.push(DocumentTreeEntry {
+                path: relative_path(base, &path)?,
+                name,
+                is_directory: true,
+                children,
+            });
+        } else if path.extension().and_then(|item| item.to_str()) == Some("md") {
+            entries.push(DocumentTreeEntry {
+                path: relative_path(base, &path)?,
+                name,
+                is_directory: false,
+                children: Vec::new(),
+            });
+        }
+    }
+    entries.sort_by_key(|entry| (!entry.is_directory, entry.name.to_lowercase()));
+    Ok(entries)
+}
+
+fn relative_path(base: &Path, path: &Path) -> Result<String, String> {
+    Ok(path
+        .strip_prefix(base)
+        .map_err(|_| "Não foi possível montar a árvore documental.".to_string())?
+        .to_string_lossy()
+        .replace('\\', "/"))
+}
+
+fn ignored_document_directory(name: &str) -> bool {
+    name.starts_with('.') || matches!(name, "node_modules" | "target" | "dist")
 }
 
 #[cfg(test)]
