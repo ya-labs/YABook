@@ -42,7 +42,9 @@ registre a exceção; `do commit` conclui esse ajuste sem exigir issue novamente
 Em `auto`, ajuste pontual sem issue também exige corpo documentado e registro
 desse caminho, sem declarar uso de `bypass` quando ele não foi invocado.
 
-Na sugestão, apresente dois blocos de código separados: **Mensagem** contém o
-assunto e **Descrição** contém o corpo. Não inclua validações na descrição;
+Nos demais commits, inclua descrição somente quando ajudar revisão ou continuidade.
+Quando houver descrição, apresente dois blocos de código separados: **Mensagem**
+contém o assunto e **Descrição** contém o corpo. Caso contrário, apresente apenas
+a mensagem, sem bloco de descrição vazio. Não inclua validações na descrição;
 relate-as no desenvolvimento e no PR. Ao criar o commit, preserve essas partes
 como assunto e corpo da mesma mensagem Git, separados por linha em branco.

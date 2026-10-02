@@ -69,8 +69,8 @@ Regras: [contexto.md](references/contexto.md).
 - Branch: `numero-descricao-curta`; prefira `createLinkedBranch` e confirme
   `issue.linkedBranches` ao preparar branch de issue.
 - Commit: `tipo: descrição curta`. Pacotes e ajustes via `bypass` exigem corpo
-  com motivo e alteração. Sugira `Mensagem` e `Descrição` em blocos separados,
-  sem validações; após `bypass`, registre a exceção.
+  com motivo e alteração. Havendo corpo, separe `Mensagem` e `Descrição`;
+  sem corpo, só `Mensagem`. Sem validações; registre a exceção de `bypass`.
 - PR: título objetivo e vínculo com a issue quando aplicável. PR de pacote usa
   merge commit; squash usa `tipo: descrição (#PR)` e histórico da branch no corpo.
 - Valide contratos de issue, branch, commit e PR, inclusive em `auto`;
