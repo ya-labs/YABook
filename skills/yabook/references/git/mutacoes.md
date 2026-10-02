@@ -7,6 +7,13 @@ específicas. `$yabook dev` é o atalho de implementação da issue atual e não
 gate exclusivo para editar arquivos. Pedidos diretos genéricos fora da issue
 atual não autorizam mutações.
 
+Essa exigência de `do` vale fora de `mode: auto`. Com ativação explícita de
+`auto`, o objetivo delegado autoriza seus pré-requisitos, branches e commits,
+sem aprovação de checkpoints. Operações remotas só entram no pedido autorizado;
+abrir PR inclui push da branch, implementar não implica publicar. Merge exige
+pedido explícito, mas não a sintaxe `do`. Preserve trabalho existente e respeite
+permissões do ambiente. Não infira ativação nem ampliação do objetivo.
+
 Exemplos de mutações:
 
 ```text
@@ -42,6 +49,8 @@ git push
 - `do merge` pode cumprir pré-requisitos do PR e integrar após as validações.
 - Merge exige pedido explícito.
 - `bypass` não substitui `do`.
+- `do commit` de ajuste autorizado via `bypass` não volta a exigir issue ou
+  branch própria; valide assunto e corpo documentado e registre a exceção.
 - `dev` termina antes de commit, PR ou merge e não substitui `do` para essas
   etapas.
 

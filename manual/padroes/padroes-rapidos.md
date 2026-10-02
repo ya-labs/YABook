@@ -55,6 +55,14 @@ ou implementar.
 
 Título objetivo, sem prefixo de tipo.
 
+Uma issue pode reunir um pacote de demandas com objetivo geral, limites e
+condição de encerramento. Novas demandas compatíveis podem entrar durante o
+desenvolvimento sem reescrever a issue inteira; mantenha registro mínimo das
+pendências. Use uma branch e um PR para o pacote.
+
+Ajustes pontuais autorizados via `bypass` podem dispensar issue e branch própria.
+Em `mode: auto`, o agente escolhe esse caminho sem exigir `bypass` a cada ajuste.
+
 Use labels oficiais para indicar tipo, domínio ou agrupamento especial.
 
 Use `Size` no GitHub Project para indicar tamanho. Não coloque tamanho no título.
@@ -146,6 +154,36 @@ fix: corrige validação do token
 chore: ajusta configuração de build
 ```
 
+O assunto mantém esse formato. O corpo, separado por linha em branco, documenta
+motivo e alteração realizada. É obrigatório para entregas
+de pacote e ajustes via `bypass`; nos demais commits, use quando ajudar revisão
+ou continuidade. Escreva proporcionalmente à mudança, sem formulário extenso.
+
+Após implementar via `bypass`, sugira **Mensagem** e **Descrição** em blocos
+de código separados. Não inclua validações na descrição; relate-as no
+desenvolvimento e no PR.
+
+**Mensagem:**
+
+```text
+fix: corrige mensagem de validação
+```
+
+**Descrição:**
+
+```text
+A mensagem indicava o campo obrigatório errado. Atualiza o texto para
+identificar o campo correto.
+
+Ajuste pontual via YABook bypass, sem issue.
+```
+
+Baseie a descrição no diff. No Git, mensagem e descrição são o assunto e corpo
+do mesmo commit, separados por linha em branco. Fora de
+`auto`, criar o commit exige `$yabook do commit`, sem exigir issue novamente.
+Em `auto`, ajuste pontual sem issue também exige corpo documentado; registre
+esse caminho sem afirmar uso de `bypass` quando ele não foi invocado.
+
 <a id="padrao-de-pr"></a>
 
 ## Padrão de PR
@@ -188,3 +226,8 @@ Closes #numero
 ```
 
 Use o bloco `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
+
+PR de issue pacote consolida entregas e validações e usa merge commit para
+preservar os commits originais e suas descrições. Se o repositório não permitir
+merge commit, informe o impedimento e combine uma alternativa que preserve os
+registros; não aplique squash silenciosamente.

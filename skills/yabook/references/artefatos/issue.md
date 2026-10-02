@@ -9,6 +9,18 @@ Consulte [contratos.md](contratos.md) antes de gerar, criar ou validar a issue.
   demanda. Não exija combinação fixa de tipo e domínio.
 - `Size` de `1` a `5` no Project; nunca como label ou no título.
 
+## Issue pacote
+
+Agrupa múltiplas demandas com objetivo geral, limites e condição de encerramento,
+uma branch e um PR. Aceite novas demandas dentro dos limites enquanto estiver
+aberta, sem reescrever o corpo inteiro; registre brevemente pendências aceitas.
+Cada entrega usa commit documentado e o PR usa merge commit. Separe quando risco,
+responsabilidade ou publicação exigir acompanhamento próprio. Após encerrar,
+novas demandas entram em outra issue. Não exija uma issue por demanda do pacote.
+
+Ajustes pontuais via `bypass` ou `auto` podem dispensar issue; consulte essas
+referências conforme a autorização ativa, sem criar vínculo fictício.
+
 ```md
 ## Resumo rápido
 

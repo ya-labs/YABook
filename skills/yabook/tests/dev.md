@@ -2,6 +2,10 @@
 
 ## Profundidade
 
+As autorizações abaixo descrevem o fluxo fora de `auto`. No modo explicitamente
+ativado, confirme execução e checkpoints do próprio objetivo sem pausa, com
+commits documentados e sem publicação além do pedido; veja `workflow.md`.
+
 Confirme que:
 
 - `dev quick` começa com no máximo 3 arquivos, evita GitHub já resolvido e usa

@@ -1,5 +1,9 @@
 # Acompanhamento de etapas
 
+Em `auto`, dispense aprovação de checkpoints. `dev step` executa só a etapa
+solicitada; não conclua o checklist nem amplie decisões. Ajuste pontual pode
+dispensar issue/branch conforme `bypass.md`.
+
 `steps` mantém um checklist apenas na conversa. `steps` fala da lista inteira;
 `step` fala somente da etapa atual.
 

@@ -1,5 +1,8 @@
 # Repasse do contexto atual
 
+Não transfira a ativação de `mode: auto` para o próximo chat. Pode registrar que
+o modo foi usado nesta conversa, mas a nova sessão exige ativação explícita.
+
 Use esta referência para `$yabook resume` e
 `$yabook resume até "<marco, assunto ou mensagem>"`.
 

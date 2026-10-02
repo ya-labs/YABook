@@ -8,6 +8,11 @@ Demanda -> Issue -> Branch -> Implementação -> Commit -> PR -> Merge -> Releas
 
 Não trabalhe duas issues na mesma branch.
 
+Issues pacote agrupam demandas dentro de limites e encerramento claros; novas
+entradas compatíveis dispensam nova issue. Ajustes pontuais via `bypass` ou
+`auto` podem dispensar issue e branch própria, com commit documentado. Consulte
+`artefatos/issue.md` para pacotes e `bypass.md` para ajustes pontuais.
+
 `issue` propõe o artefato; `do issue` cria o conteúdo aprovado. Use título
 objetivo, labels oficiais úteis à organização e `Size` no Project.
 

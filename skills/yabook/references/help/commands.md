@@ -91,3 +91,18 @@ python -m http.server 4173
 
 Modos ajustam colaboração, não permissões. `study` ensina, `work` orienta e
 `prod` executa dentro das autorizações. `mode: work` não equivale a `$yabook dev`.
+
+`mode: auto` é a exceção: autoriza execução contínua do objetivo delegado,
+dispensando `do`, `bypass` e aprovação de checkpoints. Preserve organização,
+validação e trabalho existente; operações remotas dependem do pedido. Vale só
+na conversa do projeto atual até outro modo, sem persistência ou transferência.
+Não amplia permissões do ambiente nem transforma pedidos de prévia em escrita.
+
+## Pacotes e bypass
+
+Issue pacote reúne demandas dentro de limites e encerramento claros, aceita
+novas entradas compatíveis e usa commits documentados e PR com merge commit.
+Para ajuste pontual que caiba em um commit compreensível e validável, recomende
+`bypass`; dispense issue e branch própria só para a ação anexada. Após implementar,
+sugira sempre mensagem e descrição em blocos separados, com motivo, alteração e exceção.
+Fora de `auto`, criar esse commit ainda exige `do commit`, sem exigir issue.

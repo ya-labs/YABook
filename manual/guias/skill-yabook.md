@@ -147,6 +147,11 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 
 ## Segurança dos comandos
 
+As travas de autorização desta seção valem fora de `mode: auto`. Ativado
+explicitamente, `auto` autoriza o objetivo delegado sem exigir `do`, `bypass` ou
+aprovação de checkpoints; preserva trabalho existente e permissões do ambiente.
+Operações remotas dependem do pedido e merge exige pedido explícito.
+
 A trava de `do` vale para solicitações que usam a gramática `$yabook` e,
 globalmente, para qualquer mutação Git em projetos YA LABS. `$yabook dev` é a
 exceção documentada para preparar e implementar a issue atual. Pedidos comuns em
@@ -185,6 +190,17 @@ Se a pessoa pedir apenas o artefato textual, entregue o texto pronto para uso. S
 Em `main`, `dev`, release ou branch incompatível, pedidos diretos devem gerar um
 bloqueio. Confirmação comum não basta. `$yabook bypass <ação>` autoriza somente
 a ação anexada fora do fluxo de issue/branch; não substitui comandos `do`.
+
+Para ajuste pontual que caiba em um commit compreensível e validável, recomende
+`bypass`, considerando impacto e acompanhamento. Após implementar, sugira sempre
+mensagem e descrição em blocos separados, com motivo, alteração e exceção.
+`do commit` conclui o ajuste sem exigir issue de novo. Em `auto`, dispense `bypass`.
+
+Issues pacote aceitam novas demandas dentro de limites e encerramento claros,
+sem reescrever a descrição a cada entrada. Registre pendências brevemente e
+entregas nos commits documentados. O PR usa merge commit para preservar os corpos.
+Consulte o [fluxo](../processos/fluxo-de-trabalho-github.md) e os
+[padrões](../padroes/padroes-rapidos.md) como fontes centrais.
 
 ## Comandos
 
@@ -543,32 +559,37 @@ Ajustes objetivos podem recalcular somente etapas pendentes. Etapas concluídas
 permanecem no histórico. Mudanças de objetivo, escopo ou decisões exigem
 confirmação antes de remodelar o checklist.
 
-Esse recurso não substitui `$yabook plan`, não executa comandos e não remove a
-exigência de `$yabook do` para ações de escrita.
+Esse recurso não substitui `$yabook plan` nem executa comandos; fora de `auto`,
+mantém as autorizações de escrita documentadas.
+
+`auto` dispensa aprovação de checkpoints; `dev step` continua limitado à etapa
+solicitada. A ativação do modo não conclui etapas do checklist.
 
 ## Modos de colaboração
 
 `$yabook mode` reduz a necessidade de prompts longos para ajustar como a IA deve
 atuar durante a conversa.
 
-Modos mudam postura, profundidade e autonomia. Eles não mudam permissões nem
-removem travas de Git, GitHub, issue, `do`, `bypass`, PR, merge ou release.
+`study`, `work` e `prod` mantêm as autorizações existentes. `auto` dispensa
+`do`, `bypass` e aprovação de checkpoints dentro do objetivo delegado, mantendo
+organização, validação, preservação do trabalho e permissões do ambiente.
 
 | Modo | Uso |
 | --- | --- |
 | `study` | Estudo interativo e detalhado de um tema. |
-| `dev` | Mentoria para a pessoa usuária implementar uma tarefa real. |
+| `work` | Mentoria para a pessoa usuária implementar uma tarefa real. |
 | `prod` | Execução delegada ao agente, dentro das autorizações existentes. |
+| `auto` | Execução contínua do objetivo delegado, sem confirmações intermediárias do método. |
 
 Exemplos:
 
 ```text
-$yabook mode: dev
+$yabook mode: work
 $yabook mode: prod - faça os ajustes no estilo do site
-$yabook def mode dev for front-end
+$yabook def mode work for front-end
 ```
 
-Em `mode: dev`, a IA deve guiar o próximo passo, fazer perguntas e revisar o
+Em `mode: work`, a IA deve guiar o próximo passo, fazer perguntas e revisar o
 código enviado. Ela não deve entregar a implementação completa por padrão.
 
 Em `mode: study`, a IA deve ensinar com teoria, prática, exemplos pequenos,
@@ -577,7 +598,7 @@ perguntas de checagem e adaptação às dúvidas.
 Em `mode: prod`, a IA pode implementar, validar e relatar a entrega, desde que
 a solicitação também tenha autorização suficiente para a escrita necessária.
 
-`mode: dev` é modo de colaboração. `$yabook dev` continua sendo o comando
+`mode: work` é modo de colaboração. `$yabook dev` continua sendo o comando
 operacional que prepara, implementa e valida a issue atual.
 
 Mesmo com contexto mínimo disponível, o agente consulta fontes atuais quando:
@@ -590,6 +611,25 @@ Mesmo com contexto mínimo disponível, o agente consulta fontes atuais quando:
 - a pessoa pedir validação de conformidade.
 
 O carregamento não é memória permanente. Em uma nova conversa, o comando deve ser executado novamente.
+
+
+Ative a autonomia explicitamente:
+
+```text
+$yabook mode: auto - implemente as melhorias e organize os commits
+```
+
+Sem objetivo anexado, o modo é ativado e aguarda uma demanda. Pedidos informativos
+e prévias continuam sem escrita. Dentro do objetivo, o agente investiga,
+implementa, valida, organiza branches e commits e escolhe issue individual,
+pacote ou ajuste pontual documentado. Operações remotas só entram quando pedidas;
+abrir PR inclui commit e push da branch, e merge exige pedido explícito.
+
+A ativação vale para a conversa no projeto atual até outro modo. Troca de
+projeto ou nova sessão encerra a autorização. Não persista `auto` por área nem
+transfira sua ativação por `resume`. Preserve alterações existentes, use isolamento
+quando necessário e interrompa somente por decisão indispensável, risco concreto
+de perda ou aprovação exigida pelo ambiente.
 
 ## Saídas esperadas
 
@@ -617,7 +657,7 @@ Ela não deve:
 - sobrescrever arquivos existentes sem aviso;
 - criar pastas vazias para preencher template;
 - executar merge sem pedido explícito;
-- executar um comando YABook de escrita sem `do`;
+- executar escrita sem autorização documentada (`do`, `dev`, `bypass` ou `auto`);
 - tratar `Size` como label;
 - criar memória permanente a partir de `$yabook load`;
 - carregar referências alheias ao comando apenas por precaução;

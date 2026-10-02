@@ -27,6 +27,11 @@ Closes #numero
 Inclua sempre o bloco `Informações para IA` de `contratos.md`, com contexto
 factual útil para revisão ou continuidade.
 
+PR de issue pacote consolida entregas e validações e usa merge commit para
+preservar commits e descrições. Se indisponível no repositório, informe o
+impedimento antes de escolher alternativa; não faça squash silenciosamente.
+No ajuste pontual autorizado sem issue, omita `Closes` e registre a exceção.
+
 Quando houver `pr brief` válido, use-o antes de reler issue, diff ou histórico.
 Revalide a fonte somente se commits, diff, objetivo ou escopo mudarem.
 

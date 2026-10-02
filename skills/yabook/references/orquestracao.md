@@ -25,6 +25,13 @@ Ao receber `$yabook <intenção>`:
 7. peça somente informações que mudem materialmente o caminho;
 8. nunca adicione `do` implicitamente.
 
+Em `mode: auto` explicitamente ativo, pedidos de execução inequívocos autorizam
+o objetivo e seus pré-requisitos sem `do`, `bypass` ou checkpoints aprovados.
+Avance na implementação, validação e commits; execute operações remotas apenas
+quando incluídas no pedido. Não converta perguntas, discussões ou prévias em
+escrita e não infira ativação do modo. As travas de autorização abaixo valem
+fora de `auto`.
+
 Antes de iniciar novas edições, aplique a avaliação descrita em
 `git/checkpoint.md`. Interrompa somente quando as alterações pendentes formarem um bloco
 concluído que deve permanecer separado.

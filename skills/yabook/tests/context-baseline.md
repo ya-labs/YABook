@@ -53,6 +53,8 @@ Além do tamanho, valide:
 - aliases e encadeamentos continuam funcionando;
 - `do` nunca é inferido;
 - as travas Git/GitHub permanecem;
+- `mode: auto` explícito dispensa confirmações do método no objetivo delegado;
+  preserve limites de publicação, trabalho existente e permissões do ambiente.
 - contexto aumenta somente quando falta evidência;
 - comandos complexos preservam profundidade sob demanda.
 

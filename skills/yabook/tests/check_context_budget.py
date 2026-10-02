@@ -14,6 +14,7 @@ ROUTES = {
     "mode study": ("C0", ["references/modes.md", "references/modes/study.md"], 2200, 2),
     "mode work": ("C0", ["references/modes.md", "references/modes/work.md"], 2200, 2),
     "mode prod": ("C0", ["references/modes.md", "references/modes/prod.md"], 2200, 2),
+    "mode auto": ("C0", ["references/modes.md", "references/modes/auto.md"], 2200, 2),
     "steps": ("C0", ["references/steps.md"], 2500, 1),
     "step": ("C0", ["references/steps.md"], 2500, 1),
     "discuss": ("C0", ["references/discuss.md"], 2200, 1),
