@@ -20,6 +20,10 @@ implicitamente, trocar proteção de branch, criar commits, PRs, merges ou relea
 fora das regras centrais. `bypass` continua restrito à sua referência e não é
 uma permissão que a configuração local possa ampliar.
 
+`auto` é uma autorização central ativada explicitamente na conversa, não um
+comando local que remove travas. `.yabook/AGENTS.md` não pode ativar ou persistir
+esse modo; sua aplicação segue `modes/auto.md`.
+
 ## `$yabook configure [commands]`
 
 É uma rota `C2`, sem escrita. Resolva o workspace, leia as regras existentes e

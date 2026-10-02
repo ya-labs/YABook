@@ -32,6 +32,17 @@ class GuardrailsContractTest(unittest.TestCase):
         ):
             self.assertIn(text, self.reference)
 
+    def test_auto_tem_excecao_explicita_nas_travas_globais(self) -> None:
+        self.assertIn("Fora de `mode: auto`", self.reference)
+        self.assertIn("explicitamente ativado", self.reference)
+        self.assertIn("merge exige pedido explícito", self.reference)
+        self.assertIn("Outro modo, projeto ou sessão encerra `auto`", self.reference)
+
+    def test_bypass_exige_sugestao_completa_e_pacote_preserva_corpos(self) -> None:
+        self.assertIn("`Mensagem` e `Descrição` em blocos separados", self.reference)
+        self.assertIn("sem validações na descrição", self.reference)
+        self.assertIn("PR por merge commit", self.reference)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,49 +7,42 @@ description: Orchestrate the YA LABS Method through $yabook commands, issue-driv
 
 ## Fluxo
 
-1. Identifique o comando, alias ou intenção antes de carregar referências.
-2. Use [roteamento.md](references/roteamento.md) só para aliases, encadeamentos
-   ou gramática e [orquestracao.md](references/orquestracao.md) para linguagem
-   natural.
-3. Comandos explícitos usam sua referência direta. Consulte
-   [contexto.md](references/contexto.md) só para auditoria ou ambiguidade.
-4. Resolva [workspace.md](references/workspace.md) somente quando a rota depender
-   do projeto. Workspace e arquivos ativos prevalecem sobre `cwd`.
-5. Em rota de repositório, aplique `.yabook/AGENTS.md` se existir e informe a
-   regra local aplicada.
-6. Amplie quando faltar evidência. Responda em português, com concisão.
+1. Identifique comando e intenção antes de ler.
+2. Comando explícito usa referência direta. Use
+   [roteamento.md](references/roteamento.md) para aliases ou encadeamentos e
+   [orquestracao.md](references/orquestracao.md) para linguagem natural.
+3. [contexto](references/contexto.md): auditoria/ambiguidade.
+4. [workspace](references/workspace.md): rotas de projeto; arquivos ativos
+   prevalecem sobre `cwd`.
+5. Aplique `.yabook/AGENTS.md` existente e informe a regra local.
+6. Amplie por lacuna. Responda em português, com concisão.
 
-`load` atualiza só o contexto mínimo:
-[session-minimo.md](references/session-minimo.md).
+`load` atualiza [contexto mínimo](references/session-minimo.md).
 
 ## Economia de contexto
 
-Antes de ler, classifique a rota: `C0` instantânea, `C1` local mínima, `C2`
-dirigida, `C3` execução incremental ou `C4` profundidade explícita. Não
-ultrapasse a classe sem lacuna, risco, conflito, erro ou pedido; informe o motivo
-antes de ampliar. Não leia por prevenção. Regras completas:
-[contexto.md](references/contexto.md).
+Classifique: `C0` instantânea, `C1` local mínima, `C2` dirigida, `C3` incremental,
+`C4` profundidade explícita. Amplie por lacuna, risco, conflito, erro ou pedido;
+informe o motivo. Não leia por prevenção.
+Regras: [contexto.md](references/contexto.md).
 
 ## Segurança
 
-- Sem `do`, comandos YABook analisam, orientam ou geram texto.
-- Nunca infira `do`.
-- `$yabook dev` é o atalho para preparar, implementar e validar a issue atual;
-  ele não é um gate exclusivo para editar arquivos nem substitui `do` para
-  commit, PR, merge ou release.
-- Mutações Git seguem `$yabook do <ação>`. Leia
-  [git/mutacoes.md](references/git/mutacoes.md) somente quando houver mutação.
-- `bypass` ignora apenas a exigência de issue/branch compatível para a ação
-  anexada. Leia [bypass.md](references/bypass.md); ele não substitui `do`.
-- Execute somente o objetivo autorizado. Merge exige pedido explícito.
-- Antes de editar, atualize status, diffs staged/unstaged e último commit. Se
-  houver outro bloco concluído, aplique
-  [git/checkpoint.md](references/git/checkpoint.md).
-- Reutilize contexto válido; consulte fontes adicionais somente diante de
-  lacuna. Faça uma inspeção inicial e uma validação final.
-- Limite saídas de ferramenta a 4.000 caracteres. Orçamentos:
-  [ia.md](references/ia.md).
-- Não invente fatos, requisitos ou decisões.
+- Fora de `auto`, não infira `do`: análise/prévia, salvo autorizações de `dev`
+  e `bypass`.
+- `dev` implementa e valida a issue; fora de `auto`, termina antes de commit/PR.
+  Não é gate exclusivo para editar nem autoriza merge/release.
+- `bypass` dispensa issue/branch só para a ação anexada; não autoriza Git.
+- `auto` explícito dispensa `do`, `bypass` e aprovação de checkpoints no objetivo.
+  Vale na conversa do projeto atual até outro modo; sem persistir ou transferir.
+  Permissões do ambiente continuam válidas.
+- Git: `do` ou delegação em `auto`. Leia [mutações](references/git/mutacoes.md)
+  só ao executar. Respeite o objetivo; merge exige pedido explícito.
+- Antes de editar, atualize status, diffs staged/unstaged e último commit;
+  aplique [checkpoint](references/git/checkpoint.md) a trabalho independente.
+- Reutilize contexto; uma inspeção inicial e validação final. Reabra por lacuna.
+  Saídas de ferramenta: até 4.000 caracteres.
+  Orçamentos: [ia.md](references/ia.md). Não invente fatos ou decisões.
 
 ## Referências diretas
 
@@ -58,58 +51,40 @@ antes de ampliar. Não leia por prevenção. Regras completas:
   [resume](references/resume.md).
 - Artefatos: [issue](references/artefatos/issue.md),
   [branch/commit](references/artefatos/branch-commit.md),
-  [PR/release](references/artefatos/pr-release.md).
-- Contratos de artefatos: [canônicos](references/artefatos/contratos.md) para
-  issue, branch, commit e PR.
-- Briefs: [contrato](references/briefs.md).
+  [PR/release](references/artefatos/pr-release.md),
+  [contratos canônicos](references/artefatos/contratos.md), [briefs](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
   [apk](references/apk.md), [rebase](references/rebase.md), [init](references/init.md),
   [docs](references/documentacao.md), [configure](references/configure.md),
-  [guardrails](references/guardrails.md).
+  [guardrails](references/guardrails.md), [bypass](references/bypass.md).
 - Qualidade: [check/review](references/quality.md).
 - Planejamento: [índice](references/planejamento/index.md).
-- Contexto sob demanda: [workspace](references/workspace.md),
-  [Git](references/git.md), [GitHub](references/github.md),
-  [IA](references/ia.md), [load](references/session-minimo.md).
+- Contexto: [workspace](references/workspace.md), [Git](references/git.md),
+  [GitHub](references/github.md), [IA](references/ia.md).
 
-## Regras de execução
+## Execução e saída
 
-- Comandos encadeados com `&` executam da esquerda para a direita e reutilizam
-  somente o contexto coletado que continuar válido.
-- Issue usa título objetivo, labels oficiais úteis à organização e `Size` de
-  `1` a `5` no Project.
-- Branch usa `numero-descricao-curta`.
-- Commit usa `tipo: descrição curta`.
-- PR usa título objetivo e mantém vínculo com a issue.
-- Antes de qualquer `do` de issue, branch, commit ou PR, valide o contrato do
-  artefato e interrompa diante de campos ausentes ou inválidos.
-- Em `do branch` ou `dev`, prefira `createLinkedBranch` e confirme
-  `issue.linkedBranches`.
-- `apk` apenas apresenta a prévia com base em `.yabook/apk.json`; `do apk`
-  copia o APK já gerado para o nome padronizado e remove cópias preparadas
-  antigas.
-- Ao concluir `dev`, apresente `Como testar` e o relatório `O que foi feito`,
-  `Como foi feito`, `Por que foi feito assim` e `Observações para revisão`.
-- No squash merge, use `tipo: descrição (#PR)` e registre no corpo o histórico
-  da branch contra a base.
-
-## Saída
-
-- Entregue somente o artefato ou resultado solicitado.
-- Mostre roteamento apenas quando ele for inferido, corrigido ou composto.
-- Enquanto houver checklist `steps` ativo, inclua uma única vez seu estado
-  compacto na resposta final de qualquer comando YABook. Coloque o bloco após
-  o resultado principal e imediatamente antes de `Próxima etapa`, sem inventar
-  progresso nem avançar automaticamente a etapa atual.
-- Encerre respostas YABook com `Próxima etapa`, indicando uma única ação útil
-  posterior ao comando atual. Em prévias de artefato sem `do`, informe no
-  resultado principal a autorização necessária para materializá-lo, mas não
-  use `Próxima etapa` apenas para repetir `$yabook do <ação>`: indique a ação
-  útil posterior, quando ela for conhecida. Quando não houver continuação
-  segura, informe que o fluxo depende de revisão ou aprovação da pessoa, sem
-  inventar comando, decisão ou autorização de merge.
-- Antes da resposta final de uma prévia de artefato sem `do`, verifique que a
-  autorização necessária está fora de `Próxima etapa` e que essa seção não
-  contém apenas `$yabook do <ação>`. `dev step` executa a etapa atual conforme
-  seu contexto.
-- Quando alterar arquivos, sugira uma mensagem de commit.
+- Encadeamentos `&`: esquerda para direita, reutilizando contexto válido.
+- Issue: título objetivo, labels oficiais e `Size` de `1` a `5` no Project.
+- Branch: `numero-descricao-curta`; prefira `createLinkedBranch` e confirme
+  `issue.linkedBranches` ao preparar branch de issue.
+- Commit: `tipo: descrição curta`. Pacotes e ajustes via `bypass` exigem corpo
+  com motivo e alteração. Sugira `Mensagem` e `Descrição` em blocos separados,
+  sem validações; após `bypass`, registre a exceção.
+- PR: título objetivo e vínculo com a issue quando aplicável. PR de pacote usa
+  merge commit; squash usa `tipo: descrição (#PR)` e histórico da branch no corpo.
+- Valide contratos de issue, branch, commit e PR, inclusive em `auto`;
+  interrompa por campo ausente ou inválido.
+- `apk` mostra prévia de `.yabook/apk.json`; `do apk` copia APK já gerado e remove
+  cópias preparadas antigas.
+- `dev`: `Como testar` e relatório `O que foi feito`, `Como foi feito`,
+  `Por que foi feito assim` e `Observações para revisão`.
+- Entregue o resultado. Mostre roteamento só se inferido, corrigido ou composto.
+  Sugira commit ao alterar arquivos; em `auto`, informe
+  commits realizados ou sugira mensagem para alterações ainda sem commit.
+- `steps` ativo: estado compacto uma vez antes de `Próxima etapa`, após o resultado,
+  sem inventar progresso. `dev step` executa só a etapa atual.
+- Encerre com `Próxima etapa`: ação útil posterior ou fluxo concluído. Na prévia,
+  autorização fica fora dessa seção; não repita só `do` como continuação. Sem
+  caminho seguro, informe revisão pendente sem inventar comando ou autorização.
+  Confira antes da resposta final.

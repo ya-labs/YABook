@@ -47,6 +47,13 @@ em linguagem natural; a IA deve ajudar a delimitá-la sem inventar requisitos.
 
 Antes de orientar ou executar uma alteração relevante, verifique se existe uma issue relacionada.
 
+Issues pacote podem receber novas demandas dentro dos limites aprovados, sem
+exigir uma issue por entrada. Ajustes pontuais via `bypass` dispensam issue e
+branch própria; após implementar, sugira mensagem e descrição em blocos separados.
+Em `mode: auto` explicitamente ativo, escolha o caminho adequado e execute o
+objetivo delegado sem `do`, `bypass` ou aprovação de checkpoints. Consulte as
+referências centrais para os contratos, preservando permissões do ambiente.
+
 Antes de alterar arquivos, valide:
 
 1. Branch atual.
@@ -77,13 +84,20 @@ Quando alterar arquivos neste repositório, termine a resposta com uma sugestão
 
 ### Trava obrigatória de Git
 
-Comandos Git que alteram estado local ou remoto só podem ser executados quando a
+Fora de `mode: auto`, comandos Git que alteram estado local ou remoto só podem ser executados quando a
 pessoa usar `$yabook do <ação>` ou `$yabook dev` dentro do escopo de preparação
 e implementação da issue atual.
 
 Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
 para o remoto” não autorizam a mutação. Oriente a pessoa a repetir o pedido com
 `$yabook do`.
+
+Em `auto`, a delegação substitui essas confirmações dentro do objetivo solicitado.
+Operações remotas dependem do pedido e merge exige pedido explícito. O modo vale
+na conversa do projeto atual até outro modo; não persista nem transfira a
+ativação. Preserve trabalho existente, use isolamento quando necessário e faça
+checkpoints do próprio trabalho sem pausa. As regras de checkpoint abaixo
+descrevem o fluxo fora de `auto`.
 
 Inspeções somente leitura, como `git status`, `git diff`, `git log` e consulta da
 branch atual, continuam permitidas.
@@ -102,7 +116,8 @@ permita `continue` quando outra issue ou branch tornar a separação obrigatóri
 
 ## Padrões de GitHub
 
-Cada mudança relevante no YABook deve ter issue própria e seguir o fluxo documentado em:
+Cada mudança relevante segue o fluxo individual, de pacote ou de ajuste pontual
+documentado conforme as fontes centrais:
 
 - `manual/padroes/padroes-rapidos.md`
 - `manual/processos/fluxo-de-trabalho-github.md`

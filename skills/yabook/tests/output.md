@@ -2,6 +2,12 @@
 
 ## Contratos de artefato
 
+Inclua os casos de `workflow.md`: assunto e corpo de commit são aceitos; pacotes
+e ajustes via `bypass` exigem corpo documentado. `do commit` após `bypass` não
+reintroduz exigência de issue. PR de pacote preserva descrições por merge commit.
+Na sugestão, confira blocos de código separados para `Mensagem` e `Descrição`,
+sem validações na descrição. Elas permanecem no relatório e no PR.
+
 Confirme que os comandos retornam somente os campos previstos em
 `references/artefatos/contratos.md` e não incluem análise, confiança,
 autorização operacional ou orientação de fluxo dentro do artefato.
@@ -14,6 +20,10 @@ Para issue e PR, confirme o bloco recolhido `Informações para IA`, seus cinco
 tópicos obrigatórios e a ausência de uma listagem redundante de arquivos.
 
 ## Prévia de artefato
+
+Pedidos de prévia continuam textuais também em `auto`. Não exija `do` para
+materializar um objetivo de execução já delegado nesse modo, nem execute escrita
+a partir de uma pergunta ou prévia. Os casos por comando abaixo valem fora de `auto`.
 
 Para `$yabook issue`, `$yabook branch`, `$yabook commit message`, `$yabook pr`,
 `$yabook release` e outros comandos que geram prévia sem `do`, confirme que:
@@ -38,6 +48,10 @@ pré-requisitos mínimos conforme o contrato específico, sem ampliar a
 autorização para a próxima ação do fluxo.
 
 ## Rebase seguro
+
+Em `auto`, siga a autorização contínua de `rebase.md`, preservando inspeção e
+intenções dos dois lados; não exija nova sintaxe `do` para um rebase já delegado.
+Os bloqueios de confirmação abaixo descrevem o fluxo fora de `auto`.
 
 Para `$yabook rebase`, confirme que a resposta não altera estado e informa a
 branch atual, base candidata, upstream, divergências, commits envolvidos, risco

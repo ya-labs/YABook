@@ -5,6 +5,14 @@ Use ao criar, atualizar, revisar ou integrar PR e release.
 PR usa título objetivo, corpo baseado no artefato aprovado e vínculo
 `Closes #numero`.
 
+## Merge de pacote
+
+PR de issue pacote usa merge commit para preservar assuntos, corpos e commits
+originais. Consolide entregas e validações no PR. Confira se o repositório
+permite essa estratégia antes de integrar; se não permitir, informe e obtenha
+uma decisão que preserve os registros, sem trocar por squash silenciosamente.
+Em ajuste pontual autorizado sem issue, omita `Closes` e registre a exceção.
+
 ## Squash merge
 
 Assunto:

@@ -64,6 +64,11 @@ Problema, ajuste ou melhoria
 
 Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](../padroes/padroes-rapidos.md).
 
+Também existem issue pacote, com demandas evolutivas dentro de limites claros,
+e ajuste pontual via `bypass`, com commit documentado sem issue ou branch própria.
+O pacote usa uma branch, um PR e merge commit para preservar os corpos dos commits.
+Veja o [fluxo completo](../processos/fluxo-de-trabalho-github.md).
+
 Com a skill:
 
 ```text
@@ -488,7 +493,7 @@ vez de misturar assuntos.
 Use `mode` quando quiser mudar a postura da IA sem repetir um prompt longo.
 
 ```text
-$yabook mode: dev
+$yabook mode: work
 $yabook mode: prod - faça os ajustes no estilo do site
 $yabook mode: study - me ensine requisições HTTP no React
 ```
@@ -498,19 +503,40 @@ Os modos são:
 | Modo | Objetivo |
 | --- | --- |
 | `study` | Estudar um tema com explicação progressiva, exemplos e perguntas. |
-| `dev` | Desenvolver uma tarefa real com mentoria, mantendo a pessoa no teclado. |
+| `work` | Desenvolver uma tarefa real com mentoria, mantendo a pessoa no teclado. |
 | `prod` | Delegar a execução ao agente. |
+| `auto` | Executar o objetivo delegado sem exigir `do`, `bypass` ou aprovação de checkpoints. |
 
 Também é possível definir um modo por área do projeto:
 
 ```text
-$yabook def mode dev for front-end
+$yabook def mode work for front-end
 $yabook def mode prod for estilos do site
 ```
 
-Modos não alteram permissões. `prod` não substitui `do`, `bypass` nem as travas
-de Git/GitHub. `mode: dev` é modo de colaboração e não equivale ao comando
+`study`, `work` e `prod` não alteram autorizações. `prod` não substitui `do`,
+`bypass` nem as travas de Git/GitHub. `auto` é a exceção para as confirmações
+do método dentro do objetivo delegado; permissões do ambiente continuam válidas. `mode: work` é modo de colaboração e não equivale ao comando
 operacional `$yabook dev`.
+
+
+Ative a autonomia explicitamente:
+
+```text
+$yabook mode: auto - implemente as melhorias e organize os commits
+```
+
+Sem objetivo anexado, o modo é ativado e aguarda uma demanda. Pedidos informativos
+e prévias continuam sem escrita. Dentro do objetivo, o agente investiga,
+implementa, valida, organiza branches e commits e escolhe issue individual,
+pacote ou ajuste pontual documentado. Operações remotas só entram quando pedidas;
+abrir PR inclui commit e push da branch, e merge exige pedido explícito.
+
+A ativação vale para a conversa no projeto atual até outro modo. Troca de
+projeto ou nova sessão encerra a autorização. Não persista `auto` por área nem
+transfira sua ativação por `resume`. Preserve alterações existentes, use isolamento
+quando necessário e interrompa somente por decisão indispensável, risco concreto
+de perda ou aprovação exigida pelo ambiente.
 
 ---
 
@@ -649,6 +675,8 @@ substituem a revisão técnica. Em `$yabook dev step`, o bloco deve ficar restri
 
 A skill identifica a issue, prepara e vincula a branch, atualiza o status,
 implementa e valida. Sem issue inequívoca, ela interrompe e pede a indicação.
+Essa exigência descreve o fluxo individual fora de `auto`; o modo autônomo
+escolhe issue, pacote ou ajuste pontual conforme o objetivo delegado.
 O vínculo da branch é confirmado por leitura na própria issue; publicar uma
 branch no remoto, isoladamente, não conta como vínculo concluído.
 
@@ -671,9 +699,9 @@ $yabook dev & do merge
 
 O primeiro fluxo cria commits coerentes, envia a branch e abre ou atualiza o PR.
 O segundo também valida as condições e faz merge. `dev` sozinho para antes do
-commit.
+commit fora de `auto`; nesse modo, o objetivo delegado pode incluir commits.
 
-Antes de uma alteração direta em `main`, `dev`, release ou branch incompatível,
+Fora de `auto`, antes de uma alteração direta em `main`, `dev`, release ou branch incompatível,
 a IA deve bloquear a execução. Uma confirmação comum não é suficiente. Para
 autorizar a exceção, repita a ação com:
 
@@ -684,6 +712,12 @@ $yabook bypass atualize o README diretamente na main
 O `bypass` autoriza somente a ação anexada fora do fluxo de issue/branch. Ele não
 substitui `do issue`, `do branch`, `do commit`, `do pr`, `do release` ou
 `do merge`, nem autoriza merge implicitamente.
+
+Recomende `bypass` para ajuste que forme um commit compreensível e validável,
+considerando impacto e acompanhamento. Após implementar, sugira sempre mensagem e descrição
+em blocos separados, com motivo, alteração e exceção.
+`$yabook do commit` conclui o ajuste sem exigir issue de novo. Em `auto`,
+a delegação dispensa tanto `bypass` quanto `do commit`.
 
 A IA deve seguir o formato documentado do YABook mesmo que o projeto tenha issues ou PRs antigos em outro padrão. Use o formato histórico do projeto apenas quando a pessoa usuária pedir explicitamente.
 

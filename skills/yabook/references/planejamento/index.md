@@ -20,5 +20,5 @@ Princípios comuns:
 - GitHub guarda andamento operacional;
 - planeje a versão em alto nível e detalhe apenas o próximo bloco;
 - decisões recentes e entregas reais prevalecem sobre texto antigo;
-- sem `do`, não altere arquivos nem sistemas externos.
+- fora de `auto`, sem `do`, não altere arquivos nem sistemas externos.
 - use `plan brief` válido antes de reler a discussão ou documentos longos.

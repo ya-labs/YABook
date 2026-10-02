@@ -31,4 +31,18 @@ Tipos comuns: `feat`, `fix`, `docs`, `chore`, `refactor`.
 
 Para sugerir a mensagem, use conversa, `git diff --stat` e `git diff` quando
 necessário. Não carregue Project, release ou corpos de issues sem relação.
-Criar commit exige autorização `do` e valida a mensagem antes da mutação.
+Fora de `auto`, criar commit exige `do`. Valide a mensagem antes da mutação.
+
+Em `mode: auto`, a delegação substitui `do` dentro do objetivo solicitado.
+Aceite assunto e corpo separados por linha em branco. Pacotes e ajustes via
+`bypass` exigem descrição com motivo e alteração realizada,
+proporcional à mudança. Após `bypass`, sugira sempre a mensagem completa e
+registre a exceção; `do commit` conclui esse ajuste sem exigir issue novamente.
+
+Em `auto`, ajuste pontual sem issue também exige corpo documentado e registro
+desse caminho, sem declarar uso de `bypass` quando ele não foi invocado.
+
+Na sugestão, apresente dois blocos de código separados: **Mensagem** contém o
+assunto e **Descrição** contém o corpo. Não inclua validações na descrição;
+relate-as no desenvolvimento e no PR. Ao criar o commit, preserve essas partes
+como assunto e corpo da mesma mensagem Git, separados por linha em branco.

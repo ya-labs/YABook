@@ -5,6 +5,12 @@ um projeto sem misturar conversa, decisão, documentação e execução.
 
 ## Regra de segurança
 
+As autorizações por comando abaixo descrevem o fluxo fora de `mode: auto`.
+Com ativação explícita, execute o objetivo delegado sem `do`, `bypass` ou
+checkpoints aprovados, preservando organização, validação e trabalho existente.
+Operações remotas só entram quando solicitadas; permissões do ambiente continuam
+válidas. Veja [modos de colaboração](skill-yabook.md#modos-de-colaboração).
+
 Dentro da gramática `$yabook`, comandos sem `do` analisam, perguntam, revisam ou
 geram propostas.
 

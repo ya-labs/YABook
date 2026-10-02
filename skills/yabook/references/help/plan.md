@@ -14,4 +14,5 @@ Para `$yabook help plan`, apresente:
 | `do plan` | Gravar decisões aprovadas. |
 | `do plan roadmap` | Criar a estrutura aprovada no GitHub. |
 
-Comandos sem `do` não escrevem. `plan discuss` continua como alias de `discuss`.
+Fora de `auto`, comandos sem `do` não escrevem. Pedidos informativos continuam
+sem escrita em qualquer modo. `plan discuss` continua como alias de `discuss`.

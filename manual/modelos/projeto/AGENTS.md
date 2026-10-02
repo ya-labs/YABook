@@ -25,6 +25,13 @@ A IA deve:
 Quando surgir um problema, ajuste ou melhoria nova, transforme a demanda em uma
 issue antes de criar branch ou implementar.
 
+O YABook também prevê issue pacote com demandas evolutivas dentro de limites
+claros e ajuste pontual via `bypass`, sem issue ou branch própria. Após `bypass`,
+sugira mensagem e descrição do commit em blocos separados. Em `mode: auto`
+explicitamente ativo, escolha o caminho adequado e execute o objetivo delegado
+sem `do`, `bypass` ou aprovação de checkpoints, preservando trabalho existente,
+validação e permissões do ambiente. Use os contratos centrais do YABook.
+
 Fluxo esperado:
 
 ```text
@@ -61,13 +68,19 @@ Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo
 
 ### Trava obrigatória de Git
 
-Comandos Git que alteram estado local ou remoto só podem ser executados quando a
+Fora de `mode: auto`, comandos Git que alteram estado local ou remoto só podem ser executados quando a
 pessoa usar `$yabook do <ação>` ou `$yabook dev` dentro do escopo de preparação
 e implementação da issue atual.
 
 Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
 para o remoto” não autorizam a mutação. A IA deve orientar a pessoa a repetir o
 pedido com `$yabook do`.
+
+Em `auto`, a delegação autoriza os passos necessários ao objetivo sem essas
+confirmações. Operações remotas dependem do pedido e merge exige pedido explícito.
+Outro modo, troca de projeto ou nova sessão encerra a autorização; não persista
+a ativação. Separe trabalho alheio, prefira isolamento e faça checkpoints do
+próprio trabalho sem pausa. As regras de checkpoint abaixo valem fora de `auto`.
 
 Inspeções somente leitura, como `git status`, `git diff`, `git log` e consulta da
 branch atual, continuam permitidas.

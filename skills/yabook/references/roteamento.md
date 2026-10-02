@@ -22,6 +22,8 @@ Subcomandos textuais:
 - `resume [até "<marco, assunto ou mensagem>"]`;
 - `sync local|remote`.
 - `rebase [base]`, em que `base` é uma branch base informada explicitamente.
+- `mode: auto [objetivo]` ativa autorização contínua na conversa do projeto atual;
+  outro modo encerra. Não aceite definição persistente de `auto` por área.
 
 ## Aliases
 
@@ -44,6 +46,8 @@ Subcomandos textuais:
 
 Leia `orquestracao.md`, selecione o menor fluxo suficiente e mostre o roteamento
 inferido. Nunca infira `do` ou `dev`.
+Em `auto` explicitamente ativo, pedidos naturais inequívocos autorizam o objetivo
+sem exigir `do`; perguntas e prévias continuam informativas. Não infira o modo.
 
 ## Encadeamento
 
@@ -71,3 +75,6 @@ de escrita de um segmento não se estende aos demais.
 - `do pr` pode cumprir commit e push necessários ao PR.
 - `do merge` pode preparar o PR, mas merge continua explícito.
 - `bypass` não autoriza Git nem substitui `do`.
+- As exigências de `do` acima valem fora de `auto`. Em `auto`, execute o objetivo
+  delegado sem `do`, `bypass` ou aprovação de checkpoints, preservando trabalho
+  existente; operações remotas e merge dependem do pedido correspondente.

@@ -1,20 +1,23 @@
 # `$yabook bypass <ação>`
 
-Autoriza somente a ação anexada diretamente em `main`, `dev`, release ou outra
-branch incompatível, ignorando a exigência normal de issue e branch própria.
+Autoriza só a ação anexada, inclusive em `main`, `dev`, release ou branch
+incompatível, dispensando issue e branch própria.
 
-`bypass`:
+Recomende para ajuste pontual que forme um commit compreensível e validável;
+considere impacto e acompanhamento, não só número de commits. Se crescer,
+proponha issue individual ou pacote.
 
-- vale apenas para a solicitação atual;
-- não autoriza mutações Git;
-- não substitui `$yabook do`;
-- não cria issue, branch, commit, PR, release ou merge;
-- não autoriza merge implicitamente;
-- não desativa proteções contra ações destrutivas;
-- não dispensa regras locais relevantes.
+`bypass` vale só na solicitação atual; não autoriza mutações Git, não substitui
+`do`, não cria artefatos nem autoriza merge. Preserve regras locais e proteções
+contra ações destrutivas.
 
-Antes de editar, confirme somente a ação anexada, a branch e o worktree. Não
-carregue planejamento, Project, release ou formatos de artefatos sem necessidade
-demonstrada.
+Antes de editar, confira ação, branch e worktree. Não carregue planejamento,
+Project ou release sem necessidade.
 
-Depois da ação, informe a exceção aplicada e uma única próxima etapa.
+Após implementar, informe a exceção e sugira o commit completo: assunto
+`tipo: descrição curta` e corpo com motivo, alteração e registro de ajuste via `bypass`, sem issue quando aplicável.
+Use o diff real; não basta o assunto. Validações ficam no relatório e no PR.
+Apresente `Mensagem` e `Descrição` em dois blocos de código separados.
+
+Fora de `auto`, criar o commit exige `do commit`, sem exigir issue novamente.
+Em `auto`, ajuste pontual dispensa invocar `bypass`. Encerre com uma próxima etapa.

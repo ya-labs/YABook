@@ -25,6 +25,11 @@ Problema, ajuste ou melhoria
 
 Não trabalhe duas issues diferentes na mesma branch.
 
+Esse é o fluxo individual. Issues pacote agrupam demandas dentro de limites
+comuns; ajustes pontuais podem seguir a exceção documentada via `bypass`.
+`mode: auto` dispensa confirmações do método dentro do objetivo delegado, sem
+dispensar organização, validação ou preservação de trabalho existente.
+
 ## Entrada de uma nova demanda
 
 Quando a pessoa citar algo novo que precisa ser feito:
@@ -52,6 +57,49 @@ principal da execução.
 Não exija que a pessoa chegue com uma issue já escrita. Ela pode descrever a
 necessidade em linguagem natural; a IA deve ajudar a convertê-la em trabalho
 executável sem inventar requisitos.
+
+### Issues pacote
+
+Use para um conjunto de demandas que possa ser desenvolvido, revisado e entregue
+no mesmo ciclo. Defina objetivo geral, limites e condição de encerramento
+(entrega combinada, versão ou conclusão do conjunto em andamento).
+
+- Uma issue, uma branch e um PR organizam o pacote.
+- Novas demandas compatíveis podem entrar enquanto a issue estiver aberta, sem
+  abrir outra issue nem reescrever sua descrição a cada entrada.
+- Registre brevemente demandas aceitas ainda pendentes; commits documentam as
+  entregas realizadas, não substituem o acompanhamento do que falta.
+- A IA verifica o enquadramento de cada nova demanda usando o pedido e os
+  limites existentes. Mudanças relevantes de risco, responsabilidade ou forma
+  de publicação justificam separar trabalho ou revisar esses limites.
+- Depois do encerramento, novas demandas entram em outro pacote ou issue.
+- O PR consolida entregas e validações e usa merge commit para preservar os
+  commits e seus corpos; não substitua por squash silenciosamente.
+
+### Ajustes pontuais
+
+Recomende `$yabook bypass <ajuste>` quando a alteração tiver objetivo específico,
+impacto delimitado e puder formar um único commit compreensível e validável.
+Um commit grande ou arriscado ainda pode justificar issue própria.
+
+`bypass` dispensa issue e branch própria só para a ação anexada. Confira branch e
+worktree e preserve trabalho de outra responsabilidade. Depois da implementação,
+sugira o commit completo conforme [Padrões rápidos](../padroes/padroes-rapidos.md),
+registrando motivo, alteração e exceção. Fora de `auto`, crie o commit
+somente com `$yabook do commit`, sem voltar a exigir issue para essa conclusão.
+
+### Execução autônoma
+
+`$yabook mode: auto` ativa autorização contínua na conversa do projeto atual.
+O agente escolhe o caminho adequado, implementa, valida, organiza branches e
+commits sem exigir `do`, `bypass` ou aprovação de checkpoints do próprio trabalho.
+Operações remotas só entram quando fazem parte do pedido; merge exige pedido
+explícito, dispensando a sintaxe `do`. Pedidos informativos continuam sem escrita.
+
+Preserve alterações existentes e use isolamento quando necessário. Interrompa
+somente por decisão indispensável, risco concreto de perder trabalho ou aprovação
+exigida pelo ambiente. Outro modo, troca de projeto ou nova sessão encerra essa
+autorização; não persista a ativação. Veja [Skill YABook](../guias/skill-yabook.md).
 
 ## GitHub Projects
 

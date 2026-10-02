@@ -8,6 +8,7 @@ referências carregadas, fontes consultadas e respeito às travas.
 | `$yabook help` | `help` | `help.md` | workspace, Git, GitHub |
 | `$yabook mode: study` | `mode` | `modes.md`, `modes/study.md` | workspace, GitHub |
 | `$yabook mode: work` | `mode` | `modes.md`, `modes/work.md` | workspace, GitHub |
+| `$yabook mode: auto` | `mode` | `modes.md`, `modes/auto.md` | Git, GitHub; aguarda objetivo sem escrita |
 | `$yabook steps` | `steps` | `steps.md` | Git, artefatos |
 | `$yabook steps start init` | `steps start init` | `steps.md`, `init.md` | Git, artefatos |
 | `$yabook steps start plan` | `steps start plan` | `steps.md`, `planejamento/geral.md` | Git, artefatos |
@@ -64,6 +65,10 @@ Pergunte se a pessoa quer iniciar uma versão, revisar a atual ou discutir uma
 capacidade. Não escolha versão nem infira escrita.
 
 ## Segurança
+
+Os bloqueios por ausência de `do` abaixo descrevem o comportamento fora de
+`auto`. Com ativação explícita, use os casos de `workflow.md`; perguntas e
+prévias permanecem somente leitura, e operações remotas dependem do pedido.
 
 ```text
 $yabook crie a issue e a branch

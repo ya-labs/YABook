@@ -11,6 +11,10 @@ pessoa solicite separadamente cada pré-requisito operacional.
 gate exclusivo para editar arquivos e termina antes de commit, Pull Request e
 merge, salvo quando outro comando encadeado autorizar essas entregas.
 
+Em `auto`, implemente, valide e organize commits sem `do` ou checkpoint aprovado.
+Escolha issue, pacote ou ajuste pontual documentado; este dispensa issue/branch.
+Operações remotas dependem do pedido. As travas abaixo valem fora de `auto`.
+
 ## Profundidade
 
 ### `$yabook dev quick`
@@ -70,9 +74,11 @@ antes de ampliar novamente. `full` não amplia escopo nem permissões.
 7. Consulte GitHub somente quando faltar informação da issue, vínculo, status
    ou preparação da branch.
 8. Se mais de uma issue for plausível, peça a escolha.
-9. Se não houver issue, pare e indique `$yabook do: issue`.
+9. Fora de `auto` ou ajuste autorizado via `bypass`, se não houver issue, pare
+   e indique `$yabook do: issue`.
 
 Não crie uma issue silenciosamente.
+Em `auto`, crie a issue necessária e informe; ajuste pontual elegível dispensa issue.
 Se workspace, branch e issue apontarem para repositórios incompatíveis,
 interrompa antes de qualquer escrita.
 
@@ -100,6 +106,8 @@ Quando houver issue inequívoca, `dev` aciona:
 - executar testes, validações e correções da implementação.
 
 Use branch `numero-descricao-curta`. Não misture issues na mesma branch.
+Pacotes aceitam novas demandas nos limites; registre pendências, documente
+commits e use merge commit no PR.
 Ao criar a branch, aplique `github/branches.md`: use
 `createLinkedBranch`, confirme o nome em `issue.linkedBranches` e só então
 prepare o tracking local. Se o vínculo nativo não estiver disponível, informe o
@@ -184,4 +192,5 @@ $yabook dev & do merge
   merge.
 
 Não peça confirmações intermediárias para pré-requisitos já autorizados pelo
-objetivo. Nunca faça merge sem `do merge`.
+objetivo. Fora de `auto`, nunca faça merge sem `do merge`; em `auto`, o pedido
+de merge deve ser explícito, sem exigir essa sintaxe.

@@ -83,13 +83,17 @@ Use modos para evitar prompts longos sobre a postura esperada da IA.
 | Modo | Objetivo | Papel da IA |
 | --- | --- | --- |
 | `study` | Estudar um tema. | Ensinar com explicação progressiva, prática e perguntas de checagem. |
-| `dev` | Implementar uma tarefa real com orientação. | Guiar a pessoa usuária, revisar tentativas e evitar assumir a execução por padrão. |
+| `work` | Implementar uma tarefa real com orientação. | Guiar a pessoa usuária, revisar tentativas e evitar assumir a execução por padrão. |
 | `prod` | Delegar a implementação. | Executar, validar e relatar a entrega dentro das autorizações existentes. |
+| `auto` | Delegar execução contínua. | Implementar, validar e organizar commits sem confirmações intermediárias do método. |
 
-Modos não mudam permissões. Em projetos YA LABS, mutações Git, GitHub, PR, merge
-e release continuam seguindo as travas do YABook.
+`study`, `work` e `prod` mantêm as autorizações existentes. `auto` exige ativação
+explícita e dispensa `do`, `bypass` e aprovação de checkpoints dentro do objetivo
+delegado; preserve trabalho existente e permissões do ambiente. Operações remotas
+dependem do pedido e merge exige pedido explícito. A ativação vale na conversa
+do projeto atual até outro modo, sem persistência ou transferência para sessões.
 
-`mode: dev` indica mentoria de implementação. Ele não é o mesmo que o comando
+`mode: work` indica mentoria de implementação. Ele não é o mesmo que o comando
 operacional `$yabook dev`.
 
 ## Rastreabilidade
@@ -101,6 +105,11 @@ Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge
 ```
 
 Se a IA identificar que não existe issue ou que a branch atual não combina com a mudança, deve avisar antes de editar ou registrar a exceção quando o usuário pedir para prosseguir.
+
+Issues pacote agrupam demandas compatíveis e usam commits documentados e merge
+commit. Ajustes pontuais via `bypass` dispensam issue e branch própria; ao final,
+sugira mensagem e descrição em blocos separados, com motivo, alteração e exceção. Em `auto`, o
+agente escolhe esse caminho sem exigir `bypass`. Consulte os padrões centrais.
 
 ## Contrato operacional obrigatório
 

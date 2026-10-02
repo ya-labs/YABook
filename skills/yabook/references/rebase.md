@@ -2,6 +2,14 @@
 
 Use para atualizar uma branch de trabalho sobre sua base correta sem substituir merge, Pull Request ou release.
 
+Em `auto`, pedidos inequívocos para atualizar a base autorizam inspeção e rebase
+sem exigir `do` ou confirmação repetida. Preserve as verificações de worktree,
+base e histórico compartilhado; prefira integração que preserve o histórico do
+pacote. Resolva conflitos apenas quando a intenção dos dois lados for inequívoca;
+pare por decisão indispensável ou risco concreto. Publicação e reescrita remota
+exigem estar no pedido; não infira push forçado de um pedido de implementação.
+As exigências de confirmação por comando abaixo descrevem o fluxo fora de `auto`.
+
 ## Comandos
 
 `$yabook rebase [base]` é uma rota `C2` somente leitura. Ela inspeciona e orienta, mas não executa `fetch`, `rebase`, stash, reset, restore, push ou outra mutação.

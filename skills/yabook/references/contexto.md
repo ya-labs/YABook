@@ -38,6 +38,7 @@ ampliação.
 | --- | --- | --- | --- | --- |
 | `help` | `C0` | `help.md` | nenhum | tópico solicitado, sem repositório |
 | `mode` | `C0` | `modes.md`, modo solicitado | conversa | regras por área já citadas |
+| `mode: auto` | `C0` | `modes.md`, `modes/auto.md` | conversa e projeto atual | execução anexada segue sua rota própria |
 | `steps` | `C0` | `steps.md` | checklist da conversa | `steps/replanning.md` diante de desvio |
 | `step` | `C0` | `steps.md` | etapa atual da conversa | `steps/replanning.md` diante de desvio |
 | `discuss` | `C0` | `discuss.md` | conversa | redirecione para rota dependente do projeto se precisar de fatos |

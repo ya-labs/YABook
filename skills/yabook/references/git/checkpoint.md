@@ -49,3 +49,13 @@ ou branch.
 
 Antes do commit, confira os arquivos e não inclua mudanças de outro escopo.
 Depois do commit autorizado, retome automaticamente a solicitação original.
+
+## Em mode: auto
+
+Mantenha a inspeção, mas não peça aprovação de checkpoints do próprio objetivo:
+valide e crie commits coerentes e prossiga. Trabalho de outra responsabilidade
+continua separado; prefira worktree isolado para continuar sem carregar alterações
+para outra branch. Não faça commit de trabalho alheio nem stash, restore ou reset
+para liberar o fluxo sem autorização correspondente. Interrompa apenas se não
+houver caminho que preserve o trabalho sem decisão indispensável ou aprovação
+do ambiente. `auto` dispensa confirmação do método, não preservação e isolamento.
