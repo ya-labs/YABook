@@ -106,8 +106,11 @@ Demanda -> Issue -> Branch -> Implementação -> Commit -> Pull Request -> Merge
 
 Se a IA identificar que não existe issue ou que a branch atual não combina com a mudança, deve avisar antes de editar ou registrar a exceção quando o usuário pedir para prosseguir.
 
-Issues pacote agrupam demandas compatíveis e usam commits documentados e merge
-commit. Ajustes pontuais via `bypass` dispensam issue e branch própria; ao final,
+`issue package` mantém descrição estável e genérica, sem lista de demandas ou
+pendências. Pedidos orientam entregas, registradas em commits documentados e no
+PR por merge commit. Em dupla, use a mesma branch por turnos. Issues e PRs não
+contêm checklists, inclusive nos blocos para IA. Ajustes pontuais via `bypass`
+dispensam issue e branch própria; ao final,
 sugira mensagem e descrição em blocos separados, com motivo, alteração e exceção. Em `auto`, o
 agente escolhe esse caminho sem exigir `bypass`. Consulte os padrões centrais.
 

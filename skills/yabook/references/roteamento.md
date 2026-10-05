@@ -15,7 +15,7 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 
 Subcomandos textuais:
 
-- `issue title|desc|classify|brief`;
+- `issue title|desc|classify|brief|package`;
 - `pr title|desc|brief`;
 - `plan brief`;
 - `steps start [init|plan]|done <número>|cancel`, `step`;
@@ -24,6 +24,11 @@ Subcomandos textuais:
 - `rebase [base]`, em que `base` é uma branch base informada explicitamente.
 - `mode: auto [objetivo]` ativa autorização contínua na conversa do projeto atual;
   outro modo encerra. Não aceite definição persistente de `auto` por área.
+
+`issue package [propósito]` usa diretamente `artefatos/issue-package.md` e
+`artefatos/contratos.md`, sem inferir `do`. `do issue package` cria esse artefato;
+`do issue` mantém o tipo da prévia aprovada. Não confunda com `issue batch`,
+que prepara múltiplas issues. `issue desc` de pacote usa seu contrato próprio.
 
 ## Aliases
 

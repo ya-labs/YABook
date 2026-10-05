@@ -16,6 +16,7 @@ $budgets = @{
     'references\roteamento.md' = 4000
     'references\quality.md' = 2800
     'references\artefatos\issue.md' = 2800
+    'references\artefatos\issue-package.md' = 2800
     'references\artefatos\branch-commit.md' = 2800
     'references\artefatos\pr-release.md' = 2800
     'references\planejamento\diagnose.md' = 2800

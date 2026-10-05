@@ -47,8 +47,11 @@ em linguagem natural; a IA deve ajudar a delimitá-la sem inventar requisitos.
 
 Antes de orientar ou executar uma alteração relevante, verifique se existe uma issue relacionada.
 
-Issues pacote podem receber novas demandas dentro dos limites aprovados, sem
-exigir uma issue por entrada. Ajustes pontuais via `bypass` dispensam issue e
+`issue package` mantém descrição estável e genérica, sem listar demandas ou
+pendências. Novos pedidos orientam entregas registradas em commits documentados
+e no PR por merge commit. Em dupla, use a mesma branch por turnos. Issues e PRs
+não contêm checklists, inclusive nos blocos para IA. Ajustes via `bypass` dispensam
+issue e
 branch própria; após implementar, sugira mensagem e descrição em blocos separados.
 Em `mode: auto` explicitamente ativo, escolha o caminho adequado e execute o
 objetivo delegado sem `do`, `bypass` ou aprovação de checkpoints. Consulte as

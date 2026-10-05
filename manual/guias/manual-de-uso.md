@@ -64,9 +64,12 @@ Problema, ajuste ou melhoria
 
 Para formatos de issue, branch, commit e PR, consulte [Padrões rápidos](../padroes/padroes-rapidos.md).
 
-Também existem issue pacote, com demandas evolutivas dentro de limites claros,
-e ajuste pontual via `bypass`, com commit documentado sem issue ou branch própria.
-O pacote usa uma branch, um PR e merge commit para preservar os corpos dos commits.
+`$yabook issue package` prepara uma issue de propósito geral e descrição
+estável, sem listar demandas. `do issue package` cria o pacote. Novos pedidos
+orientam o desenvolvimento sem atualizar a issue; uma branch, commits documentados
+e um PR por merge commit registram as entregas. Em dupla, use a mesma branch
+por turnos. Issues e PRs usam texto ou bullets simples, sem checklists.
+Ajustes pontuais via `bypass` usam commit documentado sem issue ou branch própria.
 Veja o [fluxo completo](../processos/fluxo-de-trabalho-github.md).
 
 Com a skill:

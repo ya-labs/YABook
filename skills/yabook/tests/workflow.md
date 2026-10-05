@@ -5,10 +5,15 @@ execução real de Git ou GitHub. Use repositório descartável para ensaios com
 
 | Entrada e estado | Resultado esperado |
 | --- | --- |
-| Issue pacote aberta; pedido de nova demanda dentro dos limites | Usa a mesma issue/branch, registra pendência brevemente e não reescreve o corpo inteiro. |
-| Demanda que muda risco, responsável ou publicação do pacote | Sinaliza necessidade de separar ou revisar limites antes de ampliar o objetivo. |
+| `issue package` com documento de cinco pontos | Prepara registro genérico estável; não copia os pontos para escopo, aceite ou IA, nem exige formulário. |
+| `do issue package` ou `do issue` após a prévia de pacote | Cria o formato próprio, com labels oficiais e Size; não aplica escopo e aceite do formato individual. |
+| Issue pacote aberta; nova demanda | Usa a mesma issue/branch sem editar o corpo ou acrescentar pendências; executa o pedido autorizado e documenta a entrega no commit. |
+| Dupla assume o turno na mesma branch | Confere branch/worktree e atualiza commits publicados, preservando trabalho local e autorizações Git. |
+| Dupla entrega o turno | Valida e documenta commits; publica quando autorizado, sem edição simultânea ou branch obrigatória por pessoa. |
 | Pacote encerrado; nova demanda | Propõe outra issue ou pacote. |
-| PR de pacote com merge commit disponível | Consolida entregas/validações e preserva commits e corpos por merge commit. |
+| PR de pacote com merge commit disponível | Resume assuntos e corpos de ambas as pessoas contra a base; confere o diff final e preserva commits por merge commit. |
+| Histórico inclui entrega revertida ou removida | Não declara essa entrega como presente no resultado final. |
+| Issue ou PR comum, pacote ou bloco para IA | Usa texto/bullets sem checklists ou caixas de progresso. `steps` da conversa continua permitido. |
 | Repositório permite só squash | Informa impedimento; não troca a estratégia silenciosamente. |
 | `bypass` de ajuste pontual sem issue | Implementa e sugere `Mensagem` e `Descrição` em blocos separados, com motivo, alteração e exceção, sem validações na descrição e sem criar commit. |
 | `do commit` após esse `bypass` | Valida e registra o commit completo, sem exigir issue/branch própria novamente. |

@@ -8,7 +8,9 @@ PR usa título objetivo, corpo baseado no artefato aprovado e vínculo
 ## Merge de pacote
 
 PR de issue pacote usa merge commit para preservar assuntos, corpos e commits
-originais. Consolide entregas e validações no PR. Confira se o repositório
+originais. Resuma assuntos e corpos contra a base, incluindo ambas as pessoas
+em dupla, e confira o diff final para excluir entregas revertidas ou removidas.
+Registre validações sem checklists, inclusive no bloco para IA. Confira se o repositório
 permite essa estratégia antes de integrar; se não permitir, informe e obtenha
 uma decisão que preserve os registros, sem trocar por squash silenciosamente.
 Em ajuste pontual autorizado sem issue, omita `Closes` e registre a exceção.

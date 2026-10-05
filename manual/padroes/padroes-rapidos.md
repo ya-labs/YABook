@@ -55,10 +55,14 @@ ou implementar.
 
 Título objetivo, sem prefixo de tipo.
 
-Uma issue pode reunir um pacote de demandas com objetivo geral, limites e
-condição de encerramento. Novas demandas compatíveis podem entrar durante o
-desenvolvimento sem reescrever a issue inteira; mantenha registro mínimo das
-pendências. Use uma branch e um PR para o pacote.
+`$yabook issue package` prepara um registro estável do propósito geral do pacote.
+Não liste demandas iniciais, pontos do documento recebido ou pendências no corpo.
+Novos pedidos orientam o desenvolvimento sem atualizar a issue. Use uma branch,
+commits documentados e um PR; o merge encerra o pacote. Em dupla, compartilhe a
+branch trabalhando por turnos, conforme o [fluxo](../processos/fluxo-de-trabalho-github.md).
+
+Issues e PRs são registros documentais: use texto ou bullets simples, sem
+checklists ou caixas de progresso, inclusive nos blocos para IA.
 
 Ajustes pontuais autorizados via `bypass` podem dispensar issue e branch própria.
 Em `mode: auto`, o agente escolhe esse caminho sem exigir `bypass` a cada ajuste.
@@ -227,7 +231,9 @@ Closes #numero
 
 Use o bloco `Informações para IA` apenas quando houver contexto útil para revisão ou continuidade.
 
-PR de issue pacote consolida entregas e validações e usa merge commit para
-preservar os commits originais e suas descrições. Se o repositório não permitir
+PR de issue pacote resume os assuntos e corpos dos commits contra a base,
+incluindo entregas de ambas as pessoas quando houver dupla. Confira o diff final
+para não declarar alterações revertidas ou removidas. Registre validações e use
+merge commit para preservar os commits originais e suas descrições. Se o repositório não permitir
 merge commit, informe o impedimento e combine uma alternativa que preserve os
 registros; não aplique squash silenciosamente.

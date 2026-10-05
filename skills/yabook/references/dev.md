@@ -1,7 +1,5 @@
 # Desenvolvimento orientado pela issue
 
-Use esta referência para `$yabook dev`.
-
 ## Objetivo
 
 Desenvolver a demanda atual de ponta a ponta até a validação, sem exigir que a
@@ -51,7 +49,7 @@ etapa atual. É uma rota `C3`.
 - só avance por confirmação explícita ou por nova ação inequívoca da pessoa
   usuária que confirme a etapa anterior.
 
-O relato pós-etapa faz parte da entrega. Em `desenvolvimento`, use o relatório
+Em `desenvolvimento`, use o relatório
 técnico obrigatório e `Como testar`; nos demais contextos, registre somente o
 resultado contextual para parecer antes do avanço.
 
@@ -70,7 +68,7 @@ antes de ampliar novamente. `full` não amplia escopo nem permissões.
 3. Faça uma única inspeção inicial conforme `git/checkpoint.md`.
 4. Identifique a issue pela conversa, branch ou referência explícita.
 5. Prefira o brief válido; releia a fonte longa somente diante de lacuna.
-6. Confirme objetivo, escopo e critérios de aceite com o contexto disponível.
+6. Confirme a demanda; em pacote, use o pedido/documento atual, sem atualizar a issue.
 7. Consulte GitHub somente quando faltar informação da issue, vínculo, status
    ou preparação da branch.
 8. Se mais de uma issue for plausível, peça a escolha.
@@ -106,8 +104,8 @@ Quando houver issue inequívoca, `dev` aciona:
 - executar testes, validações e correções da implementação.
 
 Use branch `numero-descricao-curta`. Não misture issues na mesma branch.
-Pacotes aceitam novas demandas nos limites; registre pendências, documente
-commits e use merge commit no PR.
+Em pacote, documente commits e use merge commit no PR. Em dupla, mesma branch
+por turnos; consulte `artefatos/issue-package.md` quando faltar coordenação.
 Ao criar a branch, aplique `github/branches.md`: use
 `createLinkedBranch`, confirme o nome em `issue.linkedBranches` e só então
 prepare o tracking local. Se o vínculo nativo não estiver disponível, informe o

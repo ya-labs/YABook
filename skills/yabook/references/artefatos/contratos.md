@@ -15,6 +15,8 @@ as ações `do`.
   listas em issue, PR ou contexto de IA.
 - `Size` é sempre um campo do Project; nunca label, título ou conteúdo de
   branch, commit e PR.
+- Issue e PR usam texto e bullets documentais, sem checklists ou caixas de
+  progresso (`- [ ]`, `- [x]`). Aceite e validação são descritos, sem marcação manual.
 - Antes de `do issue`, `do branch`, `do commit` ou `do pr`, valide o artefato
   correspondente. Não corrija conteúdo silenciosamente.
 - Em `auto`, valide os mesmos contratos antes de executar artefatos delegados.
@@ -30,6 +32,7 @@ as ações `do`.
 | `issue title` | `Título` |
 | `issue desc` | `Corpo` |
 | `issue` | `Título`, `Corpo`, `Labels sugeridas` e `Size (Project)` |
+| `issue package` | `Título`, `Corpo`, `Labels sugeridas` e `Size (Project)` |
 | `branch name` e `branch` | `Nome` |
 | `commit message` | `Mensagem` e `Descrição` quando houver corpo |
 | `pr title` | `Título` |
@@ -55,13 +58,16 @@ quando explicarem uma decisão, risco ou ponto relevante de continuidade.
 ```
 
 Não transforme esse bloco em relação de arquivos alterados, histórico
-transitório ou conteúdo que não tenha impacto na continuidade.
+transitório ou conteúdo que não tenha impacto na continuidade. Em issue pacote,
+preencha apenas o contexto geral estável; não copie demandas, pendências ou
+validações por entrega. Entregas ficam nos commits e no PR; validações, no PR.
 
 ## Validação antes de ações `do`
 
 | Ação | Campos e formato obrigatórios |
 | --- | --- |
 | `do issue` | título objetivo; corpo com `Resumo rápido`, `Escopo`, `Critérios de aceite` e `Informações para IA`; labels do catálogo confirmado; `Size` de `1` a `5` no Project. |
+| `do issue package` | título objetivo; corpo estável com `Resumo rápido` e `Informações para IA`, sem lista de demandas; labels oficiais e `Size` de `1` a `5`. `do issue` após prévia de pacote usa este contrato. |
 | `do branch` | uma issue inequívoca; nome no formato `numero-descricao-curta`; número igual ao da issue; sem tipo, `#`, acentos ou espaços. |
 | `do commit` | assunto `tipo: descrição curta`, com tipo aceito e descrição não vazia; corpo separado por linha em branco, obrigatório para pacotes e ajustes via `bypass`. |
 | `do pr` | título objetivo; corpo com objetivo, entrega, vínculo `Closes #numero` e `Informações para IA`; número vinculado à issue confirmada. |
@@ -75,9 +81,11 @@ transitório ou conteúdo que não tenha impacto na continuidade.
 | Commit | assunto válido, com corpo documentado quando aplicável. | assunto sem tipo ou descrição; corpo obrigatório ausente ou conteúdo não confirmado. |
 | PR | título e corpo com vínculo confirmado e bloco de IA factual. | `Closes` ausente ou divergente, contexto de IA ausente, listagem de arquivos como contexto ou decisão/vínculo inventado. |
 
-Para pacotes, valide objetivo geral, limites, encerramento e registro mínimo de
-pendências. Novas demandas compatíveis não exigem nova issue nem reescrita do
-corpo inteiro. PR de pacote consolida entregas e validações e usa merge commit.
+Pacotes usam `issue-package.md`: valide propósito geral e descrição estável,
+sem exigir `Escopo`, critérios por demanda, limites ou encerramento preenchidos.
+Não copie o documento recebido nem acrescente pendências à issue. O PR resume
+commits documentados contra a base, confere o diff final e usa merge commit.
+O merge encerra o pacote. Issues e PRs com checklists de progresso são inválidos.
 Nos contratos de branch e PR, as exigências de número e `Closes` aplicam-se ao
 fluxo com issue; ajuste pontual autorizado sem issue é exceção explícita.
 O ajuste pontual em `auto` também exige corpo documentado, com registro de ajuste

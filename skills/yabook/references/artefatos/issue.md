@@ -8,15 +8,15 @@ Consulte [contratos.md](contratos.md) antes de gerar, criar ou validar a issue.
 - Sugira somente labels do catálogo oficial que melhorem a organização da
   demanda. Não exija combinação fixa de tipo e domínio.
 - `Size` de `1` a `5` no Project; nunca como label ou no título.
+- Issues são registros documentais: use texto ou bullets simples, sem checklists
+  de progresso ou caixas para marcar desenvolvimento.
 
-## Issue pacote
+## `$yabook issue package`
 
-Agrupa múltiplas demandas com objetivo geral, limites e condição de encerramento,
-uma branch e um PR. Aceite novas demandas dentro dos limites enquanto estiver
-aberta, sem reescrever o corpo inteiro; registre brevemente pendências aceitas.
-Cada entrega usa commit documentado e o PR usa merge commit. Separe quando risco,
-responsabilidade ou publicação exigir acompanhamento próprio. Após encerrar,
-novas demandas entram em outra issue. Não exija uma issue por demanda do pacote.
+Use [issue-package.md](issue-package.md) como contrato próprio: descrição geral
+estável, sem lista de demandas, escopo evolutivo ou checklist. Uma branch
+compartilhada por vez e um PR reúnem as entregas documentadas nos commits.
+`do issue package` cria; `do issue` preserva uma prévia inequívoca de pacote.
 
 Ajustes pontuais via `bypass` ou `auto` podem dispensar issue; consulte essas
 referências conforme a autorização ativa, sem criar vínculo fictício.

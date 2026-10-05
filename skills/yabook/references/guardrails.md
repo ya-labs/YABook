@@ -46,8 +46,10 @@ ambíguo, pare sem escrever e informe a correção necessária.
   `Mensagem` e `Descrição` em blocos separados, com motivo, alteração e exceção,
   sem validações na descrição. Fora de `auto`, não
   crie o commit sem `$yabook do commit`; em `auto`, informe os commits realizados.
-- Issues pacote aceitam demandas dentro de limites e encerramento claros,
-  com commits documentados e PR por merge commit para preservar as descrições.
+- `issue package` mantém descrição estável, sem listar demandas ou pendências.
+  Novos pedidos geram commits documentados e PR por merge commit. Em dupla, use
+  a mesma branch por turnos, preservando trabalho e autorizações de Git.
+- Corpos de issues e PRs não contêm checklists, inclusive nas informações para IA.
 <!-- YABOOK-GUARDRAILS:END -->
 ```
 

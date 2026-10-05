@@ -54,6 +54,7 @@ ampliação.
 | `configure [commands]` | `C2` | `configure.md`, `workspace.md` | regras existentes e entrevista | arquivos ou fluxos citados pela pessoa |
 | `issue title` | `C2` | `artefatos/issue.md` | demanda da conversa | código/docs só para delimitar requisito |
 | `issue`, `issue desc`, `classify` | `C2` | `artefatos/issue.md` | demanda e regras locais | `github/issues-projects.md` ao validar ou criar |
+| `issue package` | `C2` | `artefatos/issue-package.md`, `artefatos/contratos.md` | propósito geral da conversa | sem copiar demandas; GitHub ao criar |
 | `issue brief`, `plan brief`, `pr brief` | `C2` | `briefs.md` | conversa e fontes já válidas | fonte longa somente diante de lacuna concreta |
 | `pr title` | `C2` | `artefatos/pr-release.md` | issue e diff stat | commits quando o título não for evidente |
 | `pr`, `pr desc` | `C2` | `artefatos/pr-release.md` | issue, diff e commits | `github/pr-release.md` ao criar, atualizar ou revisar |
@@ -75,6 +76,7 @@ ampliação.
 | `do apk` | `C3` | `apk.md`, `git/checkpoint.md` | configuração, branch, worktree e artefato | `git/mutacoes.md` quando necessário |
 | `do configure` | `C3` | `configure.md`, `git/checkpoint.md` | proposta confirmada e configuração atual | arquivo citado para preservar regra válida |
 | `do rebase` | `C3` | `rebase.md`, `git/checkpoint.md`, `git/mutacoes.md` | inspeção atual, autorização, worktree e base confirmada | PR/remoto somente para confirmar risco ou divergência |
+| `do issue package` | `C3` | `artefatos/issue-package.md`, `artefatos/contratos.md`, `github/issues-projects.md`, `git/mutacoes.md` | autorização e prévia do pacote | pré-requisitos mínimos |
 | `do <artefato>` | `C3` | referência do artefato e capacidades específicas | autorização e estado atual | pré-requisitos mínimos |
 | `diagnose full` | `C4` | `planejamento/diagnose.md` | escopo confirmado | lotes filtrados com motivo |
 | `check full`, `review full` | `C4` | `quality.md`, referência do artefato | escopo confirmado | lotes filtrados com motivo |

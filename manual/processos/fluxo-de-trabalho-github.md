@@ -25,8 +25,8 @@ Problema, ajuste ou melhoria
 
 Não trabalhe duas issues diferentes na mesma branch.
 
-Esse é o fluxo individual. Issues pacote agrupam demandas dentro de limites
-comuns; ajustes pontuais podem seguir a exceção documentada via `bypass`.
+Esse é o fluxo individual. Issues pacote registram o propósito geral de um
+conjunto de entregas; ajustes pontuais podem seguir a exceção via `bypass`.
 `mode: auto` dispensa confirmações do método dentro do objetivo delegado, sem
 dispensar organização, validação ou preservação de trabalho existente.
 
@@ -52,7 +52,8 @@ $yabook do branch
 
 `$yabook issue` transforma a demanda em uma proposta pronta para revisão.
 `$yabook do issue` cria o item aprovado no GitHub. A issue passa a ser a fonte
-principal da execução.
+principal da execução individual. Use texto ou bullets simples em issues e PRs,
+sem checklists de progresso, inclusive nos blocos para IA.
 
 Não exija que a pessoa chegue com uma issue já escrita. Ela pode descrever a
 necessidade em linguagem natural; a IA deve ajudar a convertê-la em trabalho
@@ -60,21 +61,39 @@ executável sem inventar requisitos.
 
 ### Issues pacote
 
-Use para um conjunto de demandas que possa ser desenvolvido, revisado e entregue
-no mesmo ciclo. Defina objetivo geral, limites e condição de encerramento
-(entrega combinada, versão ou conclusão do conjunto em andamento).
+`$yabook issue package [propósito geral]` prepara a prévia;
+`$yabook do issue package` cria o pacote. `do issue` depois de uma prévia
+inequívoca de pacote mantém esse formato. Não confunda com `issue batch`, que
+prepara várias issues.
+
+A issue identifica o pacote com uma descrição estável e genérica. Não exija
+formulário de demandas iniciais, limites ou encerramento. Não copie os pontos de
+um documento recebido para escopo, critérios de aceite ou informações para IA.
+O documento e os pedidos autorizados orientam o desenvolvimento; podem ser
+referenciados quando útil, sem duplicação na issue.
 
 - Uma issue, uma branch e um PR organizam o pacote.
-- Novas demandas compatíveis podem entrar enquanto a issue estiver aberta, sem
-  abrir outra issue nem reescrever sua descrição a cada entrada.
-- Registre brevemente demandas aceitas ainda pendentes; commits documentam as
-  entregas realizadas, não substituem o acompanhamento do que falta.
-- A IA verifica o enquadramento de cada nova demanda usando o pedido e os
-  limites existentes. Mudanças relevantes de risco, responsabilidade ou forma
-  de publicação justificam separar trabalho ou revisar esses limites.
-- Depois do encerramento, novas demandas entram em outro pacote ou issue.
-- O PR consolida entregas e validações e usa merge commit para preservar os
-  commits e seus corpos; não substitua por squash silenciosamente.
+- Novas demandas entram pelos pedidos, sem editar o corpo ou registrar pendências
+  na issue e sem exigir uma issue por entrada.
+- Cada entrega fica registrada em um commit documentado.
+- O PR resume assuntos e corpos dos commits contra a base e confere o diff final,
+  evitando declarar entregas revertidas ou removidas.
+- Use merge commit para preservar os commits e seus corpos. Se indisponível,
+  informe o impedimento antes de escolher uma alternativa.
+- O merge do PR encerra o pacote; demandas posteriores usam outro pacote ou issue.
+
+#### Trabalho em dupla
+
+As duas pessoas usam a mesma branch, trabalhando por turnos. Combine quem assume
+o pedido atual e mantenha documentos e referências acessíveis a ambas.
+
+Ao assumir, confira branch e worktree e atualize a partir dos commits publicados
+pela outra pessoa, preservando alterações locais. Ao entregar o turno, valide,
+registre commits documentados e publique o trabalho autorizado. Fora de `auto`,
+as mutações seguem `do`; a coordenação não concede autorização Git.
+
+Evite edição simultânea nessa branch. O PR final reúne as entregas das duas
+pessoas, sem exigir issue ou branch por pessoa.
 
 ### Ajustes pontuais
 

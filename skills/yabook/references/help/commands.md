@@ -100,8 +100,11 @@ Não amplia permissões do ambiente nem transforma pedidos de prévia em escrita
 
 ## Pacotes e bypass
 
-Issue pacote reúne demandas dentro de limites e encerramento claros, aceita
-novas entradas compatíveis e usa commits documentados e PR com merge commit.
+`issue package [propósito]` prepara a prévia; `do issue package` cria. A issue
+mantém descrição estável sem lista de demandas; novos pedidos dispensam atualizar
+o corpo. Use commits documentados e PR baseado em assuntos, corpos e diff final,
+com merge commit. Em dupla, use a mesma branch por turnos. Issues e PRs não
+contêm checklists; `steps` continua disponível na conversa.
 Para ajuste pontual que caiba em um commit compreensível e validável, recomende
 `bypass`; dispense issue e branch própria só para a ação anexada. Após implementar,
 sugira sempre mensagem e descrição em blocos separados, com motivo, alteração e exceção.

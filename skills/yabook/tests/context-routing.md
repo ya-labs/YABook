@@ -112,3 +112,12 @@ seguintes não avançaram sem confirmação explícita ou nova ação inequívoc
 pessoa usuária. No contexto de desenvolvimento, confirme também o relatório
 técnico obrigatório de `dev` com os quatro títulos exatos; nos demais contextos,
 confirme somente o relato contextual da etapa.
+
+## Rotas de pacote
+
+- `issue package`: C2, `artefatos/issue-package.md` e `artefatos/contratos.md`, prévia.
+- `do issue package`: C3, mesmas referências mais `github/issues-projects.md`
+  e `git/mutacoes.md`, criação autorizada.
+- `do issue` após prévia inequívoca de pacote preserva o contrato de pacote.
+- `issue desc` de pacote consulta o contrato próprio; `issue batch` continua
+  preparando múltiplas issues.

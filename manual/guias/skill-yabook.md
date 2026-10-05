@@ -196,9 +196,11 @@ Para ajuste pontual que caiba em um commit compreensível e validável, recomend
 mensagem e descrição em blocos separados, com motivo, alteração e exceção.
 `do commit` conclui o ajuste sem exigir issue de novo. Em `auto`, dispense `bypass`.
 
-Issues pacote aceitam novas demandas dentro de limites e encerramento claros,
-sem reescrever a descrição a cada entrada. Registre pendências brevemente e
-entregas nos commits documentados. O PR usa merge commit para preservar os corpos.
+`$yabook issue package` prepara uma issue de descrição estável, sem listar
+demandas ou copiar pontos de documentos. `do issue package` cria o pacote. Novos
+pedidos não exigem atualizar a issue; as entregas ficam nos commits documentados
+e no resumo do PR, que usa merge commit. Em dupla, use a mesma branch por turnos.
+Corpos de issues e PRs não contêm checklists, inclusive nas informações para IA.
 Consulte o [fluxo](../processos/fluxo-de-trabalho-github.md) e os
 [padrões](../padroes/padroes-rapidos.md) como fontes centrais.
 
@@ -242,6 +244,8 @@ Consulte o [fluxo](../processos/fluxo-de-trabalho-github.md) e os
 | `$yabook continue` | Rejeita uma ação contextual opcional e retoma a solicitação. |
 | `$yabook dev` | Prepara, implementa e valida a issue atual. |
 | `$yabook dev step` | Implementa somente a etapa atual de um checklist ativo. |
+| `$yabook issue package [propósito]` | Prepara um pacote documental estável, sem lista de demandas. |
+| `$yabook do issue package` | Cria o pacote aprovado. |
 | `$yabook issue` | Gera título e descrição completa de issue no padrão YABook. |
 | `$yabook issue title` | Gera apenas o título objetivo da issue. |
 | `$yabook issue desc` | Gera apenas o corpo objetivo da issue. |

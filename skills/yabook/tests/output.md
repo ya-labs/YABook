@@ -84,3 +84,9 @@ comando atual.
 
 Confirme que `Próxima etapa` informa fluxo concluído quando não houver
 continuação útil ou confiável.
+
+## Corpos documentais
+
+Em `issue`, `issue package`, `issue desc`, `pr` e `pr desc`, confira texto ou
+bullets simples sem caixas de progresso, inclusive nas informações para IA.
+Não replique o checklist de `steps` no corpo; ele continua válido na conversa.

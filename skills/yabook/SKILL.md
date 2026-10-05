@@ -12,18 +12,16 @@ description: Orchestrate the YA LABS Method through $yabook commands, issue-driv
    [roteamento.md](references/roteamento.md) para aliases ou encadeamentos e
    [orquestracao.md](references/orquestracao.md) para linguagem natural.
 3. [contexto](references/contexto.md): auditoria/ambiguidade.
-4. [workspace](references/workspace.md): rotas de projeto; arquivos ativos
-   prevalecem sobre `cwd`.
+4. [workspace](references/workspace.md): projeto; arquivos ativos prevalecem sobre `cwd`.
 5. Aplique `.yabook/AGENTS.md` existente e informe a regra local.
-6. Amplie por lacuna. Responda em português, com concisão.
+6. Responda em português, com concisão.
 
 `load` atualiza [contexto mínimo](references/session-minimo.md).
 
 ## Economia de contexto
 
-Classifique: `C0` instantânea, `C1` local mínima, `C2` dirigida, `C3` incremental,
-`C4` profundidade explícita. Amplie por lacuna, risco, conflito, erro ou pedido;
-informe o motivo. Não leia por prevenção.
+Classes: `C0` instantânea, `C1` mínima, `C2` dirigida, `C3` incremental, `C4` profunda explícita.
+Amplie por lacuna, risco, conflito, erro ou pedido; informe o motivo. Não leia por prevenção.
 Regras: [contexto.md](references/contexto.md).
 
 ## Segurança
@@ -40,7 +38,7 @@ Regras: [contexto.md](references/contexto.md).
   só ao executar. Respeite o objetivo; merge exige pedido explícito.
 - Antes de editar, atualize status, diffs staged/unstaged e último commit;
   aplique [checkpoint](references/git/checkpoint.md) a trabalho independente.
-- Reutilize contexto; uma inspeção inicial e validação final. Reabra por lacuna.
+- Reuse contexto; uma inspeção inicial e validação final. Reabra por lacuna.
   Saídas de ferramenta: até 4.000 caracteres.
   Orçamentos: [ia.md](references/ia.md). Não invente fatos ou decisões.
 
@@ -50,6 +48,7 @@ Regras: [contexto.md](references/contexto.md).
   [steps](references/steps.md), [discuss](references/discuss.md),
   [resume](references/resume.md).
 - Artefatos: [issue](references/artefatos/issue.md),
+  [issue package](references/artefatos/issue-package.md),
   [branch/commit](references/artefatos/branch-commit.md),
   [PR/release](references/artefatos/pr-release.md),
   [contratos canônicos](references/artefatos/contratos.md), [briefs](references/briefs.md).
@@ -66,6 +65,7 @@ Regras: [contexto.md](references/contexto.md).
 
 - Encadeamentos `&`: esquerda para direita, reutilizando contexto válido.
 - Issue: título objetivo, labels oficiais e `Size` de `1` a `5` no Project.
+  `issue package`: descrição estável, sem lista de demandas. Issue/PR sem checklists.
 - Branch: `numero-descricao-curta`; prefira `createLinkedBranch` e confirme
   `issue.linkedBranches` ao preparar branch de issue.
 - Commit: `tipo: descrição curta`. Pacotes e ajustes via `bypass` exigem corpo
@@ -79,12 +79,10 @@ Regras: [contexto.md](references/contexto.md).
   cópias preparadas antigas.
 - `dev`: `Como testar` e relatório `O que foi feito`, `Como foi feito`,
   `Por que foi feito assim` e `Observações para revisão`.
-- Entregue o resultado. Mostre roteamento só se inferido, corrigido ou composto.
-  Sugira commit ao alterar arquivos; em `auto`, informe
-  commits realizados ou sugira mensagem para alterações ainda sem commit.
+- Mostre roteamento só se inferido, corrigido ou composto. Sugira commit após
+  editar; em `auto`, informe commits realizados ou sugira os pendentes.
 - `steps` ativo: estado compacto uma vez antes de `Próxima etapa`, após o resultado,
   sem inventar progresso. `dev step` executa só a etapa atual.
 - Encerre com `Próxima etapa`: ação útil posterior ou fluxo concluído. Na prévia,
   autorização fica fora dessa seção; não repita só `do` como continuação. Sem
   caminho seguro, informe revisão pendente sem inventar comando ou autorização.
-  Confira antes da resposta final.

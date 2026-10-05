@@ -18,3 +18,11 @@ Confirme que:
 
 Confirme que justificativa, confiança e sugestão de quebra ficam em uma seção
 de análise auxiliar, separada do artefato operacional da issue.
+
+## Issue package
+
+Use os cenários de [workflow.md](workflow.md) para `issue package`, criação
+autorizada, novas demandas e dupla por turnos. Confira também `issue desc` de
+pacote: preserva descrição estável sem copiar pontos do documento, sem formulário
+de limites/encerramento e sem converter em issue individual. Nenhuma issue,
+comum ou pacote, inclui checklists, nem no bloco de informações para IA.

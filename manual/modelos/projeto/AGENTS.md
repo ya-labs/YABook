@@ -25,8 +25,10 @@ A IA deve:
 Quando surgir um problema, ajuste ou melhoria nova, transforme a demanda em uma
 issue antes de criar branch ou implementar.
 
-O YABook também prevê issue pacote com demandas evolutivas dentro de limites
-claros e ajuste pontual via `bypass`, sem issue ou branch própria. Após `bypass`,
+`issue package` mantém descrição estável, sem listar demandas ou pendências.
+Novos pedidos geram entregas em commits documentados e um PR por merge commit.
+Em dupla, use a mesma branch por turnos. Issues e PRs não contêm checklists.
+O ajuste pontual via `bypass` dispensa issue ou branch própria. Após `bypass`,
 sugira mensagem e descrição do commit em blocos separados. Em `mode: auto`
 explicitamente ativo, escolha o caminho adequado e execute o objetivo delegado
 sem `do`, `bypass` ou aprovação de checkpoints, preservando trabalho existente,
