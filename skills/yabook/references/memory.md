@@ -51,8 +51,6 @@ Sem ID, `do memory` exige uma única proposta pendente inequívoca. Mudança da
 base invalida a proposta. O journal local permite concluir uma escrita
 interrompida com `recover`; não remova o journal para esconder falhas.
 
-## Desenvolvimento
-
 ## Fontes conectadas
 
 `memory source add` apresenta URL, ID, escopos incluídos/excluídos, branch e
@@ -70,8 +68,6 @@ ative somente ao aprovar essa política. Não há daemon diário implícito.
 O agente pode usar conhecimento externo como pista identificada sem copiá-lo;
 incorporação requer proposta com origem preservada. Corrigir fonte externa não
 significa corrigir automaticamente a versão incorporada: apresentar diferença.
-
-## Aprendizados de desenvolvimento
 
 ## Busca e embeddings
 
@@ -98,3 +94,13 @@ responsabilidade confirmada e limites de aplicação. A recomendação não grav
 Mesmo em `auto`, não transforme descoberta em memória sem a curadoria e a
 autorização de memória pertinente ao objetivo. Memória externa é evidência de
 origem identificada; confirme fontes atuais antes de decisões críticas.
+
+## Mapa e instalação
+
+`memory map` prepara visualização somente leitura: `map --serve --port 8765`
+abre servidor em 127.0.0.1 e `map --output <novo.html>` exporta snapshot.
+O mapa usa a mesma visão filtrada da busca; não alterar conhecimento pelo HTML.
+Detalhes humanos: `manual/guias/memoria-yabook.md` e
+`manual/guias/instalacao-plugin-yabook.md` no handbook. O empacotador é
+`scripts/yabook_plugin.py build --output <pasta-nova>`. Migrar guardrails somente
+depois de observar eventos reais do host, preservando instruções personalizadas.

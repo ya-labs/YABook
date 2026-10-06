@@ -8,6 +8,7 @@ from memory_runtime.core import Vault, read_json
 from memory_runtime.gitstore import apply_and_publish, init_plan, init_apply, inventory, publish
 from memory_runtime.sources import source_add, refresh, sync, all_entries
 from memory_runtime.search import search, export_vectors, import_vectors
+from memory_runtime.map import export_map, serve
 
 
 def main():
@@ -55,9 +56,20 @@ def main():
     lookup.add_argument("--embedding-url", default="http://127.0.0.1:11434/api/embed")
     ve = sub.add_parser("vectors-export"); ve.add_argument("--output", required=True)
     vi = sub.add_parser("vectors-import"); vi.add_argument("--input", required=True)
+    visual = sub.add_parser("map")
+    visual.add_argument("--output")
+    visual.add_argument("--serve", action="store_true")
+    visual.add_argument("--port", type=int, default=8765)
+    visual.add_argument("--scope", action="append", default=[])
     args = parser.parse_args()
     vault = Vault(args.root)
-    if args.command == "search":
+    if args.command == "map":
+        scopes=[s.split("/") for s in args.scope]
+        if args.serve:
+            serve(vault,args.port,scopes); return
+        if not args.output: raise ValueError("Informe --output ou --serve")
+        result=export_map(vault,args.output,scopes)
+    elif args.command == "search":
         result = search(vault, args.query, includes=[s.split("/") for s in args.scope], limit=args.limit,
                         budget=args.budget, model=args.model, endpoint=args.embedding_url)
     elif args.command == "vectors-export":
