@@ -5,6 +5,7 @@ import json
 import sys
 
 from memory_runtime.core import Vault, read_json
+from memory_runtime.gitstore import apply_and_publish, init_plan, init_apply, inventory, publish
 
 
 def main():
@@ -26,9 +27,33 @@ def main():
     apply.add_argument("--approval-hash", required=True)
     sub.add_parser("review")
     sub.add_parser("recover")
+    inv = sub.add_parser("inventory")
+    inv.add_argument("--agent", choices=["codex", "claude"], required=True)
+    inv.add_argument("--source", required=True)
+    ini = sub.add_parser("init-plan")
+    ini.add_argument("--agent", choices=["codex", "claude"], required=True)
+    ini.add_argument("--source", required=True)
+    ini.add_argument("--curated")
+    ini.add_argument("--output", required=True)
+    ai = sub.add_parser("init-apply")
+    ai.add_argument("--plan", required=True)
+    ai.add_argument("--curated", required=True)
+    ai.add_argument("--approval-hash", required=True)
+    ai.add_argument("--config", required=True)
+    sub.add_parser("publish")
     args = parser.parse_args()
     vault = Vault(args.root)
-    if args.command == "bootstrap":
+    if args.command == "inventory":
+        result = inventory(args.agent, args.source)
+    elif args.command == "init-plan":
+        from memory_runtime.core import write_json
+        result = init_plan(args.root, args.agent, args.source, read_json(args.curated) if args.curated else None)
+        write_json(args.output, result)
+    elif args.command == "init-apply":
+        result = init_apply(read_json(args.plan), args.approval_hash, read_json(args.curated), args.config)
+    elif args.command == "publish":
+        result = publish(vault)
+    elif args.command == "bootstrap":
         result = vault.bootstrap(args.owner)
     elif args.command == "prepare":
         payload = read_json(args.input)
@@ -36,7 +61,7 @@ def main():
     elif args.command == "pending":
         result = vault.proposal(args.id)
     elif args.command == "apply":
-        result = vault.apply(args.id, args.approval_hash)
+        result = apply_and_publish(vault, args.id, args.approval_hash)
     elif args.command == "recover":
         result = vault.recover()
     elif args.command == "review":
