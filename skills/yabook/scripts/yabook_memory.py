@@ -6,6 +6,7 @@ import sys
 
 from memory_runtime.core import Vault, read_json
 from memory_runtime.gitstore import apply_and_publish, init_plan, init_apply, inventory, publish
+from memory_runtime.sources import source_add, refresh, sync, all_entries
 
 
 def main():
@@ -41,9 +42,16 @@ def main():
     ai.add_argument("--approval-hash", required=True)
     ai.add_argument("--config", required=True)
     sub.add_parser("publish")
+    source = sub.add_parser("source-add")
+    source.add_argument("--input", required=True)
+    sub.add_parser("sync")
     args = parser.parse_args()
     vault = Vault(args.root)
-    if args.command == "inventory":
+    if args.command == "source-add":
+        result = source_add(vault, read_json(args.input))
+    elif args.command == "sync":
+        result = sync(vault)
+    elif args.command == "inventory":
         result = inventory(args.agent, args.source)
     elif args.command == "init-plan":
         from memory_runtime.core import write_json
@@ -67,7 +75,7 @@ def main():
     elif args.command == "review":
         result = vault.review()
     else:
-        entries = list(vault.entries(include_archived=args.command == "show"))
+        entries = list(vault.entries(include_archived=True)) if args.command == "show" else all_entries(vault)
         result = next((x for x in entries if x["id"] == args.id), None) if args.command == "show" else entries
         if result is None:
             raise ValueError("Registro não encontrado")
