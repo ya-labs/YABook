@@ -4,6 +4,18 @@ Use esta referência para `$yabook guardrails` e `$yabook do guardrails <ação>
 
 ## Objetivo
 
+O plugin substitui a instalação global após validar carregamento e hooks.
+Empacote com `scripts/yabook_plugin.py build --output <destino-novo>`. Os hooks
+carregam contexto no início da sessão e inspecionam chamadas suportadas;
+formatos e julgamento continuam na skill. Instalação não equivale a confiança
+dos hooks no host. Consulte o guia de memória para ativação por runtime.
+
+`migrate-guardrails --agents <arquivo> --receipt <estado-da-sessão>` remove
+somente um bloco canônico após evidência local de SessionStart/PreToolUse,
+preservando backup e instruções pessoais. O receipt é observabilidade local,
+não prova criptográfica de cobertura; valide negações reais antes de migrar.
+Até essa migração, o mecanismo abaixo continua compatível.
+
 Persistir o comportamento padrão do YABook no perfil Codex, inclusive quando a
 conversa não começar com `$yabook`. A configuração vive em
 `~/.codex/AGENTS.md`; o Codex a aplica em nova sessão.

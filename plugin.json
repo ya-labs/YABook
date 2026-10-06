@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "yabook",
+  "version": "0.1.0",
+  "description": "Método YA LABS e memória própria rastreável para agentes de desenvolvimento.",
+  "extensions": {"com.openai": {"hooks": "./hooks/hooks.json"}}
+}
