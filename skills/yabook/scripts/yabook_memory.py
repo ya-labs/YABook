@@ -7,6 +7,7 @@ import sys
 from memory_runtime.core import Vault, read_json
 from memory_runtime.gitstore import apply_and_publish, init_plan, init_apply, inventory, publish
 from memory_runtime.sources import source_add, refresh, sync, all_entries
+from memory_runtime.search import search, export_vectors, import_vectors
 
 
 def main():
@@ -45,9 +46,25 @@ def main():
     source = sub.add_parser("source-add")
     source.add_argument("--input", required=True)
     sub.add_parser("sync")
+    lookup = sub.add_parser("search")
+    lookup.add_argument("query")
+    lookup.add_argument("--scope", action="append", default=[], help="Componentes separados por /")
+    lookup.add_argument("--limit", type=int, default=8)
+    lookup.add_argument("--budget", type=int, default=6000)
+    lookup.add_argument("--model")
+    lookup.add_argument("--embedding-url", default="http://127.0.0.1:11434/api/embed")
+    ve = sub.add_parser("vectors-export"); ve.add_argument("--output", required=True)
+    vi = sub.add_parser("vectors-import"); vi.add_argument("--input", required=True)
     args = parser.parse_args()
     vault = Vault(args.root)
-    if args.command == "source-add":
+    if args.command == "search":
+        result = search(vault, args.query, includes=[s.split("/") for s in args.scope], limit=args.limit,
+                        budget=args.budget, model=args.model, endpoint=args.embedding_url)
+    elif args.command == "vectors-export":
+        result = export_vectors(vault, args.output)
+    elif args.command == "vectors-import":
+        result = import_vectors(vault, read_json(args.input))
+    elif args.command == "source-add":
         result = source_add(vault, read_json(args.input))
     elif args.command == "sync":
         result = sync(vault)

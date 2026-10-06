@@ -73,6 +73,25 @@ significa corrigir automaticamente a versão incorporada: apresentar diferença.
 
 ## Aprendizados de desenvolvimento
 
+## Busca e embeddings
+
+`search <consulta> --scope <Org/Projeto> --limit 8 --budget 6000` combina FTS5
+com relações explícitas. `--model <modelo-Ollama>` habilita busca híbrida no
+endpoint local `http://127.0.0.1:11434/api/embed`; não enviar conhecimento a
+serviço externo sem definir e aprovar outro contrato. Falha de embeddings
+preserva consulta textual. Resultados identificam origem, situação e motivo.
+Vetores associam revisão, hash do texto, modelo e pipeline; não recuperar
+conhecimento superado por similaridade. Similaridade não valida evidência.
+
+`vectors-export --output <pacote.json>` permite backup/versionamento optativo
+de vetores; `vectors-import --input <pacote.json>` aceita somente itens que
+correspondam ao conhecimento visível atual. Compartilhar o pacote não promove
+registros novos. Índices FTS são reconstruíveis e ficam locais; vetores podem
+ser versionados como artefato explícito em uma operação Git autorizada, nunca
+adicionados ao commit de conhecimento por conveniência.
+
+## Encerramento do desenvolvimento
+
 Ao concluir `dev`, compare descobertas com registros existentes. Recomende
 atualização somente quando mudar execução futura, incluindo hipótese refutada,
 responsabilidade confirmada e limites de aplicação. A recomendação não grava.
