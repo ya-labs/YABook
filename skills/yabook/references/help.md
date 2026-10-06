@@ -12,6 +12,7 @@ altera estado.
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade: `check`, `review`, `docs`;
 - skill: `sync`.
+- memória: `memory`, `memory search|show|add|edit|forget|review`, `do memory [id]`.
 
 Para tópico específico, carregue somente:
 

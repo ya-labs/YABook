@@ -57,6 +57,7 @@ Regras: [contexto.md](references/contexto.md).
   [docs](references/documentacao.md), [configure](references/configure.md),
   [guardrails](references/guardrails.md), [bypass](references/bypass.md).
 - Qualidade: [check/review](references/quality.md).
+- Memória: [consulta e curadoria](references/memory.md).
 - Planejamento: [índice](references/planejamento/index.md).
 - Contexto: [workspace](references/workspace.md), [Git](references/git.md),
   [GitHub](references/github.md), [IA](references/ia.md).

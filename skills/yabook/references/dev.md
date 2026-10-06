@@ -129,6 +129,10 @@ externa ou critério de aceite impossível de validar.
 
 ## Orientação de teste no contexto de desenvolvimento
 
+Ao concluir, avalie aprendizados úteis conforme `memory.md` quando houver base
+de memória configurada. Recomende propostas com evidência e aplicação; não
+grave automaticamente nem interrompa desenvolvimento por memória ausente.
+
 Ao concluir a implementação, `dev` e `dev step` no contexto
 `desenvolvimento` devem apresentar uma seção `Como testar` com passos
 específicos para a alteração realizada. Os contextos `init`, `planejamento` e
