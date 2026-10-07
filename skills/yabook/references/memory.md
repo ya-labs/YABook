@@ -110,6 +110,10 @@ curto: `Memória atualizada: <assunto/arquivo>`. Sem novidade, não emitir aviso
 Em `pending_review`, mantenha a proposta consultável sem perguntas intermediárias;
 se for um conflito relevante para a tarefa atual, explique-o no relatório da tarefa.
 Falhas/publicação pendente devem ser informadas, nunca anunciadas como sucesso.
+No Codex, `sandbox_read_only` (ou `sandbox` no erro) significa base inalterada:
+apresente a sugestão retornada para `config.toml` e não edite a configuração sem
+autorização; inclua essa sugestão no plano de `memory init` quando o host for o Codex.
+`pending_commit` é memória local atualizada com commit/push concluídos pelos hooks.
 `recent --limit 10` consulta histórico compacto; revisão/correção usa proposta manual.
 
 Este fluxo usa o agente no checkpoint, sem trabalhador independente ou modelo

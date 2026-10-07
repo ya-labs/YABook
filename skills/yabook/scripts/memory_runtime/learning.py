@@ -96,7 +96,12 @@ def learn(vault, payload, actor, config_path, workspace):
     clean(vault, accumulated["paths"] if accumulated else ())
     assessment = dict(payload["assessment"], learning=dict(learning, mode=mode,
                       execution="manual_review" if reasons else "automatic", review_reasons=sorted(set(reasons))))
-    proposal = vault.prepare(changes, assessment, actor, expected_base_hash=digest(snapshot))
+    try:
+        proposal = vault.prepare(changes, assessment, actor, expected_base_hash=digest(snapshot))
+    except OSError as error:
+        from .sandbox import hint, is_read_only
+        if not is_read_only(error): raise
+        return dict(status="sandbox_read_only", changed=False, hint=hint(vault.root))
     if reasons:
         return dict(status="pending_review", proposal=proposal["id"], reasons=sorted(set(reasons)),
                     stale_summaries=proposal["stale_summaries"])

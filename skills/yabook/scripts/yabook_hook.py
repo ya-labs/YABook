@@ -163,6 +163,23 @@ def publish_automatic(cfg):
         return "failed"
 
 
+def sandbox_warning(cfg):
+    """No Codex, avisa quando o aprendizado automático não consegue gravar no sandbox."""
+    if not cfg.get("memory_root") or cfg.get("learning", {}).get("mode") != "automatic":
+        return None
+    if "/.codex/" not in str(Path(__file__).resolve()) and not os.environ.get("CODEX_HOME"):
+        return None
+    try:
+        from memory_runtime.sandbox import codex_blocks
+        blocked = codex_blocks(cfg["memory_root"])
+    except (OSError, ValueError):
+        return None
+    if not blocked:
+        return None
+    return ("Aprendizado automático não grava no sandbox do Codex: sugira à pessoa liberar a memória em "
+            + blocked["config"] + " com " + blocked["suggestion"].replace("\n", " ") + ". Não edite sem autorização.")
+
+
 def remember_delivery(state, levels):
     delivered = state.setdefault("delivered", {})
     for item, values in levels.items():
@@ -270,6 +287,9 @@ def run(event):
         text = METHOD
         text += "\nPolítica de aprendizado: " + cfg.get("learning", {}).get("mode", "manual") + "."
         published = publish_automatic(cfg)
+        warning = sandbox_warning(cfg)
+        if warning:
+            text += "\n" + warning
         if published in ("pending_push", "pending_commit", "failed"):
             text += "\nPublicação automática de memória pendente (" + published + "); a memória local está atualizada."
         if cfg.get("memory_root"):

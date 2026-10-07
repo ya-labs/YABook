@@ -190,5 +190,9 @@ if __name__ == "__main__":
     try:
         main()
     except (ValueError, KeyError, OSError) as exc:
-        print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
+        from memory_runtime.sandbox import hint, is_read_only
+        report = {"error": str(exc)}
+        if is_read_only(exc) and "--root" in sys.argv:
+            report["sandbox"] = hint(sys.argv[sys.argv.index("--root") + 1])
+        print(json.dumps(report, ensure_ascii=False), file=sys.stderr)
         sys.exit(1)
