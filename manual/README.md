@@ -19,7 +19,7 @@ Use este índice para encontrar o padrão certo sem ler o repositório inteiro.
 | Organizar documentação técnica | [Documentação técnica](guias/documentacao-tecnica.md) |
 | Criar um projeto novo com base YA LABS | [Template base de projeto](modelos/projeto/README.md) |
 | Usar comandos YABook com IA | [Manual de uso](guias/manual-de-uso.md) |
-| Verificar ou sincronizar a skill instalada | [Manual de uso](guias/manual-de-uso.md#como-sincronizar-a-skill) |
+| Verificar ou atualizar o plugin instalado | [Manual de uso](guias/manual-de-uso.md#como-sincronizar-o-plugin) |
 | Entender como a skill YABook funciona | [Guia técnico da skill YABook](guias/skill-yabook.md) |
 | Instalar o plugin no Codex ou Claude | [Instalação do plugin](guias/instalacao-plugin-yabook.md) |
 | Consultar, manter e compartilhar memórias | [Memória do YABook](guias/memoria-yabook.md) |

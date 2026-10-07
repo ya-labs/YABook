@@ -248,3 +248,13 @@ O repositório contém testes dos serviços, callbacks, isolamento de sessão,
 curadoria, publicação Git, busca e mapa. A instalação real no desktop Codex e
 no Claude Code deve ser homologada na versão usada pela pessoa. Não remova os
 guardrails globais com base somente nos testes unitários.
+
+## Atualizar pelo YABook
+
+Use `$yabook sync local` para comparar o plugin instalado com o checkout,
+ou `$yabook do sync local` para aplicar a atualização automaticamente no Codex.
+O pacote inclui manifestos, hooks, ícone e skill. O serviço valida a instalação
+e recupera a versão anterior em caso de falha; memória e outros plugins são preservados.
+Abra uma nova sessão após o sucesso para carregar os novos hooks.
+Use `remote` quando a origem desejada for a branch principal oficial; ela precisa
+conter o plugin completo. A atualização automática de outros hosts ainda requer adaptador.

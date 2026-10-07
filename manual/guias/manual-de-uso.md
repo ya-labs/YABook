@@ -956,7 +956,7 @@ Não copie o YABook inteiro para dentro do agente. A skill deve carregar o compo
 
 ---
 
-### Como sincronizar a skill
+### Como sincronizar o plugin
 
 Para verificar sem alterar arquivos:
 
@@ -979,15 +979,20 @@ local conhecida. O modo `remote` usa a branch principal do repositório oficial.
 
 A sincronização:
 
-- compara a árvore completa da skill;
-- ignora diferenças entre `CRLF` e `LF`;
+- compara o plugin completo: manifestos, hooks, ícone, scripts e skill incorporada;
+- compara o conteúdo dos arquivos, incluindo arquivos binários;
 - valida antes e depois da instalação;
-- remove arquivos excedentes somente do destino instalado;
+- registra o pacote e reinstala automaticamente pelo CLI do Codex;
+- recupera a instalação anterior quando a atualização falha;
+- preserva memória, configurações locais e outros plugins;
 - não executa `pull`, commit, push ou merge;
 - não altera o checkout usado como origem.
 
-Sem modo explícito, a skill prefere uma origem local válida e usa o remoto como
-fallback.
+Sem modo explícito, prefere uma origem local válida e usa o remoto como fallback.
+`sync` apenas informa diferenças. `do sync` aplica a atualização sem exigir os
+comandos manuais de instalação. Abra uma nova sessão após atualizar.
+O adaptador automático atual atende Codex; outros hosts precisam de adaptação
+ao seu instalador. `memory sync` continua sendo uma operação separada.
 
 ---
 
