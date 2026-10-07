@@ -107,9 +107,10 @@ operacional fica separado, por sessão e projeto. Conteúdo de fontes conectadas
 
 Esses comandos são intenções encaminhadas pela skill. O agente monta os argumentos
 dos serviços; não existe um executável de shell chamado `yabook`. O hook de
-aprovação de proposta reconhece `do memory [P-id]` e `do memory init`; operações
-administrativas, conexão e sync devem ser avaliadas pela skill com a política
-exata apresentada, sem confundir o nome da operação com um ID de proposta.
+aprovação distingue `do memory [P-id]` de `do memory init`, `do memory sync`,
+`do memory source add`, `do memory publish` e `do memory recover`. Operações
+administrativas devem ser avaliadas pela skill com a política exata apresentada;
+um nome de operação não é um ID de proposta.
 
 ## Exemplo: descoberta durante desenvolvimento
 

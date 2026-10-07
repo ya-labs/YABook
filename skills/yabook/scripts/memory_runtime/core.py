@@ -7,6 +7,7 @@ import json
 import os
 import re
 import tempfile
+import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,12 +59,14 @@ class Vault:
     def __init__(self, root):
         self.root = Path(root).expanduser().resolve()
         self.local = self.root / ".yabook-local"
+        self._mutex = threading.RLock()
+        self._lock_depth = 0
 
     def path(self, collection, identifier):
         if collection not in COLLECTIONS or not isinstance(identifier, str) or not ID.fullmatch(identifier):
             raise ValueError("Coleção ou identificador inválido")
         path = self.root / collection / (identifier + ".json")
-        if path.resolve().parent != (self.root / collection).resolve() or path.is_symlink():
+        if (self.root / collection).is_symlink() or path.resolve().parent != (self.root / collection).resolve() or path.is_symlink():
             raise ValueError("Caminho canônico inválido")
         return path
 
@@ -89,20 +92,34 @@ class Vault:
     @contextlib.contextmanager
     def lock(self):
         import fcntl
-        self.local.mkdir(parents=True, exist_ok=True)
-        with (self.local / "lock").open("a") as stream:
-            fcntl.flock(stream, fcntl.LOCK_EX)
-            try:
+        with self._mutex:
+            if self._lock_depth:
                 yield
-            finally:
-                fcntl.flock(stream, fcntl.LOCK_UN)
+                return
+            self.local.mkdir(parents=True, exist_ok=True)
+            with (self.local / "lock").open("a") as stream:
+                fcntl.flock(stream, fcntl.LOCK_EX)
+                self._lock_depth += 1
+                try:
+                    yield
+                finally:
+                    self._lock_depth -= 1
+                    fcntl.flock(stream, fcntl.LOCK_UN)
 
     def snapshot(self):
+        with self.lock():
+            if (self.local / "transaction.json").exists():
+                raise ValueError("Transação interrompida; recuperar antes de consultar")
+            return self._snapshot()
+
+    def _snapshot(self):
         metadata = read_json(self.root / "memory.json")
         if metadata.get("schema_version") != 1:
             raise ValueError("Formato de memória não suportado")
         data = {c: {} for c in COLLECTIONS}
         for collection in COLLECTIONS:
+            if (self.root / collection).is_symlink():
+                raise ValueError("Symlink em coleção canônica")
             for path in sorted((self.root / collection).glob("*.json")):
                 if path.is_symlink():
                     raise ValueError("Symlink em armazenamento canônico")
@@ -212,7 +229,7 @@ class Vault:
             return self._finish(proposal)
 
     def _finish(self, proposal):
-        paths = []
+        paths = [str(self.path(c["collection"], c["id"]).relative_to(self.root)) for c in proposal["changes"]]
         for collection in COLLECTIONS:
             expected = proposal["result"][collection]
             for path in (self.root / collection).glob("*.json"):
@@ -231,10 +248,15 @@ class Vault:
         history = self.root / "history" / (proposal["id"] + ".json")
         write_json(history, receipt)
         paths.append(str(history.relative_to(self.root)))
+        if (self.root / ".git").exists():
+            from .gitstore import publication_intent, git
+            if git(self.root, "rev-parse", "--verify", "HEAD", check=False).returncode:
+                paths += ["memory.json", ".gitignore"]
+            publication_intent(self, paths, "docs: aplica memória " + proposal["id"])
         pending = self.local / "proposals" / (proposal["id"] + ".json")
         pending.unlink(missing_ok=True)
         (self.local / "transaction.json").unlink(missing_ok=True)
-        return {"proposal": proposal["id"], "paths": paths, "result_hash": receipt["result_hash"]}
+        return {"proposal": proposal["id"], "paths": sorted(set(paths)), "result_hash": receipt["result_hash"]}
 
     def recover(self):
         with self.lock():

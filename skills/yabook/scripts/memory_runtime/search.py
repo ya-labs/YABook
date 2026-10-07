@@ -99,13 +99,22 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
     result = []
     for key in sorted(scores, key=lambda k:scores[k], reverse=True)[:limit]:
         e = by_id[key]
-        hit = {k:e[k] for k in ("id", "title", "scope", "state", "content", "application", "conditions", "evidence", "source", "source_revision", "origin", "summary") if k in e}
+        hit = {k:e[k] for k in ("id", "revision", "title", "scope", "state", "content", "application", "conditions", "evidence", "source", "source_revision", "origin", "origin_updates", "summary", "summary_stale") if k in e}
         hit.update(score=round(scores[key], 6), reason="Termos/significado e relações explícitas" if mode == "hybrid" else "Termos e relações explícitas")
         if len(json.dumps(result+[hit], ensure_ascii=False)) > budget:
             remaining = budget-len(json.dumps(result, ensure_ascii=False))-len(json.dumps({k:v for k,v in hit.items() if k not in ("content","evidence","summary")},ensure_ascii=False))-80
             if remaining < 100: break
             hit["content"] = str(hit.get("content", hit.get("summary", "")))[:remaining]
             hit.pop("summary",None); hit.pop("evidence",None); hit["truncated"] = True
+            low, high = 0, len(hit["content"])
+            content = hit["content"]
+            while low < high:
+                middle = (low + high + 1) // 2
+                hit["content"] = content[:middle]
+                if len(json.dumps(result+[hit],ensure_ascii=False)) <= budget: low = middle
+                else: high = middle - 1
+            hit["content"] = content[:low]
+            if len(json.dumps(result+[hit],ensure_ascii=False)) > budget: break
         result.append(hit)
     return dict(mode=mode, degraded=degraded, results=result, characters=len(json.dumps(result,ensure_ascii=False)))
 

@@ -1,9 +1,51 @@
 #!/usr/bin/env python3
 """Empacotamento reproduzível; instalação local sem sobrescrever configuração."""
 import argparse
+import hashlib
 import json
 import shutil
 from pathlib import Path
+from memory_runtime.core import read_json, write_json
+
+
+def fingerprint(root):
+    files = [root / "plugin.json"]
+    for directory in ("hooks", ".claude-plugin", "skills/yabook"):
+        files += [p for p in (root / directory).rglob("*") if p.is_file()
+                  and "__pycache__" not in p.parts and "tests" not in p.relative_to(root).parts and p.suffix != ".pyc"]
+    result = hashlib.sha256()
+    for path in sorted(files):
+        result.update(str(path.relative_to(root)).encode()); result.update(b"\0"); result.update(path.read_bytes())
+    return result.hexdigest()[:16]
+
+
+def register_codex(home, remove=False):
+    home = Path(home).expanduser().resolve()
+    registry = home / ".agents/plugins/marketplace.json"
+    data = read_json(registry) if registry.exists() else dict(name="yabook-local",interface=dict(displayName="YABook local"),plugins=[])
+    if not isinstance(data.get("plugins"), list) or not isinstance(data.get("name"), str):
+        raise ValueError("Marketplace existente tem formato incompatível")
+    existing = next((p for p in data["plugins"] if p.get("name") == "yabook"), None)
+    if existing and not (existing.get("source", {}).get("source") == "local" and
+                         existing["source"].get("path", "").startswith("./.local/share/yabook/plugins/")):
+        raise ValueError("Entrada yabook existente não pertence a este instalador")
+    if remove:
+        if existing:
+            data["plugins"].remove(existing); write_json(registry, data)
+        return dict(status="unregistered",preserved="pacotes, configuração do host e memória")
+    root = Path(__file__).resolve().parents[3]
+    relative = ".local/share/yabook/plugins/" + fingerprint(root)
+    destination = home / relative
+    if destination.exists():
+        if fingerprint(destination) != fingerprint(root): raise ValueError("Pacote instalado foi alterado")
+    else: build(destination)
+    entry = dict(name="yabook",source=dict(source="local",path="./"+relative),
+                 policy=dict(installation="AVAILABLE",authentication="ON_INSTALL"),category="Productivity")
+    if existing: data["plugins"][data["plugins"].index(existing)] = entry
+    else: data["plugins"].append(entry)
+    write_json(registry, data)
+    return dict(status="registered",path=str(destination),marketplace=data["name"],
+                enable=f'[plugins."yabook@{data["name"]}"]\nenabled = true')
 
 
 def build(destination):
@@ -47,8 +89,13 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     b = sub.add_parser("build"); b.add_argument("--output", required=True)
     m = sub.add_parser("migrate-guardrails"); m.add_argument("--agents", required=True); m.add_argument("--receipt", required=True)
+    for name in ("install-codex", "uninstall-codex"):
+        c = sub.add_parser(name); c.add_argument("--home", default=str(Path.home()))
     args = parser.parse_args()
-    result = str(build(args.output)) if args.command == "build" else migrate_guardrails(args.agents, args.receipt)
+    if args.command in ("install-codex", "uninstall-codex"):
+        result = register_codex(args.home, remove=args.command == "uninstall-codex")
+    else:
+        result = str(build(args.output)) if args.command == "build" else migrate_guardrails(args.agents, args.receipt)
     print(json.dumps({"result": result}, ensure_ascii=False))
 
 

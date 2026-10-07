@@ -1,6 +1,7 @@
 # Memória própria do YABook
 
-Use para `memory`, `memory search|show|add|edit|forget|review` e `do memory`.
+Use para `memory`, `search|show|add|edit|forget|review|init|source|sync|map`
+dentro da família `memory`, e `do memory`.
 `memory init` prepara inventário/curadoria; `do memory init` cria ou reutiliza
 o repositório privado `YABook-memory-<loginGitHub>` e publica o pacote aprovado.
 Use `inventory --agent codex|claude --source <pasta>` para levantar arquivos;
@@ -12,6 +13,8 @@ aprovação, `init-apply --plan <plano> --curated <json> --approval-hash <hash>
 Em base Git configurada, `apply` inclui commit dos paths aprovados e push.
 Falha remota retorna `pending_push`; `publish` repete a publicação do commit
 existente. Worktree sujo bloqueia nova escrita para preservar trabalho alheio.
+Use `do memory publish|recover|sync` para aprovar a operação administrativa
+apresentada; `do memory source add` aprova a política da fonte, não um registro.
 Dados de máquina e autorizações ficam fora do repositório. Init não autoriza
 convidar colaboradores. Configuração ou migração nativa divergente pede revisão.
 A base configurada pertence ao YABook, não à memória nativa do agente.

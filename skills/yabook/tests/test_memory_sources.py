@@ -35,6 +35,11 @@ class SourcesTest(unittest.TestCase):
             own=next(v.entries())
             write_json(v.local/"sources/marco/receipt.json",dict(vault_id="external",revision="abc",entries=[own]))
             self.assertEqual(len(all_entries(v)),1)
+            own["state"]="archived"
+            write_json(v.local/"sources/marco/receipt.json",dict(vault_id="external",revision="def",entries=[own]))
+            result=all_entries(v)
+            self.assertEqual(len(result),1)
+            self.assertEqual(result[0]["origin_updates"][0]["state"],"archived")
 
 
 if __name__ == "__main__":unittest.main()

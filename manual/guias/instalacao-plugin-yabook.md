@@ -33,6 +33,26 @@ aponte o host para ele; não sobrescreva uma pasta carregada por uma sessão.
 
 ## 2. Carregar no Codex
 
+O registrador incluído prepara uma cópia por hash de conteúdo e adiciona somente
+a entrada YABook ao marketplace pessoal:
+
+```bash
+python3 skills/yabook/scripts/yabook_plugin.py install-codex
+```
+
+Repetir o comando não duplica a entrada; uma atualização usa outra pasta de
+conteúdo. O resultado informa o path e a habilitação TOML. O script preserva
+outras entradas e recusa substituir uma entrada `yabook` que não gerencia.
+Ele registra a fonte; a instalação/habilitação e a confiança nos hooks continuam
+no host. Para remover somente esse registro:
+
+```bash
+python3 skills/yabook/scripts/yabook_plugin.py uninstall-codex
+```
+
+`--home /PASTA-DE-TESTE` permite testar o registro sem alterar sua configuração
+pessoal. O pacote e a memória não são apagados pela remoção do registro.
+
 O pacote inclui o manifesto portátil `plugin.json` e a extensão de hooks do
 Codex. A documentação oficial distingue o suporte a hooks em plugins
 instalados manualmente no desktop; confirme o suporte no seu host antes de
@@ -78,6 +98,12 @@ plugin e confirme a execução dos hooks conforme a seção de verificação aba
 A mera descoberta da skill no CLI não demonstra suporte ao carregamento por
 hooks. Se o host não emitir os eventos, a skill funciona por invocação, mas
 essa instalação ainda não oferece memória automática na abertura.
+
+No Codex CLI 0.144.6 consultado durante o desenvolvimento, a ajuda também
+disponibiliza `codex plugin marketplace add <fonte>` e
+`codex plugin add yabook@<marketplace>`. A presença desses comandos não comprova
+execução dos eventos deste plugin; valide instalação e confiança no runtime
+usado. O procedimento acima segue o registro pessoal documentado para o desktop.
 
 Referências: [criação e instalação de plugins do Codex](https://developers.openai.com/plugins/build/plugins)
 e [hooks do Codex](https://developers.openai.com/codex/hooks).

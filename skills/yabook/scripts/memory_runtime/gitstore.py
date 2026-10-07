@@ -2,19 +2,23 @@
 import json
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 from .core import Vault, digest, read_json, write_json, SECRET
 
 
-def run(*args, check=True):
-    result = subprocess.run(args, capture_output=True, text=True, timeout=60)
+def run(*args, check=True, timeout=60):
+    try:
+        result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        raise ValueError("Tempo esgotado em " + args[0] + "; usar cache ou repetir após verificar rede") from exc
     if check and result.returncode:
         raise ValueError("Falha em " + args[0] + " " + args[1] + "; verificar autenticação/conectividade")
     return result
 
 
-def git(root, *args, check=True):
-    return run("git", "-C", str(root), *args, check=check)
+def git(root, *args, check=True, timeout=60):
+    return run("git", "-C", str(root), *args, check=check, timeout=timeout)
 
 
 def clean(vault):
@@ -78,6 +82,17 @@ def init_apply(plan, approval_hash, curated, config_path):
         raise ValueError("Configuração já usa outra base")
     if root.exists() and any(root.iterdir()) and not (root / "memory.json").exists():
         raise ValueError("Destino local ocupado")
+    # Validar estrutura antes de criar qualquer artefato remoto.
+    if curated["changes"]:
+        with tempfile.TemporaryDirectory(prefix="yabook-init-validation-") as directory:
+            validator = Vault(Path(directory) / "vault")
+            validator.bootstrap(plan["owner"])
+            if (root / "memory.json").exists():
+                baseline = Vault(root).snapshot()
+                for collection in ("records", "entities", "groups"):
+                    for identifier, entry in baseline[collection].items():
+                        write_json(validator.path(collection, identifier), entry)
+            validator.prepare(curated["changes"], curated["assessment"], "validation")
     remote = run("gh", "api", "repos/" + repository, check=False)
     if remote.returncode:
         if "404" not in remote.stderr: raise ValueError("Falha ao consultar destino")
@@ -96,14 +111,37 @@ def init_apply(plan, approval_hash, curated, config_path):
     has_head = git(root, "rev-parse", "--verify", "HEAD", check=False).returncode == 0
     if has_head: clean(vault)
     paths = []
-    if curated["changes"]:
-        proposal = vault.prepare(curated["changes"], curated["assessment"], "migration:" + plan["inventory"]["agent"])
+    snapshot = vault.snapshot()
+    def effective(change):
+        previous = snapshot[change["collection"]].get(change["id"])
+        if change.get("delete"): return previous is not None
+        ignored = {"id", "revision", "origin"}
+        return previous is None or {k:v for k,v in previous.items() if k not in ignored} != {k:v for k,v in change["value"].items() if k not in ignored}
+    changes = [c for c in curated["changes"] if effective(c)]
+    if changes:
+        proposal = vault.prepare(changes, curated["assessment"], "migration:" + plan["inventory"]["agent"])
         paths = vault.apply(proposal["id"], proposal["approval_hash"])["paths"]
     if not has_head: paths += ["memory.json", ".gitignore"]
     result = publish(vault, paths, "feat: inicializa memória YABook avaliada")
     cfg.update(memory_root=str(root.resolve()), repository=repository)
     write_json(cfg_path, cfg)
     return result
+
+
+def publication_intent(vault, paths, message):
+    pending = vault.local / "publication.json"
+    receipt = dict(paths=sorted(set(paths)), message=message, commit=None)
+    for path in receipt["paths"]:
+        if vault.root not in (vault.root / path).resolve().parents or path.startswith(".yabook-local/"):
+            raise ValueError("Path fora da proposta")
+    receipt["files"] = {p: digest((vault.root / p).read_bytes().hex()) if (vault.root / p).exists() else None for p in receipt["paths"]}
+    if pending.exists():
+        previous = read_json(pending)
+        if previous.get("files") != receipt["files"] or previous["paths"] != receipt["paths"]:
+            raise ValueError("Outra publicação já está pendente")
+        return previous
+    write_json(pending, receipt)
+    return receipt
 
 
 def publish(vault, paths=None, message=None):
@@ -115,12 +153,11 @@ def publish(vault, paths=None, message=None):
             if not paths: return {"status": "unchanged"}
             if git(vault.root, "diff", "--cached", "--name-only").stdout.strip():
                 raise ValueError("Index contém alterações independentes")
-            receipt = dict(paths=sorted(set(paths)), message=message, commit=None)
-            for path in receipt["paths"]:
-                if vault.root not in (vault.root / path).resolve().parents or path.startswith(".yabook-local/"):
-                    raise ValueError("Path fora da proposta")
-            write_json(pending, receipt)
+            receipt = publication_intent(vault, paths, message)
         if not receipt["commit"]:
+            current = {p: digest((vault.root / p).read_bytes().hex()) if (vault.root / p).exists() else None for p in receipt["paths"]}
+            if current != receipt.get("files"):
+                raise ValueError("Arquivos aprovados mudaram antes do commit; revisar publicação")
             git(vault.root, "add", "--", *receipt["paths"])
             staged = set(git(vault.root, "diff", "--cached", "--name-only").stdout.splitlines())
             if staged - set(receipt["paths"]): raise ValueError("Staged fora da proposta")

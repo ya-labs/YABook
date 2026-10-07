@@ -129,9 +129,8 @@ externa ou critério de aceite impossível de validar.
 
 ## Orientação de teste no contexto de desenvolvimento
 
-Ao concluir, avalie aprendizados úteis conforme `memory.md` quando houver base
-de memória configurada. Recomende propostas com evidência e aplicação; não
-grave automaticamente nem interrompa desenvolvimento por memória ausente.
+Ao concluir, use `memory.md` para propor aprendizado útil com evidência e aplicação,
+se a base estiver configurada. Não grave automaticamente.
 
 Ao concluir a implementação, `dev` e `dev step` no contexto
 `desenvolvimento` devem apresentar uma seção `Como testar` com passos
@@ -151,9 +150,7 @@ pessoa. Não repita comandos que já falharam como se fossem válidos e não inv
 um procedimento sem evidência no projeto. Quando não houver teste aplicável,
 informe o motivo explicitamente.
 
-Essa orientação é obrigatória também quando `dev` de desenvolvimento estiver
-encadeado com outro comando. Ela não permite executar ações fora do escopo da
-issue.
+Também se aplica ao `dev` encadeado, dentro do escopo da issue.
 
 Toda execução de `dev` de desenvolvimento também deve apresentar um relatório
 técnico com os títulos exatos abaixo. Esse bloco não pode ser substituído por
@@ -172,9 +169,7 @@ equivalente.
 ### Observações para revisão
 ```
 
-Use esse relatório para explicar a entrega de forma auditável: o que mudou, como
-foi implementado, por que essa abordagem foi escolhida e quais decisões,
-alternativas, riscos ou pontos de parecer ainda merecem revisão da pessoa.
+Explique mudanças, implementação, motivos e pontos pendentes de revisão.
 
 Em `dev step` de desenvolvimento, mantenha `Como testar` e o relatório técnico
 focados somente na etapa executada.

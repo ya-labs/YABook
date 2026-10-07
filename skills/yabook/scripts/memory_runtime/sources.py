@@ -40,10 +40,15 @@ def sanitize(entries, includes, excludes):
     return allowed
 
 
-def refresh(vault, force=False):
+def refresh(vault, force=False, deadline=None):
     path = vault.local / "sources.json"
     config = read_json(path) if path.exists() else {}
     reports = []
+    def remaining():
+        if deadline is None: return 60
+        budget = deadline - time.monotonic()
+        if budget <= 0: raise ValueError("Orçamento de atualização da sessão esgotado")
+        return budget
     for identifier, source in config.items():
         cache = vault.local / "sources" / identifier
         receipt_path = cache / "receipt.json"
@@ -55,21 +60,21 @@ def refresh(vault, force=False):
             cache.mkdir(parents=True, exist_ok=True)
             if mirror.exists():
                 # Não executar hooks, checkout, submodules ou código vindo do colega.
-                git(mirror, "fetch", "origin", "+refs/heads/*:refs/heads/*")
+                git(mirror, "fetch", "origin", "+refs/heads/*:refs/heads/*", timeout=remaining())
             else:
-                run("git", "clone", "--bare", source["remote"], str(mirror))
+                run("git", "clone", "--bare", source["remote"], str(mirror), timeout=remaining())
             ref = source.get("branch", "HEAD")
             if ref.startswith("-") or not re.fullmatch(r"[A-Za-z0-9_./-]+", ref):
                 raise ValueError("Referência da fonte inválida")
-            revision = git(mirror, "rev-parse", "--verify", ref + "^{commit}").stdout.strip()
+            revision = git(mirror, "rev-parse", "--verify", ref + "^{commit}", timeout=remaining()).stdout.strip()
             def document(filename):
                 import json
-                return json.loads(git(mirror, "show", revision + ":" + filename).stdout)
+                return json.loads(git(mirror, "show", revision + ":" + filename, timeout=remaining()).stdout)
             metadata = document("memory.json")
             if metadata.get("schema_version") != 1: raise ValueError("Formato externo incompatível")
             if before.get("vault_id") and before["vault_id"] != metadata["vault_id"]:
                 raise ValueError("Identidade da fonte mudou; recadastrar após revisão")
-            filenames = git(mirror, "ls-tree", "-r", "--name-only", revision).stdout.splitlines()
+            filenames = git(mirror, "ls-tree", "-r", "--name-only", revision, timeout=remaining()).stdout.splitlines()
             snapshot = {"metadata": metadata, "records": {}, "entities": {}, "groups": {}}
             for filename in filenames:
                 match = re.fullmatch(r"(records|entities|groups)/([A-Za-z0-9_-]+)\.json", filename)
@@ -92,18 +97,22 @@ def refresh(vault, force=False):
     return reports
 
 
-def external_entries(vault, includes=(), excludes=()):
+def external_entries(vault, includes=(), excludes=(), include_inactive=False):
     config_path = vault.local / "sources.json"
     config = read_json(config_path) if config_path.exists() else {}
     for identifier, source in config.items():
         path = vault.local / "sources" / identifier / "receipt.json"
         if not path.exists(): continue
         receipt = read_json(path)
+        revisions = {e["id"]: e.get("revision") for e in receipt["entries"]}
         # Política pode ter mudado desde fetch; nunca usar cache com escopo antigo.
         entries = sanitize(receipt["entries"], source["includes"], source.get("excludes", []))
         entries = sanitize(entries, includes, excludes)
         for entry in entries:
-            if entry.get("state") in ("archived", "superseded"): continue
+            if entry.get("state") in ("archived", "superseded") and not include_inactive: continue
+            if entry.get("summary") and any(revisions.get(i) != rev for i, rev in entry.get("summary_sources", {}).items()):
+                entry.pop("summary", None)
+                entry["summary_stale"] = True
             yield dict(entry, source=identifier, source_revision=receipt["revision"],
                        source_vault=receipt["vault_id"], external=True)
 
@@ -111,18 +120,21 @@ def external_entries(vault, includes=(), excludes=()):
 def all_entries(vault, includes=(), excludes=()):
     own = sanitize(list(vault.entries()), includes, excludes)
     result = list(own)
-    known = {(e.get("origin", {}).get("vault_id", vault.snapshot()["metadata"]["vault_id"]),
+    vault_id = vault.snapshot()["metadata"]["vault_id"]
+    known = {(e.get("origin", {}).get("vault_id", vault_id),
               e.get("origin", {}).get("id", e["id"])) for e in own}
-    for entry in external_entries(vault, includes, excludes):
+    for entry in external_entries(vault, includes, excludes, include_inactive=True):
         origin = entry.get("origin", {})
         identity = (origin.get("vault_id", entry["source_vault"]), origin.get("id", entry["id"]))
         if identity not in known:
+            if entry.get("state") in ("archived", "superseded"): continue
             result.append(entry); known.add(identity)
         else:
             # Não promover nova revisão silenciosamente; a curadoria verá a divergência.
-            existing = next((e for e in result if (e.get("origin", {}).get("vault_id", vault.snapshot()["metadata"]["vault_id"]), e.get("origin", {}).get("id", e["id"])) == identity), None)
-            if existing and entry.get("content") != existing.get("content"):
-                existing.setdefault("origin_updates", []).append(dict(source=entry["source"], id=entry["id"], revision=entry["revision"]))
+            existing = next((e for e in result if (e.get("origin", {}).get("vault_id", vault_id), e.get("origin", {}).get("id", e["id"])) == identity), None)
+            fields = ("content", "application", "state", "conditions", "evidence", "title", "summary")
+            if existing and any(entry.get(k) != existing.get(k) for k in fields):
+                existing.setdefault("origin_updates", []).append(dict(source=entry["source"], id=entry["id"], revision=entry["revision"],state=entry.get("state")))
     return result
 
 

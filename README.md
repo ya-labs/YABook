@@ -26,6 +26,10 @@ Ele existe para reduzir improviso: pessoas e agentes de IA passam a seguir o mes
   TypeScript.
 - [YABook Skill](skills/yabook/): instruções, referências, scripts e testes da
   skill.
+- [Plugin YABook](manual/guias/instalacao-plugin-yabook.md): instalação e hooks
+  para agentes compatíveis.
+- [Memória YABook](manual/guias/memoria-yabook.md): curadoria, busca, Git,
+  compartilhamento e mapa visual.
 
 
 ## O que o YABook entrega
