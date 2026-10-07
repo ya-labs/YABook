@@ -93,7 +93,10 @@ O payload contém `assessment` (`verdict`, `reason`, `utility`, `application`,
 `evidence_status`) e `changes` (`collection`, `id`, `value` ou `delete`). Valores
 canônicos têm ID, título, escopo e revisão; registros têm `content`, `state`,
 `application`, `evidence` e opcional `conditions`, `last_verified`, `entities`,
-`relations`. Grupos usam `members`, `summary` e `summary_sources` por revisão.
+`relations`, `provenance` (`agent`, `file`, `lines?`, `hash`). Evidência:
+`{type, ref, level, date?}`; níveis não são equivalentes (guia de memória).
+Grupos usam `members`, `summary` e `summary_sources` por revisão. Omitir campo
+existente exige `remove_fields`; reveja grupos em `stale_summaries`.
 
 Sem ID, `do memory` exige uma única proposta pendente inequívoca. Mudança da
 base invalida a proposta. O journal local permite concluir uma escrita

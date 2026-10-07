@@ -60,9 +60,9 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
     entries = [e for e in entries if e["collection"] in levels[level] and (not kinds or kind(e) in kinds)]
     by_id = {uid(e): e for e in entries}
     vault.local.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(vault.local / "search.sqlite")
+    # Índice efêmero por consulta: sessões concorrentes não disputam o mesmo arquivo.
+    connection = sqlite3.connect(":memory:")
     try:
-        connection.execute("DROP TABLE IF EXISTS memory")
         connection.execute("CREATE VIRTUAL TABLE memory USING fts5(id UNINDEXED, body)")
         connection.executemany("INSERT INTO memory VALUES (?,?)", [(uid(e), text(e)) for e in entries])
         connection.commit()

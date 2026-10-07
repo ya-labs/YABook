@@ -96,13 +96,15 @@ def learn(vault, payload, actor, config_path, workspace):
                       execution="manual_review" if reasons else "automatic", review_reasons=sorted(set(reasons))))
     proposal = vault.prepare(changes, assessment, actor, expected_base_hash=digest(snapshot))
     if reasons:
-        return dict(status="pending_review", proposal=proposal["id"], reasons=sorted(set(reasons)))
+        return dict(status="pending_review", proposal=proposal["id"], reasons=sorted(set(reasons)),
+                    stale_summaries=proposal["stale_summaries"])
     current, _ = policy(config_path, vault.root)
     if current != cfg:
         return dict(status="pending_review", proposal=proposal["id"], reasons=["Política/configuração mudou durante a curadoria"])
     result = apply_and_publish(vault, proposal["id"], proposal["approval_hash"])
+    # Resumos invalidados pedem atualização do grupo em novo lote, sem bloquear este.
     return dict(status="memory_updated", proposal=result["proposal"], paths=result["paths"],
-                publication=result["publication"])
+                publication=result["publication"], stale_summaries=result["stale_summaries"])
 
 
 def recent(vault, limit=10):

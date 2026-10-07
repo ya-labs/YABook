@@ -65,10 +65,23 @@
         "application": "Investigar falha",
         "state": "confirmed",
         "evidence": [
-          "fixture:code"
+          {
+            "type": "code",
+            "ref": "fixture/fonte.p@abc1234",
+            "level": "static",
+            "date": "2026-01-15"
+          }
         ],
         "episodes": [
           "E"
+        ],
+        "provenance": [
+          {
+            "agent": "codex",
+            "file": "fixture/MEMORY.md",
+            "lines": "10-24",
+            "hash": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
         ]
       }
     },
@@ -92,7 +105,17 @@
           "Verificação de código; runtime pendente"
         ],
         "evidence": [
-          "fixture:commit"
+          {
+            "type": "commit",
+            "ref": "fixture@abc1234",
+            "level": "static",
+            "date": "2026-01-15"
+          },
+          {
+            "type": "session",
+            "ref": "fixture/rollout-2026-01-15.md",
+            "level": "reported"
+          }
         ],
         "learnings": [
           "R"
@@ -113,7 +136,11 @@
         "application": "Colaborar",
         "state": "confirmed",
         "evidence": [
-          "fixture:user"
+          {
+            "type": "conversation",
+            "ref": "fixture:declaração da pessoa",
+            "level": "statement"
+          }
         ]
       }
     },
@@ -132,7 +159,11 @@
         "application": "Relatórios",
         "state": "confirmed",
         "evidence": [
-          "fixture:user"
+          {
+            "type": "conversation",
+            "ref": "fixture:declaração da pessoa",
+            "level": "statement"
+          }
         ]
       }
     },
@@ -154,7 +185,11 @@
         ],
         "state": "confirmed",
         "evidence": [
-          "fixture:user"
+          {
+            "type": "conversation",
+            "ref": "fixture:declaração da pessoa",
+            "level": "statement"
+          }
         ]
       }
     }

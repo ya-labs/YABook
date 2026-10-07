@@ -14,7 +14,9 @@ class HooksTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.env = patch.dict(os.environ, YABOOK_CONFIG=self.tmp.name + "/config.json", YABOOK_STATE=self.tmp.name + "/sessions")
         self.env.start(); self.addCleanup(self.env.stop)
-        self.git = patch.object(hook, "git", side_effect=lambda cwd, *args: "main" if args == ("branch", "--show-current") else "")
+        self.head = "c1"
+        self.git = patch.object(hook, "git", side_effect=lambda cwd, *args: "main" if args == ("branch", "--show-current")
+                                else self.head if args == ("rev-parse", "HEAD") else "")
         self.git.start(); self.addCleanup(self.git.stop)
         self.event = dict(session_id="session1", cwd=self.tmp.name)
 
@@ -45,8 +47,10 @@ class HooksTest(unittest.TestCase):
         state = hook.prompt_grant("$yabook mode: automatico", {}, self.tmp.name)
         self.assertFalse(state.get("auto", False))
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
+        hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         hook.run(dict(self.event,hook_event_name="PostToolUse",tool_name="Edit"))
         event = dict(self.event,hook_event_name="Stop",stop_hook_active=False)
+        self.head = "c2"
         self.assertEqual(hook.run(event)["decision"],"block")
         self.assertEqual(hook.run(event),{})
 
@@ -90,12 +94,38 @@ class HooksTest(unittest.TestCase):
 
     def test_automatic_checkpoint_once_and_unconfigured_skips(self):
         event = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
+        hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.head = "c2"
         self.assertEqual(hook.run(event), {})
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.head = "c3"
         self.assertIn("Não peça do memory", hook.run(event)["reason"])
         self.assertEqual(hook.run(event), {})
+
+    def test_checkpoint_requires_consolidated_delivery(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
+        hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
+        event = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
+        for _ in range(3):
+            hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+            self.assertEqual(hook.run(event), {})
+        self.head = "c2"
+        self.assertEqual(hook.run(event)["decision"], "block")
+        self.assertEqual(hook.run(event), {})
+
+    def test_memory_failure_degrades_but_authorization_still_denies(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
+        import sqlite3
+        with patch("memory_runtime.retrieval.retrieve", side_effect=sqlite3.OperationalError("locked")), \
+             patch("memory_runtime.views.session_context", side_effect=sqlite3.OperationalError("locked")):
+            result = hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="checklist"))
+            self.assertIn("indisponível", result["hookSpecificOutput"]["additionalContext"])
+            result = hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
+            self.assertIn("indisponível", result["hookSpecificOutput"]["additionalContext"])
+            result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": "git push"}))
+            self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
 
 
 if __name__ == "__main__": unittest.main()

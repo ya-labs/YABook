@@ -126,15 +126,38 @@ resumos, incluindo a retirada de vínculos e conteúdo agregado incompatível.
 
 Uma experiência preserva o contexto da descoberta: `objective`, `context`,
 `actions` (lista), `outcome` e `validation` (lista). `learnings` referencia IDs
-em `records`; registros podem apontar de volta por `episodes`. Evidências ficam
-em `evidence`, com referências a código, commits, issues ou documentos. Não
-copie conversas e logs integrais para o relato. Uma experiência confirmada exige
+em `records`; registros podem apontar de volta por `episodes`. Não
+copie conversas e logs integrais para o relato.
+
+Cada evidência em `evidence` informa `type`, `ref`, `level` e, quando conhecida,
+`date` (`AAAA-MM-DD`). O nível separa inspeção estática (`static`), teste
+automatizado (`automated`), execução em APK/ERP/sistema (`runtime`), validação
+manual (`manual`), declaração da pessoa (`statement`) e relato de sessão sem
+reverificação (`reported`); um nível não substitui o outro. Tipos aceitos:
+`code`, `commit`, `test`, `build`, `system`, `document`, `conversation` e `session`.
+
+```json
+{"type": "code", "ref": "fonte.p@abc1234", "level": "static", "date": "2026-01-15"}
+```
+
+Conteúdo migrado de outro agente registra `provenance` (`agent`, `file`, `lines`
+opcional e `hash` SHA-256 do snapshot), separado de `origin`, que identifica a
+base e o ID de origem. Referências a arquivos locais, como rollouts, podem não
+existir em outra máquina; registre nelas o que foi verificado.
+
+Bases antigas com evidência em texto continuam legíveis. O formato estruturado é
+exigido quando o item é escrito novamente. Uma experiência confirmada exige
 evidência; validação pendente deve permanecer explicitamente descrita.
 
 O relato histórico não é automaticamente conhecimento vigente. Ao corrigir um
 fato, atualize ou arquive o registro apropriado e preserve a experiência como
 contexto histórico. O histórico em `history/` continua registrando as operações
 de curadoria; é diferente das experiências em `episodes/`.
+
+Atualizações enviam o valor completo do item. Omitir um campo existente exige
+declará-lo em `remove_fields` na mudança; caso contrário, a proposta é recusada.
+Ao alterar membros de um grupo com resumo, o resultado informa `stale_summaries`
+para que o resumo seja revisto no mesmo lote ou em outro.
 
 ### Visões geradas e Git
 
@@ -158,7 +181,12 @@ Na abertura da sessão, o plugin entrega perfil, preferências permanentes e um
 mantém JSON válido: itens que não cabem ficam para consulta, com `truncated`.
 Ao receber a tarefa, o hook consulta assuntos e conhecimento pertinente,
 incluindo preferências condicionais que correspondem aos termos da mensagem.
-Não carrega experiências ou evidências extensas por padrão.
+Não carrega experiências ou evidências extensas por padrão. O plugin registra,
+por sessão, cada item entregue com revisão e nível (índice, conhecimento ou
+evidência) e não reenvia o mesmo nível; um assunto visto só no índice ainda
+pode entregar seu conhecimento. Nova revisão ou compactação do contexto libera
+o reenvio. Falha na leitura da memória degrada para um aviso, sem bloquear o
+prompt; as travas de autorização continuam ativas.
 
 O agente aprofunda com `retrieve`: assunto → conhecimento → experiência →
 evidência. Também busca registros sem grupo para não esconder conhecimento
@@ -270,13 +298,16 @@ Memória atualizada: sincronização do supervisor — ponto de entrada identifi
 ```
 
 Ao concluir `dev`, o agente avalia esse aprendizado contra o que já existe.
+O hook solicita essa avaliação uma vez quando a sessão editou arquivos e o HEAD
+avançou (entrega consolidada em commit); edições isoladas não a disparam.
 Se não há novidade útil, encerra sem aviso. Veredito, motivo, evidência, aplicação
 e limites continuam no histórico. Na política manual, apresenta a proposta para
 `do memory`. O modo `auto` de desenvolvimento não substitui a política de memória.
 
 ## Prévia e aprovação exata
 
-A proposta contém a avaliação, mudanças, snapshot resultante e hash de aprovação.
+A proposta local contém a avaliação, mudanças, estado anterior dos itens, snapshot
+resultante e hash de aprovação.
 O serviço detecta alteração da prévia e mudança da base após a proposta. Nessas
 situações, exige reavaliação. Sem ID, a aprovação só é inequívoca quando existe
 exatamente uma proposta pendente.
@@ -308,13 +339,15 @@ YABook-memory-LOGIN/
     proposals/
     transaction.json         # somente durante escrita interrompida
     publication.json         # somente enquanto publicação está pendente
-    search.sqlite
     sources/
 ```
 
 `memory.json` identifica formato (schema 2 para novas bases), proprietário e UUID da base. IDs são estáveis
 e únicos; cada alteração incrementa a revisão. O histórico registra veredito,
-motivo, ator, mudanças e snapshot para rastrear a aplicação.
+motivo, ator, estado anterior e posterior dos itens alterados e hashes da base
+e do resultado. O tamanho acompanha a mudança, não a base; o snapshot completo
+fica apenas na proposta e no journal local de recuperação. A busca textual usa
+índice efêmero por consulta.
 
 `learn` e `do memory` aplicam a proposta, adicionam apenas os paths correspondentes ao
 index, faz commit e push. Um worktree sujo bloqueia nova escrita. Falha de rede

@@ -26,7 +26,7 @@ class LearningTest(unittest.TestCase):
                                application="Investigar sincronização", evidence_status="Código examinado"),
             "changes": [dict(collection="records", id="R-sync", value=dict(
                 title="Responsabilidade", kind="knowledge", scope=["Demo"], content="Operação recebe dados",
-                application="Investigar recebimento", state="confirmed", evidence=["fixture:source@revision"]))]}
+                application="Investigar recebimento", state="confirmed", evidence=[dict(type="code", ref="fixture:source@revision", level="static")]))]}
 
     def run_learning(self, payload=None):
         return learn(self.vault, payload or self.payload, "test-agent", self.cfg, self.root)

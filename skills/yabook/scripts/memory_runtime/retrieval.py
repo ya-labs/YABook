@@ -5,7 +5,30 @@ from .sources import all_entries
 from .views import bounded, key, overview, references
 
 
-def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence=False, model=None):
+LEVELS = ("index", "knowledge", "evidence")
+
+
+def delivery_key(entry):
+    return key(entry) + "@" + str(entry.get("revision"))
+
+
+def covered(delivered, entry, level):
+    """Nível entregue cobre os anteriores; índice não equivale a conhecimento."""
+    levels = delivered.get(delivery_key(entry), ())
+    return any(LEVELS.index(l) >= LEVELS.index(level) for l in levels if l in LEVELS)
+
+
+def delivered_levels(result, evidence=False):
+    """Níveis entregues por item, para o hook não reinjetar o mesmo conteúdo na sessão."""
+    levels = {}
+    for item in result.get("topics", []) + result.get("index", []) + result.get("conditional", []):
+        levels.setdefault(item["key"] + "@" + str(item.get("revision")), set()).add("index")
+    for item in result.get("knowledge", []) + result.get("experiences", []) + result.get("profile", []) + result.get("preferences", []):
+        levels.setdefault(delivery_key(item), set()).add("evidence" if evidence else "knowledge")
+    return levels
+
+
+def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence=False, model=None, delivered=None):
     if not 512 <= budget <= 100000: raise ValueError("Orçamento inválido")
     if evidence and not experiences: raise ValueError("Evidências exigem nível de experiência")
     entries = all_entries(vault, includes)
@@ -52,8 +75,12 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
         value = {k: entry[k] for k in fields if k in entry}
         if evidence and entry.get("evidence"): value["evidence"] = entry["evidence"]
         return value
+    delivered = delivered or {}
+    level = "evidence" if evidence else "knowledge"
+    fresh = [e for e in items if not covered(delivered, e, "index" if e["collection"] == "groups" else level)]
     return bounded(dict(revision=digest(vault.snapshot()), query=query,
                         degraded=topics["degraded"] or knowledge["degraded"],
-                        topics=overview(e for e in items if e["collection"] == "groups"),
-                        knowledge=[content(e) for e in items if e["collection"] in ("records", "entities")],
-                        experiences=[content(e) for e in items if e["collection"] == "episodes" and experiences]), budget)
+                        already_delivered=len(items) - len(fresh),
+                        topics=overview(e for e in fresh if e["collection"] == "groups"),
+                        knowledge=[content(e) for e in fresh if e["collection"] in ("records", "entities")],
+                        experiences=[content(e) for e in fresh if e["collection"] == "episodes" and experiences]), budget)

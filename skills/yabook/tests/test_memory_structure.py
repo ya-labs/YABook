@@ -32,17 +32,17 @@ class StructureTest(unittest.TestCase):
                                   aliases=["não está chegando"], summary="Uma operação de exemplo recebe os dados.", summary_sources={"R": 1, "E": 1})),
             "R": ("records", dict(title="Responsabilidade do exemplo-sync.p", scope=scope + ["sync"],
                                    kind="knowledge", content="exemplo-sync.p trata o recebimento",
-                                   application="Investigar falha", state="confirmed", evidence=["fixture:code"], episodes=["E"])),
+                                   application="Investigar falha", state="confirmed", evidence=[dict(type="code", ref="fixture:code", level="static")], episodes=["E"])),
             "E": ("episodes", dict(title="Investigação do checklist", scope=scope + ["sync"],
                                     objective="Localizar o recebimento", context="Checklist não apareceu",
                                     actions=["Rastrear transporte e fonte"], outcome="Operação identificada",
-                                    validation=["Verificação de código; runtime pendente"], evidence=["fixture:commit"],
+                                    validation=["Verificação de código; runtime pendente"], evidence=[dict(type="commit", ref="fixture:commit", level="static")],
                                     learnings=["R"], state="confirmed")),
             "U": ("groups", dict(title="Navegação", scope=scope + ["navigation"], kind="topic", parent="P", members=["N"])),
             "N": ("records", dict(title="Rota de outra funcionalidade", scope=scope + ["navigation"], content="Tela de relatórios", application="Navegar", state="hypothesis")),
-            "PF": ("records", dict(title="Perfil", scope=["Pessoa"], kind="profile", content="Desenvolve em português", application="Colaborar", state="confirmed", evidence=["fixture:user"])),
-            "PR": ("records", dict(title="Preferência geral", scope=["Pessoa"], kind="preference", authority="explicit", activation="always", content="Explique validações pendentes", application="Relatórios", state="confirmed", evidence=["fixture:user"])),
-            "PC": ("records", dict(title="Preferência de investigação", scope=["Pessoa"], kind="preference", authority="explicit", activation="conditional", content="Comece rastreando o recebimento", application="Falha de checklist", triggers=["checklist"], state="confirmed", evidence=["fixture:user"])),
+            "PF": ("records", dict(title="Perfil", scope=["Pessoa"], kind="profile", content="Desenvolve em português", application="Colaborar", state="confirmed", evidence=[dict(type="conversation", ref="fixture:user", level="statement")])),
+            "PR": ("records", dict(title="Preferência geral", scope=["Pessoa"], kind="preference", authority="explicit", activation="always", content="Explique validações pendentes", application="Relatórios", state="confirmed", evidence=[dict(type="conversation", ref="fixture:user", level="statement")])),
+            "PC": ("records", dict(title="Preferência de investigação", scope=["Pessoa"], kind="preference", authority="explicit", activation="conditional", content="Comece rastreando o recebimento", application="Falha de checklist", triggers=["checklist"], state="confirmed", evidence=[dict(type="conversation", ref="fixture:user", level="statement")])),
         }
         self.save(self.items)
 
