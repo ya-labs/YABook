@@ -44,6 +44,7 @@ class HooksTest(unittest.TestCase):
         self.assertTrue(state["auto"])
         state = hook.prompt_grant("$yabook mode: automatico", {}, self.tmp.name)
         self.assertFalse(state.get("auto", False))
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
         hook.run(dict(self.event,hook_event_name="PostToolUse",tool_name="Edit"))
         event = dict(self.event,hook_event_name="Stop",stop_hook_active=False)
         self.assertEqual(hook.run(event)["decision"],"block")
@@ -74,6 +75,27 @@ class HooksTest(unittest.TestCase):
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={
             "command": "python3 yabook_memory.py --root " + self.tmp.name + " init-apply --plan " + str(plan)}))
         self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))
+
+    def test_learning_without_grant_and_policy_requires_grant(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
+        def inspect(command):
+            return hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash",
+                                 tool_input={"command": "python3 yabook_memory.py --root " + self.tmp.name + " " + command}))
+        self.assertNotIn("permissionDecision", inspect("learn --input data.json --actor demo").get("hookSpecificOutput", {}))
+        self.assertEqual(inspect("apply P-example --approval-hash hash")["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertEqual(inspect("learning-policy --mode automatic")["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertEqual(inspect("learn --config /other/config.json --input data.json --actor demo")["hookSpecificOutput"]["permissionDecision"], "deny")
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do memory policy manual"))
+        self.assertNotIn("permissionDecision", inspect("learning-policy --mode manual").get("hookSpecificOutput", {}))
+
+    def test_automatic_checkpoint_once_and_unconfigured_skips(self):
+        event = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.assertEqual(hook.run(event), {})
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.assertIn("Não peça do memory", hook.run(event)["reason"])
+        self.assertEqual(hook.run(event), {})
 
 
 if __name__ == "__main__": unittest.main()

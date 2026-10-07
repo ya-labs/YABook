@@ -178,6 +178,15 @@ A configuração padrão é `~/.config/yabook/config.json`. A inicialização gr
 }
 ```
 
+A inicialização nova inclui `"learning": {"mode": "automatic"}` no plano e na
+configuração. Isso autoriza lotes de aprendizados comprovados por checkpoint,
+sem `do memory` individual. Configurações existentes sem esse campo continuam
+manuais; use `$yabook do memory policy automatic` uma vez para habilitar, ou
+`$yabook do memory policy manual` para desabilitar. A política pertence à máquina,
+é independente do modo operacional `auto` e não autoriza migração ou fontes.
+O hook de encerramento solicita a curadoria uma vez; o agente aplica via `learn`
+e emite apenas um aviso curto. Ainda não há trabalhador independente em segundo plano.
+
 O hook resolve a raiz Git do projeto e carrega um mapa compacto desse escopo.
 Sem projeto configurado, usa o escopo `Pessoa`; não adivinha a organização pelo
 nome da pasta. O agente consulta detalhes sob demanda. Configure as fontes

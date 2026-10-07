@@ -61,7 +61,8 @@ def init_plan(root, agent, source, curated=None):
     plan = dict(owner=owner, repository=repository, private=True,
                 root=str(Path(root).expanduser().resolve()), existing=remote.returncode == 0,
                 inventory=inventory(agent, source), curated_hash=digest(curated) if curated else None,
-                operations=["create-or-reuse-private-repository", "write-approved-records", "commit", "push", "configure-plugin"])
+                learning={"mode": "automatic"},
+                operations=["create-or-reuse-private-repository", "write-approved-records", "commit", "push", "configure-plugin", "configure-learning-policy"])
     plan["approval_hash"] = digest(plan)
     return plan
 
@@ -130,6 +131,7 @@ def init_apply(plan, approval_hash, curated, config_path):
     if not has_head: paths += ["memory.json", ".gitignore"]
     result = publish(vault, paths, "feat: inicializa memória YABook avaliada")
     cfg.update(memory_root=str(root.resolve()), repository=repository)
+    cfg.setdefault("learning", plan.get("learning", {"mode": "manual"}))
     write_json(cfg_path, cfg)
     return result
 

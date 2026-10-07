@@ -1,6 +1,6 @@
 # Memória própria do YABook
 
-Use para `memory`, `search|index|context|retrieve|show|add|edit|forget|review|init|source|sync|map`
+Use para `memory`, `search|index|context|retrieve|show|add|edit|forget|review|recent|policy|init|source|sync|map`
 dentro da família `memory`, e `do memory`.
 `memory init` prepara inventário/curadoria; `do memory init` cria ou reutiliza
 o repositório privado `YABook-memory-<loginGitHub>` e publica o pacote aprovado.
@@ -21,12 +21,48 @@ A base configurada pertence ao YABook, não à memória nativa do agente.
 
 ## Curadoria
 
-Antes de preparar uma escrita, procure conhecimento relacionado e avalie:
+Antes de preparar uma escrita, procure somente conhecimento relacionado e avalie:
 utilidade futura, evidência, novidade, conflito, escopo e situação. Escolha
 adicionar, atualizar, relacionar, arquivar, remover, manter ou rejeitar.
 Explique o veredito e quando o conhecimento será aplicado. Pedido de `add`,
 `edit` ou `forget` não equivale a uma avaliação positiva nem a gravação.
 Arquivamento preserva contexto histórico; remoção deve explicar seu impacto.
+
+## Aprendizado automático por checkpoint
+
+A inicialização apresenta `learning.mode: automatic` junto ao plano; sua aprovação
+autoriza aprendizado cotidiano na base, sem `do memory` para cada descoberta.
+Configurações antigas sem `learning` continuam manuais. `do memory policy automatic`
+ou `do memory policy manual` autoriza `learning-policy --mode <modo>` uma vez.
+A política é configuração local, separada do modo operacional `auto`.
+
+Após uma etapa relevante, faça curadoria compacta e envie um lote para
+`learn --input <json> --actor <agente> --workspace <raiz-projeto>`. O payload contém
+`assessment`, `changes` e `learning: {"source": "development|user_statement",
+"conflicts": []}`. A lista registra conflitos realmente encontrados;
+não declarar ausência sem consultar o conhecimento relacionado.
+
+O runtime aplica descobertas comprovadas no projeto configurado, complementos,
+relações e arquivamento/superação com evidência. Perfil/preferência pessoal exige
+declaração da pessoa; preferência inferida, hipótese, conflito, exclusão definitiva
+ou escopo divergente gera `pending_review`, sem alterar a base. Duplicação exata
+e incorporação de fonte externa também ficam pendentes, visíveis em `review`.
+Não guardar cada
+hipótese transitória: rejeite candidatos sem utilidade durável antes de chamar learn.
+Validação estrutural não confirma fatos; a responsabilidade semântica é do agente.
+
+Um lote gera uma transação e, em base Git, um commit/push pelos paths validados.
+Não publicar a cada ferramenta/mensagem. `memory_updated` permite somente um aviso
+curto: `Memória atualizada: <assunto/arquivo>`. Sem novidade, não emitir aviso.
+Em `pending_review`, mantenha a proposta consultável sem perguntas intermediárias;
+se for um conflito relevante para a tarefa atual, explique-o no relatório da tarefa.
+Falhas/publicação pendente devem ser informadas, nunca anunciadas como sucesso.
+`recent --limit 10` consulta histórico compacto; revisão/correção usa proposta manual.
+
+Este fluxo usa o agente no checkpoint, sem trabalhador independente ou modelo
+autônomo em segundo plano. Não reler toda a base nem reinjetar histórico/experiências
+na sessão para produzir a atualização. Init, fontes, política, sync administrativo
+e exclusões definitivas continuam com autorização específica.
 
 Separe perfil (`profile`), preferências (`preference`), procedimentos (`procedure`)
 e conhecimento (`knowledge`) nos registros. Preferências declaram `authority`
@@ -48,8 +84,9 @@ histórico da operação. Segredos e autorizações de sessão não são conheci
 Execute `python3 scripts/yabook_memory.py --root <base> <serviço>` relativo à
 skill instalada. `list`, `show <id>` e `review` inspecionam a base; `prepare
 --input <json> --actor <agente>` prepara a avaliação e mudanças; `pending [id]`
-mostra a prévia. `apply <id> --approval-hash <hash>` só executa após aprovação
-do conteúdo exato. Não trate o hash como prova independente de autorização:
+mostra a prévia. `apply <id> --approval-hash <hash>` é o caminho manual, após aprovação
+do conteúdo exato. `learn` aplica pela política local após curadoria. Não trate
+o hash como prova independente de autorização:
 o agente deve obter `do memory` ou autorização aplicável na conversa atual.
 
 O payload contém `assessment` (`verdict`, `reason`, `utility`, `application`,
@@ -120,10 +157,10 @@ adicionados ao commit de conhecimento por conveniência.
 ## Encerramento do desenvolvimento
 
 Ao concluir `dev`, compare descobertas com registros existentes. Recomende
-atualização somente quando mudar execução futura, incluindo hipótese refutada,
-responsabilidade confirmada e limites de aplicação. A recomendação não grava.
-Mesmo em `auto`, não transforme descoberta em memória sem a curadoria e a
-autorização de memória pertinente ao objetivo. Memória externa é evidência de
+ou aplique pela política somente quando mudar execução futura, incluindo hipótese
+refutada, responsabilidade confirmada e limites de aplicação. Use learn em automatic;
+em manual, apresente proposta. Curadoria continua obrigatória em ambos os modos.
+Memória externa é evidência de
 origem identificada; confirme fontes atuais antes de decisões críticas.
 
 ## Mapa e instalação

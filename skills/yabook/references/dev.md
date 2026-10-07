@@ -129,8 +129,11 @@ externa ou critério de aceite impossível de validar.
 
 ## Orientação de teste no contexto de desenvolvimento
 
-Ao concluir, use `memory.md` para propor aprendizado útil com evidência e aplicação,
-se a base estiver configurada. Não grave automaticamente.
+Ao concluir uma etapa relevante, use `memory.md` para curadoria de aprendizado útil
+com evidência e aplicação. Se a base usar `learning.mode: automatic`, aplique um lote
+por `learn` e informe apenas `Memória atualizada: <assunto/arquivo>`; em manual,
+prepare uma proposta. Não interrompa desenvolvimento por candidatos pendentes,
+não reler toda a base nem gravar sem novidade útil.
 
 Ao concluir a implementação, `dev` e `dev step` no contexto
 `desenvolvimento` devem apresentar uma seção `Como testar` com passos

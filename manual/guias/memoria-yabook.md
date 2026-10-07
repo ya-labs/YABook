@@ -2,8 +2,9 @@
 
 O YABook mantém uma base própria de conhecimento, em arquivos JSON legíveis e
 versionados no repositório privado de cada pessoa. O agente interpreta a conversa,
-avalia descobertas e propõe mudanças; os serviços do plugin validam a proposta,
-gravam somente o conteúdo aprovado e publicam os arquivos correspondentes.
+avalia descobertas e prepara mudanças; os serviços do plugin validam o lote,
+gravam pela política de aprendizado ou aprovação manual e publicam os arquivos
+correspondentes. O aprendizado cotidiano não exige `do memory` por descoberta.
 
 Comece pelo [manual de instalação](instalacao-plugin-yabook.md). Este guia cobre
 o uso diário, organização, Git, colaboração, busca e visualização. Os exemplos
@@ -22,7 +23,46 @@ A detecção de padrões de segredo é uma ajuda, não substitui a revisão do c
 
 `add`, `edit` e `forget` passam pela curadoria do agente. Um pedido pode resultar
 em adicionar, atualizar, relacionar, arquivar, remover, manter ou rejeitar. O
-agente explica utilidade, motivo, evidência e aplicação antes de propor escrita.
+agente registra utilidade, motivo, evidência e aplicação no histórico. No fluxo
+automático, a conversa recebe somente o aviso de atualização.
+
+## Aprendizado automático
+
+A política local `learning.mode: automatic` permite consolidar um lote de
+aprendizados ao concluir uma etapa relevante, sem perguntas intermediárias.
+O agente consulta apenas conhecimento relacionado, verifica utilidade, novidade,
+evidência, escopo e conflitos e chama `learn`. Sem novidade útil, não grava nem
+emite aviso. Não repetir a investigação nem reler toda a memória para aprender.
+
+| Candidato | Destino no fluxo automático |
+| --- | --- |
+| Descoberta comprovada e complemento no projeto configurado | Aplicar com evidência e aplicação |
+| Preferência declarada pela pessoa | Aplicar como explícita no escopo Pessoa |
+| Hipótese durável, preferência inferida, duplicação ou conflito | Proposta pendente, sem aplicação |
+| Incorporação de conteúdo de outra base | Proposta pendente, preservando origem |
+| Arquivamento/superação com evidência | Aplicar preservando histórico |
+| Exclusão definitiva ou escopo divergente | Proposta pendente, exige revisão |
+
+O serviço não julga a verdade por conta própria. O agente faz a curadoria e
+declara os conflitos encontrados; o runtime verifica estrutura, escopo, política,
+evidências presentes e consistência da transação. Similaridade não confirma fatos.
+
+Uma atualização bem-sucedida produz apenas `Memória atualizada: <assunto/arquivo>`.
+O veredito completo fica no histórico, consultável com `memory recent`. Propostas
+pendentes aparecem em `memory review`. Pendências
+não geram perguntas durante o desenvolvimento; conflitos que afetem a tarefa e
+falhas reais devem ser informados. Não anunciar publicação se houver `pending_push`.
+
+Novas inicializações incluem a política automática no plano aprovado. Uma base
+com configuração antiga sem `learning` permanece manual; habilite uma vez com
+`$yabook do memory policy automatic`. Para desativar, use
+`$yabook do memory policy manual`. A política persiste na máquina e não ativa o
+modo operacional `auto`, nem autoriza Git do projeto ou migração nativa.
+
+Cada checkpoint publica um lote, com uma transação e um commit/push em base Git;
+não há publicação a cada mensagem. O próprio agente processa o checkpoint.
+Não há trabalhador independente em segundo plano nesta versão: o hook solicita
+a avaliação uma vez e evita repetição no encerramento.
 
 ## Organização: tipos e níveis de recuperação
 
@@ -98,7 +138,7 @@ de curadoria; é diferente das experiências em `episodes/`.
 
 ### Visões geradas e Git
 
-Após uma aplicação aprovada, o serviço gera:
+Após uma aplicação autorizada pela política ou aprovada manualmente, o serviço gera:
 
 - `views/memory_summary.md`: perfil, preferências, procedimentos e entrada para o índice.
 - `views/MEMORY.md`: índice por escopo, tipo, situação e termos, apontando para os JSON.
@@ -107,7 +147,7 @@ Após uma aplicação aprovada, o serviço gera:
 Essas visões são derivadas, identificadas por hash e publicadas no mesmo commit
 do conhecimento. Não as edite como fontes independentes. A geração reorganiza
 os dados aprovados; não produz conclusões novas com um modelo. Um novo resumo
-semântico exige curadoria e aprovação. Só arquivos cujo conteúdo mudou são
+semântico exige curadoria e política aplicável ou aprovação manual. Só arquivos cujo conteúdo mudou são
 reescritos; assuntos independentes conservam sua versão. Arquivos sem a marca
 de geração e links simbólicos nos destinos são recusados.
 
@@ -197,6 +237,8 @@ mostra `derived_views`, os arquivos de índices afetados pela proposta.
 | Avaliar correção | `$yabook memory edit R-identificador <correção>` |
 | Avaliar esquecimento | `$yabook memory forget R-identificador` |
 | Revisar hipóteses e duplicações | `$yabook memory review` |
+| Consultar atualizações recentes | `$yabook memory recent` |
+| Habilitar/desabilitar aprendizado automático | `$yabook do memory policy automatic` / `manual` |
 | Aprovar proposta específica | `$yabook do memory P-identificador` |
 | Aprovar única proposta pendente | `$yabook do memory` |
 | Preparar conexão com outra base | `$yabook memory source add <URL>` |
@@ -220,24 +262,17 @@ Se uma memória aponta para `lnws-pv200c2`, isso direciona a leitura; não prova
 sozinho, a causa do incidente. Esse nome vem do exemplo de desenho da solução
 e não foi confirmado por este guia como responsável por um fluxo real.
 
-Após investigar o código, o agente pode apresentar:
+Após investigar o código, se a política automática estiver ativa, o agente
+aplica o lote e apresenta:
 
 ```text
-Possível atualização de memória
-Descoberta: a operação X participa do recebimento do checklist no cenário Y.
-Veredito: atualizar R-operacao-checklist e relacionar à entidade E-operacao.
-Motivo: evita repetir a identificação do ponto de entrada.
-Evidência: caminho do fonte e revisão examinada.
-Aplicação: ao investigar falha de recebimento no cenário Y, começar por X;
-verificar também os filtros atuais e a versão do contrato.
-Limite: não explica todos os casos de checklist ausente.
-Proposta: P-...; arquivos e publicação apresentados na prévia.
-Aprovação: $yabook do memory P-...
+Memória atualizada: sincronização do supervisor — ponto de entrada identificado.
 ```
 
 Ao concluir `dev`, o agente avalia esse aprendizado contra o que já existe.
-Se não há novidade útil, encerra sem recomendar memória. O modo `auto` para
-desenvolvimento não transforma automaticamente cada descoberta em escrita.
+Se não há novidade útil, encerra sem aviso. Veredito, motivo, evidência, aplicação
+e limites continuam no histórico. Na política manual, apresenta a proposta para
+`do memory`. O modo `auto` de desenvolvimento não substitui a política de memória.
 
 ## Prévia e aprovação exata
 
@@ -247,7 +282,8 @@ situações, exige reavaliação. Sem ID, a aprovação só é inequívoca quand
 exatamente uma proposta pendente.
 
 O hash liga a execução ao conteúdo, mas não prova autorização da pessoa. O agente
-obtém a aprovação na conversa atual antes de chamar o serviço. A publicação Git
+obtém a aprovação na conversa atual antes de chamar `apply`; `learn` usa a política
+local previamente configurada e prepara/valida o lote internamente. A publicação Git
 faz parte da operação apresentada quando a base já é um repositório configurado.
 
 Prefira arquivar informação que perdeu aplicação. Remover exclui o arquivo
@@ -280,7 +316,7 @@ YABook-memory-LOGIN/
 e únicos; cada alteração incrementa a revisão. O histórico registra veredito,
 motivo, ator, mudanças e snapshot para rastrear a aplicação.
 
-`do memory` aplica a proposta, adiciona apenas os paths correspondentes ao
+`learn` e `do memory` aplicam a proposta, adicionam apenas os paths correspondentes ao
 index, faz commit e push. Um worktree sujo bloqueia nova escrita. Falha de rede
 após commit retorna `pending_push`: repita a publicação, sem gerar nova proposta
 para o mesmo conteúdo. Índice staged com arquivos independentes também bloqueia.
@@ -396,6 +432,25 @@ python3 "$SCRIPT" --root "$BASE" vectors-import --input /CAMINHO/vetores.json
 
 ### Preparar uma mudança
 
+Para aprendizado automático, acrescente ao payload abaixo:
+`"learning": {"source": "development", "conflicts": []}`. Use conteúdo comprovado
+com evidência e escopo do projeto configurado; o exemplo abaixo é hipótese e
+portanto fica pendente se enviado por `learn`.
+
+```bash
+python3 "$SCRIPT" --root "$BASE" learn --input /CAMINHO/lote.json --actor meu-agente \
+  --workspace /CAMINHO/raiz-do-projeto
+python3 "$SCRIPT" --root "$BASE" recent --limit 10
+# Após autorizar a mudança de política uma vez:
+python3 "$SCRIPT" --root "$BASE" learning-policy --mode automatic
+```
+
+`learn` retorna `memory_updated`, `unchanged` ou `pending_review` e não despeja o
+snapshot na conversa. `learning.source` é `development` ou `user_statement`;
+`learning.conflicts` é a lista resultante da comparação com conhecimento existente.
+`--config`/`YABOOK_CONFIG` seleciona a configuração local; não usar outra política
+para contornar a configuração da sessão.
+
 Exemplo mínimo de payload `mudanca.json`, com hipótese explicitamente delimitada:
 
 ```json
@@ -483,7 +538,7 @@ uma afirmação técnica sem evidência real.
 Não há daemon de sincronização, editor visual, serviço web público, ACL por
 arquivo nem extração de memória interna do provedor. Hooks dependem do suporte
 do host. A instalação e a remoção de guardrails exigem a verificação descrita
-no manual de instalação. O esquema atual é versão 1; mudanças de formato precisam
+no manual de instalação. O esquema atual é versão 2; mudanças de formato precisam
 de migração explícita.
 
 ## Independência do agente

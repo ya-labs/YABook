@@ -230,7 +230,7 @@ class Vault:
                             raise ValueError("Grupo filho fora do escopo do pai")
                         visited.add(parent); parent = ancestor.get("parent"); child = ancestor
 
-    def prepare(self, changes, assessment, actor):
+    def prepare(self, changes, assessment, actor, expected_base_hash=None):
         required = ("verdict", "reason", "utility", "application", "evidence_status")
         if not all(isinstance(assessment.get(k), str) and assessment[k].strip() for k in required):
             raise ValueError("Avaliação do agente incompleta")
@@ -240,6 +240,8 @@ class Vault:
             raise ValueError("Proposta vazia")
         with self.lock():
             before = self.snapshot()
+            if expected_base_hash is not None and digest(before) != expected_base_hash:
+                raise ValueError("Base mudou durante a curadoria; reavaliar aprendizado")
             proposed = json.loads(json.dumps(before))
             touched = set()
             for change in changes:
@@ -324,6 +326,7 @@ class Vault:
                     write_json(path, value)
                     paths.append(str(path.relative_to(self.root)))
         receipt = {"proposal": proposal["id"], "approval_hash": proposal["approval_hash"],
+                   "created_at": proposal["created_at"],
                    "actor": proposal["actor"], "assessment": proposal["assessment"],
                    "changes": proposal["changes"], "snapshot": proposal["result"],
                    "result_hash": digest(proposal["result"])}
@@ -361,6 +364,10 @@ class Vault:
 
     def review(self):
         seen, findings = {}, []
+        for path in sorted((self.local / "proposals").glob("P-*.json")):
+            proposal = self.proposal(path.stem)
+            findings.append({"kind": "pending_proposal", "id": proposal["id"],
+                             "reasons": proposal["assessment"].get("learning", {}).get("review_reasons", [])})
         for entry in self.entries(include_archived=True):
             key = (tuple(entry["scope"]), " ".join(entry.get("content", entry["title"]).casefold().split()))
             if key in seen:

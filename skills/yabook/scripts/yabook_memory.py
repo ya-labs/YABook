@@ -2,7 +2,9 @@
 """CLI de serviços; o agente YABook prepara avaliações e obtém a aprovação."""
 import argparse
 import json
+import os
 import sys
+from pathlib import Path
 
 from memory_runtime.core import Vault, read_json
 from memory_runtime.gitstore import apply_and_publish, init_plan, init_apply, inventory, publish
@@ -23,6 +25,16 @@ def main():
     prepare = sub.add_parser("prepare")
     prepare.add_argument("--input", required=True)
     prepare.add_argument("--actor", required=True)
+    learning = sub.add_parser("learn", help="Aplica um lote curado pela política de aprendizado")
+    learning.add_argument("--input", required=True)
+    learning.add_argument("--actor", required=True)
+    learning.add_argument("--workspace", default=os.getcwd())
+    learning.add_argument("--config", default=os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
+    policy = sub.add_parser("learning-policy")
+    policy.add_argument("--mode", required=True, choices=["automatic", "manual"])
+    policy.add_argument("--config", default=os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
+    recent = sub.add_parser("recent")
+    recent.add_argument("--limit", type=int, default=10)
     pending = sub.add_parser("pending")
     pending.add_argument("id", nargs="?")
     apply = sub.add_parser("apply")
@@ -116,6 +128,15 @@ def main():
         result = publish(vault)
     elif args.command == "bootstrap":
         result = vault.bootstrap(args.owner)
+    elif args.command == "learn":
+        from memory_runtime.learning import learn
+        result = learn(vault, read_json(args.input), args.actor, args.config, args.workspace)
+    elif args.command == "learning-policy":
+        from memory_runtime.learning import set_policy
+        result = set_policy(args.config, vault.root, args.mode)
+    elif args.command == "recent":
+        from memory_runtime.learning import recent
+        result = recent(vault, args.limit)
     elif args.command == "prepare":
         payload = read_json(args.input)
         result = vault.prepare(payload["changes"], payload["assessment"], args.actor)
