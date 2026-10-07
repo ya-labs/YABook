@@ -10,6 +10,9 @@ Comece pelo [manual de instalação](instalacao-plugin-yabook.md). Este guia cob
 o uso diário, organização, Git, colaboração, busca e visualização. Os exemplos
 são ilustrativos, não documentação funcional de uma aplicação.
 
+Para entender a implementação, consulte [Como funciona tecnicamente](#como-funciona-tecnicamente):
+componentes, transações, hooks, busca e sincronização.
+
 ## O que guardar
 
 Uma boa memória modifica uma decisão futura: onde investigar um comportamento,
@@ -227,8 +230,9 @@ o código atual quando a decisão depende de uma versão ou contrato que mudou.
 
 ## Abertura automática da sessão
 
-`SessionStart` entrega o método, a identidade da base, sua revisão e até vinte
-entradas do mapa do escopo configurado. Não despeja toda a memória na conversa.
+`SessionStart` entrega o método, a revisão da base e um contexto do escopo
+configurado limitado por orçamento de caracteres, sem quantidade fixa de entradas.
+Não despeja toda a memória na conversa.
 O agente busca o conteúdo completo quando a intenção da pessoa exige detalhes.
 
 Não há comando `memory load` necessário no fluxo com hooks ativos. A configuração
@@ -560,6 +564,339 @@ não cria o repositório remoto. A inicialização com Git usa `init-plan/init-a
 Não apague journals para fazer a ferramenta ignorar um erro. Faça backup da base
 antes de uma recuperação manual. Sync e configuração de fontes são locais por
 máquina; revê-las faz parte da preparação de um novo ambiente.
+
+## Como funciona tecnicamente
+
+Esta seção descreve o runtime Python distribuído no plugin. Comandos na conversa
+são interpretados pelo agente seguindo a skill; a execução passa por
+`yabook_memory.py` e pelos módulos de `memory_runtime/`. Não existe um processo
+permanente observando todas as conversas nem um modelo embutido no runtime
+julgando descobertas por conta própria.
+
+### Componentes e responsabilidades
+
+```mermaid
+flowchart TD
+    H[Host e eventos da sessão] --> K[Hooks e estado operacional]
+    K --> A[Agente orientado pela skill]
+    A --> C[CLI yabook_memory.py]
+    C --> L[Política e lote curado]
+    L --> V[Vault: validação e transação]
+    V --> J[JSON canônico e histórico]
+    J --> D[Visões Markdown derivadas]
+    V --> G[Publicação Git da base]
+    C --> R[Recuperação, busca e mapa]
+    J --> R
+    F[Fontes externas filtradas] --> R
+    R --> A
+```
+
+| Componente | Responsabilidade | Implementação |
+| --- | --- | --- |
+| Skill | Interpretar intenção e orientar curadoria e contratos | [SKILL.md](../../skills/yabook/SKILL.md), [memory.md](../../skills/yabook/references/memory.md) |
+| CLI | Despachar serviços e receber/produzir JSON | [yabook_memory.py](../../skills/yabook/scripts/yabook_memory.py) |
+| Hook | Adaptar eventos, controlar autorizações e entregar contexto | [yabook_hook.py](../../skills/yabook/scripts/yabook_hook.py) |
+| Vault | Validar o grafo, preparar/aplicar propostas e recuperar transações | [core.py](../../skills/yabook/scripts/memory_runtime/core.py) |
+| Aprendizado | Verificar política, novidade exata, escopo e condições de escrita automática | [learning.py](../../skills/yabook/scripts/memory_runtime/learning.py) |
+| Visões | Organizar índices e gerar Markdown dos JSON | [views.py](../../skills/yabook/scripts/memory_runtime/views.py) |
+| Busca e recuperação | Consultar termos/vetores e aprofundar relações | [search.py](../../skills/yabook/scripts/memory_runtime/search.py), [retrieval.py](../../skills/yabook/scripts/memory_runtime/retrieval.py) |
+| Git e fontes | Inicializar/publicar a própria base e ler conhecimento conectado | [gitstore.py](../../skills/yabook/scripts/memory_runtime/gitstore.py), [sources.py](../../skills/yabook/scripts/memory_runtime/sources.py) |
+| Mapa | Projetar o conhecimento filtrado para consulta visual | [map.py](../../skills/yabook/scripts/memory_runtime/map.py) |
+
+O agente decide se uma descoberta é útil e sustentada por evidência. O runtime
+verifica representação, integridade e política. JSON válido e hash correto não
+demonstram a verdade de uma afirmação sobre o sistema investigado.
+
+### Identidade, revisões e grafo
+
+`memory.json` contém o `vault_id` UUID, proprietário, schema e data de criação.
+IDs dos itens são únicos entre as quatro coleções canônicas; cada arquivo segue
+`<coleção>/<id>.json`, com o mesmo ID no conteúdo. O runtime recusa caminhos fora
+da coleção, divergência entre ID e arquivo e links simbólicos no armazenamento.
+
+Em cada escrita, o runtime define `id` e incrementa `revision` a partir do item
+anterior. `origin` identifica linhagem entre bases; `provenance` registra arquivo,
+trecho e snapshot de uma migração; `evidence` descreve o que sustenta o conteúdo.
+Uma referência local pode ser rastreável sem estar disponível em outra máquina.
+
+O grafo usa referências por ID em `members`, `parent`, `entities`, `episodes`,
+`learnings` e `relations`. A validação verifica destinos, tipos, escopos e ciclos
+na hierarquia. Relações `suggested` não participam da expansão automática.
+A árvore de projetos/assuntos é uma forma de navegar nesse grafo; um conhecimento
+pode pertencer a vários assuntos.
+
+Escopo é uma lista ordenada. Incluir `["Organização", "Projeto"]` alcança esse
+prefixo e seus descendentes, mas não `Projeto B` por semelhança de nome.
+Excludes prevalecem sobre includes. Caminhos absolutos de checkouts entram no
+mapa local de projetos, preservando a identidade compartilhada do conhecimento.
+
+### Snapshot e hashes
+
+`Vault.snapshot()` lê metadados e coleções sob lock. Não inclui histórico,
+Markdown derivado, propostas, configuração ou cache vetorial. Uma transação
+interrompida impede a leitura normal para não expor uma base parcialmente escrita.
+
+`digest()` calcula SHA-256 do JSON com chaves ordenadas, separadores compactos
+e UTF-8. Os hashes cumprem funções diferentes:
+
+| Campo/uso | Conteúdo identificado |
+| --- | --- |
+| `base_hash` | Estado canônico usado ao preparar a proposta |
+| `approval_hash` | Proposta completa, sem o próprio campo de hash |
+| `result_hash` | Estado canônico resultante |
+| Hash da visão | Snapshot utilizado; nos assuntos, grupo e membros |
+| Chave vetorial | Identidade, revisão, texto, modelo e pipeline |
+
+São mecanismos de detecção de alteração, não assinaturas digitais ou prova de
+autoria. A autorização vem da conversa ou da política local aplicável.
+
+### Preparação de uma escrita
+
+O payload contém `assessment` e `changes`. A avaliação registra veredito, motivo,
+utilidade, aplicação e situação da evidência. Cada mudança identifica coleção,
+ID e valor completo, ou `delete: true`.
+
+`prepare()` executa sob lock:
+
+1. Lê a base e compara `expected_base_hash`, quando informado.
+2. Aplica as mudanças em uma cópia do snapshot, guardando os valores anteriores.
+3. Verifica alterações repetidas, omissões de campos e evidências estruturadas.
+4. Define IDs/revisões, preserva origem e valida todo o resultado.
+5. Calcula novos resumos desatualizados e arquivos derivados afetados.
+6. Persiste a proposta em `.yabook-local/proposals/P-<identificador>.json`.
+
+A proposta local guarda resultado completo, mudanças, estado anterior dos itens,
+ator, data e hashes. Preparar não escreve as coleções canônicas nem publica.
+
+Atualização é substituição de valor completo. Omitir um campo existente exige
+`remove_fields` na mudança e ausência desse campo no novo valor. Campos gerenciados
+pelo runtime não podem ser retirados assim. Isso evita perder termos, relações
+ou entidades quando o agente fornece apenas conteúdo e aplicação.
+
+Leituras aceitam evidências legadas em texto; novas escritas exigem tipo,
+referência e nível válidos. Procedência informada exige agente, arquivo e hash
+SHA-256, com linhas opcionais. Evidência presente é obrigatória para confirmação;
+o runtime não abre automaticamente cada referência para verificar a afirmação.
+
+### Transação, concorrência e recuperação
+
+O Vault combina `threading.RLock`, reentrante no objeto, com `fcntl.flock` no
+arquivo `.yabook-local/lock`, para coordenar processos acessando a mesma base.
+Isso depende de `fcntl` e do filesystem; não é um lock distribuído entre máquinas.
+Edições externas ao runtime não seguem essa coordenação.
+
+`apply()` verifica proposta, hash e correspondência da base a `base_hash`.
+Alteração concorrente exige reavaliação. Antes de escrever os itens, persiste
+o resultado completo em `.yabook-local/transaction.json`.
+
+JSON é escrito em arquivo temporário no destino, seguido de flush, `fsync`
+e `os.replace`. A substituição é por arquivo: vários arquivos não constituem
+uma única transação atômica do filesystem. O journal permite reconhecer e
+concluir uma aplicação interrompida.
+
+`_finish()` escreve os itens necessários, remove exclusões, registra histórico,
+gera visões e prepara publicação Git. Ao concluir, remove a proposta e o journal.
+`recover()` valida o journal e repete a conclusão do mesmo resultado; não cria
+outra descoberta nem desfaz a operação.
+
+O histórico permanente guarda apenas itens alterados, com `before`, `after`,
+remoções declaradas, ator, avaliação, data e hashes. O snapshot completo permanece
+na proposta/journal temporário, evitando replicar a base em todo arquivo de
+histórico. `recent` ainda percorre os históricos e os ordena por data; não há
+índice próprio de histórico. Arquivos antigos podem conservar o formato anterior.
+
+### Escrita automática e manual
+
+`learn()` exige correspondência com a `memory_root` configurada, resolve a raiz
+Git de `workspace` e consulta seu escopo em `projects`. Sem `learning`, a política
+é manual. O agente fornece `learning.source` e os conflitos identificados.
+
+O serviço ignora alterações exatamente iguais ao registro anterior e detecta
+conteúdo textual normalizado duplicado no mesmo escopo/tipo, inclusive no lote.
+Isso não detecta automaticamente todas as paráfrases ou equivalências semânticas.
+
+Verifica escopo, estado, evidência, origem, declaração pessoal explícita e
+conflitos. Situações fora da política ficam pendentes. A ausência de conflitos é
+declarada pelo agente após comparação; não é provada por um modelo independente.
+
+O lote passa por `prepare()` com o hash examinado; antes de aplicar, o serviço
+confere novamente a configuração. Retorna `unchanged`, `pending_review` ou
+`memory_updated`; estrutura inválida produz erro. Transação/publicação pendente
+bloqueia nova escrita.
+
+No caminho manual, a proposta é apresentada e `apply` recebe ID/hash após
+autorização. Ambos os caminhos usam o mesmo Vault, histórico, visões e publicação.
+A política automática não autoriza migração nativa ou operações administrativas
+por conta própria.
+
+### Hooks e contexto da sessão
+
+O host deve carregar os hooks e aplicar suas respostas. No Codex, também é
+necessária a confiança dos hooks do plugin conforme o
+[manual de instalação](instalacao-plugin-yabook.md). Presença da skill não prova
+que os callbacks executaram.
+
+O estado fica em `~/.config/yabook/sessions/`, ou em `YABOOK_STATE`, com arquivo
+identificado pelo hash da sessão e pelo agente quando informado pela ponte.
+`YABOOK_CONFIG` seleciona configuração alternativa. Mudança de projeto reinicia
+o estado operacional aplicável.
+
+| Evento | Comportamento implementado |
+| --- | --- |
+| `SessionStart` | Entrega método, política e contexto; início novo limpa autorizações e compactação limpa o registro de conteúdo entregue |
+| `UserPromptSubmit` | Atualiza concessões operacionais e busca conteúdo relacionado ainda não entregue naquele nível/revisão |
+| `PreToolUse` | Inspeciona ferramenta, branch e autorização; pode negar mutações fora do escopo |
+| `PostToolUse` | Marca edições reconhecidas na sessão |
+| `Stop` | Se houve edição reconhecida e o HEAD avançou, solicita curadoria uma vez e registra o HEAD como checkpoint |
+
+O gatilho atual é edição reconhecida mais mudança de HEAD. Edição isolada,
+desenvolvimento sem commit ou ferramenta não reconhecida não garantem o disparo.
+O agente pode avaliar explicitamente ao concluir uma etapa, conforme a política.
+Não há callback `PreCompact` implementado ou fila independente de curadoria.
+
+A entrega é registrada como `origem:id@revisão`, com nível `index`, `knowledge`
+ou `evidence`. Nível mais detalhado cobre anteriores; índice não cobre conteúdo.
+O hook registra os itens presentes no resultado limitado e evita repetir o mesmo
+nível. Nova revisão permite reenvio; compactação limpa o controle. Consultas
+explícitas pela CLI não recebem esse estado automaticamente: a integração do
+hook passa o argumento `delivered` ao serviço de recuperação.
+
+O contexto inicial prioriza perfil próprio confirmado e preferências próprias
+explícitas, confirmadas e permanentes; depois inclui assuntos e índices
+condicionais. Perfil/preferências do colega não viram comportamento pessoal.
+Falhas na leitura/recuperação permitem continuar com fontes do projeto, sem
+desativar as verificações de autorização de outras operações.
+
+### Busca textual e ranking híbrido
+
+Cada consulta começa com `all_entries()`: conhecimento próprio mais fontes
+conectadas, filtradas por escopo e situação. `search()` aplica filtros de tipo
+e nível; a identidade do resultado combina fonte e ID para evitar colisões.
+
+A busca textual usa SQLite FTS5 em `:memory:`. Cria uma tabela temporária com
+ID e corpo concatenando título, conteúdo, aplicação, condições, resumo, termos
+e campos de experiência. A tabela pertence à consulta, sem uma tabela FTS
+persistente compartilhada sendo apagada por sessões concorrentes.
+
+A consulta vira até 32 termos por expressão regular, combinados com `OR`.
+São selecionados até 50 candidatos por BM25. Não existem pesos por coluna
+para favorecer título/aliases/triggers ou uma etapa própria de stemming e
+remoção de palavras comuns em português. Reconstruir a tabela a cada consulta
+tem custo proporcional ao corpus visível.
+
+Com `--model`, o serviço solicita embeddings ao Ollama local. Vetores ausentes
+são calculados em lotes de até 16 itens e guardados em
+`.yabook-local/vectors.json`. A consulta também recebe vetor; os candidatos
+são ordenados por similaridade de cosseno, mantendo pontuações positivas.
+Vetores devem ser numéricos, finitos, não nulos e compatíveis em dimensão.
+
+As posições lexical e vetorial são combinadas pela soma de
+`1 / (60 + posição)`, com posições começando em 1. O score indica prioridade
+de recuperação, não probabilidade de verdade. Falha tratada na etapa vetorial
+conserva a lista textual.
+
+Na busca direta, expansão habilitada acrescenta referências explícitas com
+metade da pontuação do item de origem, dentro dos filtros. Resultados informam
+score, motivo, origem e estado. O cache vetorial usa substituição de arquivo;
+não há lock dedicado para mesclar caches de consultas concorrentes. É um dado
+derivado e reconstruível, não armazenamento canônico.
+
+### Recuperação progressiva e orçamento
+
+`retrieve()` realiza duas buscas diretas, sem expansão da busca simples:
+grupos/assuntos e conhecimento/entidades. Usa os resultados como entradas no
+grafo e localiza grupos que contêm os itens encontrados.
+
+Percorre referências até três saltos, incluindo pais no índice sem usar essa
+subida para abrir todos os assuntos irmãos. Grupos selecionados podem alcançar
+membros e subgrupos. `--experiences` acrescenta experiências; `--evidence` exige
+esse aprofundamento e permite incluir evidências no conteúdo devolvido.
+
+Resultados diretos precedem os expandidos. O desempate dos demais usa título
+e identidade; não existe ranking semântico específico para esses vizinhos.
+O filtro de conteúdo entregue é aplicado antes do resultado final, separado
+em `topics`, `knowledge` e `experiences`, com revisão, degradação, truncamento
+e quantidade `already_delivered`.
+
+Budgets medem **caracteres do JSON serializado com `ensure_ascii=False`**, não
+tokens do provedor. Não há equivalência fixa entre as unidades. O hook usa
+4.200 para memória inicial e 4.500 por prompt; os serviços `context` e `retrieve`
+têm padrões de 4.500 e 6.000. Método e mensagens do hook acrescentam texto
+fora do orçamento da memória.
+
+`bounded()` preserva metadados e admite itens completos que cabem, sinalizando
+`truncated` para omissões. A busca direta pode cortar o texto de um hit e retirar
+evidências/resumo para respeitar seu limite. Nenhuma estratégia cria resumo
+semântico novo. Consultar `show` ou aprofundar continua necessário quando a
+tarefa exige informação integral.
+
+### Visões, resumos e mapa
+
+`render_views()` usa o snapshot canônico, excluindo itens arquivados/superados,
+para gerar os Markdown descritos neste manual. A marca `YABOOK-VIEW:generated`
+identifica o arquivo gerenciado. `write_views()` compara conteúdo, grava somente
+diferenças e remove páginas de assuntos que deixaram de existir; recusa
+sobrescrever arquivos independentes no destino.
+
+O resumo semântico do grupo é produzido na curadoria. O runtime compara
+`summary_sources` com revisões e estados dos membros. Dependência alterada,
+ausente ou com resumo inválido causa omissão do resumo vigente e
+`summary_stale`, incluindo dependências ancestrais. É possível atualizar membro
+e resumo no mesmo lote, usando a revisão resultante.
+
+O mapa recebe a visão filtrada usada na busca, para consulta local ou HTML
+exportado. Não edita arquivos canônicos. Markdown e HTML não substituem os JSON
+nem incorporam conhecimento por serem abertos em outra máquina.
+
+### Publicação Git e fontes externas
+
+A base Git deve ser seu próprio repositório. Antes da escrita/publicação, o
+serviço verifica worktree/index para preservar alterações independentes.
+`_finish()` registra em `publication.json` caminhos e hashes dos arquivos da
+operação, permitindo publicar a transação concluída.
+
+`publish()` confere o recibo, adiciona somente esses paths, verifica o staged
+e cria o commit. Persiste o hash do commit antes do push. Falha de push retorna
+`pending_push`; a tentativa seguinte publica o mesmo commit. HEAD diferente
+do recibo exige revisão. Sem Git, a aplicação retorna `local_only`.
+
+`sync()` tenta publicar pendências, exige estado limpo, atualiza a própria base
+por `pull --ff-only` e atualiza fontes. Não mescla o histórico do colega à base
+pessoal. Divergência/indisponibilidade é informada, sem force push para reconciliar.
+
+Cada fonte usa espelho Git bare e recibo local. A leitura executa `ls-tree` e
+`git show` em um commit identificado, sem checkout ou execução de scripts
+remotos. Valida schema, identidade e grafo; depois aplica includes/excludes,
+retira perfil/preferências externos e sanitiza vínculos/resumos.
+
+O recibo guarda revisão Git, data de consulta, hash da política, entradas
+visíveis e diferenças. Filtros são reaplicados ao consultar o cache. `origin`
+permite reconhecer conhecimento incorporado; diferenças relevantes geram
+`origin_updates`, sem sobrescrever a versão pessoal. Compartilhar leitura não
+significa incorporar automaticamente os itens do colega.
+
+`refresh_on_start` respeita intervalo das fontes e orçamento de tempo da abertura.
+Falha de rede conserva cache existente e informa indisponibilidade. Não há
+agendador diário executando fora dos eventos/comandos acionados pelo host.
+
+### Inicialização, migração e avaliação
+
+`inventory()` calcula metadados/hashes de arquivos acessíveis e classifica
+candidatos; o excerpt de até 3.000 caracteres não prova leitura integral.
+`init-plan` combina inventário, conta GitHub, destino privado, hash da curadoria
+e política proposta. `init-apply` confere plano, conta, hashes da origem,
+curadoria e destino antes de aplicar e configurar a base.
+
+O runtime não extrai memória oculta dos provedores nem produz sozinho a tabela
+de cobertura. O agente deve ler a origem por blocos, classificar, documentar
+destinos e justificar descartes/pendências. `provenance` vincula itens à origem,
+mas não torna automaticamente portável uma evidência localizada em rollout local.
+
+Integridade é verificada por schema, hashes, locks, journal, histórico e Git.
+Qualidade de recuperação exige consultas reais com IDs esperados e casos de
+escopo, atualização, compactação e fontes externas. Recall, precisão e custo
+de contexto precisam de avaliação; o runtime não certifica automaticamente
+essa qualidade nem calcula tokens exatos do provedor.
 
 ## Limites da primeira versão
 
