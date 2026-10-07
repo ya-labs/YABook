@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import hashlib
 import json
 import os
@@ -164,7 +165,16 @@ class Vault:
                     fcntl.flock(stream, fcntl.LOCK_UN)
 
     def snapshot(self):
-        with self.lock():
+        try:
+            with self.lock():
+                if (self.local / "transaction.json").exists():
+                    raise ValueError("Transação interrompida; recuperar antes de consultar")
+                return self._snapshot()
+        except OSError as error:
+            # Sandbox de agente monta a base como somente leitura: consulta sem trava.
+            # Escritas continuam exigindo a trava e falham nesse ambiente.
+            if error.errno not in (errno.EROFS, errno.EACCES, errno.EPERM) or self._lock_depth:
+                raise
             if (self.local / "transaction.json").exists():
                 raise ValueError("Transação interrompida; recuperar antes de consultar")
             return self._snapshot()

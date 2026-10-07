@@ -97,6 +97,17 @@ class StabilityTest(unittest.TestCase):
                            dict(collection="groups", id="G1", value=refreshed)])
         self.assertEqual(both["stale_summaries"], [])
 
+    def test_reads_work_when_local_state_is_read_only(self):
+        self.save(self.record())
+        lock = self.v.local / "lock"
+        lock.chmod(0o444)
+        self.addCleanup(lock.chmod, 0o644)
+        reader = Vault(self.v.root)
+        self.assertEqual([e["id"] for e in reader.entries()], ["R1"])
+        self.assertEqual([k["id"] for k in retrieve(reader, "checklist supervisor", [["Org"]])["knowledge"]], ["R1"])
+        with self.assertRaises(PermissionError):
+            reader.prepare([dict(collection="records", id="R2", value=self.record("R2"))], self.assessment, "test")
+
     def test_concurrent_searches_do_not_fail(self):
         self.save(self.record())
         errors = []

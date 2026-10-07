@@ -67,7 +67,6 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
     # Relacionamentos só expandem dentro dos filtros de origem, escopo, tipo e nível.
     entries = [e for e in entries if e["collection"] in levels[level] and (not kinds or kind(e) in kinds)]
     by_id = {uid(e): e for e in entries}
-    vault.local.mkdir(parents=True, exist_ok=True)
     # Índice efêmero por consulta: sessões concorrentes não disputam o mesmo arquivo.
     connection = sqlite3.connect(":memory:")
     try:
@@ -81,6 +80,7 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
         connection.close()
     rankings = [lexical]; mode = "textual"; degraded = None
     if model and entries:
+        vault.local.mkdir(parents=True, exist_ok=True)
         path = vault.local / "vectors.json"
         cache = read_json(path) if path.exists() else {}
         keys = {uid(e): vector_key(e, model) for e in entries}
