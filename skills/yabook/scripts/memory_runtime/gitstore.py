@@ -4,7 +4,7 @@ import re
 import subprocess
 import tempfile
 from pathlib import Path
-from .core import Vault, digest, read_json, write_json, SECRET
+from .core import Vault, COLLECTIONS, digest, read_json, write_json, SECRET
 
 
 def run(*args, check=True, timeout=60):
@@ -92,7 +92,7 @@ def init_apply(plan, approval_hash, curated, config_path):
             validator.bootstrap(plan["owner"])
             if (root / "memory.json").exists():
                 baseline = Vault(root).snapshot()
-                for collection in ("records", "entities", "groups"):
+                for collection in COLLECTIONS:
                     for identifier, entry in baseline[collection].items():
                         write_json(validator.path(collection, identifier), entry)
             validator.prepare(curated["changes"], curated["assessment"], "validation")
@@ -119,6 +119,9 @@ def init_apply(plan, approval_hash, curated, config_path):
         previous = snapshot[change["collection"]].get(change["id"])
         if change.get("delete"): return previous is not None
         ignored = {"id", "revision", "origin"}
+        # Leituras do formato antigo expõem knowledge sem exigir regravação.
+        if change["collection"] == "records" and "kind" not in change["value"]:
+            ignored.add("kind")
         return previous is None or {k:v for k,v in previous.items() if k not in ignored} != {k:v for k,v in change["value"].items() if k not in ignored}
     changes = [c for c in curated["changes"] if effective(c)]
     if changes:

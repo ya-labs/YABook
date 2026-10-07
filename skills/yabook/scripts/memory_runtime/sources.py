@@ -2,7 +2,7 @@
 import re
 import time
 from pathlib import Path
-from .core import Vault, digest, read_json, scoped, write_json
+from .core import Vault, COLLECTIONS, SCHEMA_VERSION, snapshot_entries, digest, read_json, scoped, write_json
 from .gitstore import git, run, publish, clean
 
 
@@ -29,14 +29,29 @@ def source_add(vault, value):
 def sanitize(entries, includes, excludes):
     allowed = [dict(e) for e in entries if scoped(e["scope"], includes, excludes)]
     ids = {e["id"] for e in allowed}
+    invalidated = set()
     for entry in allowed:
         original_members = entry.get("members", [])
         entry["members"] = [i for i in original_members if i in ids]
         entry["entities"] = [i for i in entry.get("entities", []) if i in ids]
+        for field in ("episodes", "learnings"):
+            if field in entry: entry[field] = [i for i in entry[field] if i in ids]
+        if entry.get("parent") not in ids: entry.pop("parent", None)
         entry["relations"] = [r for r in entry.get("relations", []) if r["target"] in ids]
         if len(original_members) != len(entry["members"]):
             entry.pop("summary", None)
             entry.pop("summary_sources", None)
+            entry["summary_stale"] = True
+            invalidated.add(entry["id"])
+        if entry.get("summary_stale"): invalidated.add(entry["id"])
+    # Um resumo ancestral também pode conter conteúdo de um filho filtrado.
+    changed = True
+    while changed:
+        changed = False
+        for entry in allowed:
+            if entry.get("summary") and any(i in invalidated for i in entry.get("summary_sources", {})):
+                entry.pop("summary", None); entry["summary_stale"] = True
+                invalidated.add(entry["id"]); changed = True
     return allowed
 
 
@@ -71,18 +86,20 @@ def refresh(vault, force=False, deadline=None):
                 import json
                 return json.loads(git(mirror, "show", revision + ":" + filename, timeout=remaining()).stdout)
             metadata = document("memory.json")
-            if metadata.get("schema_version") != 1: raise ValueError("Formato externo incompatível")
+            if metadata.get("schema_version") not in (1, SCHEMA_VERSION): raise ValueError("Formato externo incompatível")
             if before.get("vault_id") and before["vault_id"] != metadata["vault_id"]:
                 raise ValueError("Identidade da fonte mudou; recadastrar após revisão")
             filenames = git(mirror, "ls-tree", "-r", "--name-only", revision, timeout=remaining()).stdout.splitlines()
-            snapshot = {"metadata": metadata, "records": {}, "entities": {}, "groups": {}}
+            snapshot = {"metadata": metadata, **{c: {} for c in COLLECTIONS}}
             for filename in filenames:
-                match = re.fullmatch(r"(records|entities|groups)/([A-Za-z0-9_-]+)\.json", filename)
+                match = re.fullmatch(r"(records|entities|groups|episodes)/([A-Za-z0-9_-]+)\.json", filename)
                 if match:
                     collection, record_id = match.groups()
                     snapshot[collection][record_id] = document(filename)
             vault.validate(snapshot)
-            entries = [dict(e, collection=c) for c in ("records", "entities", "groups") for e in snapshot[c].values()]
+            entries = list(snapshot_entries(snapshot))
+            # Preferências e perfil do colega não se tornam comportamento do agente local.
+            entries = [e for e in entries if e.get("kind") not in ("profile", "preference")]
             entries = sanitize(entries, source["includes"], source.get("excludes", []))
             old = {e["id"]: digest(e) for e in before.get("entries", [])}
             new = {e["id"]: digest(e) for e in entries}
@@ -106,7 +123,7 @@ def external_entries(vault, includes=(), excludes=(), include_inactive=False):
         receipt = read_json(path)
         revisions = {e["id"]: e.get("revision") for e in receipt["entries"]}
         # Política pode ter mudado desde fetch; nunca usar cache com escopo antigo.
-        entries = sanitize(receipt["entries"], source["includes"], source.get("excludes", []))
+        entries = sanitize([e for e in receipt["entries"] if e.get("kind") not in ("profile", "preference")], source["includes"], source.get("excludes", []))
         entries = sanitize(entries, includes, excludes)
         for entry in entries:
             if entry.get("state") in ("archived", "superseded") and not include_inactive: continue
@@ -132,7 +149,9 @@ def all_entries(vault, includes=(), excludes=()):
         else:
             # Não promover nova revisão silenciosamente; a curadoria verá a divergência.
             existing = next((e for e in result if (e.get("origin", {}).get("vault_id", vault_id), e.get("origin", {}).get("id", e["id"])) == identity), None)
-            fields = ("content", "application", "state", "conditions", "evidence", "title", "summary")
+            fields = ("content", "application", "state", "conditions", "evidence", "title", "summary",
+                      "kind", "keywords", "aliases", "triggers", "parent", "members", "episodes",
+                      "objective", "context", "actions", "outcome", "validation", "learnings")
             if existing and any(entry.get(k) != existing.get(k) for k in fields):
                 existing.setdefault("origin_updates", []).append(dict(source=entry["source"], id=entry["id"], revision=entry["revision"],state=entry.get("state")))
     return result

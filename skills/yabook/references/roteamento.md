@@ -10,7 +10,7 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 - conversa: `steps`, `step`, `mode`, `def mode`, `resume`;
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
 - artefatos Android: `apk`, `do apk`;
-- memória: `memory`, `memory search|show|add|edit|forget|review`, `do memory [id]`;
+- memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review`, `do memory [id]`;
 - execução: `do <ação>`, `dev [quick|step|full]`, `bypass <ação>`, `continue`,
   `sync`, `configure [commands]`, `guardrails`.
 

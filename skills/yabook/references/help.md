@@ -12,7 +12,7 @@ altera estado.
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade: `check`, `review`, `docs`;
 - plugin instalado: `sync` (comparar), `do sync` (atualizar automaticamente).
-- memória: `memory`, `memory search|show|add|edit|forget|review`, `do memory [id]`.
+- memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review`, `do memory [id]`.
 
 Para tópico específico, carregue somente:
 

@@ -71,3 +71,15 @@ class IntegrationTest(unittest.TestCase):
             source.apply(p["id"],p["approval_hash"]);publish(source)
             self.assertEqual(refresh(own,force=True)[0]["updated"],["R1"])
             self.assertEqual(all_entries(own)[0]["content"],"Pista nova")
+            episode = dict(title="Investigação", scope=["Org"], objective="Localizar operação",
+                           context="Falha de recebimento", actions=["Rastrear fonte"], outcome="Pista localizada",
+                           validation=["Código examinado"], learnings=["R1"], state="hypothesis")
+            personal = dict(title="Preferência do colega", scope=["Org"], kind="preference", authority="explicit",
+                            activation="always", content="Preferência pessoal externa", application="Relatórios", state="hypothesis")
+            p=source.prepare([dict(collection="episodes",id="E1",value=episode),dict(collection="records",id="P1",value=personal)],
+                dict(verdict="add",reason="Histórico",utility="Reutilizar",application="Investigação",evidence_status="Hipótese"),"test")
+            source.apply(p["id"],p["approval_hash"]);publish(source)
+            self.assertEqual(refresh(own,force=True)[0]["added"],["E1"])
+            entries=all_entries(own)
+            self.assertEqual(next(e for e in entries if e["id"]=="E1")["outcome"],"Pista localizada")
+            self.assertNotIn("P1",[e["id"] for e in entries])

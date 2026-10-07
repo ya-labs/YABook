@@ -24,38 +24,125 @@ A detecção de padrões de segredo é uma ajuda, não substitui a revisão do c
 em adicionar, atualizar, relacionar, arquivar, remover, manter ou rejeitar. O
 agente explica utilidade, motivo, evidência e aplicação antes de propor escrita.
 
-## Organização: mapa, entidades e grupos
+## Organização: tipos e níveis de recuperação
 
-O escopo usa componentes hierárquicos, por exemplo:
+A memória tem duas dimensões independentes: o tipo de informação e o nível de
+detalhe necessário para executar a tarefa. O formato canônico atual é o schema 2.
 
-```text
-Pessoa
-Organização
-  Apps comerciais
-    App
-      Sincronização
-```
+| Tipo | Conteúdo | Coleção canônica |
+| --- | --- | --- |
+| `profile` | Idioma, áreas de trabalho e estilo de colaboração | `records` |
+| `preference` | Comportamento desejado, explícito ou inferido, com aplicação | `records` |
+| `procedure` | Forma aprendida de investigar, executar ou validar | `records` |
+| `knowledge` | Fato, hipótese, decisão ou responsabilidade técnica | `records` |
+| `project` | Índice estável de um projeto | `groups` |
+| `topic` | Assunto que reúne conhecimentos e experiências | `groups` |
+| `collection` | Agrupamento auxiliar, inclusive grupos antigos | `groups` |
+| Entidade | Fonte, módulo, operação, tabela ou conceito | `entities` |
+| Experiência | Relato compacto de uma tarefa e seus resultados | `episodes` |
 
-O caminho determina onde o conhecimento pode ser aplicado. `App` e `App legado`
-são componentes diferentes; filtros não usam correspondência parcial de nome.
-Registros podem se relacionar com entidades e grupos sem duplicar seu conteúdo.
+Grupos por projeto e assunto apontam para os registros; não copiam suas
+informações. `parent` liga grupos hierárquicos; ciclos e filhos fora do escopo
+do pai são recusados. `members` pode reunir registros, entidades, grupos e
+experiências. Um registro pode participar de mais de um assunto.
 
-| Elemento | Uso |
-| --- | --- |
-| Registro | Descoberta com aplicação, situação, evidência e condições |
-| Entidade | Fonte, módulo, operação ou conceito identificado dentro do projeto |
-| Grupo | Conjunto de IDs relacionados e, opcionalmente, resumo rastreável |
-| Relação | Ligação explícita com tipo e alvo; uma sugestão deve permanecer identificada |
-| Histórico | Avaliação e snapshot da operação aprovada |
+Use IDs estáveis para projetos, nomes relativos ao repositório para fontes e
+componentes de escopo que funcionem em qualquer máquina. `project_id`, quando
+informado, precisa apontar para um grupo `project` do mesmo escopo. Caminhos
+absolutos dos checkouts ficam no mapa local de `projects` da configuração.
 
-Várias descobertas sobre um fonte podem apontar para a mesma entidade. Um grupo
-reúne essas descobertas por assunto. Semelhança textual sugere relação, mas não
-confirma que duas informações sejam equivalentes.
+### Perfil, preferências e procedimentos
 
-Um resumo de grupo identifica a revisão de cada membro em `summary_sources`.
-Quando as revisões não correspondem, a leitura não deve apresentar esse resumo
-como atual: o agente precisa reavaliá-lo. Os registros continuam sendo a fonte
-de conhecimento.
+Registros usam `kind`. A ausência desse campo em uma base antiga significa
+`knowledge`; o leitor não tenta inferir um perfil nem reescrever a origem.
+Preferências têm `authority: explicit|inferred` e `activation: always|conditional`.
+A aplicação permanente de preferências e procedimentos exige origem explícita.
+Perfil confirmado e preferências próprias, explícitas, confirmadas e permanentes
+entram no contexto inicial. Preferências condicionais e procedimentos são
+indexados e consultados conforme a tarefa. `priority` é opcional, inteiro de
+0 a 100; organiza a seleção dentro do orçamento, sem aumentar a confiança.
+
+Regras normativas do método permanecem na skill, no arquivo de instruções e
+nos hooks aplicáveis. Um procedimento aprendido não cria autorização nem vira
+um bloqueio obrigatório por estar na memória. Dados de fontes conectadas podem
+ser pistas; perfil e preferências pessoais do colaborador são excluídos da visão
+aplicável, mesmo quando a política permitir ler o escopo pessoal.
+
+### Assuntos, nomes e situações de aplicação
+
+`keywords`, `aliases` e `triggers` são listas de textos pesquisáveis. Exemplo
+fictício: um assunto de sincronização pode ter o alias “dados não chegaram” e
+ligar a entidade `exemplo-sync.p` aos conhecimentos que explicam seu papel.
+O nome do fonte é uma entidade; o assunto pode envolver vários fontes e camadas.
+A associação e a responsabilidade precisam de evidência antes de confirmação.
+
+Um resumo de grupo tem `summary_sources` com a revisão de cada membro. Se um
+membro mudar, sair da visão ou tiver resumo desatualizado, o resumo dependente
+não é usado como atual. Essa invalidação alcança os grupos ancestrais.
+Na busca externa, filtros são aplicados antes da composição dos índices e
+resumos, incluindo a retirada de vínculos e conteúdo agregado incompatível.
+
+### Experiências de tarefas e evidências
+
+Uma experiência preserva o contexto da descoberta: `objective`, `context`,
+`actions` (lista), `outcome` e `validation` (lista). `learnings` referencia IDs
+em `records`; registros podem apontar de volta por `episodes`. Evidências ficam
+em `evidence`, com referências a código, commits, issues ou documentos. Não
+copie conversas e logs integrais para o relato. Uma experiência confirmada exige
+evidência; validação pendente deve permanecer explicitamente descrita.
+
+O relato histórico não é automaticamente conhecimento vigente. Ao corrigir um
+fato, atualize ou arquive o registro apropriado e preserve a experiência como
+contexto histórico. O histórico em `history/` continua registrando as operações
+de curadoria; é diferente das experiências em `episodes/`.
+
+### Visões geradas e Git
+
+Após uma aplicação aprovada, o serviço gera:
+
+- `views/memory_summary.md`: perfil, preferências, procedimentos e entrada para o índice.
+- `views/MEMORY.md`: índice por escopo, tipo, situação e termos, apontando para os JSON.
+- `views/topics/<id>.md`: resumo aprovado do grupo, vínculos e revisões.
+
+Essas visões são derivadas, identificadas por hash e publicadas no mesmo commit
+do conhecimento. Não as edite como fontes independentes. A geração reorganiza
+os dados aprovados; não produz conclusões novas com um modelo. Um novo resumo
+semântico exige curadoria e aprovação. Só arquivos cujo conteúdo mudou são
+reescritos; assuntos independentes conservam sua versão. Arquivos sem a marca
+de geração e links simbólicos nos destinos são recusados.
+
+### Recuperação progressiva
+
+Na abertura da sessão, o plugin entrega perfil, preferências permanentes e um
+índice do escopo pessoal e do projeto. O resultado respeita um orçamento e
+mantém JSON válido: itens que não cabem ficam para consulta, com `truncated`.
+Ao receber a tarefa, o hook consulta assuntos e conhecimento pertinente,
+incluindo preferências condicionais que correspondem aos termos da mensagem.
+Não carrega experiências ou evidências extensas por padrão.
+
+O agente aprofunda com `retrieve`: assunto → conhecimento → experiência →
+evidência. Também busca registros sem grupo para não esconder conhecimento
+cuja classificação está incompleta. Expande relações explícitas até três saltos,
+sem abrir assuntos irmãos apenas porque têm o mesmo projeto. `index` mostra a
+organização; `show` permite conferir o registro completo quando o orçamento
+compacto não for suficiente. Todo resultado mantém origem, revisão e situação.
+
+O servidor de mapa usa a mesma visão filtrada, exibe relações de hierarquia e
+experiências e permite selecionar o tipo de memória. O mapa não modifica a base.
+
+### Compatibilidade e migração futura
+
+Bases no schema 1 continuam legíveis sem migração automática. Uma proposta que
+introduza os campos do novo modelo ou experiências inclui a atualização para
+schema 2; só a aplicação aprovada grava essa alteração e as visões derivadas.
+A instalação ou atualização do plugin não migra memórias nativas nem bases YABook.
+Propostas preparadas por uma versão anterior devem ser reavaliadas se a nova
+representação da base invalidar o hash; não reutilize uma aprovação obsoleta.
+
+A migração da memória atual deve ser uma entrega separada: preservar a origem,
+inventariar a cobertura e registrar cada trecho relevante como incorporado,
+agrupado, descartado com motivo ou pendente. Importar ou resumir alguns registros
+não permite declarar a migração completa.
 
 ## Estados e confiança
 
@@ -85,6 +172,15 @@ Carregar conhecimento não ativa `auto` nem concede permissão para Git. O estad
 operacional fica separado, por sessão e projeto. Conteúdo de fontes conectadas
 é dado a avaliar, nunca instrução para executar código.
 
+## Exemplo do schema 2
+
+O [payload fictício](../../skills/yabook/templates/memory-proposal-v2.json) inclui
+perfil, preferências gerais e condicionais, projeto, assunto, conhecimento e
+experiência. Ele demonstra as referências entre os elementos e o formato de
+`assessment`/`changes`; adapte IDs, escopos e evidências ao projeto real. Não
+importe os fatos de demonstração para sua base. A prévia em `prepare` também
+mostra `derived_views`, os arquivos de índices afetados pela proposta.
+
 ## Comandos na conversa
 
 | Intenção | Comando YABook |
@@ -92,6 +188,10 @@ operacional fica separado, por sessão e projeto. Conteúdo de fontes conectadas
 | Inventariar e planejar migração inicial | `$yabook memory init` |
 | Aprovar o plano inicial apresentado | `$yabook do memory init` |
 | Buscar conhecimento | `$yabook memory search checklist supervisor` |
+| Consultar índice de assuntos e tipos | `$yabook memory index` |
+| Inspecionar o contexto inicial automático | `$yabook memory context` |
+| Recuperar assuntos e conhecimento pertinente | `$yabook memory retrieve <situação>` |
+| Aprofundar experiências e evidências | `$yabook memory retrieve <situação> --experiences --evidence` |
 | Examinar registro | `$yabook memory show R-identificador` |
 | Avaliar uma adição | `$yabook memory add <descoberta>` |
 | Avaliar correção | `$yabook memory edit R-identificador <correção>` |
@@ -162,6 +262,10 @@ YABook-memory-LOGIN/
   records/*.json
   entities/*.json
   groups/*.json
+  episodes/*.json
+  views/memory_summary.md
+  views/MEMORY.md
+  views/topics/*.md
   history/*.json
   .gitignore
   .yabook-local/              # ignorado pelo Git
@@ -172,7 +276,7 @@ YABook-memory-LOGIN/
     sources/
 ```
 
-`memory.json` identifica formato, proprietário e UUID da base. IDs são estáveis
+`memory.json` identifica formato (schema 2 para novas bases), proprietário e UUID da base. IDs são estáveis
 e únicos; cada alteração incrementa a revisão. O histórico registra veredito,
 motivo, ator, mudanças e snapshot para rastrear a aplicação.
 

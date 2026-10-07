@@ -1,6 +1,6 @@
 # Memória própria do YABook
 
-Use para `memory`, `search|show|add|edit|forget|review|init|source|sync|map`
+Use para `memory`, `search|index|context|retrieve|show|add|edit|forget|review|init|source|sync|map`
 dentro da família `memory`, e `do memory`.
 `memory init` prepara inventário/curadoria; `do memory init` cria ou reutiliza
 o repositório privado `YABook-memory-<loginGitHub>` e publica o pacote aprovado.
@@ -28,10 +28,18 @@ Explique o veredito e quando o conhecimento será aplicado. Pedido de `add`,
 `edit` ou `forget` não equivale a uma avaliação positiva nem a gravação.
 Arquivamento preserva contexto histórico; remoção deve explicar seu impacto.
 
+Separe perfil (`profile`), preferências (`preference`), procedimentos (`procedure`)
+e conhecimento (`knowledge`) nos registros. Preferências declaram `authority`
+(explicit/inferred) e `activation` (always/conditional); permanente exige explícita.
+Experiências ficam em `episodes`: objective, context, actions, outcome, validation,
+evidence e learnings (IDs de records). Preserve relatos ao corrigir fatos atuais.
 Guarde descobertas compactas com aplicação, condições e evidência; não copie
 logs completos. Pessoa, organização, projeto e assunto são componentes de
 escopo. Entidades identificam fontes/operacões pelo projeto e localização.
-Grupos referenciam registros existentes; similaridade sugere relações, não
+Grupos `project|topic|collection` referenciam membros, com `parent` para hierarquia.
+Use IDs estáveis de projeto; `project_id` deve apontar ao projeto do mesmo escopo.
+`keywords`, `aliases` e `triggers` orientam busca por nomes, assuntos e sintomas.
+Similaridade sugere relações, não
 confirma equivalência. Hipótese não é diagnóstico. Veredito e motivo ficam no
 histórico da operação. Segredos e autorizações de sessão não são conhecimento.
 
@@ -72,10 +80,30 @@ O agente pode usar conhecimento externo como pista identificada sem copiá-lo;
 incorporação requer proposta com origem preservada. Corrigir fonte externa não
 significa corrigir automaticamente a versão incorporada: apresentar diferença.
 
+## Recuperação em camadas
+
+`index --scope <Org/Projeto>` mostra o índice por tipo e assunto.
+`context --scope <Org/Projeto> --budget 4500` monta perfil/preferências próprias
+e índice inicial; SessionStart carrega esse contexto automaticamente.
+`retrieve <consulta> --scope <Org/Projeto> --budget 6000` recupera assuntos e
+conhecimento, sem experiências/evidências extensas. `--experiences` aprofunda
+relatos; `--evidence` inclui fontes, exigindo `--experiences`. Registros sem
+grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes.
+Não considere hipóteses diagnósticos nem preferências inferidas regras obrigatórias.
+
+Novas bases usam schema 2. Schema 1 permanece legível; atualização de formato
+é parte de uma proposta aprovada, nunca efeito de leitura ou instalação.
+Após apply, views/memory_summary.md, views/MEMORY.md e views/topics/<id>.md
+são gerados dos JSON aprovados e publicados juntos. Não editar as visões como
+fontes. Resumos desatualizados ou filtrados são invalidados, inclusive ancestrais.
+Perfil/preferências do colega são excluídos da visão externa aplicável.
+Migração nativa e avaliação de cobertura são trabalho separado, sem execução implícita.
+
 ## Busca e embeddings
 
 `search <consulta> --scope <Org/Projeto> --limit 8 --budget 6000` combina FTS5
-com relações explícitas. `--model <modelo-Ollama>` habilita busca híbrida no
+com relações explícitas. `--kind <tipo>` e `--level index|knowledge|experience|all`
+filtram o tipo e o nível antes de recuperar relações. `--model <modelo-Ollama>` habilita busca híbrida no
 endpoint local `http://127.0.0.1:11434/api/embed`; não enviar conhecimento a
 serviço externo sem definir e aprovar outro contrato. Falha de embeddings
 preserva consulta textual. Resultados identificam origem, situação e motivo.

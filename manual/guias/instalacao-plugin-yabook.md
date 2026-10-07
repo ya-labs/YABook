@@ -339,3 +339,14 @@ Para guardrails globais, use o arquivo reconhecido pelo host e confirmado na
 sessão, ou `YABOOK_INSTRUCTIONS`. O destino deixa de ser presumido como Codex.
 No Claude, instruções pessoais podem ficar em `~/.claude/CLAUDE.md`, conforme a
 [documentação oficial](https://code.claude.com/docs/en/memory).
+
+## Carregamento da memória estruturada
+
+SessionStart monta perfil próprio confirmado, preferências explícitas permanentes
+e índice do projeto, incluindo assuntos e procedimentos condicionais.
+UserPromptSubmit recupera pistas pertinentes à mensagem dentro do orçamento,
+sem abrir experiências e evidências extensas automaticamente. Isso vale para
+os protocolos nativo e genérico; o host deve injetar o contexto retornado.
+Os dados continuam na base compartilhável, e o mapa de checkout → escopo
+continua na configuração local. Atualizar o plugin não migra memória existente.
+Consulte [tipos e recuperação progressiva](memoria-yabook.md#organização-tipos-e-níveis-de-recuperação).

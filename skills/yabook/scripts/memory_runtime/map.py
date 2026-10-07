@@ -23,7 +23,11 @@ def map_data(vault, includes=()):
             parent = group
         node(identifier, entry["title"], entry["collection"], entry=entry)
         if parent: links.append(dict(source=parent,target=identifier,type="contains"))
-        for target in entry.get("members", []) + entry.get("entities", []):
+        if entry.get("parent"):
+            links.append(dict(source=namespace+":"+entry["parent"],target=identifier,type="contains"))
+        for target in entry.get("members", []):
+            links.append(dict(source=identifier,target=namespace+":"+target,type="contains"))
+        for target in entry.get("entities", []) + entry.get("episodes", []) + entry.get("learnings", []):
             links.append(dict(source=identifier,target=namespace+":"+target,type="references"))
         for relation in entry.get("relations", []):
             links.append(dict(source=identifier,target=namespace+":"+relation["target"],type=relation["type"],

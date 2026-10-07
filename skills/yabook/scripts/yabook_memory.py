@@ -53,7 +53,20 @@ def main():
     lookup.add_argument("--limit", type=int, default=8)
     lookup.add_argument("--budget", type=int, default=6000)
     lookup.add_argument("--model")
+    lookup.add_argument("--kind", action="append", default=[])
+    lookup.add_argument("--level", choices=["all", "index", "knowledge", "experience"], default="all")
     lookup.add_argument("--embedding-url", default="http://127.0.0.1:11434/api/embed")
+    index = sub.add_parser("index", help="Índice por tipo, projeto e assunto")
+    index.add_argument("--scope", action="append", default=[])
+    context = sub.add_parser("context", help="Perfil, preferências explícitas e índice inicial")
+    context.add_argument("--scope", default="")
+    context.add_argument("--budget", type=int, default=4500)
+    retrieve = sub.add_parser("retrieve", help="Recuperação em camadas")
+    retrieve.add_argument("query"); retrieve.add_argument("--scope", action="append", default=[])
+    retrieve.add_argument("--budget", type=int, default=6000)
+    retrieve.add_argument("--experiences", action="store_true")
+    retrieve.add_argument("--evidence", action="store_true")
+    retrieve.add_argument("--model")
     ve = sub.add_parser("vectors-export"); ve.add_argument("--output", required=True)
     vi = sub.add_parser("vectors-import"); vi.add_argument("--input", required=True)
     visual = sub.add_parser("map")
@@ -63,7 +76,17 @@ def main():
     visual.add_argument("--scope", action="append", default=[])
     args = parser.parse_args()
     vault = Vault(args.root)
-    if args.command == "map":
+    if args.command == "index":
+        from memory_runtime.views import overview
+        result = overview(all_entries(vault, [s.split("/") for s in args.scope]))
+    elif args.command == "context":
+        from memory_runtime.views import session_context
+        result = session_context(vault, args.scope.split("/") if args.scope else [], args.budget)
+    elif args.command == "retrieve":
+        from memory_runtime.retrieval import retrieve
+        result = retrieve(vault, args.query, [s.split("/") for s in args.scope], args.budget,
+                          args.experiences, args.evidence, args.model)
+    elif args.command == "map":
         scopes=[s.split("/") for s in args.scope]
         if args.serve:
             serve(vault,args.port,scopes); return
@@ -71,7 +94,8 @@ def main():
         result=export_map(vault,args.output,scopes)
     elif args.command == "search":
         result = search(vault, args.query, includes=[s.split("/") for s in args.scope], limit=args.limit,
-                        budget=args.budget, model=args.model, endpoint=args.embedding_url)
+                        budget=args.budget, model=args.model, endpoint=args.embedding_url,
+                        kinds=args.kind, level=args.level)
     elif args.command == "vectors-export":
         result = export_vectors(vault, args.output)
     elif args.command == "vectors-import":

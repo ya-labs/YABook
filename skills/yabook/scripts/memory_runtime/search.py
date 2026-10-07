@@ -12,7 +12,8 @@ PIPELINE = "yabook-text-v1"
 
 
 def text(entry):
-    return "\n".join(str(entry.get(k, "")) for k in ("title", "content", "application", "conditions", "summary"))
+    return "\n".join(str(entry.get(k, "")) for k in ("title", "content", "application", "conditions", "summary",
+                    "keywords", "aliases", "triggers", "objective", "context", "actions", "outcome", "validation"))
 
 
 def uid(entry):
@@ -47,10 +48,16 @@ def cosine(a, b):
 
 
 def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=None,
-           endpoint="http://127.0.0.1:11434/api/embed", expand=True):
+           endpoint="http://127.0.0.1:11434/api/embed", expand=True, kinds=(), level="all"):
     if not 1 <= limit <= 50 or budget < 256 or budget > 100000:
         raise ValueError("Limite/orçamento inválido")
     entries = all_entries(vault, includes, excludes)
+    from .views import kind, references
+    levels = {"index": {"groups"}, "knowledge": {"records", "entities"}, "experience": {"episodes"},
+              "all": {"records", "entities", "groups", "episodes"}}
+    if level not in levels: raise ValueError("Nível de recuperação inválido")
+    # Relacionamentos só expandem dentro dos filtros de origem, escopo, tipo e nível.
+    entries = [e for e in entries if e["collection"] in levels[level] and (not kinds or kind(e) in kinds)]
     by_id = {uid(e): e for e in entries}
     vault.local.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(vault.local / "search.sqlite")
@@ -92,14 +99,14 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
     if expand:
         for key in list(scores):
             entry = by_id[key]; namespace = entry.get("source", "own") + ":"
-            neighbors = entry.get("members", []) + entry.get("entities", []) + [r["target"] for r in entry.get("relations", [])]
+            neighbors = references(entry)
             for target in neighbors:
                 neighbor = namespace + target
                 if neighbor in by_id: scores[neighbor] = max(scores.get(neighbor, 0), scores[key]*0.5)
     result = []
     for key in sorted(scores, key=lambda k:scores[k], reverse=True)[:limit]:
         e = by_id[key]
-        hit = {k:e[k] for k in ("id", "revision", "title", "scope", "state", "content", "application", "conditions", "evidence", "source", "source_revision", "origin", "origin_updates", "summary", "summary_stale") if k in e}
+        hit = {k:e[k] for k in ("id", "revision", "title", "scope", "state", "kind", "collection", "parent", "keywords", "aliases", "triggers", "content", "application", "conditions", "evidence", "source", "source_revision", "origin", "origin_updates", "summary", "summary_stale", "objective", "context", "actions", "outcome", "validation", "learnings", "episodes") if k in e}
         hit.update(score=round(scores[key], 6), reason="Termos/significado e relações explícitas" if mode == "hybrid" else "Termos e relações explícitas")
         if len(json.dumps(result+[hit], ensure_ascii=False)) > budget:
             remaining = budget-len(json.dumps(result, ensure_ascii=False))-len(json.dumps({k:v for k,v in hit.items() if k not in ("content","evidence","summary")},ensure_ascii=False))-80
@@ -116,7 +123,7 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
             hit["content"] = content[:low]
             if len(json.dumps(result+[hit],ensure_ascii=False)) > budget: break
         result.append(hit)
-    return dict(mode=mode, degraded=degraded, results=result, characters=len(json.dumps(result,ensure_ascii=False)))
+    return dict(mode=mode, level=level, degraded=degraded, results=result, characters=len(json.dumps(result,ensure_ascii=False)))
 
 
 def export_vectors(vault, destination):

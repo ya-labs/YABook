@@ -12,7 +12,9 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-COLLECTIONS = ("records", "entities", "groups")
+COLLECTIONS = ("records", "entities", "groups", "episodes")
+SCHEMA_VERSION = 2
+RECORD_KINDS = ("profile", "preference", "procedure", "knowledge")
 STATES = ("hypothesis", "confirmed", "superseded", "archived")
 ID = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$")
 SECRET = re.compile(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{24,}|-----BEGIN .*PRIVATE KEY-----)")
@@ -55,6 +57,28 @@ def scoped(scope, includes=(), excludes=()):
         matches(p) for p in excludes)
 
 
+def snapshot_entries(snapshot):
+    """Visão de conhecimento vigente, sem reescrever bases ou resumos."""
+    values = {i: e for c in COLLECTIONS for i, e in snapshot[c].items()}
+    def stale(entry, visited):
+        if entry["id"] in visited: return True
+        visited = visited | {entry["id"]}
+        for identifier, revision in entry.get("summary_sources", {}).items():
+            member = values.get(identifier)
+            if not member or member.get("revision") != revision or member.get("state") in ("archived", "superseded"):
+                return True
+            if member.get("summary") and stale(member, visited): return True
+        return False
+    for collection in COLLECTIONS:
+        for entry in snapshot[collection].values():
+            item = dict(entry, collection=collection, source="own")
+            if collection == "records": item.setdefault("kind", "knowledge")
+            if collection == "groups": item.setdefault("kind", "collection")
+            if collection == "groups" and entry.get("summary") and stale(entry, set()):
+                item.pop("summary", None); item["summary_stale"] = True
+            yield item
+
+
 class Vault:
     def __init__(self, root):
         self.root = Path(root).expanduser().resolve()
@@ -75,13 +99,13 @@ class Vault:
             raise ValueError("Proprietário inválido")
         if (self.root / "memory.json").exists():
             metadata = read_json(self.root / "memory.json")
-            if metadata["owner"] != owner or metadata["schema_version"] != 1:
+            if metadata["owner"] != owner or metadata["schema_version"] not in (1, SCHEMA_VERSION):
                 raise ValueError("Base existente pertence a outro proprietário/formato")
             return metadata
         if self.root.exists() and any(self.root.iterdir()):
             raise ValueError("Destino não vazio; não sobrescrever uma base desconhecida")
         self.root.mkdir(parents=True, exist_ok=True)
-        metadata = {"schema_version": 1, "vault_id": str(uuid.uuid4()), "owner": owner,
+        metadata = {"schema_version": SCHEMA_VERSION, "vault_id": str(uuid.uuid4()), "owner": owner,
                     "created_at": now()}
         write_json(self.root / "memory.json", metadata)
         for collection in COLLECTIONS + ("history",):
@@ -114,7 +138,7 @@ class Vault:
 
     def _snapshot(self):
         metadata = read_json(self.root / "memory.json")
-        if metadata.get("schema_version") != 1:
+        if metadata.get("schema_version") not in (1, SCHEMA_VERSION):
             raise ValueError("Formato de memória não suportado")
         data = {c: {} for c in COLLECTIONS}
         for collection in COLLECTIONS:
@@ -147,20 +171,64 @@ class Vault:
                     raise ValueError("Autorização operacional não pertence à memória")
                 if entry.get("state", "confirmed") not in STATES:
                     raise ValueError("Situação inválida")
+                if "priority" in entry and (type(entry["priority"]) is not int or not 0 <= entry["priority"] <= 100):
+                    raise ValueError("Prioridade precisa ser inteiro entre 0 e 100")
+                if entry.get("project_id"):
+                    project = snapshot["groups"].get(entry["project_id"])
+                    if not project or project.get("kind") != "project" or entry["scope"][:len(project["scope"])] != project["scope"]:
+                        raise ValueError("Projeto inválido ou fora do escopo")
+                for field in ("keywords", "aliases", "triggers"):
+                    if field in entry and (not isinstance(entry[field], list) or
+                                          not all(isinstance(x, str) and x.strip() for x in entry[field])):
+                        raise ValueError("Termos de busca inválidos: " + field)
                 if collection == "records":
+                    if entry.get("kind", "knowledge") not in RECORD_KINDS:
+                        raise ValueError("Tipo de memória inválido")
+                    if entry.get("authority", "inferred") not in ("explicit", "inferred"):
+                        raise ValueError("Origem da preferência inválida")
+                    if entry.get("activation", "conditional") not in ("always", "conditional"):
+                        raise ValueError("Ativação inválida")
+                    if entry.get("activation") == "always" and entry.get("kind") in ("preference", "procedure") and entry.get("authority") != "explicit":
+                        raise ValueError("Aplicação permanente exige preferência explícita")
                     if not entry.get("content", "").strip() or not entry.get("application", "").strip():
                         raise ValueError("Conhecimento precisa de conteúdo e aplicação")
                     if entry.get("state") == "confirmed" and not entry.get("evidence"):
                         raise ValueError("Conhecimento confirmado precisa de evidência")
-                for reference in entry.get("members", []) + entry.get("entities", []):
+                if collection == "episodes":
+                    for field in ("objective", "context", "outcome"):
+                        if not isinstance(entry.get(field), str) or not entry[field].strip():
+                            raise ValueError("Experiência incompleta: " + field)
+                    for field in ("actions", "validation"):
+                        if not isinstance(entry.get(field), list) or not entry[field] or not all(isinstance(x, str) and x.strip() for x in entry[field]):
+                            raise ValueError("Experiência incompleta: " + field)
+                    if entry.get("state") == "confirmed" and not entry.get("evidence"):
+                        raise ValueError("Experiência confirmada precisa de evidência")
+                for reference in entry.get("members", []) + entry.get("entities", []) + entry.get("episodes", []) + entry.get("learnings", []):
                     if reference not in ids:
                         raise ValueError("Referência inexistente: " + reference)
+                if any(i not in snapshot["episodes"] for i in entry.get("episodes", [])):
+                    raise ValueError("Experiência precisa referenciar episodes")
+                if any(i not in snapshot["records"] for i in entry.get("learnings", [])):
+                    raise ValueError("Aprendizado precisa referenciar records")
                 for relation in entry.get("relations", []):
                     if relation.get("target") not in ids or not relation.get("type"):
                         raise ValueError("Relação inválida")
                 if collection == "groups" and entry.get("summary"):
                     if set(entry.get("summary_sources", {})) != set(entry.get("members", [])):
                         raise ValueError("Resumo precisa referenciar todos os membros")
+                if collection == "groups":
+                    if entry.get("kind", "collection") not in ("project", "topic", "collection"):
+                        raise ValueError("Tipo de grupo inválido")
+                    visited = {identifier}
+                    parent = entry.get("parent")
+                    child = entry
+                    while parent:
+                        if parent in visited or parent not in snapshot["groups"]:
+                            raise ValueError("Hierarquia de grupos cíclica ou inexistente")
+                        ancestor = snapshot["groups"][parent]
+                        if child["scope"][:len(ancestor["scope"])] != ancestor["scope"]:
+                            raise ValueError("Grupo filho fora do escopo do pai")
+                        visited.add(parent); parent = ancestor.get("parent"); child = ancestor
 
     def prepare(self, changes, assessment, actor):
         required = ("verdict", "reason", "utility", "application", "evidence_status")
@@ -190,10 +258,20 @@ class Vault:
                     entry.update(id=identifier, revision=old.get("revision", 0) + 1)
                     entry.setdefault("origin", old.get("origin", {"vault_id": before["metadata"]["vault_id"], "id": identifier}))
                     proposed[collection][identifier] = entry
+            # A atualização de formato é parte da proposta, nunca efeito de uma leitura.
+            if any(c["collection"] == "episodes" or any(k in c.get("value", {}) for k in
+                   ("kind", "parent", "keywords", "aliases", "triggers", "activation", "episodes")) for c in changes):
+                proposed["metadata"]["schema_version"] = SCHEMA_VERSION
             self.validate(proposed)
+            from .views import render_views
+            derived = render_views(proposed)
+            affected_views = [p for p, content in derived.items() if not (self.root / p).exists() or
+                              (self.root / p).read_text(encoding="utf-8") != content]
+            affected_views += [p.relative_to(self.root).as_posix() for p in (self.root / "views/topics").glob("*.md")
+                               if p.relative_to(self.root).as_posix() not in derived]
             proposal = {"id": "P-" + uuid.uuid4().hex[:16], "base_hash": digest(before),
                         "created_at": now(), "actor": actor, "assessment": assessment,
-                        "changes": changes, "result": proposed}
+                        "changes": changes, "result": proposed, "derived_views": sorted(affected_views)}
             proposal["approval_hash"] = digest(proposal)
             write_json(self.local / "proposals" / (proposal["id"] + ".json"), proposal)
             return proposal
@@ -230,6 +308,10 @@ class Vault:
 
     def _finish(self, proposal):
         paths = [str(self.path(c["collection"], c["id"]).relative_to(self.root)) for c in proposal["changes"]]
+        metadata_path = self.root / "memory.json"
+        if read_json(metadata_path) != proposal["result"]["metadata"]:
+            write_json(metadata_path, proposal["result"]["metadata"])
+            paths.append("memory.json")
         for collection in COLLECTIONS:
             expected = proposal["result"][collection]
             for path in (self.root / collection).glob("*.json"):
@@ -248,6 +330,8 @@ class Vault:
         history = self.root / "history" / (proposal["id"] + ".json")
         write_json(history, receipt)
         paths.append(str(history.relative_to(self.root)))
+        from .views import write_views
+        paths.extend(write_views(self, proposal["result"]))
         if (self.root / ".git").exists():
             from .gitstore import publication_intent, git
             if git(self.root, "rev-parse", "--verify", "HEAD", check=False).returncode:
@@ -271,16 +355,9 @@ class Vault:
     def entries(self, includes=(), excludes=(), include_archived=False):
         snapshot = self.snapshot()
         self.validate(snapshot)
-        for collection in COLLECTIONS:
-            for entry in snapshot[collection].values():
-                if scoped(entry["scope"], includes, excludes) and (include_archived or entry.get("state") not in ("archived", "superseded")):
-                    item = dict(entry, collection=collection, source="own")
-                    if collection == "groups" and entry.get("summary"):
-                        revisions = {i: snapshot[c][i].get("revision") for c in COLLECTIONS for i in snapshot[c]}
-                        if any(revisions.get(i) != rev for i, rev in entry["summary_sources"].items()):
-                            item.pop("summary", None)
-                            item["summary_stale"] = True
-                    yield item
+        for item in snapshot_entries(snapshot):
+            if scoped(item["scope"], includes, excludes) and (include_archived or item.get("state") not in ("archived", "superseded")):
+                yield item
 
     def review(self):
         seen, findings = {}, []

@@ -1,0 +1,162 @@
+{
+  "assessment": {
+    "verdict": "add",
+    "reason": "Reutilizar descoberta",
+    "utility": "Investigação",
+    "application": "Falhas de sincronização",
+    "evidence_status": "Fixture confirmada"
+  },
+  "changes": [
+    {
+      "collection": "groups",
+      "id": "P",
+      "value": {
+        "title": "Demo App",
+        "scope": [
+          "Org",
+          "demo-app"
+        ],
+        "kind": "project",
+        "members": []
+      }
+    },
+    {
+      "collection": "groups",
+      "id": "T",
+      "value": {
+        "title": "Sincronização do supervisor",
+        "scope": [
+          "Org",
+          "demo-app",
+          "sync"
+        ],
+        "kind": "topic",
+        "parent": "P",
+        "project_id": "P",
+        "members": [
+          "R",
+          "E"
+        ],
+        "keywords": [
+          "checklist"
+        ],
+        "aliases": [
+          "não está chegando"
+        ],
+        "summary": "Uma operação de exemplo recebe os dados.",
+        "summary_sources": {
+          "R": 1,
+          "E": 1
+        }
+      }
+    },
+    {
+      "collection": "records",
+      "id": "R",
+      "value": {
+        "title": "Responsabilidade do exemplo-sync.p",
+        "scope": [
+          "Org",
+          "demo-app",
+          "sync"
+        ],
+        "kind": "knowledge",
+        "content": "exemplo-sync.p trata o recebimento",
+        "application": "Investigar falha",
+        "state": "confirmed",
+        "evidence": [
+          "fixture:code"
+        ],
+        "episodes": [
+          "E"
+        ]
+      }
+    },
+    {
+      "collection": "episodes",
+      "id": "E",
+      "value": {
+        "title": "Investigação do checklist",
+        "scope": [
+          "Org",
+          "demo-app",
+          "sync"
+        ],
+        "objective": "Localizar o recebimento",
+        "context": "Checklist não apareceu",
+        "actions": [
+          "Rastrear transporte e fonte"
+        ],
+        "outcome": "Operação identificada",
+        "validation": [
+          "Verificação de código; runtime pendente"
+        ],
+        "evidence": [
+          "fixture:commit"
+        ],
+        "learnings": [
+          "R"
+        ],
+        "state": "confirmed"
+      }
+    },
+    {
+      "collection": "records",
+      "id": "PF",
+      "value": {
+        "title": "Perfil",
+        "scope": [
+          "Pessoa"
+        ],
+        "kind": "profile",
+        "content": "Desenvolve em português",
+        "application": "Colaborar",
+        "state": "confirmed",
+        "evidence": [
+          "fixture:user"
+        ]
+      }
+    },
+    {
+      "collection": "records",
+      "id": "PR",
+      "value": {
+        "title": "Preferência geral",
+        "scope": [
+          "Pessoa"
+        ],
+        "kind": "preference",
+        "authority": "explicit",
+        "activation": "always",
+        "content": "Explique validações pendentes",
+        "application": "Relatórios",
+        "state": "confirmed",
+        "evidence": [
+          "fixture:user"
+        ]
+      }
+    },
+    {
+      "collection": "records",
+      "id": "PC",
+      "value": {
+        "title": "Preferência de investigação",
+        "scope": [
+          "Pessoa"
+        ],
+        "kind": "preference",
+        "authority": "explicit",
+        "activation": "conditional",
+        "content": "Comece rastreando o recebimento",
+        "application": "Falha de checklist",
+        "triggers": [
+          "checklist"
+        ],
+        "state": "confirmed",
+        "evidence": [
+          "fixture:user"
+        ]
+      }
+    }
+  ]
+}
