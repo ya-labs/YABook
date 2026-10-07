@@ -42,7 +42,7 @@ def sync_codex(source, installed, home, apply=False, runner=run_host):
     if installed.exists() and (old_root is None or not old_root.exists()):
         raise ValueError("Instalação existente sem origem local recuperável; não foi alterada")
     if old_root:
-        validate_package(old_root)
+        validate_package(old_root, previous=True)
     from yabook_plugin import register_codex, fingerprint
     expected = fingerprint(source)
     registration = register_codex(home, source=source)
@@ -72,7 +72,7 @@ def sync_codex(source, installed, home, apply=False, runner=run_host):
                 if target.exists() or installed.exists():
                     runner(["remove", selector])
                 runner(["add", selector])
-                if compare(old_root, installed)["status"] != "synchronized":
+                if compare(old_root, installed, previous=True)["status"] != "synchronized":
                     raise ValueError("Pacote anterior não foi recuperado")
             except Exception as rollback_error:
                 raise RuntimeError("Atualização falhou e recuperação pelo host falhou; origem anterior preservada") from rollback_error

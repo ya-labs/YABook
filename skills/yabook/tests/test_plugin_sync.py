@@ -49,6 +49,20 @@ class PluginSyncTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Agent Plugins"):
             validate_package(self.source)
 
+    def test_previous_agent_plugin_package_remains_recoverable(self):
+        old = self.home / "old"
+        shutil.copytree(self.source, old)
+        shutil.rmtree(old / ".codex-plugin")
+        write_json(old / "plugin.json", {"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+                                         "name": "yabook", "version": "0.1.0",
+                                         "extensions": {"com.openai": {"hooks": "./hooks/hooks.json"}}})
+        with self.assertRaisesRegex(ValueError, "Agent Plugins"):
+            validate_package(old)
+        validate_package(old, previous=True)
+        copy = self.home / "old-installed"
+        shutil.copytree(old, copy)
+        self.assertEqual(compare(old, copy, previous=True)["status"], "synchronized")
+
     def change(self):
         (self.source / "assets/yabook-icon.png").write_bytes(b"new icon")
 
