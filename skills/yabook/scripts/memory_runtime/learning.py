@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from .core import digest, read_json, write_json
-from .gitstore import apply_and_publish, clean, git
+from .gitstore import apply_and_publish, clean, git, pending_automatic
 
 
 def policy(config_path, root):
@@ -89,9 +89,11 @@ def learn(vault, payload, actor, config_path, workspace):
     if mode != "automatic":
         reasons.append("Política de aprendizado manual")
     # Uma transação interrompida/publicação pendente não permite novas escritas.
-    if (vault.local / "publication.json").exists() or (vault.local / "transaction.json").exists():
+    # Lote automático sem commit (sandbox) não impede o próximo; manual pendente, sim.
+    accumulated = pending_automatic(vault)
+    if (vault.local / "publication.json").exists() and not accumulated or (vault.local / "transaction.json").exists():
         raise ValueError("Concluir recuperação/publicação pendente antes de aprender")
-    clean(vault)
+    clean(vault, accumulated["paths"] if accumulated else ())
     assessment = dict(payload["assessment"], learning=dict(learning, mode=mode,
                       execution="manual_review" if reasons else "automatic", review_reasons=sorted(set(reasons))))
     proposal = vault.prepare(changes, assessment, actor, expected_base_hash=digest(snapshot))
@@ -101,7 +103,7 @@ def learn(vault, payload, actor, config_path, workspace):
     current, _ = policy(config_path, vault.root)
     if current != cfg:
         return dict(status="pending_review", proposal=proposal["id"], reasons=["Política/configuração mudou durante a curadoria"])
-    result = apply_and_publish(vault, proposal["id"], proposal["approval_hash"])
+    result = apply_and_publish(vault, proposal["id"], proposal["approval_hash"], automatic=True)
     # Resumos invalidados pedem atualização do grupo em novo lote, sem bloquear este.
     return dict(status="memory_updated", proposal=result["proposal"], paths=result["paths"],
                 publication=result["publication"], stale_summaries=result["stale_summaries"])

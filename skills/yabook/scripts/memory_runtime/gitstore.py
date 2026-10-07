@@ -22,12 +22,22 @@ def git(root, *args, check=True, timeout=60):
     return run("git", "-C", str(root), *args, check=check, timeout=timeout)
 
 
-def clean(vault):
+def clean(vault, allowed=()):
+    """allowed: paths de publicação automática pendente que podem continuar sujos."""
     if (vault.root / ".git").exists():
         if Path(git(vault.root, "rev-parse", "--show-toplevel").stdout.strip()).resolve() != vault.root:
             raise ValueError("Base precisa de repositório próprio")
-        if git(vault.root, "status", "--porcelain").stdout.strip():
+        dirty = {line[3:].strip('"') for line in git(vault.root, "status", "--porcelain", "-uall").stdout.splitlines() if line.strip()}
+        if dirty - set(allowed):
             raise ValueError("Alterações independentes; separar antes de publicar")
+
+
+def pending_automatic(vault):
+    """Publicação de lote automático gravado sem commit (ex.: sandbox protege .git)."""
+    path = vault.local / "publication.json"
+    if not path.exists(): return None
+    receipt = read_json(path)
+    return receipt if receipt.get("automatic") and not receipt.get("commit") else None
 
 
 def inventory(agent, source):
@@ -212,9 +222,15 @@ def init_apply(plan, approval_hash, curated, config_path):
     return result
 
 
-def publication_intent(vault, paths, message):
+def publication_intent(vault, paths, message, automatic=False):
     pending = vault.local / "publication.json"
-    receipt = dict(paths=sorted(set(paths)), message=message, commit=None)
+    previous = read_json(pending) if pending.exists() else None
+    if automatic and previous and previous.get("automatic") and not previous.get("commit"):
+        # Lotes automáticos sem commit se acumulam numa única publicação.
+        paths = set(paths) | set(previous["paths"])
+        message = "docs: aplica lotes automáticos de memória"
+        pending.unlink()
+    receipt = dict(paths=sorted(set(paths)), message=message, commit=None, automatic=automatic)
     for path in receipt["paths"]:
         if vault.root not in (vault.root / path).resolve().parents or path.startswith(".yabook-local/"):
             raise ValueError("Path fora da proposta")
@@ -242,7 +258,12 @@ def publish(vault, paths=None, message=None):
             current = {p: digest((vault.root / p).read_bytes().hex()) if (vault.root / p).exists() else None for p in receipt["paths"]}
             if current != receipt.get("files"):
                 raise ValueError("Arquivos aprovados mudaram antes do commit; revisar publicação")
-            git(vault.root, "add", "--", *receipt["paths"])
+            try:
+                git(vault.root, "add", "--", *receipt["paths"])
+            except ValueError:
+                # Sandbox de agente protege .git: memória local atualizada, commit fica para fora dele.
+                return dict(status="pending_commit", retry="publish",
+                            reason="Commit indisponível neste ambiente; hooks ou publish concluem fora do sandbox")
             staged = set(git(vault.root, "diff", "--cached", "--name-only").stdout.splitlines())
             if staged - set(receipt["paths"]): raise ValueError("Staged fora da proposta")
             if staged: git(vault.root, "commit", "-m", message)
@@ -258,9 +279,11 @@ def publish(vault, paths=None, message=None):
         return dict(status="published", commit=receipt["commit"])
 
 
-def apply_and_publish(vault, identifier, approval_hash):
-    if (vault.local / "publication.json").exists(): raise ValueError("Publicação pendente; execute publish")
-    clean(vault)
+def apply_and_publish(vault, identifier, approval_hash, automatic=False):
+    accumulated = pending_automatic(vault) if automatic else None
+    if (vault.local / "publication.json").exists() and not accumulated:
+        raise ValueError("Publicação pendente; execute publish")
+    clean(vault, accumulated["paths"] if accumulated else ())
     result = vault.apply(identifier, approval_hash)
     result["publication"] = publish(vault, result["paths"], "docs: aplica memória " + result["proposal"]) if (vault.root / ".git").exists() else dict(status="local_only")
     return result

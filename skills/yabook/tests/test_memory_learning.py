@@ -117,6 +117,31 @@ class LearningTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Alterações independentes"):
             self.run_learning()
 
+    def test_sandbox_batches_accumulate_until_publication_outside(self):
+        from memory_runtime.gitstore import publish
+        git(self.vault.root, "init", "-b", "main")
+        git(self.vault.root, "config", "user.name", "Demo")
+        git(self.vault.root, "config", "user.email", "demo@example.invalid")
+        git(self.vault.root, "add", ".")
+        git(self.vault.root, "commit", "-m", "docs: base")
+        remote = self.root / "remote.git"
+        git(self.root, "init", "--bare", str(remote))
+        git(self.vault.root, "remote", "add", "origin", str(remote))
+        lock = self.vault.root / ".git/index.lock"
+        lock.write_text("")  # .git protegido como no sandbox do agente
+        first = self.run_learning()
+        self.assertEqual((first["status"], first["publication"]["status"]), ("memory_updated", "pending_commit"))
+        payload = copy.deepcopy(self.payload)
+        payload["changes"][0]["id"] = "R-second"
+        payload["changes"][0]["value"]["content"] = "Outra responsabilidade comprovada"
+        second = self.run_learning(payload)
+        self.assertEqual(second["publication"]["status"], "pending_commit")
+        lock.unlink()
+        self.assertEqual(publish(self.vault)["status"], "published")
+        self.assertEqual(git(self.vault.root, "rev-list", "--count", "HEAD").stdout.strip(), "2")
+        self.assertFalse(git(self.vault.root, "status", "--porcelain").stdout.strip())
+        self.assertIn("R-second", self.vault.snapshot()["records"])
+
 
 if __name__ == "__main__":
     unittest.main()

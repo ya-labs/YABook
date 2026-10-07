@@ -409,7 +409,8 @@ class Vault:
             from .gitstore import publication_intent, git
             if git(self.root, "rev-parse", "--verify", "HEAD", check=False).returncode:
                 paths += ["memory.json", ".gitignore"]
-            publication_intent(self, paths, "docs: aplica memória " + proposal["id"])
+            automatic = proposal["assessment"].get("learning", {}).get("execution") == "automatic"
+            publication_intent(self, paths, "docs: aplica memória " + proposal["id"], automatic)
         pending = self.local / "proposals" / (proposal["id"] + ".json")
         pending.unlink(missing_ok=True)
         (self.local / "transaction.json").unlink(missing_ok=True)

@@ -149,6 +149,20 @@ def command_parts(command):
     return parts
 
 
+def publish_automatic(cfg):
+    """Hooks rodam fora do sandbox: concluem commit/push de lote automático já autorizado."""
+    if not cfg.get("memory_root"):
+        return None
+    try:
+        from memory_runtime.gitstore import pending_automatic, publish
+        vault = Vault(cfg["memory_root"])
+        if not pending_automatic(vault):
+            return None
+        return publish(vault).get("status")
+    except Exception:  # Publicação pendente continua registrada; não bloquear a sessão.
+        return "failed"
+
+
 def remember_delivery(state, levels):
     delivered = state.setdefault("delivered", {})
     for item, values in levels.items():
@@ -255,6 +269,9 @@ def run(event):
         cfg = config()
         text = METHOD
         text += "\nPolítica de aprendizado: " + cfg.get("learning", {}).get("mode", "manual") + "."
+        published = publish_automatic(cfg)
+        if published in ("pending_push", "pending_commit", "failed"):
+            text += "\nPublicação automática de memória pendente (" + published + "); a memória local está atualizada."
         if cfg.get("memory_root"):
             try:
                 vault = Vault(cfg["memory_root"])
@@ -307,6 +324,8 @@ def run(event):
             state["edited"] = True
             write_json(path, state)
         return {}
+    if event_name == "Stop":
+        publish_automatic(config())
     if event_name == "Stop" and state.get("edited") and not event.get("stop_hook_active"):
         # Entrega consolidada = novo commit após edições da sessão; edição isolada não basta.
         head = git(root, "rev-parse", "HEAD")

@@ -199,6 +199,23 @@ A configuração padrão é `~/.config/yabook/config.json`. A inicialização gr
 }
 ```
 
+No Codex, comandos do agente rodam em sandbox: a base de memória fica somente
+leitura e consultas funcionam sem trava. Para o aprendizado automático gravar,
+libere a pasta da base em `~/.codex/config.toml` (sistema de sandbox padrão, sem
+`default_permissions`):
+
+```toml
+[sandbox_workspace_write]
+writable_roots = ["/home/voce/.local/share/yabook/memory"]
+```
+
+O Codex continua protegendo o `.git` dessa raiz e a rede fica bloqueada, então
+`learn` grava os JSON e retorna `pending_commit`. Lotes seguintes se acumulam na
+mesma publicação automática; os hooks `SessionStart` e `Stop`, executados fora do
+sandbox, fazem o commit e o push. Publicações manuais pendentes continuam
+exigindo `do memory publish`. Quem usa perfis (`default_permissions`) deve
+declarar a pasta no perfil, pois os dois sistemas não se combinam.
+
 A inicialização nova inclui `"learning": {"mode": "automatic"}` no plano e na
 configuração. Isso autoriza lotes de aprendizados comprovados por checkpoint,
 sem `do memory` individual. Configurações existentes sem esse campo continuam
