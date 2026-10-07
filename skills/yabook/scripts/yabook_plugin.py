@@ -9,8 +9,9 @@ from memory_runtime.core import read_json, write_json
 
 
 def fingerprint(root):
-    files = [root / "plugin.json"]
-    for directory in ("assets", "hooks", ".claude-plugin", "skills/yabook"):
+    from plugin_sync import ROOTS
+    files = []
+    for directory in ROOTS:
         files += [p for p in (root / directory).rglob("*") if p.is_file()
                   and "__pycache__" not in p.parts and "tests" not in p.relative_to(root).parts and p.suffix != ".pyc"]
     result = hashlib.sha256()
@@ -35,8 +36,8 @@ def build(destination, source=None):
     if destination.exists():
         raise ValueError("Destino já existe; escolha uma nova pasta para preservar instalação")
     destination.mkdir(parents=True)
-    for filename in ("plugin.json",): shutil.copy2(root / filename, destination / filename)
-    for directory in ("assets", "hooks", ".claude-plugin", "skills/yabook"):
+    from plugin_sync import ROOTS
+    for directory in ROOTS:
         shutil.copytree(root / directory, destination / directory,
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "tests"))
     return destination

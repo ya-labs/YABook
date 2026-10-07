@@ -2,8 +2,9 @@
 
 Use para `$yabook sync [local|remote]` e `$yabook do sync [local|remote]`.
 `sync` apenas compara; `do sync` atualiza automaticamente o pacote instalado.
-O pacote inclui `plugin.json`, `.claude-plugin/`, `hooks/`, `assets/` e
-`skills/yabook/`. Uma skill avulsa deixa de ser o destino.
+O pacote inclui `.codex-plugin/`, `.claude-plugin/`, `hooks/`, `assets/` e
+`skills/yabook/`. Uma skill avulsa deixa de ser o destino. `plugin.json` na raiz
+(Agent Plugins) faz o Codex ignorar hooks: é recusado na origem e excedente no destino.
 Não confunda com `memory sync`, que sincroniza conhecimento.
 
 ## Origem

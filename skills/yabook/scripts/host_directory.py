@@ -18,7 +18,8 @@ def sync_directory(source, installed, apply=False):
         if not marker.is_file() or read_json(marker).get("manager") != "yabook-directory-v1":
             raise ValueError("Destino não gerenciado pelo YABook; preserve a instalação do host")
         extras = set(p.name for p in installed.iterdir()) - {
-            "plugin.json", "assets", "hooks", ".claude-plugin", "skills", MARKER}
+            # plugin.json na raiz vem de instalações anteriores ao manifesto legado.
+            "plugin.json", ".codex-plugin", "assets", "hooks", ".claude-plugin", "skills", MARKER}
         if extras or set(p.name for p in (installed / "skills").iterdir()) - {"yabook"}:
             raise ValueError("Destino contém arquivos independentes; não substituir")
     report = compare(source, installed)

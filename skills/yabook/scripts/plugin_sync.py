@@ -3,7 +3,10 @@ import json
 import re
 from pathlib import Path
 
-ROOTS = ("plugin.json", "assets", "hooks", ".claude-plugin", "skills/yabook")
+# Manifesto legado do Codex: o formato Agent Plugins (plugin.json na raiz com $schema)
+# faz o carregador atual ignorar hooks de plugin (openai/codex#47925).
+MANIFEST = ".codex-plugin/plugin.json"
+ROOTS = (".codex-plugin", "assets", "hooks", ".claude-plugin", "skills/yabook")
 
 
 def package_files(root):
@@ -27,11 +30,13 @@ def package_files(root):
 
 def validate_package(root):
     files = package_files(root)
-    for name in ("plugin.json", ".claude-plugin/plugin.json", "hooks/hooks.json",
+    if (Path(root) / "plugin.json").exists():
+        raise ValueError("plugin.json na raiz ativa o formato Agent Plugins, que ignora hooks no Codex")
+    for name in (MANIFEST, ".claude-plugin/plugin.json", "hooks/hooks.json",
                  "skills/yabook/SKILL.md", "skills/yabook/scripts/yabook_hook.py"):
         if name not in files:
             raise ValueError(f"Origem não é um plugin YABook completo: falta {name}")
-    manifest = json.loads(files["plugin.json"])
+    manifest = json.loads(files[MANIFEST])
     if manifest.get("name") != "yabook" or not manifest.get("version"):
         raise ValueError("Identidade ou versão incompatível")
     if not isinstance(manifest["version"], str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]*", manifest["version"]):
@@ -42,9 +47,10 @@ def validate_package(root):
     hooks = json.loads(files["hooks/hooks.json"])
     if not isinstance(hooks.get("hooks"), dict):
         raise ValueError("Hooks inválidos")
-    extension = manifest.get("extensions", {}).get("com.openai", {})
-    references = [extension.get("hooks")]
-    references += list(extension.get("interface", {}).get(key) for key in ("logo", "composerIcon"))
+    if manifest.get("skills") != "./skills/" or not manifest.get("hooks"):
+        raise ValueError("Manifesto Codex precisa declarar skills e hooks")
+    references = [manifest["hooks"]]
+    references += list(manifest.get("interface", {}).get(key) for key in ("logo", "composerIcon"))
     for reference in references:
         if reference and reference.removeprefix("./") not in files:
             raise ValueError(f"Arquivo referenciado ausente: {reference}")
@@ -57,6 +63,9 @@ def validate_package(root):
 def compare(source, installed):
     wanted = validate_package(source)
     actual = package_files(installed)
+    # Manifesto Agent Plugins remanescente desativa os hooks; conta como excedente.
+    if (Path(installed) / "plugin.json").is_file():
+        actual["plugin.json"] = (Path(installed) / "plugin.json").read_bytes()
     return dict(status="outdated" if wanted != actual else "synchronized",
                 changed=sorted(k for k in wanted.keys() & actual.keys() if wanted[k] != actual[k]),
                 missing=sorted(wanted.keys() - actual.keys()), extra=sorted(actual.keys() - wanted.keys()))

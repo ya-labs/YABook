@@ -26,7 +26,7 @@ def sync_codex(source, installed, home, apply=False, runner=run_host):
     target = installed
     if runner is run_host:
         cache = Path(os.environ.get("CODEX_HOME", str(home / ".codex"))) / "plugins/cache"
-        version = json.loads((source / "plugin.json").read_text())["version"]
+        version = json.loads((source / ".codex-plugin/plugin.json").read_text())["version"]
         listing = subprocess.run(["rtk", "proxy", "codex", "plugin", "list", "--json"], check=True,
                                  capture_output=True, text=True)
         entries = json.loads(listing.stdout).get("installed", [])

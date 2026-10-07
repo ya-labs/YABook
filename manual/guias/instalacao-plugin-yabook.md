@@ -26,8 +26,8 @@ python3 skills/yabook/scripts/yabook_plugin.py build \
   --output "$HOME/.local/share/yabook/plugins/0.1.0"
 ```
 
-O destino deve ser novo. O empacotador copia `plugin.json`, `.claude-plugin/`,
-`hooks/` e `skills/yabook/`, excluindo testes e caches Python. Isso preserva a
+O destino deve ser novo. O empacotador copia `.codex-plugin/`, `.claude-plugin/`,
+`assets/`, `hooks/` e `skills/yabook/`, excluindo testes e caches Python. Isso preserva a
 instalação anterior para rollback. Ao atualizar, escolha outro diretório e
 aponte o host para ele; não sobrescreva uma pasta carregada por uma sessão.
 
@@ -53,10 +53,13 @@ python3 skills/yabook/scripts/yabook_plugin.py uninstall-codex
 `--home /PASTA-DE-TESTE` permite testar o registro sem alterar sua configuração
 pessoal. O pacote e a memória não são apagados pela remoção do registro.
 
-O pacote inclui o manifesto portátil `plugin.json` e a extensão de hooks do
-Codex. A documentação oficial distingue o suporte a hooks em plugins
-instalados manualmente no desktop; confirme o suporte no seu host antes de
-remover qualquer guardrail existente.
+O manifesto do Codex fica em `.codex-plugin/plugin.json`, no formato legado, e
+declara `skills`, `hooks` e a `interface` da listagem. O formato portátil Agent
+Plugins (`plugin.json` na raiz com `$schema`) não é usado: o carregador atual do
+Codex ignora hooks desses pacotes sem aviso, como na extensão do VS Code
+(`0.162.0-alpha.2`) e na issue [openai/codex#47925](https://github.com/openai/codex/issues/47925).
+Voltar ao formato portátil exige confirmar antes que o host carrega seus hooks.
+Confirme o suporte no seu host antes de remover qualquer guardrail existente.
 
 Para registrar uma fonte local, edite o marketplace pessoal em
 `~/.agents/plugins/marketplace.json`. Preserve as entradas existentes. Se o

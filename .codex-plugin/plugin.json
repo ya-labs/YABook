@@ -1,0 +1,23 @@
+{
+  "name": "yabook",
+  "version": "0.1.0",
+  "description": "Método YA LABS e memória própria rastreável para agentes de desenvolvimento.",
+  "author": {
+    "name": "YA LABS"
+  },
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "YABook",
+    "shortDescription": "Método YA LABS e memória",
+    "longDescription": "Orquestra o Método YA LABS em projetos: issues, branches, commits e Pull Requests rastreáveis, travas de Git e modos de execução. Mantém memória própria versionada em repositório privado, com curadoria, busca por escopo e hooks que carregam contexto na sessão e solicitam aprendizado após entregas consolidadas.",
+    "developerName": "YA LABS",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "logo": "./assets/yabook-icon.png",
+    "composerIcon": "./assets/yabook-icon.png"
+  }
+}

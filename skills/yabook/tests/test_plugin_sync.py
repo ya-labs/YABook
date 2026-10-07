@@ -35,6 +35,20 @@ class PluginSyncTest(unittest.TestCase):
             entry = next(p for p in data["plugins"] if p["name"] == "yabook")
             shutil.copytree(self.home / entry["source"]["path"], self.installed)
 
+    def test_legacy_codex_manifest_keeps_plugin_hooks_loadable(self):
+        self.assertTrue((self.source / ".codex-plugin/plugin.json").is_file())
+        self.assertFalse((self.source / "plugin.json").exists())
+        manifest = read_json(self.source / ".codex-plugin/plugin.json")
+        self.assertEqual((manifest["skills"], manifest["hooks"]), ("./skills/", "./hooks/hooks.json"))
+        self.assertLessEqual(len(manifest["interface"]["shortDescription"]), 30)
+        # Instalação antiga com manifesto Agent Plugins não pode parecer sincronizada.
+        write_json(self.installed / "plugin.json", {"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"})
+        report = compare(self.source, self.installed)
+        self.assertEqual((report["status"], report["extra"]), ("outdated", ["plugin.json"]))
+        write_json(self.source / "plugin.json", {"name": "yabook"})
+        with self.assertRaisesRegex(ValueError, "Agent Plugins"):
+            validate_package(self.source)
+
     def change(self):
         (self.source / "assets/yabook-icon.png").write_bytes(b"new icon")
 

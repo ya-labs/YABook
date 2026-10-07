@@ -26,9 +26,9 @@ class PortabilityTest(unittest.TestCase):
     def test_install_update_and_noop_without_codex(self):
         with patch("subprocess.run", side_effect=AssertionError("Host CLI forbidden")):
             sync_directory(self.source, self.installed, True)
-            before = (self.installed / "plugin.json").stat().st_mtime_ns
+            before = (self.installed / ".codex-plugin/plugin.json").stat().st_mtime_ns
             self.assertEqual(sync_plugin(self.source, self.installed, self.home, True)["status"], "synchronized")
-            self.assertEqual(before, (self.installed / "plugin.json").stat().st_mtime_ns)
+            self.assertEqual(before, (self.installed / ".codex-plugin/plugin.json").stat().st_mtime_ns)
             (self.source / "assets/yabook-icon.png").write_bytes(b"new")
             preview = sync_directory(self.source, self.installed)
             self.assertEqual(preview["changed"], ["assets/yabook-icon.png"])
