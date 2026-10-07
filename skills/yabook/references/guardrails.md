@@ -16,19 +16,21 @@ preservando backup e instruções pessoais. O receipt é observabilidade local,
 não prova criptográfica de cobertura; valide negações reais antes de migrar.
 Até essa migração, o mecanismo abaixo continua compatível.
 
-Persistir o comportamento padrão do YABook no perfil Codex, inclusive quando a
-conversa não começar com `$yabook`. A configuração vive em
-`~/.codex/AGENTS.md`; o Codex a aplica em nova sessão.
+Persistir o comportamento padrão no arquivo de instruções reconhecido pelo agente,
+inclusive quando a conversa não começar com `$yabook`. Use `YABOOK_INSTRUCTIONS`
+ou o caminho confirmado pelo host. Exemplos: `~/.codex/AGENTS.md` no Codex e
+`~/.claude/CLAUDE.md` no Claude. Outros agentes podem usar outro arquivo ou uma
+configuração própria: confirme o mecanismo antes de escrever; não presuma suporte.
 
 ## `$yabook guardrails`
 
-É uma rota `C1`, sem escrita. Leia apenas `~/.codex/AGENTS.md` e informe se o
+É uma rota `C1`, sem escrita. Leia apenas o arquivo de instruções confirmado e informe se o
 bloco está `ausente`, `instalado`, `divergente` ou `duplicado`. Não resolva
 workspace nem carregue Git, GitHub ou planejamento.
 
 ## `$yabook do guardrails install`
 
-É uma rota `C3`. Releia `~/.codex/AGENTS.md`, mostre a alteração pretendida e
+É uma rota `C3`. Releia o arquivo de instruções confirmado, mostre a alteração pretendida e
 crie ou atualize somente o bloco delimitado abaixo. Preserve instruções pessoais
 fora dos marcadores. Se houver bloco duplicado, marcador incompleto ou conteúdo
 ambíguo, pare sem escrever e informe a correção necessária.
@@ -66,7 +68,7 @@ ambíguo, pare sem escrever e informe a correção necessária.
 ```
 
 Depois da escrita, releia o arquivo e confirme `instalado`. Informe que o bloco
-passa a valer em nova sessão do Codex.
+passa a valer em nova sessão do agente.
 
 ## `$yabook do guardrails remove`
 
@@ -77,6 +79,6 @@ nova sessão deixa de aplicar o bloco removido.
 
 ## Limites
 
-- `guardrails` não altera configurações da interface do ChatGPT/Codex.
+- `guardrails` não altera configurações da interface nem permissões do agente.
 - `install` e `remove` exigem `do`.
 - O bloco não cria issue, branch, commit, PR, merge ou release.

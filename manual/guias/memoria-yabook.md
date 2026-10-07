@@ -322,7 +322,7 @@ Exemplo mínimo de payload `mudanca.json`, com hipótese explicitamente delimita
 ```
 
 ```bash
-python3 "$SCRIPT" --root "$BASE" prepare --input /CAMINHO/mudanca.json --actor codex
+python3 "$SCRIPT" --root "$BASE" prepare --input /CAMINHO/mudanca.json --actor meu-agente
 python3 "$SCRIPT" --root "$BASE" pending P-ID-RETORNADO
 # Apenas após aprovação do conteúdo exato na conversa:
 python3 "$SCRIPT" --root "$BASE" apply P-ID-RETORNADO --approval-hash HASH-RETORNADO
@@ -336,8 +336,8 @@ para estado confirmado; cite fonte e revisão de forma verificável.
 ### Inicialização e conexão
 
 ```bash
-python3 "$SCRIPT" --root "$BASE" inventory --agent codex --source /MEMORIA/ACESSIVEL
-python3 "$SCRIPT" --root "$BASE" init-plan --agent codex --source /MEMORIA/ACESSIVEL \
+python3 "$SCRIPT" --root "$BASE" inventory --agent meu-agente --source /MEMORIA/ACESSIVEL
+python3 "$SCRIPT" --root "$BASE" init-plan --agent meu-agente --source /MEMORIA/ACESSIVEL \
   --curated /CAMINHO/curadoria.json --output /CAMINHO/plano.json
 # Após revisar e aprovar plano, conta e curadoria:
 python3 "$SCRIPT" --root "$BASE" init-apply --plan /CAMINHO/plano.json \
@@ -381,3 +381,17 @@ arquivo nem extração de memória interna do provedor. Hooks dependem do suport
 do host. A instalação e a remoção de guardrails exigem a verificação descrita
 no manual de instalação. O esquema atual é versão 1; mudanças de formato precisam
 de migração explícita.
+
+## Independência do agente
+
+A mesma `memory_root` pode ser usada por qualquer agente com acesso ao serviço
+Python. `inventory` e `init-plan` aceitam `--agent <nome>` sem lista fechada;
+`--source` pode ser um arquivo ou pasta com Markdown, texto, JSON ou YAML.
+O nome identifica a origem, sem conceder permissões. Arquivos candidatos ainda
+precisam de curadoria: exportações não são memórias aprovadas automaticamente.
+Memórias ocultas ou disponíveis somente por API precisam ser exportadas pelo
+mecanismo real do agente; o YABook não presume acesso a elas.
+
+Consulte a [instalação portátil e ponte de eventos](instalacao-plugin-yabook.md#uso-com-outros-agentes)
+para carregar o mesmo método e contexto em outro host. Sem hooks, o método
+continua disponível pela skill; automação depende da integração do host.

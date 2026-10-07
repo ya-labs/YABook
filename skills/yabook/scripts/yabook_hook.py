@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Hooks de Codex/Claude; estado operacional é local e limitado à sessão."""
+"""Eventos YABook com protocolo nativo ou ponte neutra para qualquer agente."""
 from __future__ import annotations
 
 import hashlib
+import argparse
 import json
 import os
 import re
@@ -50,7 +51,39 @@ def state_path(event):
     if not isinstance(session, str) or not session:
         raise ValueError("Hook sem identificador de sessão")
     base = Path(os.environ.get("YABOOK_STATE", str(config_path().parent / "sessions")))
-    return base / (hashlib.sha256(session.encode()).hexdigest() + ".json")
+    namespace = event.get("agent", "")
+    identity = namespace + "\0" + session if namespace else session
+    return base / (hashlib.sha256(identity.encode()).hexdigest() + ".json")
+
+
+def normalize_event(event, protocol="native"):
+    if protocol == "native":
+        return event
+    names = {"session.start": "SessionStart", "user.prompt": "UserPromptSubmit",
+             "tool.before": "PreToolUse", "tool.after": "PostToolUse", "session.stop": "Stop"}
+    if event.get("event") not in names:
+        raise ValueError("Evento neutro desconhecido")
+    agent = event.get("agent", "generic")
+    if not isinstance(agent, str) or not agent:
+        raise ValueError("Agente ausente")
+    tool = event.get("tool", {})
+    kinds = {"edit": "Edit", "shell": "Bash"}
+    return dict(hook_event_name=names[event["event"]], session_id=event.get("session"),
+                agent=agent, cwd=event.get("workspace", os.getcwd()),
+                prompt=event.get("message", ""), source=event.get("source", "startup"),
+                tool_name=kinds.get(tool.get("kind"), tool.get("name", "")),
+                tool_input=tool.get("input", {}), stop_hook_active=event.get("stop_active", False))
+
+
+def event_response(output, protocol="native"):
+    if protocol == "native":
+        return output
+    details = output.get("hookSpecificOutput", {})
+    decision = details.get("permissionDecision")
+    blocked = decision == "deny" or output.get("decision") == "block"
+    return dict(context=details.get("additionalContext", ""),
+                decision="deny" if blocked else "observe",
+                reason=details.get("permissionDecisionReason", output.get("reason", "")))
 
 
 def context(event_name, text):
@@ -239,7 +272,11 @@ def run(event):
 
 if __name__ == "__main__":
     try:
-        print(json.dumps(run(json.load(sys.stdin)), ensure_ascii=False))
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--format", choices=["native", "generic"], default="native")
+        args = parser.parse_args()
+        event = normalize_event(json.load(sys.stdin), args.format)
+        print(json.dumps(event_response(run(event), args.format), ensure_ascii=False))
     except Exception as exc:
         # Uma negação suportada bloqueia; erro de callback pode não bloquear no host.
         print("YABook hook: " + type(exc).__name__, file=sys.stderr)

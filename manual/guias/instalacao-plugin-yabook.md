@@ -257,4 +257,85 @@ O pacote inclui manifestos, hooks, ícone e skill. O serviço valida a instalaç
 e recupera a versão anterior em caso de falha; memória e outros plugins são preservados.
 Abra uma nova sessão após o sucesso para carregar os novos hooks.
 Use `remote` quando a origem desejada for a branch principal oficial; ela precisa
-conter o plugin completo. A atualização automática de outros hosts ainda requer adaptador.
+conter o plugin completo. Outros agentes podem usar o adaptador de diretório gerenciado descrito abaixo.
+
+## Uso com outros agentes
+
+O método e os serviços de memória não dependem do Codex. Qualquer agente com
+acesso a arquivos e Python pode consultar e manipular a mesma base YABook.
+Instalação e eventos são integrações separadas: o host precisa saber carregar
+uma skill ou instruções e, para automação, chamar e interpretar os eventos.
+
+### Instalação portátil
+
+Escolha um diretório exclusivo, fora do checkout e dos caches de marketplaces.
+Execute pelo terminal do agente, usando RTK quando disponível:
+
+```sh
+python3 skills/yabook/scripts/yabook_plugin.py install \
+  --source /CAMINHO/YABook --output /CAMINHO/plugins/yabook
+python3 skills/yabook/scripts/yabook_plugin.py sync \
+  --source /CAMINHO/YABook --installed /CAMINHO/plugins/yabook --adapter directory
+```
+
+`install` cria um pacote completo e uma marca de gerenciamento. Configure o
+host para carregar a skill em `/CAMINHO/plugins/yabook/skills/yabook/SKILL.md`,
+conforme seu mecanismo real de skills ou instruções. Não copie a base de memória
+para dentro do pacote. Para atualizar, `do sync` executa a segunda linha com
+`--apply`; o serviço preserva um backup e informa seu caminho.
+
+A preparação ocorre ao lado da instalação para permitir renomeação no mesmo
+filesystem. O serviço recusa destinos sem marca de gerenciamento e pastas de
+outras skills. Não use esse caminho para substituir uma instalação de marketplace.
+O adaptador Codex continua disponível para instalações gerenciadas pelo Codex.
+
+### Ponte de eventos
+
+Em hosts sem protocolo compatível com os hooks empacotados, chame:
+
+```sh
+python3 /CAMINHO/plugins/yabook/skills/yabook/scripts/yabook_hook.py --format generic
+```
+
+Envie um objeto JSON pela entrada padrão:
+
+```json
+{
+  "event": "session.start",
+  "agent": "meu-agente",
+  "session": "identificador-estavel-da-sessao",
+  "workspace": "/CAMINHO/projeto"
+}
+```
+
+| Evento | Dados adicionais | Aplicação pelo host |
+| --- | --- | --- |
+| `session.start` | `source`: `startup`, `resume` ou `compact` | Injetar `context` antes do trabalho |
+| `user.prompt` | `message`: mensagem real do usuário | Atualizar autorizações desta sessão |
+| `tool.before` | `tool`: `name`, `kind` e `input` | Bloquear a ferramenta quando `decision` for `deny` |
+| `tool.after` | Mesmo objeto `tool` | Registrar edição realizada |
+| `session.stop` | `stop_active`: evita repetição | Entregar avaliação de memória quando solicitada |
+
+`tool.kind` pode ser `edit` ou `shell`; comandos ficam em `tool.input.command`
+ou `tool.input.cmd`. Outros tipos mantêm o nome fornecido e precisam de análise
+pela skill. A resposta neutra contém `context`, `decision` (`deny` ou `observe`)
+e `reason`. `observe` não concede autorização nem certifica segurança. O host
+deve propagar erros do callback e as negações; ignorar o resultado elimina a
+verificação. Não há cobertura completa para shell composto ou ferramentas opacas.
+
+Os identificadores de agente e sessão isolam o estado operacional. Use nomes
+estáveis e não reutilize uma sessão encerrada para uma conversa nova. Ao iniciar
+nova conversa, envie `source: startup`; aprovação e auto não são memória durável.
+Os serviços de memória continuam usando `YABOOK_CONFIG` e a mesma `memory_root`.
+
+### Agentes sem hooks
+
+Carregue a skill ou seu método pelo mecanismo de instruções reconhecido pelo
+host e use os serviços explicitamente durante o trabalho. O plugin não pode
+criar eventos em um host que não os oferece. Informe a ausência de carregamento
+automático e de bloqueio antes de ferramentas, sem remover guardrails existentes.
+
+Para guardrails globais, use o arquivo reconhecido pelo host e confirmado na
+sessão, ou `YABOOK_INSTRUCTIONS`. O destino deixa de ser presumido como Codex.
+No Claude, instruções pessoais podem ficar em `~/.claude/CLAUDE.md`, conforme a
+[documentação oficial](https://code.claude.com/docs/en/memory).

@@ -991,8 +991,8 @@ A sincronização:
 Sem modo explícito, prefere uma origem local válida e usa o remoto como fallback.
 `sync` apenas informa diferenças. `do sync` aplica a atualização sem exigir os
 comandos manuais de instalação. Abra uma nova sessão após atualizar.
-O adaptador automático atual atende Codex; outros hosts precisam de adaptação
-ao seu instalador. `memory sync` continua sendo uma operação separada.
+Há um adaptador nativo Codex e um adaptador portátil de diretório gerenciado.
+Outros hosts carregam a skill e integram eventos conforme suas capacidades. `memory sync` continua sendo uma operação separada.
 
 ---
 

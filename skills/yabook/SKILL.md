@@ -14,7 +14,7 @@ description: Orchestrate the YA LABS Method through $yabook commands, issue-driv
 3. [contexto](references/contexto.md): auditoria/ambiguidade.
 4. [workspace](references/workspace.md): projeto; arquivos ativos prevalecem sobre `cwd`.
 5. Aplique `.yabook/AGENTS.md` existente e informe a regra local.
-6. Responda em português, com concisão.
+6. Responda em português, com concisão. Adapte integrações ao host; não presuma Codex.
 
 `load` atualiza [contexto mínimo](references/session-minimo.md).
 

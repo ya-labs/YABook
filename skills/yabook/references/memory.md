@@ -4,7 +4,7 @@ Use para `memory`, `search|show|add|edit|forget|review|init|source|sync|map`
 dentro da família `memory`, e `do memory`.
 `memory init` prepara inventário/curadoria; `do memory init` cria ou reutiliza
 o repositório privado `YABook-memory-<loginGitHub>` e publica o pacote aprovado.
-Use `inventory --agent codex|claude --source <pasta>` para levantar arquivos;
+Use `inventory --agent <nome-do-agente> --source <arquivo-ou-pasta>` para levantar arquivos;
 o adaptador não inclui memória oculta nem apaga a origem. Avalie os registros,
 prepare payload e use `init-plan --curated <json> --output <plano>`. Depois da
 aprovação, `init-apply --plan <plano> --curated <json> --approval-hash <hash>

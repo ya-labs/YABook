@@ -3,7 +3,7 @@
 Use para `$yabook sync [local|remote]` e `$yabook do sync [local|remote]`.
 `sync` apenas compara; `do sync` atualiza automaticamente o pacote instalado.
 O pacote inclui `plugin.json`, `.claude-plugin/`, `hooks/`, `assets/` e
-`skills/yabook/`. A antiga pasta `~/.codex/skills/yabook` deixa de ser o destino.
+`skills/yabook/`. Uma skill avulsa deixa de ser o destino.
 Não confunda com `memory sync`, que sincroniza conhecimento.
 
 ## Origem
@@ -29,7 +29,7 @@ Ignore somente testes de desenvolvimento, `__pycache__` e `*.pyc`.
 Compare bytes, inclusive imagens, scripts e manifestos; reporte arquivos alterados,
 ausentes e excedentes. Não imprima conteúdo de memória ou configuração.
 
-Para uma origem local no Codex, execute via RTK:
+Para uma origem local, execute via RTK; o adaptador é detectado pelo destino:
 
 ```sh
 python3 <origem>/skills/yabook/scripts/yabook_plugin.py sync --source <origem> --installed <raiz-do-plugin-atual>
@@ -57,9 +57,16 @@ do YABook. Plugin desativado ou instalação externa não gerenciada exige resol
 a incompatibilidade antes de atualizar. Não remova a antiga skill avulsa sem
 pedido específico. Não faça commit, push, merge, pull nem troque branches.
 
-O serviço automático atual atende Codex. Em outro host, verifique seu fluxo
-suportado antes de aplicar; não use o instalador Codex em Claude. Informe quando
-o adaptador de atualização automática não estiver disponível.
+O adaptador `codex` usa o instalador do Codex. O adaptador `directory` funciona
+com qualquer agente que consiga carregar o pacote de um diretório próprio:
+instale com `yabook_plugin.py install --source <origem> --output <destino-novo>`
+e atualize com `sync --source <origem> --installed <destino> --adapter directory --apply`.
+Ele valida, substitui somente a instalação marcada como gerenciada e mantém
+backup externo ao pacote. Nunca use esse adaptador para sobrescrever caches
+de marketplaces ou pastas de outros plugins. O agente deve confirmar como
+carregar o diretório; instalar arquivos não registra hooks no host.
+Sem adaptador nativo, prefira o diretório gerenciado e informe requisitos
+de carregamento/reinício do host. Não invente comandos de instalação.
 
 Após sucesso, informe versão/hash e necessidade de abrir nova sessão para usar
 os hooks atualizados. A sessão atual mantém instruções já carregadas.

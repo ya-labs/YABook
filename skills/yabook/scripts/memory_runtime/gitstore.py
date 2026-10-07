@@ -31,11 +31,14 @@ def clean(vault):
 
 def inventory(agent, source):
     source = Path(source).expanduser().resolve()
-    if agent not in ("codex", "claude"): raise ValueError("Adaptador não suportado")
-    result = dict(agent=agent, source=str(source), accessible=source.is_dir(), files=[],
+    if not isinstance(agent, str) or not agent.strip() or len(agent) > 80 or any(ord(c) < 32 for c in agent):
+        raise ValueError("Identificador do agente inválido")
+    result = dict(agent=agent.strip(), source=str(source), accessible=source.is_dir() or source.is_file(), files=[],
                   limitations=["Somente arquivos persistentes acessíveis; não inclui memória oculta ou transcripts"])
-    if not source.is_dir(): return result
-    for path in sorted(source.rglob("*.md")):
+    if not result["accessible"]: return result
+    paths = [source] if source.is_file() else sorted(source.rglob("*"))
+    for path in paths:
+        if not path.is_file() or path.suffix.lower() not in (".md", ".txt", ".json", ".yaml", ".yml"): continue
         if path.is_symlink(): continue
         try: text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeError):

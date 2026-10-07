@@ -19,33 +19,10 @@ def fingerprint(root):
     return result.hexdigest()[:16]
 
 
-def register_codex(home, remove=False, source=None):
-    home = Path(home).expanduser().resolve()
-    registry = home / ".agents/plugins/marketplace.json"
-    data = read_json(registry) if registry.exists() else dict(name="yabook-local",interface=dict(displayName="YABook local"),plugins=[])
-    if not isinstance(data.get("plugins"), list) or not isinstance(data.get("name"), str):
-        raise ValueError("Marketplace existente tem formato incompatível")
-    existing = next((p for p in data["plugins"] if p.get("name") == "yabook"), None)
-    if existing and not (existing.get("source", {}).get("source") == "local" and
-                         existing["source"].get("path", "").startswith("./.local/share/yabook/plugins/")):
-        raise ValueError("Entrada yabook existente não pertence a este instalador")
-    if remove:
-        if existing:
-            data["plugins"].remove(existing); write_json(registry, data)
-        return dict(status="unregistered",preserved="pacotes, configuração do host e memória")
-    root = Path(source).resolve() if source else Path(__file__).resolve().parents[3]
-    relative = ".local/share/yabook/plugins/" + fingerprint(root)
-    destination = home / relative
-    if destination.exists():
-        if fingerprint(destination) != fingerprint(root): raise ValueError("Pacote instalado foi alterado")
-    else: build(destination, source=root)
-    entry = dict(name="yabook",source=dict(source="local",path="./"+relative),
-                 policy=dict(installation="AVAILABLE",authentication="ON_INSTALL"),category="Productivity")
-    if existing: data["plugins"][data["plugins"].index(existing)] = entry
-    else: data["plugins"].append(entry)
-    write_json(registry, data)
-    return dict(status="registered",path=str(destination),marketplace=data["name"],
-                enable=f'[plugins."yabook@{data["name"]}"]\nenabled = true')
+def register_codex(*args, **kwargs):
+    """Alias compatível para o adaptador Codex."""
+    from host_codex import register_codex as register
+    return register(*args, **kwargs)
 
 
 def build(destination, source=None):
@@ -93,15 +70,21 @@ def main():
     m = sub.add_parser("migrate-guardrails"); m.add_argument("--agents", required=True); m.add_argument("--receipt", required=True)
     for name in ("install-codex", "uninstall-codex"):
         c = sub.add_parser(name); c.add_argument("--home", default=str(Path.home()))
-    s = sub.add_parser("sync", help="Compara o plugin; --apply reinstala no Codex")
+    s = sub.add_parser("sync", help="Compara ou atualiza o plugin pelo adaptador do host")
     s.add_argument("--source", required=True)
     s.add_argument("--installed", required=True)
     s.add_argument("--home", default=str(Path.home()))
     s.add_argument("--apply", action="store_true")
+    s.add_argument("--adapter", choices=["auto", "codex", "directory"], default="auto")
+    i = sub.add_parser("install", help="Instalação portátil em diretório gerenciado")
+    i.add_argument("--source", required=True); i.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.command == "sync":
-        from plugin_sync import sync_codex
-        result = sync_codex(args.source, args.installed, args.home, apply=args.apply)
+        from plugin_sync import sync_plugin
+        result = sync_plugin(args.source, args.installed, args.home, apply=args.apply, adapter=args.adapter)
+    elif args.command == "install":
+        from host_directory import sync_directory
+        result = sync_directory(args.source, args.output, apply=True)
     elif args.command in ("install-codex", "uninstall-codex"):
         result = register_codex(args.home, remove=args.command == "uninstall-codex")
     else:
