@@ -41,6 +41,10 @@ class HooksTest(unittest.TestCase):
         state = hook.prompt_grant('```\n$yabook mode: auto\n```', {}, self.tmp.name)
         self.assertFalse(state.get("auto", False))
 
+    def commit(self):
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash",
+                      tool_input={"command": "rtk git commit -m 'fix: x'"}))
+
     def test_claude_namespace_and_stop_does_not_loop(self):
         state = hook.prompt_grant("/yabook:yabook mode: auto objetivo", {}, self.tmp.name)
         self.assertTrue(state["auto"])
@@ -50,6 +54,7 @@ class HooksTest(unittest.TestCase):
         hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         hook.run(dict(self.event,hook_event_name="PostToolUse",tool_name="Edit"))
         event = dict(self.event,hook_event_name="Stop",stop_hook_active=False)
+        self.commit()
         self.head = "c2"
         self.assertEqual(hook.run(event)["decision"],"block")
         self.assertEqual(hook.run(event),{})
@@ -96,10 +101,12 @@ class HooksTest(unittest.TestCase):
         event = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
         hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.commit()
         self.head = "c2"
         self.assertEqual(hook.run(event), {})
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.commit()
         self.head = "c3"
         self.assertIn("Não peça do memory", hook.run(event)["reason"])
         self.assertEqual(hook.run(event), {})
@@ -111,7 +118,11 @@ class HooksTest(unittest.TestCase):
         for _ in range(3):
             hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
             self.assertEqual(hook.run(event), {})
+        # HEAD movido por outro agente no mesmo checkout não é entrega desta sessão.
         self.head = "c2"
+        self.assertEqual(hook.run(event), {})
+        self.commit()
+        self.head = "c3"
         self.assertEqual(hook.run(event)["decision"], "block")
         self.assertEqual(hook.run(event), {})
 

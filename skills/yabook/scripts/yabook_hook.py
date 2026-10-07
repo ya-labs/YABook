@@ -343,17 +343,23 @@ def run(event):
         if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
             state["edited"] = True
             write_json(path, state)
+        args = event.get("tool_input", {})
+        command = args.get("command", args.get("cmd", "")) if isinstance(args, dict) else ""
+        # Commit da própria sessão: HEAD movido por outro agente no checkout não é entrega desta sessão.
+        if isinstance(command, str) and re.search(r"\bgit\b[^;&|\n]*\bcommit\b", command):
+            state["committed"] = True
+            write_json(path, state)
         return {}
     if event_name == "Stop":
         publish_automatic(config())
-    if event_name == "Stop" and state.get("edited") and not event.get("stop_hook_active"):
+    if event_name == "Stop" and state.get("edited") and state.get("committed") and not event.get("stop_hook_active"):
         # Entrega consolidada = novo commit após edições da sessão; edição isolada não basta.
         head = git(root, "rev-parse", "HEAD")
         if not head or head == state.get("learned_head", head):
             state.setdefault("learned_head", head)
             write_json(path, state)
             return {}
-        state.update(edited=False, learned_head=head)
+        state.update(edited=False, committed=False, learned_head=head)
         write_json(path, state)
         cfg = config()
         if not cfg.get("memory_root"):
