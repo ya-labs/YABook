@@ -191,6 +191,13 @@ pode entregar seu conhecimento. Nova revisão ou compactação do contexto liber
 o reenvio. Falha na leitura da memória degrada para um aviso, sem bloquear o
 prompt; as travas de autorização continuam ativas.
 
+No orçamento, o conhecimento recuperado vem antes dos assuntos. Assuntos e
+índice aparecem em formato compacto (ID, revisão, título, tipo e resumo curto),
+sem listas de membros ou termos; use `show` ou `retrieve` para aprofundar. No
+contexto inicial, os assuntos do projeto configurado vêm antes dos pessoais.
+Palavras comuns do português são ignoradas na busca textual, para que prompts
+genéricos não tragam conhecimento sem relação.
+
 O agente aprofunda com `retrieve`: assunto → conhecimento → experiência →
 evidência. Também busca registros sem grupo para não esconder conhecimento
 cuja classificação está incompleta. Expande relações explícitas até três saltos,

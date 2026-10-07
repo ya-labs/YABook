@@ -44,6 +44,21 @@ def overview(entries):
     return index
 
 
+def compact(entries, summary=0):
+    """Uma linha por item: identidade e revisão para aprofundar, sem listas de membros/termos."""
+    index = []
+    for entry in ordered(entries):
+        item = {"id": entry["id"], "revision": entry.get("revision"), "title": entry["title"], "kind": kind(entry)}
+        if entry.get("source", "own") != "own": item["source"] = entry["source"]
+        if entry.get("state", "confirmed") != "confirmed": item["state"] = entry["state"]
+        if entry.get("summary_stale"): item["summary_stale"] = True
+        if summary and entry.get("summary"):
+            text = entry["summary"]
+            item["summary"] = text if len(text) <= summary else text[:summary].rsplit(" ", 1)[0] + "…"
+        index.append(item)
+    return index
+
+
 def bounded(value, budget):
     """JSON válido sob orçamento; descarta itens completos em vez de cortar bytes."""
     result = {k: ([] if isinstance(v, list) else v) for k, v in value.items()}
@@ -68,13 +83,16 @@ def session_context(vault, scope=(), budget=4500):
               and e.get("state") == "confirmed" and (kind(e) == "profile" or
               kind(e) == "preference" and e.get("authority") == "explicit" and e.get("activation") == "always")]
     brief = lambda e: {k: e[k] for k in ("id", "revision", "source", "title", "kind", "content", "application", "conditions") if k in e}
-    topics = [e for e in entries if e["collection"] == "groups"]
+    # Tópicos do projeto configurado antes dos pessoais; índice compacto para caber no orçamento.
+    own = lambda e: bool(scope) and e["scope"][:len(scope)] == list(scope)
+    groups = [e for e in entries if e["collection"] == "groups"]
+    topics = compact([e for e in groups if own(e)], summary=160) + compact([e for e in groups if not own(e)])
     conditional = [e for e in entries if kind(e) in ("preference", "procedure") and e not in active]
     return bounded(dict(revision=digest(vault.snapshot()), scope=list(scope),
                         profile=[brief(e) for e in active if kind(e) == "profile"],
                         preferences=[brief(e) for e in active if kind(e) == "preference"],
-                        topics=overview(topics), conditional=overview(conditional),
-                        index=overview([e for e in entries if e["collection"] != "groups" and e not in active and e not in conditional])), budget)
+                        topics=topics, conditional=compact(conditional),
+                        index=compact([e for e in entries if e["collection"] != "groups" and e not in active and e not in conditional])), budget)
 
 
 def render_views(snapshot):

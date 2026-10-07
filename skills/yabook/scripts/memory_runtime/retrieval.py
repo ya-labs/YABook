@@ -2,7 +2,7 @@
 from .core import digest
 from .search import search
 from .sources import all_entries
-from .views import bounded, key, overview, references
+from .views import bounded, compact, key, references
 
 
 LEVELS = ("index", "knowledge", "evidence")
@@ -22,7 +22,7 @@ def delivered_levels(result, evidence=False):
     """Níveis entregues por item, para o hook não reinjetar o mesmo conteúdo na sessão."""
     levels = {}
     for item in result.get("topics", []) + result.get("index", []) + result.get("conditional", []):
-        levels.setdefault(item["key"] + "@" + str(item.get("revision")), set()).add("index")
+        levels.setdefault(delivery_key(item), set()).add("index")
     for item in result.get("knowledge", []) + result.get("experiences", []) + result.get("profile", []) + result.get("preferences", []):
         levels.setdefault(delivery_key(item), set()).add("evidence" if evidence else "knowledge")
     return levels
@@ -81,6 +81,7 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
     return bounded(dict(revision=digest(vault.snapshot()), query=query,
                         degraded=topics["degraded"] or knowledge["degraded"],
                         already_delivered=len(items) - len(fresh),
-                        topics=overview(e for e in fresh if e["collection"] == "groups"),
+                        # Conhecimento ocupa o orçamento antes do índice de assuntos.
                         knowledge=[content(e) for e in fresh if e["collection"] in ("records", "entities")],
+                        topics=compact((e for e in fresh if e["collection"] == "groups"), summary=200),
                         experiences=[content(e) for e in fresh if e["collection"] == "episodes" and experiences]), budget)

@@ -9,6 +9,14 @@ from .core import digest, read_json, write_json
 from .sources import all_entries
 
 PIPELINE = "yabook-text-v1"
+# Palavras comuns não indicam assunto; sem elas, prompts genéricos não casam com tudo.
+STOPWORDS = frozenset("""a o as os um uma uns umas de da do das dos dum duma e é em no na nos nas num numa
+ao aos à às para pra pro pras pros por pelo pela pelos pelas com sem sob sobre entre até que se não nao
+sim já ja mais menos muito pouco mas ou nem também tambem só so como quando onde qual quais quem porque
+porquê isso isto esse essa esses essas este esta estes estas aquele aquela ele ela eles elas eu tu você
+voce vocês nós nos me te lhe meu minha meus minhas seu sua seus suas nosso nossa está esta estão estao
+estou estava tá ta foi era ser são sao sou tem têm ter tinha há ha vai vou pode posso deve faz fazer
+favor ok aqui ali lá la agora ainda então entao the of to and in is it for on""".split())
 
 
 def text(entry):
@@ -66,7 +74,7 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
         connection.execute("CREATE VIRTUAL TABLE memory USING fts5(id UNINDEXED, body)")
         connection.executemany("INSERT INTO memory VALUES (?,?)", [(uid(e), text(e)) for e in entries])
         connection.commit()
-        terms = re.findall(r"[\w-]+", query, flags=re.UNICODE)[:32]
+        terms = [t for t in re.findall(r"[\w-]+", query, flags=re.UNICODE) if t.casefold() not in STOPWORDS][:32]
         fts_query = " OR ".join('"'+term+'"' for term in terms)
         lexical = [row[0] for row in connection.execute("SELECT id FROM memory WHERE memory MATCH ? ORDER BY bm25(memory) LIMIT 50", (fts_query,))] if terms else []
     finally:
