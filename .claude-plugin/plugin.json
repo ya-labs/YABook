@@ -1,6 +1,9 @@
 {
   "name": "yabook",
   "version": "0.1.0",
-  "description": "Método YA LABS e memória própria rastreável.",
-  "skills": "./skills/"
+  "description": "Método YA LABS e memória própria rastreável para agentes de desenvolvimento.",
+  "skills": "./skills/",
+  "author": {
+    "name": "YA LABS"
+  }
 }

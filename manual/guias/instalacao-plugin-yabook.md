@@ -99,6 +99,12 @@ A mera descoberta da skill no CLI não demonstra suporte ao carregamento por
 hooks. Se o host não emitir os eventos, a skill funciona por invocação, mas
 essa instalação ainda não oferece memória automática na abertura.
 
+O Codex não executa hooks de plugin só porque o plugin está habilitado: ele os
+ignora até que a definição exata seja revisada e marcada como confiável. Abra
+`/hooks` no CLI, revise os eventos do YABook e confie neles; repita quando a
+definição mudar. A página do plugin lista skills, não os hooks. Sem esse passo
+não há `~/.config/yabook/sessions/`, que o hook cria na primeira execução.
+
 No Codex CLI 0.144.6 consultado durante o desenvolvimento, a ajuda também
 disponibiliza `codex plugin marketplace add <fonte>` e
 `codex plugin add yabook@<marketplace>`. A presença desses comandos não comprova
@@ -184,7 +190,8 @@ sem `do memory` individual. Configurações existentes sem esse campo continuam
 manuais; use `$yabook do memory policy automatic` uma vez para habilitar, ou
 `$yabook do memory policy manual` para desabilitar. A política pertence à máquina,
 é independente do modo operacional `auto` e não autoriza migração ou fontes.
-O hook de encerramento solicita a curadoria uma vez; o agente aplica via `learn`
+O hook de encerramento solicita a curadoria uma vez após edições seguidas de novo
+commit; o agente aplica via `learn`
 e emite apenas um aviso curto. Ainda não há trabalhador independente em segundo plano.
 
 O hook resolve a raiz Git do projeto e carrega um mapa compacto desse escopo.

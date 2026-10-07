@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Orchestrate the YA LABS Method through $yabook commands, issue-driven development, planning, GitHub artifacts, documentation, and safe execution.
+description: Orchestrate the YA LABS Method through $yabook commands, issue-driven development, planning, GitHub artifacts, documentation, safe execution, and YABook's own traceable memory.
 ---
 
 # YABook
