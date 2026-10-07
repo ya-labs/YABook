@@ -164,12 +164,24 @@ O nome é `YABook-memory-<loginGitHub>`, usando o login da conta autenticada pel
 A origem permanece intacta. A ferramenta só inventaria arquivos acessíveis;
 não promete capturar memória interna ou oculta do provedor.
 
-Para outra máquina, clone seu repositório privado e configure a cópia local,
-em vez de repetir a migração da origem:
+Para outra máquina, use o mesmo repositório. Se ela contém memórias nativas
+diferentes, faça uma **migração complementar**, comparando com a base existente:
 
-```bash
-gh repo clone LOGIN/YABook-memory-LOGIN "$HOME/.local/share/yabook/memory"
+```text
+$yabook memory init
+Use o repositório existente LOGIN/YABook-memory-LOGIN e migre detalhadamente
+as memórias locais para complementar a base. Preserve IDs, consolide duplicatas
+e apresente cobertura, descartes e conflitos antes da aprovação.
 ```
+
+O agente passa o destino explicitamente ao serviço. A prévia consulta uma cópia
+temporária; a cópia definitiva é criada após aprovação. Repositório de outra
+conta deve existir, ser privado e estar acessível à conta autenticada. O login
+da máquina não deve levar à criação de uma segunda base.
+
+Se não há novas memórias nativas a migrar, basta clonar a base e configurar
+`memory_root` e `repository` conforme a próxima seção, sem repetir a migração.
+Consulte o [contrato de migração detalhada](memoria-yabook.md#migração-detalhada-e-retomável).
 
 ## 5. Configurar a máquina e o projeto
 

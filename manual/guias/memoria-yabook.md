@@ -286,6 +286,134 @@ aprovação distingue `do memory [P-id]` de `do memory init`, `do memory sync`,
 administrativas devem ser avaliadas pela skill com a política exata apresentada;
 um nome de operação não é um ID de proposta.
 
+## Migração detalhada e retomável
+
+O `memory init` deve migrar com fidelidade, mesmo que o trabalho leve várias
+sessões. O inventário é uma lista de fontes, não uma migração: seus excerpts
+não substituem a leitura integral. O agente interpreta o conteúdo; o runtime
+controla blocos, hashes, cobertura e aplicação do plano aprovado. Não existe
+um modelo independente que faça essa avaliação em segundo plano.
+
+### Primeira máquina e migração complementar
+
+Na primeira máquina, o destino padrão é
+`<loginGitHub>/YABook-memory-<loginGitHub>`. Em casa e no trabalho, use o mesmo
+repositório privado e cópias locais diferentes. Informe o destino explicitamente
+antes de iniciar a segunda migração:
+
+```text
+$yabook memory init
+Use o repositório existente LOGIN/YABook-memory-LOGIN.
+Migre detalhadamente as memórias locais como complemento da base existente.
+Preserve IDs e procedência, consolide duplicatas e apresente conflitos,
+descartes e cobertura antes da aprovação.
+```
+
+A conta autenticada identifica quem executa a operação. O proprietário e o UUID
+da base existente permanecem os mesmos, inclusive quando outra conta autorizada
+acessa o repositório. Um destino informado de outra conta precisa existir,
+ser privado e estar acessível; init não convida colaboradores. Sem acesso,
+a operação informa o bloqueio, sem criar outra base como alternativa.
+
+A prévia de uma base remota usa clone temporário para expor o conteúdo usado na
+comparação, sem criar a cópia definitiva. Após aprovação, o serviço clona na
+pasta escolhida e aplica as alterações. Não execute scripts da base clonada.
+Se a cópia local está atrasada ou diverge do remoto, sincronize e refaça a
+comparação. Não escreva sobre uma base antiga durante a migração do Claude.
+
+### Leitura, organização e avaliação
+
+O agente deve:
+
+1. Inventariar arquivos persistentes acessíveis e suas limitações. Ler o resumo,
+   todo o arquivo principal e referências necessárias para esclarecer evidências;
+   registrar referências indisponíveis como lacunas.
+2. Ler a origem em blocos completos, sem parar nos primeiros milhares de
+   caracteres. Separar perfil, preferências, procedimentos, conhecimento e
+   experiências; organizar projetos, assuntos, entidades e grupos.
+3. Preservar detalhes que mudam a execução futura: responsabilidade de fontes,
+   condições de aplicação, hipóteses refutadas, limitações e validação realizada.
+   Identificar claramente o que é relato, evidência estática ou confirmação em
+   execução. Não promover autorizações de sessão nem credenciais.
+4. Comparar com o conhecimento existente. Unir repetições sem descartar
+   informações complementares; manter IDs e relacionar grupos, em vez de criar
+   um registro para cada menção. Contradições exigem avaliação; a informação
+   mais recente não é automaticamente correta.
+5. Vincular cada bloco aproveitado aos registros resultantes e preservar
+   procedência: agente, arquivo, hash da origem e intervalo de linhas. Um bloco
+   pode alimentar vários registros, grupos ou experiências.
+
+Um exemplo de responsabilidade de fonte só deve virar fato quando sustentado
+pela origem ou por verificação adicional. O objetivo é preservar o conhecimento
+útil com precisão, não transformar a memória inteira em um resumo genérico.
+
+### Checkpoints e retomada
+
+Os serviços abaixo são chamados pelo agente através de
+`skills/yabook/scripts/yabook_memory.py --root <base>`:
+
+| Serviço | Função |
+| --- | --- |
+| `migration-start --agent <agente> --source <origem> --output <checkpoint>` | Inventaria e divide arquivos em blocos de 200 linhas; cria ou retoma o estado. |
+| `migration-block --state <checkpoint> [--id <bloco>]` | Entrega o bloco completo e o hash atual do checkpoint. |
+| `migration-checkpoint --state <checkpoint> --input <avaliações.json>` | Salva decisões, justificativas e referências; rejeita gravação sobre estado desatualizado. |
+| `migration-report --state <checkpoint>` | Mostra cobertura por blocos, arquivos e decisões, incluindo pendências. |
+| `init-plan --agent <agente> --source <origem> --repository <proprietário/nome> --output <plano>` | Inspeciona destino e fornece `baseline` para comparação, sem publicar. |
+| `init-plan ... --curated <payload> --migration <checkpoint>` | Vincula conteúdo avaliado e cobertura completa ao plano final. |
+
+As decisões são `migrated` (novo conhecimento), `consolidated` (complemento ou
+consolidação), `kept` (já representado), `discarded` (excluído com motivo) e
+`pending` (ainda exige avaliação). As três primeiras exigem referências de
+coleção e ID. `migrated` e `consolidated` exigem procedência do bloco nos registros.
+Arquivos sensíveis não têm seu texto exposto e exigem descarte justificado.
+
+Exemplo de lote de avaliações:
+
+```json
+{
+  "checkpoint_hash": "HASH_RECEBIDO_NA_LEITURA",
+  "reviews": [
+    {
+      "id": "ID_DO_BLOCO",
+      "decision": "consolidated",
+      "reason": "Complementa as condições de aplicação do registro existente",
+      "targets": [{"collection": "records", "id": "R1"}]
+    }
+  ]
+}
+```
+
+O checkpoint salva o progresso de leitura, não escreve a memória e não gera
+a curadoria. Salve também o payload `assessment`/`changes` para retomá-lo.
+Checkpoint, seu arquivo de lock, plano e payload devem ficar fora da origem e
+da base canônica. São artefatos locais da migração, não memória publicada.
+
+Para retomar, repita `migration-start` com a mesma origem, agente, checkpoint e
+`--block-lines` (200 por padrão). Arquivos intactos preservam avaliações.
+Arquivos alterados têm seus blocos invalidados; novos arquivos entram na fila,
+e arquivos removidos deixam o inventário atual. Atualize também as mudanças do
+payload que dependiam desses arquivos. O serviço não corrige automaticamente
+conclusões semânticas após uma mudança de origem.
+
+### Aprovação e garantias
+
+O plano final exige todos os blocos avaliados, sem `pending`. O agente mostra
+conteúdo resultante, cobertura, descartes e lacunas antes de `do memory init`.
+Uma contagem completa comprova cobertura declarada de leitura, não correção
+semântica: a qualidade da avaliação e o tratamento das lacunas precisam de
+revisão. Não marque um bloco concluído com informações úteis ainda ausentes
+do payload ou da base existente.
+
+A aplicação revalida a conta, a origem, o conteúdo aprovado, o destino privado,
+as referências, o hash da base e a revisão remota. Uma alteração exige nova
+comparação e plano. A base é preservada; alterações efetivas passam pelas
+transações normais e por commit/push restritos. Push falho fica pendente.
+Planos antigos continuam compatíveis, mas novas migrações seguem o contrato
+completo. Nenhuma memória nativa é apagada.
+
+Após as migrações iniciais, as máquinas usam sync e aprendizado cotidiano da
+mesma base. Init não é necessário a cada sessão.
+
 ## Exemplo: descoberta durante desenvolvimento
 
 Imagine investigar “checklist não está chegando para o supervisor”. A busca

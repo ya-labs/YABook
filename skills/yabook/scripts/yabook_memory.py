@@ -49,7 +49,22 @@ def main():
     ini.add_argument("--agent", required=True, help="Nome do agente de origem")
     ini.add_argument("--source", required=True)
     ini.add_argument("--curated")
+    ini.add_argument("--repository", help="Repositório privado existente proprietário/nome; padrão usa o login autenticado")
+    ini.add_argument("--migration", help="Checkpoint completo da migração detalhada")
     ini.add_argument("--output", required=True)
+    ms = sub.add_parser("migration-start", help="Inventaria ou retoma a leitura integral da origem")
+    ms.add_argument("--agent", required=True)
+    ms.add_argument("--source", required=True)
+    ms.add_argument("--output", required=True)
+    ms.add_argument("--block-lines", type=int, default=200)
+    mb = sub.add_parser("migration-block", help="Lê um bloco completo, sem truncar o conteúdo")
+    mb.add_argument("--state", required=True)
+    mb.add_argument("--id")
+    mc = sub.add_parser("migration-checkpoint", help="Registra as avaliações e referências dos blocos")
+    mc.add_argument("--state", required=True)
+    mc.add_argument("--input", required=True)
+    mr = sub.add_parser("migration-report", help="Relatório de cobertura e pendências")
+    mr.add_argument("--state", required=True)
     ai = sub.add_parser("init-apply")
     ai.add_argument("--plan", required=True)
     ai.add_argument("--curated", required=True)
@@ -120,8 +135,23 @@ def main():
         result = inventory(args.agent, args.source)
     elif args.command == "init-plan":
         from memory_runtime.core import write_json
-        result = init_plan(args.root, args.agent, args.source, read_json(args.curated) if args.curated else None)
+        result = init_plan(args.root, args.agent, args.source, read_json(args.curated) if args.curated else None,
+                           args.repository, read_json(args.migration) if args.migration else None)
         write_json(args.output, result)
+        # O plano integral fica no arquivo; não reinjetar toda a base no contexto.
+        result = {k: v for k, v in result.items() if k not in {"baseline", "inventory", "migration"}}
+        result["output"] = str(Path(args.output).expanduser().resolve())
+    elif args.command.startswith("migration-"):
+        from memory_runtime.migration import start, block, checkpoint, coverage
+        if args.command == "migration-start":
+            result = start(args.agent, args.source, args.output, args.block_lines)
+        elif args.command == "migration-block":
+            result = block(read_json(args.state), args.id)
+        elif args.command == "migration-checkpoint":
+            result = checkpoint(args.state, read_json(args.input))
+        else:
+            state = read_json(args.state)
+            result = dict(coverage(state), details=state["blocks"])
     elif args.command == "init-apply":
         result = init_apply(read_json(args.plan), args.approval_hash, read_json(args.curated), args.config)
     elif args.command == "publish":
