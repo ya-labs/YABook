@@ -128,6 +128,16 @@ class HooksTest(unittest.TestCase):
         self.assertEqual(hook.run(event)["decision"],"block")
         self.assertEqual(hook.run(event),{})
 
+    def test_protected_branch_allows_edits_outside_repository(self):
+        patch_text = "*** Begin Patch\n*** Add File: /tmp/lote.json\n+{}\n*** End Patch"
+        event = dict(self.event, hook_event_name="PreToolUse", tool_name="apply_patch", tool_input={"command": patch_text})
+        self.assertNotIn("permissionDecision", hook.run(event).get("hookSpecificOutput", {}))
+        inside = patch_text.replace("/tmp/lote.json", "src/app.js")
+        event = dict(event, tool_input={"command": inside})
+        self.assertEqual(hook.run(event)["hookSpecificOutput"]["permissionDecision"], "deny")
+        event = dict(event, tool_name="Write", tool_input={"file_path": "/tmp/x.json", "content": "{}"})
+        self.assertNotIn("permissionDecision", hook.run(event).get("hookSpecificOutput", {}))
+
     def test_protected_edit_and_bypass(self):
         event = dict(self.event, hook_event_name="PreToolUse", tool_name="apply_patch", tool_input={})
         self.assertEqual(hook.run(event)["hookSpecificOutput"]["permissionDecision"], "deny")

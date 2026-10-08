@@ -65,6 +65,8 @@ def apply_queue(config_path):
             try:
                 _private(path)
                 item = json.loads(path.read_text(encoding="utf-8"))
+                outcome.update(workspace=item.get("workspace"),
+                               topic=", ".join(c.get("id", "") for c in item.get("payload", {}).get("changes", []))[:200])
                 expected = item.pop("digest", None)
                 if digest(item) != expected:
                     raise ValueError("Lote enfileirado alterado")
@@ -73,7 +75,6 @@ def apply_queue(config_path):
                     raise ValueError("Lote enfileirado para outra base/configuração")
                 outcome.update(learn(Vault(root), item["payload"], item["actor"], config_path,
                                      item["workspace"], queue=False))
-                outcome["topic"] = ", ".join(c["id"] for c in item["payload"].get("changes", []))[:200]
             except Exception as error:  # Falha fica registrada e é avisada no início da sessão.
                 outcome.update(status="failed", error=str(error)[:300])
             with open(directory / "results.jsonl", "a", encoding="utf-8") as log:
@@ -83,12 +84,19 @@ def apply_queue(config_path):
     return results
 
 
-def pending_notices():
-    """Resultados que exigem atenção (falha/revisão) desde o último aviso; consome o registro."""
+def pending_notices(workspace=None):
+    """Falhas/revisões do projeto atual desde o último aviso; avisos de outros projetos ficam."""
     log = queue_dir() / "results.jsonl"
     if not log.is_file():
         return []
     _private(queue_dir())
     entries = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines() if line.strip()]
-    log.unlink()
-    return [e for e in entries if e.get("status") in ("failed", "pending_review")]
+    relevant = [e for e in entries if e.get("status") in ("failed", "pending_review")]
+    mine = [e for e in relevant if workspace is None or e.get("workspace") in (None, str(workspace))]
+    rest = [e for e in relevant if e not in mine]
+    with _locked(queue_dir()):
+        if rest:
+            log.write_text("".join(json.dumps(e, ensure_ascii=False) + "\n" for e in rest), encoding="utf-8")
+        else:
+            log.unlink(missing_ok=True)
+    return mine

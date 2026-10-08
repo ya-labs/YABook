@@ -258,6 +258,26 @@ def remember_delivery(state, levels):
         delivered[item] = sorted(set(delivered.get(item, [])) | set(values))
 
 
+PATCH_TARGET = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$", re.M)
+
+
+def edit_targets(args, root):
+    """Arquivos que a edição altera; desconhecido devolve None para manter a trava."""
+    values = args if isinstance(args, dict) else {"input": args}
+    targets = [values[k] for k in ("file_path", "path") if isinstance(values.get(k), str)]
+    for value in values.values():
+        if isinstance(value, str):
+            targets += PATCH_TARGET.findall(value)
+    if not targets:
+        return None
+    return [Path(t.strip()) if Path(t.strip()).is_absolute() else Path(root) / t.strip() for t in targets]
+
+
+def inside(path, root):
+    path, root = Path(path).resolve(), Path(root).resolve()
+    return path == root or root in path.parents
+
+
 def inspect_call(event, state, root):
     name = event.get("tool_name", "")
     args = event.get("tool_input", {})
@@ -269,7 +289,10 @@ def inspect_call(event, state, root):
     edit = name in ("apply_patch", "Edit", "Write", "MultiEdit")
     branch = git(root, "branch", "--show-current")
     protected = branch in ("main", "dev") or branch.startswith("release")
-    if edit and protected and not (auto or (authorized and grant.get("kind") == "bypass")):
+    targets = edit_targets(args, root) if edit else None
+    # Arquivo fora do repositório (ex.: lote de curadoria em /tmp) não é edição da branch protegida.
+    outside = targets is not None and not any(inside(t, root) for t in targets)
+    if edit and protected and not outside and not (auto or (authorized and grant.get("kind") == "bypass")):
         return deny("YABook: edição direta em branch protegida exige exceção limitada ou branch de issue.")
     if parts and Path(parts[0]).name == "git":
         target = root
@@ -361,12 +384,12 @@ def run(event):
         apply_learning_queue()
         try:
             from memory_runtime.queue import pending_notices
-            notices = pending_notices() if cfg.get("memory_root") else []
+            notices = pending_notices(root) if cfg.get("memory_root") else []
         except Exception:
             notices = []
         if notices:
             text += "\nAprendizado enfileirado que não foi aplicado automaticamente: " + json.dumps(
-                [{k: n.get(k) for k in ("status", "proposal", "reasons", "error", "topic") if n.get(k)} for n in notices[:5]],
+                [{k: n.get(k) for k in ("status", "topic", "proposal", "reasons", "error") if n.get(k)} for n in notices[:5]],
                 ensure_ascii=False) + ". Informe à pessoa se for relevante; propostas ficam em review."
         published = publish_automatic(cfg)
         warning = sandbox_warning(cfg)

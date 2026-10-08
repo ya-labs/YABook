@@ -59,6 +59,21 @@ class SandboxTest(unittest.TestCase):
         self.assertEqual(len(pending_notices()), 2)
         self.assertFalse(other.exists())
 
+    def test_invalid_batch_is_rejected_before_queue_and_notices_stay_per_project(self):
+        from memory_runtime.queue import apply_queue, enqueue, pending_notices
+        vault, config, payload = self.read_only_setup()
+        payload["changes"][0]["value"]["evidence"] = ["texto livre"]
+        with self.assertRaisesRegex(ValueError, "type e level"):
+            learn(vault, payload, "test", config, self.root)
+        self.assertFalse(list((self.root / "queue").glob("*.json")) if (self.root / "queue").exists() else [])
+        vault.local.chmod(0o755)
+        enqueue(self.root / "outra", payload, "test", config, "/projeto/a")
+        enqueue(self.root / "outra", payload, "test", config, "/projeto/b")
+        apply_queue(config)
+        self.assertEqual([n["workspace"] for n in pending_notices("/projeto/b")], ["/projeto/b"])
+        self.assertEqual([n["workspace"] for n in pending_notices("/projeto/a")], ["/projeto/a"])
+        self.assertEqual(pending_notices("/projeto/a"), [])
+
     def read_only_setup(self):
         vault = Vault(self.root / "memory"); vault.bootstrap("demo")
         config = self.root / "yabook.json"

@@ -275,7 +275,7 @@ class Vault:
                             raise ValueError("Grupo filho fora do escopo do pai")
                         visited.add(parent); parent = ancestor.get("parent"); child = ancestor
 
-    def prepare(self, changes, assessment, actor, expected_base_hash=None):
+    def prepare(self, changes, assessment, actor, expected_base_hash=None, dry_run=False):
         required = ("verdict", "reason", "utility", "application", "evidence_status")
         if not all(isinstance(assessment.get(k), str) and assessment[k].strip() for k in required):
             raise ValueError("Avaliação do agente incompleta")
@@ -283,7 +283,8 @@ class Vault:
             raise ValueError("Veredito não executável; manter/rejeitar não gera proposta")
         if not changes:
             raise ValueError("Proposta vazia")
-        with self.lock():
+        # dry_run valida o resultado sem trava nem gravação (sandbox somente leitura).
+        with (contextlib.nullcontext() if dry_run else self.lock()):
             before = self.snapshot()
             if expected_base_hash is not None and digest(before) != expected_base_hash:
                 raise ValueError("Base mudou durante a curadoria; reavaliar aprendizado")
@@ -338,7 +339,8 @@ class Vault:
             if proposed["metadata"] != before["metadata"]:
                 proposal["previous_metadata"] = before["metadata"]
             proposal["approval_hash"] = digest(proposal)
-            write_json(self.local / "proposals" / (proposal["id"] + ".json"), proposal)
+            if not dry_run:
+                write_json(self.local / "proposals" / (proposal["id"] + ".json"), proposal)
             return proposal
 
     def proposal(self, identifier=None):

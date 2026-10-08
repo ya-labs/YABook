@@ -114,7 +114,9 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
         from .sandbox import hint, is_read_only
         if not is_read_only(error): raise
         if queue:
-            # Base somente leitura no sandbox: o hook aplica fora dele, revalidando o lote.
+            # Base somente leitura no sandbox: valida tudo agora (o agente ainda pode corrigir)
+            # e o hook aplica fora dele, revalidando o lote.
+            vault.prepare(changes, assessment, actor, expected_base_hash=digest(snapshot), dry_run=True)
             from .queue import enqueue
             try:
                 path = enqueue(vault.root, original, actor, config_path, workspace)
