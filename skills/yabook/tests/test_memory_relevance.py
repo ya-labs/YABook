@@ -37,6 +37,10 @@ class RelevanceTest(unittest.TestCase):
         p = self.v.prepare(changes, assessment, "test")
         self.v.apply(p["id"], p["approval_hash"])
 
+    def test_single_shared_term_is_not_relevant(self):
+        self.assertEqual(search(self.v, "exportação de relatórios em excel do supervisor")["results"], [])
+        self.assertTrue(search(self.v, "envio do checklist do supervisor")["results"])
+
     def test_common_words_do_not_match(self):
         self.assertEqual(search(self.v, "não está pra isso")["results"], [])
 

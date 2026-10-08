@@ -89,7 +89,33 @@ def event_response(output, protocol="native"):
 
 
 def context(event_name, text):
+    record_stats(event_name, len(text))
     return {"hookSpecificOutput": {"hookEventName": event_name, "additionalContext": text}}
+
+
+def record_stats(event_name, characters):
+    """Tamanho injetado por evento, para comparar o custo dos hooks com o uso do agente."""
+    try:
+        path = config_path().parent / "hook-stats.jsonl"
+        if path.exists() and path.stat().st_size > 2_000_000:
+            path.replace(path.with_suffix(".jsonl.1"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "event": event_name,
+                                     "chars": characters}) + "\n")
+    except OSError:
+        pass
+
+
+CONTINUATION = frozenset("ok certo sim beleza prossiga prossegue continue continua siga segue pode implemente "
+                         "implementa faça faca isso aí ai obrigado valeu entendi perfeito show manda bora".split())
+
+
+def needs_memory(prompt):
+    """Continuações curtas ("prossiga", "pode implementar") não trazem assunto novo para buscar."""
+    from memory_runtime.search import STOPWORDS
+    terms = {t.casefold() for t in re.findall(r"[\w-]+", prompt)} - STOPWORDS - CONTINUATION
+    return len(terms) >= 2
 
 
 def deny(reason):
@@ -355,9 +381,14 @@ def inspect_call(event, state, root):
                     return deny("YABook: proposta diferente da aprovada.")
     # Shell composto, scripts e MCP exigem análise pela skill; não afirmar cobertura completa.
     if edit or "Bash" == name:
-        return context("PreToolUse", "Estado YABook: " + json.dumps({"branch": branch,
+        text = "Estado YABook: " + json.dumps({"branch": branch,
             "status": git(root, "status", "--short")[:1000], "staged": git(root, "diff", "--cached", "--stat")[:600],
-            "unstaged": git(root, "diff", "--stat")[:600], "last_commit": git(root, "log", "-1", "--oneline")}, ensure_ascii=False))
+            "unstaged": git(root, "diff", "--stat")[:600], "last_commit": git(root, "log", "-1", "--oneline")}, ensure_ascii=False)
+        # Estado igual ao já entregue na sessão não é reenviado: cada repetição fica no histórico.
+        if state.get("git_context") == digest(text):
+            return {}
+        state["git_context"] = digest(text)
+        return context("PreToolUse", text)
     return {}
 
 
@@ -375,6 +406,7 @@ def run(event):
         if event.get("source") == "compact":
             # Compactação descarta o contexto entregue; autorizações seguem as regras da sessão.
             state.pop("delivered", None)
+        state.pop("git_context", None)
         state["startup_seen"] = True
         state.setdefault("learned_head", git(root, "rev-parse", "HEAD"))
         write_json(path, state)
@@ -425,12 +457,12 @@ def run(event):
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."
         cfg = config()
-        if cfg.get("memory_root") and event.get("prompt", "").strip():
+        if cfg.get("memory_root") and event.get("prompt", "").strip() and needs_memory(event["prompt"]):
             try:
                 from memory_runtime.retrieval import delivered_levels, retrieve
                 scope = cfg.get("projects", {}).get(root, [])
                 vault = Vault(cfg["memory_root"])
-                result = retrieve(vault, event["prompt"], [["Pessoa"]] + ([scope] if scope else []), budget=4500,
+                result = retrieve(vault, event["prompt"], [["Pessoa"]] + ([scope] if scope else []), budget=3500, excerpt=300,
                                   delivered=state.get("delivered", {}))
                 remember_delivery(state, delivered_levels(result))
                 write_json(path, state)
@@ -445,8 +477,9 @@ def run(event):
         state["pretool_seen"] = True
         if COMMIT.search(shell_command(event)):
             state["pre_commit_head"] = git(root, "rev-parse", "HEAD")
+        result = inspect_call(event, state, root)
         write_json(path, state)
-        return inspect_call(event, state, root)
+        return result
     if event_name == "PostToolUse":
         if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
             state["edited"] = True

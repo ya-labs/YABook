@@ -128,6 +128,27 @@ class HooksTest(unittest.TestCase):
         self.assertEqual(hook.run(event)["decision"],"block")
         self.assertEqual(hook.run(event),{})
 
+    def test_git_state_injected_only_when_changed_and_stats_recorded(self):
+        event = dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": "ls"})
+        self.git.stop()
+        status = {"value": ""}
+        with patch.object(hook, "git", side_effect=lambda cwd, *args: "feature" if args == ("branch", "--show-current")
+                          else status["value"] if args == ("status", "--short") else ""):
+            self.assertIn("additionalContext", hook.run(event)["hookSpecificOutput"])
+            self.assertEqual(hook.run(event), {})
+            status["value"] = " M app.js"
+            self.assertIn("app.js", hook.run(event)["hookSpecificOutput"]["additionalContext"])
+            hook.run(dict(self.event, hook_event_name="SessionStart", source="compact"))
+            self.assertIn("additionalContext", hook.run(event)["hookSpecificOutput"])
+        self.git.start()
+        stats = (Path(self.tmp.name) / "hook-stats.jsonl").read_text().splitlines()
+        self.assertTrue(any('"PreToolUse"' in line for line in stats))
+
+    def test_short_continuation_skips_memory_lookup(self):
+        self.assertFalse(hook.needs_memory("pode implementar"))
+        self.assertFalse(hook.needs_memory("certo, prossiga"))
+        self.assertTrue(hook.needs_memory("o checklist não chega no supervisor"))
+
     def test_protected_branch_allows_edits_outside_repository(self):
         patch_text = "*** Begin Patch\n*** Add File: /tmp/lote.json\n+{}\n*** End Patch"
         event = dict(self.event, hook_event_name="PreToolUse", tool_name="apply_patch", tool_input={"command": patch_text})
@@ -230,7 +251,7 @@ class HooksTest(unittest.TestCase):
         import sqlite3
         with patch("memory_runtime.retrieval.retrieve", side_effect=sqlite3.OperationalError("locked")), \
              patch("memory_runtime.views.session_context", side_effect=sqlite3.OperationalError("locked")):
-            result = hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="checklist"))
+            result = hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="checklist do supervisor"))
             self.assertIn("indisponível", result["hookSpecificOutput"]["additionalContext"])
             result = hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
             self.assertIn("indisponível", result["hookSpecificOutput"]["additionalContext"])

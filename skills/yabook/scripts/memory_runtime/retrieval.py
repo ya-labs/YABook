@@ -28,7 +28,9 @@ def delivered_levels(result, evidence=False):
     return levels
 
 
-def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence=False, model=None, delivered=None):
+def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence=False, model=None, delivered=None,
+             excerpt=None):
+    """excerpt limita content/application por item (pistas do hook); show/retrieve aprofundam."""
     if not 512 <= budget <= 100000: raise ValueError("Orçamento inválido")
     if evidence and not experiences: raise ValueError("Evidências exigem nível de experiência")
     entries = all_entries(vault, includes)
@@ -73,6 +75,15 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
         if entry["collection"] == "episodes":
             fields += ("objective", "context", "actions", "outcome", "validation", "learnings")
         value = {k: entry[k] for k in fields if k in entry}
+        if excerpt:
+            # Pista compacta: identidade, revisão e o que aplicar; metadados ficam para show/retrieve.
+            value = {k: v for k, v in value.items() if k in ("id", "revision", "title", "state", "content",
+                     "application", "conditions", "objective", "outcome", "learnings")
+                     or (k == "source" and v != "own")}
+            if value.get("state") == "confirmed": value.pop("state")
+            for field in ("content", "application", "conditions"):
+                if isinstance(value.get(field), str) and len(value[field]) > excerpt:
+                    value[field] = value[field][:excerpt].rsplit(" ", 1)[0] + "…"
         if evidence and entry.get("evidence"): value["evidence"] = entry["evidence"]
         return value
     delivered = delivered or {}

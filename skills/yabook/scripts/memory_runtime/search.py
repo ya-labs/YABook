@@ -24,6 +24,12 @@ def text(entry):
                     "keywords", "aliases", "triggers", "objective", "context", "actions", "outcome", "validation"))
 
 
+def fold(value):
+    """Minúsculas sem acento, como o tokenizador FTS, para contar termos casados."""
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFKD", str(value).casefold()) if not unicodedata.combining(c))
+
+
 def uid(entry):
     return entry.get("source", "own") + ":" + entry["id"]
 
@@ -76,6 +82,10 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
         terms = [t for t in re.findall(r"[\w-]+", query, flags=re.UNICODE) if t.casefold() not in STOPWORDS][:32]
         fts_query = " OR ".join('"'+term+'"' for term in terms)
         lexical = [row[0] for row in connection.execute("SELECT id FROM memory WHERE memory MATCH ? ORDER BY bm25(memory) LIMIT 50", (fts_query,))] if terms else []
+        # Um termo solto (ex.: "app") não torna o registro relevante: exige dois termos casados.
+        wanted = {fold(t) for t in terms}
+        needed = min(2, len(wanted))
+        lexical = [i for i in lexical if sum(1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", fold(text(by_id[i])))) >= needed]
     finally:
         connection.close()
     rankings = [lexical]; mode = "textual"; degraded = None
