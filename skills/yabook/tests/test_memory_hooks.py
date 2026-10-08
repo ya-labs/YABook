@@ -149,6 +149,19 @@ class HooksTest(unittest.TestCase):
         self.assertFalse(hook.needs_memory("certo, prossiga"))
         self.assertTrue(hook.needs_memory("o checklist não chega no supervisor"))
 
+    def test_git_mutation_in_compound_command_is_guarded(self):
+        def call(command):
+            result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
+            return result.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
+        for command in ("cd /repo && git add x && git commit -m 'y'", "cd /repo&&git push", "echo ok; rtk git commit -m z",
+                        "ls | git stash"):
+            self.assertTrue(call(command), command)
+        for command in ("cd /repo && git status && git log -1", "git diff --stat; git branch --show-current"):
+            self.assertFalse(call(command), command)
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do commit"))
+        self.assertFalse(call("cd /repo && git add x && git commit -m 'y'"))
+        self.assertTrue(call("cd /repo && git commit -m y && git push"))
+
     def test_svn_mutations_need_grant_and_reads_stay_free(self):
         def call(command):
             return hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
@@ -199,6 +212,12 @@ class HooksTest(unittest.TestCase):
         hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do memory init"))
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={
             "command": "python3 yabook_memory.py --root " + self.tmp.name + " init-apply --plan " + str(plan)}))
+        self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))
+
+    def test_memory_guard_expands_home(self):
+        hook.write_json(hook.config_path(), {"memory_root": str(Path.home() / ".yabook-teste-base")})
+        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash",
+                               tool_input={"command": "python3 yabook_memory.py --root ~/.yabook-teste-base learn --input x.json --actor a"}))
         self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))
 
     def test_learn_triggers_is_limited_to_configured_base(self):

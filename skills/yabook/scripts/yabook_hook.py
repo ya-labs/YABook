@@ -349,13 +349,19 @@ def inspect_call(event, state, root):
     outside = targets is not None and not any(inside(t, root) for t in targets)
     if edit and protected and not outside and not (auto or (authorized and grant.get("kind") == "bypass")):
         return deny("YABook: edição direta em branch protegida exige exceção limitada ou branch de issue.")
-    if parts and Path(parts[0]).name == "git":
+    # Git em qualquer posição do comando (ex.: cd x && git commit), não só na primeira palavra.
+    spaced = command_parts(re.sub(r"(&&|\|\||;|\|)", r" \1 ", command)) or parts
+    for index in [i for i, token in enumerate(spaced) if Path(token).name == "git"]:
+        segment = spaced[index:]
+        for separator in ("&&", "||", ";", "|"):
+            if separator in segment[1:]:
+                segment = segment[:segment.index(separator, 1)]
         target = root
-        if "-C" in parts:
-            target = project(parts[parts.index("-C") + 1])
-        mutation = next((p for p in parts[1:] if p in ("add", "commit", "push", "pull", "fetch", "switch", "checkout", "merge", "rebase", "reset", "restore", "stash", "clean", "tag", "branch", "cherry-pick", "revert")), None)
+        if "-C" in segment:
+            target = project(segment[segment.index("-C") + 1])
+        mutation = next((p for p in segment[1:] if p in ("add", "commit", "push", "pull", "fetch", "switch", "checkout", "merge", "rebase", "reset", "restore", "stash", "clean", "tag", "branch", "cherry-pick", "revert")), None)
         # branch --show-current é somente leitura.
-        if mutation == "branch" and any(p in parts for p in ("--show-current", "--list", "-a", "-r")): mutation = None
+        if mutation == "branch" and any(p in segment for p in ("--show-current", "--list", "-a", "-r")): mutation = None
         if mutation:
             applicable = grant.get("root") == target
             permit = auto and target == root
@@ -374,7 +380,7 @@ def inspect_call(event, state, root):
                 return deny("YABook: worktree sujo; separe as alterações antes de trocar branch.")
             if not permit:
                 return deny("YABook: operação Git fora da autorização limitada da sessão.")
-    svn = svn_mutation(parts)
+    svn = svn_mutation(spaced)
     if svn:
         kind = grant.get("kind")
         permit = auto or (authorized and svn in SVN_GRANTS.get(kind, set()))
@@ -392,7 +398,8 @@ def inspect_call(event, state, root):
                         "learn": None, "learn-triggers": None, "learning-policy": "memory_policy"}[service]
             if not target:
                 return deny("YABook: destino de memória ausente.")
-            if service != "init-apply" and (not cfg.get("memory_root") or str(Path(target).resolve()) != str(Path(cfg["memory_root"]).resolve())):
+            # ~ não é expandido pelo shlex: comparar caminhos já expandidos.
+            if service != "init-apply" and (not cfg.get("memory_root") or Path(target).expanduser().resolve() != Path(cfg["memory_root"]).expanduser().resolve()):
                 return deny("YABook: destino de memória não configurado.")
             if service in ("learn", "learn-triggers", "learning-policy") and "--config" in parts:
                 supplied = parts[parts.index("--config") + 1]
@@ -400,7 +407,7 @@ def inspect_call(event, state, root):
                     return deny("YABook: política de outra configuração não se aplica à sessão.")
             if service in ("learn", "learn-triggers") and "--workspace" in parts:
                 supplied = parts[parts.index("--workspace") + 1]
-                if project(supplied) != root:
+                if project(str(Path(supplied).expanduser())) != root:
                     return deny("YABook: aprendizado pertence a outro projeto.")
             if required is not None and grant.get("kind") != required:
                 return deny("YABook: memória precisa de aprovação explícita da proposta.")
