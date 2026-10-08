@@ -18,6 +18,8 @@ class SandboxTest(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.toml = self.root / "config.toml"
+        env = patch.dict(os.environ, YABOOK_QUEUE=str(self.root / "queue"))
+        env.start(); self.addCleanup(env.stop)
 
     def test_reads_writable_roots_and_permission_profiles(self):
         self.toml.write_text('model = "x"\n[plugins."a"]\nenabled = true\n\n[sandbox_workspace_write]\n'
@@ -30,6 +32,47 @@ class SandboxTest(unittest.TestCase):
         self.toml.write_text('default_permissions = "dev"\n[permissions.dev]\nextends = ":workspace"\n')
         self.assertIn("perfil", codex_blocks("/data/memory", read_codex_sandbox(self.toml))["suggestion"])
         self.assertIsNone(read_codex_sandbox(self.root / "ausente.toml"))
+
+    def test_learn_queues_and_hook_applies_outside_sandbox(self):
+        from memory_runtime.queue import apply_queue, pending_notices
+        vault, config, payload = self.read_only_setup()
+        result = learn(vault, payload, "test", config, self.root)
+        self.assertEqual((result["status"], result["changed"]), ("queued", False))
+        self.assertEqual(vault.snapshot()["records"], {})
+        vault.local.chmod(0o755)
+        applied = apply_queue(config)
+        self.assertEqual([r["status"] for r in applied], ["memory_updated"])
+        self.assertIn("R", vault.snapshot()["records"])
+        self.assertEqual(list((self.root / "queue").glob("*.json")), [])
+        self.assertEqual(pending_notices(), [])
+
+    def test_queue_rejects_other_base_and_tampering(self):
+        from memory_runtime.queue import apply_queue, enqueue, pending_notices
+        vault, config, payload = self.read_only_setup()
+        vault.local.chmod(0o755)
+        other = enqueue(self.root / "outra", payload, "test", config, self.root)
+        tampered = enqueue(vault.root, payload, "test", config, self.root)
+        text = tampered.read_text().replace('"test"', '"intruso"', 1); tampered.write_text(text)
+        results = apply_queue(config)
+        self.assertEqual([r["status"] for r in results], ["failed", "failed"])
+        self.assertEqual(vault.snapshot()["records"], {})
+        self.assertEqual(len(pending_notices()), 2)
+        self.assertFalse(other.exists())
+
+    def read_only_setup(self):
+        vault = Vault(self.root / "memory"); vault.bootstrap("demo")
+        config = self.root / "yabook.json"
+        write_json(config, {"memory_root": str(vault.root), "projects": {str(self.root): ["Demo"]},
+                            "learning": {"mode": "automatic"}})
+        vault.local.mkdir(exist_ok=True)
+        vault.local.chmod(0o555)
+        self.addCleanup(vault.local.chmod, 0o755)
+        payload = {"learning": {"source": "development", "conflicts": []},
+                   "assessment": dict(verdict="add", reason="r", utility="u", application="a", evidence_status="e"),
+                   "changes": [dict(collection="records", id="R", value=dict(
+                       title="T", kind="knowledge", scope=["Demo"], content="c", application="a", state="confirmed",
+                       evidence=[dict(type="code", ref="x", level="static")], triggers=["dado não aparece"]))]}
+        return vault, config, payload
 
     def test_learn_reports_read_only_sandbox_without_changing_base(self):
         vault = Vault(self.root / "memory"); vault.bootstrap("demo")
@@ -44,6 +87,7 @@ class SandboxTest(unittest.TestCase):
                    "changes": [dict(collection="records", id="R", value=dict(
                        title="T", kind="knowledge", scope=["Demo"], content="c", application="a", state="confirmed",
                        evidence=[dict(type="code", ref="x", level="static")], triggers=["dado não aparece"]))]}
+        (self.root / "queue").write_text("")  # fila indisponível, como no modo somente leitura
         with patch("memory_runtime.sandbox.read_codex_sandbox", return_value={"default_permissions": False, "writable_roots": []}):
             result = learn(vault, payload, "test", config, self.root)
         self.assertEqual((result["status"], result["changed"]), ("sandbox_read_only", False))

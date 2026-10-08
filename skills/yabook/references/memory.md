@@ -122,6 +122,9 @@ No Codex, `sandbox_read_only` (ou `sandbox` no erro) significa base inalterada:
 apresente a sugestão retornada para `config.toml` e não edite a configuração sem
 autorização; inclua essa sugestão no plano de `memory init` quando o host for o Codex.
 `pending_commit` é memória local atualizada com commit/push concluídos pelos hooks.
+`queued` é lote validado e enfileirado porque a base estava somente leitura; o hook
+o aplica fora do sandbox ao concluir a ferramenta. Informe `Memória atualizada` e,
+se o início da sessão avisar falha ou revisão do lote, relate-a.
 `recent --limit 10` consulta histórico compacto; revisão/correção usa proposta manual.
 
 Este fluxo usa o agente no checkpoint, sem trabalhador independente ou modelo

@@ -27,7 +27,8 @@ def set_policy(config_path, root, mode):
     return dict(status="configured", mode=mode)
 
 
-def learn(vault, payload, actor, config_path, workspace):
+def learn(vault, payload, actor, config_path, workspace, queue=True):
+    original = payload
     cfg, mode = policy(config_path, vault.root)
     learning = payload.get("learning", {})
     source = learning.get("source")
@@ -112,6 +113,15 @@ def learn(vault, payload, actor, config_path, workspace):
     except OSError as error:
         from .sandbox import hint, is_read_only
         if not is_read_only(error): raise
+        if queue:
+            # Base somente leitura no sandbox: o hook aplica fora dele, revalidando o lote.
+            from .queue import enqueue
+            try:
+                path = enqueue(vault.root, original, actor, config_path, workspace)
+                return dict(status="queued", changed=False, queue=str(path),
+                            apply="O hook YABook aplica fora do sandbox ao concluir esta ferramenta; falhas aparecem no próximo início de sessão.")
+            except OSError:
+                pass
         return dict(status="sandbox_read_only", changed=False, hint=hint(vault.root))
     if reasons:
         return dict(status="pending_review", proposal=proposal["id"], reasons=sorted(set(reasons)),

@@ -200,9 +200,14 @@ A configuração padrão é `~/.config/yabook/config.json`. A inicialização gr
 ```
 
 No Codex, comandos do agente rodam em sandbox: a base de memória fica somente
-leitura e consultas funcionam sem trava. Para o aprendizado automático gravar,
-libere a pasta da base em `~/.codex/config.toml` (sistema de sandbox padrão, sem
-`default_permissions`):
+leitura e consultas funcionam sem trava. Quando o `learn` não consegue gravar, ele
+valida o lote e o coloca em uma fila privada (`/tmp/yabook-queue-<uid>`, 0700); o hook,
+fora do sandbox, aplica o lote pela mesma validação ao concluir a ferramenta, no fim
+do turno ou no próximo início de sessão. Lotes que não puderem ser aplicados viram
+proposta pendente ou falha avisada no início da sessão. No modo somente leitura
+(Chat) nem a fila é gravável. Opcionalmente, libere a pasta da base em
+`~/.codex/config.toml` para gravar direto (a extensão do VS Code pode não aplicar
+essa chave; o CLI aplica):
 
 ```toml
 [sandbox_workspace_write]

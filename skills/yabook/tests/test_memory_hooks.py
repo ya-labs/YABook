@@ -12,7 +12,8 @@ import yabook_hook as hook
 class HooksTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
-        self.env = patch.dict(os.environ, YABOOK_CONFIG=self.tmp.name + "/config.json", YABOOK_STATE=self.tmp.name + "/sessions")
+        self.env = patch.dict(os.environ, YABOOK_CONFIG=self.tmp.name + "/config.json", YABOOK_STATE=self.tmp.name + "/sessions",
+                              YABOOK_QUEUE=self.tmp.name + "/queue")
         self.env.start(); self.addCleanup(self.env.stop)
         self.head = "c1"
         self.git = patch.object(hook, "git", side_effect=lambda cwd, *args: "main" if args == ("branch", "--show-current")

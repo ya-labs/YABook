@@ -211,6 +211,17 @@ def publish_automatic(cfg):
         return "failed"
 
 
+def apply_learning_queue():
+    """Lotes enfileirados no sandbox são aplicados aqui, fora dele, pela mesma validação do learn."""
+    if not config().get("memory_root"):
+        return []
+    try:
+        from memory_runtime.queue import apply_queue
+        return apply_queue(config_path())
+    except Exception:  # A fila permanece para a próxima tentativa.
+        return []
+
+
 def sandbox_warning(cfg):
     """No Codex, avisa quando o aprendizado automático não consegue gravar no sandbox."""
     if not cfg.get("memory_root") or cfg.get("learning", {}).get("mode") != "automatic":
@@ -347,6 +358,16 @@ def run(event):
         cfg = config()
         text = METHOD
         text += "\nPolítica de aprendizado: " + cfg.get("learning", {}).get("mode", "manual") + "."
+        apply_learning_queue()
+        try:
+            from memory_runtime.queue import pending_notices
+            notices = pending_notices() if cfg.get("memory_root") else []
+        except Exception:
+            notices = []
+        if notices:
+            text += "\nAprendizado enfileirado que não foi aplicado automaticamente: " + json.dumps(
+                [{k: n.get(k) for k in ("status", "proposal", "reasons", "error", "topic") if n.get(k)} for n in notices[:5]],
+                ensure_ascii=False) + ". Informe à pessoa se for relevante; propostas ficam em review."
         published = publish_automatic(cfg)
         warning = sandbox_warning(cfg)
         if warning:
@@ -417,8 +438,10 @@ def run(event):
         if LEARN.search(command):
             state["learned"] = True
             write_json(path, state)
+            apply_learning_queue()
         return {}
     if event_name == "Stop":
+        apply_learning_queue()
         publish_automatic(config())
     if event_name == "Stop" and state.get("edited") and state.get("committed") and not event.get("stop_hook_active"):
         # Entrega consolidada = novo commit após edições da sessão; edição isolada não basta.
