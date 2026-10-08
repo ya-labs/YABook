@@ -58,6 +58,12 @@ do YABook. Plugin desativado ou instalação externa não gerenciada exige resol
 a incompatibilidade antes de atualizar. Não remova a antiga skill avulsa sem
 pedido específico. Não faça commit, push, merge, pull nem troque branches.
 
+O adaptador `claude` gerencia o marketplace local `yabook-local` em
+`~/.local/share/yabook/claude-marketplace` (instalado em `plugins/yabook`): compara,
+substitui o pacote com recuperação, adota instalação manual válida e registra ou
+atualiza pelos comandos `claude plugin` (binário no PATH ou da extensão do VS Code).
+Com Codex e Claude instalados, `do sync` atualiza os dois destinos.
+
 O adaptador `codex` usa o instalador do Codex. O adaptador `directory` funciona
 com qualquer agente que consiga carregar o pacote de um diretório próprio:
 instale com `yabook_plugin.py install --source <origem> --output <destino-novo>`

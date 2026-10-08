@@ -86,9 +86,14 @@ def sync_plugin(source, installed, home, apply=False, adapter="auto"):
     installed = Path(installed).expanduser().resolve()
     if adapter == "auto":
         from host_codex import owns_destination
-        adapter = "codex" if owns_destination(installed, home) else "directory"
+        from host_claude import owns_destination as owns_claude
+        adapter = ("codex" if owns_destination(installed, home) else
+                   "claude" if owns_claude(installed, home) else "directory")
     if adapter == "codex":
         return sync_codex(source, installed, home, apply=apply)
+    if adapter == "claude":
+        from host_claude import sync_claude
+        return sync_claude(source, installed, home, apply=apply)
     if adapter == "directory":
         from host_directory import sync_directory
         return sync_directory(source, installed, apply=apply)

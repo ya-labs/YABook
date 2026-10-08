@@ -76,7 +76,7 @@ def main():
     s.add_argument("--installed", required=True)
     s.add_argument("--home", default=str(Path.home()))
     s.add_argument("--apply", action="store_true")
-    s.add_argument("--adapter", choices=["auto", "codex", "directory"], default="auto")
+    s.add_argument("--adapter", choices=["auto", "codex", "claude", "directory"], default="auto")
     i = sub.add_parser("install", help="Instalação portátil em diretório gerenciado")
     i.add_argument("--source", required=True); i.add_argument("--output", required=True)
     args = parser.parse_args()
