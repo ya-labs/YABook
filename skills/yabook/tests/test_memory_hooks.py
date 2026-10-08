@@ -108,21 +108,22 @@ class HooksTest(unittest.TestCase):
         self.assertTrue(state["auto"])
         self.assertEqual(state["grant"]["kind"],"memory_sync")
 
-    def commit(self):
-        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash",
-                      tool_input={"command": "rtk git commit -m 'fix: x'"}))
+    def commit(self, head):
+        call = dict(self.event, tool_name="Bash", tool_input={"command": "rtk git commit -m 'fix: x'"})
+        hook.run(dict(call, hook_event_name="PreToolUse"))
+        self.head = head
+        hook.run(dict(call, hook_event_name="PostToolUse"))
 
     def test_claude_namespace_and_stop_does_not_loop(self):
         state = hook.prompt_grant("/yabook:yabook mode: auto objetivo", {}, self.tmp.name)
         self.assertTrue(state["auto"])
         state = hook.prompt_grant("$yabook mode: automatico", {}, self.tmp.name)
         self.assertFalse(state.get("auto", False))
-        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"checkpoint": "hook"}})
         hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         hook.run(dict(self.event,hook_event_name="PostToolUse",tool_name="Edit"))
         event = dict(self.event,hook_event_name="Stop",stop_hook_active=False)
-        self.commit()
-        self.head = "c2"
+        self.commit("c2")
         self.assertEqual(hook.run(event)["decision"],"block")
         self.assertEqual(hook.run(event),{})
 
@@ -168,18 +169,16 @@ class HooksTest(unittest.TestCase):
         event = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
         hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
-        self.commit()
-        self.head = "c2"
+        self.commit("c2")
         self.assertEqual(hook.run(event), {})
-        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic", "checkpoint": "hook"}})
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
-        self.commit()
-        self.head = "c3"
+        self.commit("c3")
         self.assertIn("Não peça do memory", hook.run(event)["reason"])
         self.assertEqual(hook.run(event), {})
 
     def test_checkpoint_requires_consolidated_delivery(self):
-        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic", "checkpoint": "hook"}})
         hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
         event = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
         for _ in range(3):
@@ -188,10 +187,32 @@ class HooksTest(unittest.TestCase):
         # HEAD movido por outro agente no mesmo checkout não é entrega desta sessão.
         self.head = "c2"
         self.assertEqual(hook.run(event), {})
-        self.commit()
-        self.head = "c3"
+        self.commit("c3")
         self.assertEqual(hook.run(event)["decision"], "block")
         self.assertEqual(hook.run(event), {})
+
+    def test_checkpoint_ignores_patch_text_failed_commit_learned_turn_and_agent_mode(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic", "checkpoint": "hook"}})
+        hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
+        stop = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="apply_patch",
+                      tool_input={"command": "+ rtk git commit -m 'exemplo em teste'"}))
+        self.head = "c2"
+        self.assertEqual(hook.run(stop), {})  # texto de patch não é commit
+        hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": "git commit -m x"}))
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input={"command": "git commit -m x"}))
+        self.assertEqual(hook.run(stop), {})  # HEAD inalterado: commit falhou ou foi bloqueado
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="continue"))
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.commit("c3")
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash",
+                      tool_input={"command": "python3 scripts/yabook_memory.py --root /m learn --input x.json"}))
+        self.assertEqual(hook.run(stop), {})  # learn já chamado no turno
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="continue"))
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
+        self.commit("c4")
+        self.assertEqual(hook.run(stop), {})  # padrão agent: sem pedido
 
     def test_memory_failure_degrades_but_authorization_still_denies(self):
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})

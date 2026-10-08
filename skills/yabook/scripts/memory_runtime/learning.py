@@ -5,6 +5,9 @@ from .core import digest, read_json, write_json
 from .gitstore import apply_and_publish, clean, git, pending_automatic
 
 
+TRIGGERS = ("agent", "issue", "dev", "pr", "hook", "user")
+
+
 def policy(config_path, root):
     cfg = read_json(Path(config_path).expanduser())
     if not cfg.get("memory_root") or Path(cfg["memory_root"]).expanduser().resolve() != root.resolve():
@@ -31,6 +34,10 @@ def learn(vault, payload, actor, config_path, workspace):
     conflicts = learning.get("conflicts")
     if source not in ("development", "user_statement") or not isinstance(conflicts, list):
         raise ValueError("Informe learning.source e learning.conflicts após a curadoria")
+    # Origem da decisão de gravar: permite medir o efeito do pedido do hook.
+    learning = dict(learning, trigger=learning.get("trigger", "agent"))
+    if learning["trigger"] not in TRIGGERS:
+        raise ValueError("learning.trigger inválido: " + ", ".join(TRIGGERS))
     workspace = str(Path(workspace).expanduser().resolve())
     workspace = git(workspace, "rev-parse", "--show-toplevel", check=False).stdout.strip() or workspace
     scope = cfg.get("projects", {}).get(workspace)
@@ -121,6 +128,7 @@ def recent(vault, limit=10):
     for path in (vault.root / "history").glob("*.json"):
         receipt = read_json(path)
         entries.append(dict(proposal=receipt["proposal"], created_at=receipt.get("created_at", ""),
+                            trigger=receipt["assessment"].get("learning", {}).get("trigger"),
                             actor=receipt["actor"], assessment=receipt["assessment"],
                             changes=[dict(collection=c["collection"], id=c["id"], delete=bool(c.get("delete")))
                                      for c in receipt["changes"]]))

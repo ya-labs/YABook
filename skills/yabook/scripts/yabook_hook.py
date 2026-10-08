@@ -228,6 +228,19 @@ def sandbox_warning(cfg):
             + blocked["config"] + " com " + blocked["suggestion"].replace("\n", " ") + ". Não edite sem autorização.")
 
 
+COMMIT = re.compile(r"\bgit\b[^;&|\n]*\bcommit\b")
+LEARN = re.compile(r"yabook_memory\.py\b.*\blearn\b")
+
+
+def shell_command(event):
+    """Comando de shell da ferramenta; conteúdo de edições não é comando executado."""
+    if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
+        return ""
+    args = event.get("tool_input", {})
+    command = args.get("command", args.get("cmd", "")) if isinstance(args, dict) else ""
+    return command if isinstance(command, str) else ""
+
+
 def remember_delivery(state, levels):
     delivered = state.setdefault("delivered", {})
     for item, values in levels.items():
@@ -364,6 +377,7 @@ def run(event):
         return context(event_name, text[:6000])
     if event_name == "UserPromptSubmit":
         state = prompt_grant(event.get("prompt", ""), state, root)
+        state["learned"] = False  # learn dispensa o pedido do Stop só no próprio turno
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."
         cfg = config()
@@ -385,23 +399,35 @@ def run(event):
         return context(event_name, text)
     if event_name == "PreToolUse":
         state["pretool_seen"] = True
+        if COMMIT.search(shell_command(event)):
+            state["pre_commit_head"] = git(root, "rev-parse", "HEAD")
         write_json(path, state)
         return inspect_call(event, state, root)
     if event_name == "PostToolUse":
         if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
             state["edited"] = True
             write_json(path, state)
-        args = event.get("tool_input", {})
-        command = args.get("command", args.get("cmd", "")) if isinstance(args, dict) else ""
-        # Commit da própria sessão: HEAD movido por outro agente no checkout não é entrega desta sessão.
-        if isinstance(command, str) and re.search(r"\bgit\b[^;&|\n]*\bcommit\b", command):
-            state["committed"] = True
+        command = shell_command(event)
+        # Commit da própria sessão confirmado pelo HEAD; tentativa bloqueada ou falha não conta.
+        if COMMIT.search(command):
+            head = git(root, "rev-parse", "HEAD")
+            if head and head != state.pop("pre_commit_head", None):
+                state["committed"] = True
+            write_json(path, state)
+        if LEARN.search(command):
+            state["learned"] = True
             write_json(path, state)
         return {}
     if event_name == "Stop":
         publish_automatic(config())
     if event_name == "Stop" and state.get("edited") and state.get("committed") and not event.get("stop_hook_active"):
         # Entrega consolidada = novo commit após edições da sessão; edição isolada não basta.
+        cfg = config()
+        if cfg.get("learning", {}).get("checkpoint", "agent") != "hook" or state.get("learned"):
+            # Modo agent: o agente julga; learn já chamado no turno dispensa novo pedido.
+            state.update(edited=False, committed=False, learned=False, learned_head=git(root, "rev-parse", "HEAD"))
+            write_json(path, state)
+            return {}
         head = git(root, "rev-parse", "HEAD")
         if not head or head == state.get("learned_head", head):
             state.setdefault("learned_head", head)
@@ -409,11 +435,10 @@ def run(event):
             return {}
         state.update(edited=False, committed=False, learned_head=head)
         write_json(path, state)
-        cfg = config()
         if not cfg.get("memory_root"):
             return {}
         automatic = cfg.get("learning", {}).get("mode") == "automatic"
-        instruction = ("Use learn para aplicar um único lote curado de descobertas comprovadas, sem conflitos, no escopo configurado. Não peça do memory para esse lote. Informe apenas Memória atualizada: <assunto/arquivo>; hipóteses, inferências e conflitos ficam pendentes."
+        instruction = ("Use learn para aplicar um único lote curado de descobertas comprovadas, sem conflitos, no escopo configurado. Não peça do memory para esse lote. Use learning.trigger hook. Informe apenas Memória atualizada: <assunto/arquivo>; hipóteses, inferências e conflitos ficam pendentes."
                        if automatic else "Prepare uma proposta apenas se houver aprendizado útil; a política manual exige do memory antes de aplicar.")
         return {"decision": "block", "reason": "Avalie uma vez o aprendizado desta etapa conforme memory.md, consultando apenas memórias relacionadas. " + instruction + " Não grave sem novidade útil, não refaça o desenvolvimento e não reinjete o histórico na conversa."}
     return {}

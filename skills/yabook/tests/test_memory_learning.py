@@ -42,6 +42,15 @@ class LearningTest(unittest.TestCase):
         self.assertEqual(self.run_learning()["status"], "unchanged")
         self.assertEqual(len(recent(self.vault)), 1)
 
+    def test_trigger_is_recorded_and_validated(self):
+        payload = copy.deepcopy(self.payload)
+        payload["learning"]["trigger"] = "pr"
+        self.assertEqual(self.run_learning(payload)["status"], "memory_updated")
+        self.assertEqual(recent(self.vault)[0]["trigger"], "pr")
+        payload["learning"]["trigger"] = "outro"
+        with self.assertRaisesRegex(ValueError, "trigger"):
+            self.run_learning(payload)
+
     def test_hypothesis_conflict_and_wrong_scope_do_not_change_base(self):
         baseline = self.vault.snapshot()
         for field, value in (("state", "hypothesis"), ("scope", ["Another"])):
