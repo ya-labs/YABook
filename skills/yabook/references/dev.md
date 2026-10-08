@@ -129,11 +129,13 @@ externa ou critério de aceite impossível de validar.
 
 ## Orientação de teste no contexto de desenvolvimento
 
-Ao concluir a implementação, `dev` e `dev step` no contexto
-`desenvolvimento` devem apresentar uma seção `Como testar` com passos
-específicos para a alteração realizada. Os contextos `init`, `planejamento` e
-`discussão` relatam a investigação, decisão ou análise atual e não simulam
-validação de implementação.
+Ao concluir a etapa, faça a curadoria de `memory.md` com `learning.trigger: dev`:
+só descobertas não óbvias e comprovadas; `learn` em automatic, proposta em manual.
+No relatório, informe `Memória atualizada: <assunto>` ou que não houve novidade.
+
+Ao concluir a implementação, `dev` e `dev step` em `desenvolvimento` apresentam
+`Como testar` com passos específicos da alteração. `init`, `planejamento` e
+`discussão` relatam investigação, decisão ou análise, sem simular validação.
 
 Inclua, quando aplicável:
 
@@ -147,9 +149,7 @@ pessoa. Não repita comandos que já falharam como se fossem válidos e não inv
 um procedimento sem evidência no projeto. Quando não houver teste aplicável,
 informe o motivo explicitamente.
 
-Essa orientação é obrigatória também quando `dev` de desenvolvimento estiver
-encadeado com outro comando. Ela não permite executar ações fora do escopo da
-issue.
+Também se aplica ao `dev` encadeado, dentro do escopo da issue.
 
 Toda execução de `dev` de desenvolvimento também deve apresentar um relatório
 técnico com os títulos exatos abaixo. Esse bloco não pode ser substituído por
@@ -168,9 +168,7 @@ equivalente.
 ### Observações para revisão
 ```
 
-Use esse relatório para explicar a entrega de forma auditável: o que mudou, como
-foi implementado, por que essa abordagem foi escolhida e quais decisões,
-alternativas, riscos ou pontos de parecer ainda merecem revisão da pessoa.
+Explique mudanças, implementação, motivos e pontos pendentes de revisão.
 
 Em `dev step` de desenvolvimento, mantenha `Como testar` e o relatório técnico
 focados somente na etapa executada.

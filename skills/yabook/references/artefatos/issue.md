@@ -18,6 +18,11 @@ estável, sem lista de demandas, escopo evolutivo ou checklist. Uma branch
 compartilhada por vez e um PR reúnem as entregas documentadas nos commits.
 `do issue package` cria; `do issue` preserva uma prévia inequívoca de pacote.
 
+Issue registra demanda estabelecida: hipótese validada e desenvolvimento decidido.
+Antes de redigir, consulte a memória do assunto para não repetir investigação. Ao
+criar, registre o diagnóstico validado que a originou, se for novidade, por
+`memory.md` com `learning.trigger: issue`; a demanda em si fica na issue.
+
 Ajustes pontuais via `bypass` ou `auto` podem dispensar issue; consulte essas
 referências conforme a autorização ativa, sem criar vínculo fictício.
 

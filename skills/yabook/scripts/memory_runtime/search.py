@@ -1,0 +1,184 @@
+"""FTS5 + embeddings Ollama opcionais + expansão de relações com orçamento."""
+import json
+import math
+import re
+import sqlite3
+import urllib.request
+from urllib.parse import urlparse
+from .core import digest, read_json, write_json
+from .sources import all_entries
+
+PIPELINE = "yabook-text-v1"
+# Palavras comuns não indicam assunto; sem elas, prompts genéricos não casam com tudo.
+STOPWORDS = frozenset("""a o as os um uma uns umas de da do das dos dum duma e é em no na nos nas num numa
+ao aos à às para pra pro pras pros por pelo pela pelos pelas com sem sob sobre entre até que se não nao
+sim já ja mais menos muito pouco mas ou nem também tambem só so como quando onde qual quais quem porque
+porquê isso isto esse essa esses essas este esta estes estas aquele aquela ele ela eles elas eu tu você
+voce vocês nós nos me te lhe meu minha meus minhas seu sua seus suas nosso nossa está esta estão estao
+estou estava tá ta foi era ser são sao sou tem têm ter tinha há ha vai vou pode posso deve faz fazer
+favor ok aqui ali lá la agora ainda então entao the of to and in is it for on""".split())
+
+
+def text(entry):
+    return "\n".join(str(entry.get(k, "")) for k in ("title", "content", "application", "conditions", "summary",
+                    "keywords", "aliases", "triggers", "objective", "context", "actions", "outcome", "validation"))
+
+
+def fold(value):
+    """Minúsculas sem acento, como o tokenizador FTS, para contar termos casados."""
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFKD", str(value).casefold()) if not unicodedata.combining(c))
+
+
+def uid(entry):
+    return entry.get("source", "own") + ":" + entry["id"]
+
+
+def vector_key(entry, model):
+    return digest(dict(id=uid(entry), revision=entry.get("revision"), content_hash=digest(text(entry)),
+                       model=model, pipeline=PIPELINE))
+
+
+def valid_vector(value):
+    return isinstance(value, list) and bool(value) and all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) for v in value) and any(value)
+
+
+def embed(texts, model, endpoint):
+    parsed = urlparse(endpoint)
+    if parsed.scheme != "http" or parsed.hostname not in ("127.0.0.1", "localhost", "::1") or parsed.username or parsed.password:
+        raise ValueError("Esta versão usa embeddings locais Ollama, sem enviar conhecimento a serviços externos")
+    request = urllib.request.Request(endpoint, data=json.dumps({"model": model, "input": texts}).encode(),
+                                     headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=15) as response:
+        values = json.load(response)["embeddings"]
+    if len(values) != len(texts) or not all(valid_vector(v) for v in values) or len({len(v) for v in values}) != 1:
+        raise ValueError("Embeddings inválidos/incompatíveis")
+    return values
+
+
+def cosine(a, b):
+    if len(a) != len(b): return -1
+    return sum(x*y for x,y in zip(a,b)) / math.sqrt(sum(x*x for x in a)*sum(y*y for y in b))
+
+
+def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=None,
+           endpoint="http://127.0.0.1:11434/api/embed", expand=True, kinds=(), level="all", explain=False):
+    if not 1 <= limit <= 50 or budget < 256 or budget > 100000:
+        raise ValueError("Limite/orçamento inválido")
+    entries = all_entries(vault, includes, excludes)
+    from .views import kind, references
+    levels = {"index": {"groups"}, "knowledge": {"records", "entities"}, "experience": {"episodes"},
+              "all": {"records", "entities", "groups", "episodes"}}
+    if level not in levels: raise ValueError("Nível de recuperação inválido")
+    # Relacionamentos só expandem dentro dos filtros de origem, escopo, tipo e nível.
+    entries = [e for e in entries if e["collection"] in levels[level] and (not kinds or kind(e) in kinds)]
+    by_id = {uid(e): e for e in entries}
+    # Índice efêmero por consulta: sessões concorrentes não disputam o mesmo arquivo.
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.execute("CREATE VIRTUAL TABLE memory USING fts5(id UNINDEXED, body)")
+        connection.executemany("INSERT INTO memory VALUES (?,?)", [(uid(e), text(e)) for e in entries])
+        connection.commit()
+        terms = [t for t in re.findall(r"[\w-]+", query, flags=re.UNICODE) if t.casefold() not in STOPWORDS][:32]
+        fts_query = " OR ".join('"'+term+'"' for term in terms)
+        lexical = [row[0] for row in connection.execute("SELECT id FROM memory WHERE memory MATCH ? ORDER BY bm25(memory) LIMIT 50", (fts_query,))] if terms else []
+        # Um termo solto (ex.: "app") não torna o registro relevante: exige dois termos casados.
+        wanted = {fold(t) for t in terms}
+        needed = min(2, len(wanted))
+        lexical = [i for i in lexical if sum(1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", fold(text(by_id[i])))) >= needed]
+    finally:
+        connection.close()
+    rankings = [lexical]; mode = "textual"; degraded = None
+    if model and entries:
+        vault.local.mkdir(parents=True, exist_ok=True)
+        path = vault.local / "vectors.json"
+        cache = read_json(path) if path.exists() else {}
+        keys = {uid(e): vector_key(e, model) for e in entries}
+        try:
+            missing = [e for e in entries if not valid_vector(cache.get(keys[uid(e)], {}).get("vector"))]
+            # Pequenos lotes evitam requests com corpus inteiro.
+            for offset in range(0, len(missing), 16):
+                batch = missing[offset:offset+16]
+                for entry, vector in zip(batch, embed([text(e) for e in batch], model, endpoint)):
+                    cache[keys[uid(entry)]] = dict(id=uid(entry), revision=entry.get("revision"),
+                        content_hash=digest(text(entry)), model=model, pipeline=PIPELINE, vector=vector)
+            # Excluídos/retirados não ficam em índice compartilhado da consulta.
+            cache = {key: cache[key] for key in keys.values() if key in cache}
+            write_json(path, cache)
+            query_vector = embed([query], model, endpoint)[0]
+            compatible = [(uid(e), cosine(query_vector, cache[keys[uid(e)]]["vector"])) for e in entries]
+            rankings.append([k for k,s in sorted(compatible, key=lambda x:x[1], reverse=True) if s > 0])
+            mode = "hybrid"
+        except (OSError, ValueError, KeyError):
+            degraded = "Embeddings indisponíveis; busca textual preservada"
+    scores = {}
+    for ranking in rankings:
+        for rank, key in enumerate(ranking): scores[key] = scores.get(key, 0) + 1/(60+rank+1)
+    explanations = {}
+    if explain:
+        fields = ("title", "content", "application", "conditions", "summary", "keywords", "aliases", "triggers",
+                  "objective", "context", "actions", "outcome", "validation")
+        for identifier in scores:
+            entry = by_id[identifier]
+            matches = []
+            for field in fields:
+                values = entry.get(field, [])
+                values = values if isinstance(values, list) else [values]
+                for value in values:
+                    matched = [term for term in terms if re.search(r"\b" + re.escape(fold(term)) + r"\b", fold(value))]
+                    if matched:
+                        matches.append(dict(field=field, terms=list(dict.fromkeys(matched)),
+                                            **({"value": str(value)} if field in ("triggers", "keywords", "aliases") else {})))
+            explanations[identifier] = dict(lexical=identifier in lexical,
+                semantic=len(rankings) > 1 and identifier in rankings[1], matches=matches, via=[])
+    if expand:
+        for key in list(scores):
+            entry = by_id[key]; namespace = entry.get("source", "own") + ":"
+            neighbors = references(entry)
+            for target in neighbors:
+                neighbor = namespace + target
+                if neighbor in by_id:
+                    scores[neighbor] = max(scores.get(neighbor, 0), scores[key]*0.5)
+                    if explain:
+                        explanation = explanations.setdefault(neighbor, dict(lexical=False, semantic=False, matches=[], via=[]))
+                        explanation["via"].append(dict(key=key, title=entry["title"]))
+    result = []
+    for key in sorted(scores, key=lambda k:scores[k], reverse=True)[:limit]:
+        e = by_id[key]
+        hit = {k:e[k] for k in ("id", "revision", "title", "scope", "state", "kind", "collection", "parent", "keywords", "aliases", "triggers", "content", "application", "conditions", "evidence", "source", "source_revision", "origin", "origin_updates", "summary", "summary_stale", "objective", "context", "actions", "outcome", "validation", "learnings", "episodes") if k in e}
+        hit.update(score=round(scores[key], 6), reason="Termos/significado e relações explícitas" if mode == "hybrid" else "Termos e relações explícitas")
+        if explain: hit["explanation"] = explanations[key]
+        if len(json.dumps(result+[hit], ensure_ascii=False)) > budget:
+            remaining = budget-len(json.dumps(result, ensure_ascii=False))-len(json.dumps({k:v for k,v in hit.items() if k not in ("content","evidence","summary")},ensure_ascii=False))-80
+            if remaining < 100: break
+            hit["content"] = str(hit.get("content", hit.get("summary", "")))[:remaining]
+            hit.pop("summary",None); hit.pop("evidence",None); hit["truncated"] = True
+            low, high = 0, len(hit["content"])
+            content = hit["content"]
+            while low < high:
+                middle = (low + high + 1) // 2
+                hit["content"] = content[:middle]
+                if len(json.dumps(result+[hit],ensure_ascii=False)) <= budget: low = middle
+                else: high = middle - 1
+            hit["content"] = content[:low]
+            if len(json.dumps(result+[hit],ensure_ascii=False)) > budget: break
+        result.append(hit)
+    return dict(mode=mode, level=level, degraded=degraded, results=result, characters=len(json.dumps(result,ensure_ascii=False)))
+
+
+def export_vectors(vault, destination):
+    package = dict(schema_version=1, pipeline=PIPELINE, vectors=read_json(vault.local / "vectors.json"))
+    write_json(destination, package)
+    return dict(exported=len(package["vectors"]), destination=str(destination))
+
+
+def import_vectors(vault, package):
+    if package.get("schema_version") != 1 or package.get("pipeline") != PIPELINE:
+        raise ValueError("Pacote vetorial incompatível")
+    entries = all_entries(vault); valid = {}
+    for key, value in package["vectors"].items():
+        match = next((e for e in entries if uid(e) == value.get("id")), None)
+        if match and vector_key(match, value.get("model")) == key and valid_vector(value.get("vector")):
+            valid[key] = value
+    write_json(vault.local / "vectors.json", valid)
+    return dict(accepted=len(valid), rejected=len(package["vectors"])-len(valid))

@@ -1,6 +1,6 @@
 ---
 name: yabook
-description: Orchestrate the YA LABS Method through $yabook commands, issue-driven development, planning, GitHub artifacts, documentation, and safe execution.
+description: Orchestrate the YA LABS Method through $yabook commands, issue-driven development, planning, GitHub artifacts, documentation, safe execution, and YABook's own traceable memory.
 ---
 
 # YABook
@@ -14,7 +14,7 @@ description: Orchestrate the YA LABS Method through $yabook commands, issue-driv
 3. [contexto](references/contexto.md): auditoria/ambiguidade.
 4. [workspace](references/workspace.md): projeto; arquivos ativos prevalecem sobre `cwd`.
 5. Aplique `.yabook/AGENTS.md` existente e informe a regra local.
-6. Responda em português, com concisão.
+6. Responda em português, com concisão. Adapte integrações ao host; não presuma Codex.
 
 `load` atualiza [contexto mínimo](references/session-minimo.md).
 
@@ -57,6 +57,7 @@ Regras: [contexto.md](references/contexto.md).
   [docs](references/documentacao.md), [configure](references/configure.md),
   [guardrails](references/guardrails.md), [bypass](references/bypass.md).
 - Qualidade: [check/review](references/quality.md).
+- Memória: [consulta e curadoria](references/memory.md).
 - Planejamento: [índice](references/planejamento/index.md).
 - Contexto: [workspace](references/workspace.md), [Git](references/git.md),
   [GitHub](references/github.md), [IA](references/ia.md).

@@ -11,7 +11,8 @@ altera estado.
 - execução: `dev`, `do`, `apk`, `bypass`;
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade: `check`, `review`, `docs`;
-- skill: `sync`.
+- plugin instalado: `sync` (comparar), `do sync` (atualizar automaticamente).
+- memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review|recent`, `do memory [id]` (manual/pendências), `do memory policy automatic|manual` (política local). Aprendizado cotidiano segue a política sem aprovação individual.
 
 Para tópico específico, carregue somente:
 
