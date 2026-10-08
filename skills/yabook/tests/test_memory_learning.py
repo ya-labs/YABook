@@ -43,6 +43,26 @@ class LearningTest(unittest.TestCase):
         self.assertEqual(self.run_learning()["status"], "unchanged")
         self.assertEqual(len(recent(self.vault)), 1)
 
+    def test_learn_triggers_enriches_hypothesis_without_review(self):
+        from memory_runtime.learning import learn_triggers
+        payload = copy.deepcopy(self.payload)
+        payload["changes"][0]["value"]["state"] = "hypothesis"
+        proposal = self.vault.prepare(payload["changes"], payload["assessment"], "test")
+        self.vault.apply(proposal["id"], proposal["approval_hash"])
+        result = learn_triggers(self.vault, "R-sync", ["checklist não chega no supervisor"], "test", self.cfg, self.root)
+        self.assertEqual(result["status"], "memory_updated")
+        record = self.vault.snapshot()["records"]["R-sync"]
+        self.assertIn("checklist não chega no supervisor", record["triggers"])
+        self.assertEqual(record["state"], "hypothesis")
+        self.assertEqual(recent(self.vault)[0]["trigger"], "retrieval")
+        with self.assertRaisesRegex(ValueError, "1 a 3"):
+            learn_triggers(self.vault, "R-sync", [], "test", self.cfg, self.root)
+        other = copy.deepcopy(self.payload)
+        other["changes"][0].update(id="R-fora"); other["changes"][0]["value"]["scope"] = ["Outro"]
+        proposal = self.vault.prepare(other["changes"], other["assessment"], "test")
+        self.vault.apply(proposal["id"], proposal["approval_hash"])
+        self.assertEqual(learn_triggers(self.vault, "R-fora", ["algo sumiu"], "test", self.cfg, self.root)["status"], "pending_review")
+
     def test_knowledge_requires_symptom_triggers(self):
         payload = copy.deepcopy(self.payload)
         payload["changes"][0]["value"].pop("triggers")

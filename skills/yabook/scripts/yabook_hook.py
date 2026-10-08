@@ -379,23 +379,23 @@ def inspect_call(event, state, root):
             return deny("YABook: operação SVN (" + svn + ") altera o working copy ou o repositório; "
                         "exige $yabook do correspondente ou mode: auto.")
     if any(Path(p).name == "yabook_memory.py" for p in parts):
-        services = ("apply", "publish", "recover", "init-apply", "sync", "source-add", "learn", "learning-policy")
+        services = ("apply", "publish", "recover", "init-apply", "sync", "source-add", "learn", "learn-triggers", "learning-policy")
         service = next((p for p in parts if p in services), None)
         if service:
             cfg = config()
             target = parts[parts.index("--root") + 1] if "--root" in parts else ""
             required = {"apply": "memory", "publish": "memory_publish", "recover": "memory_recover",
                         "init-apply": "memory_init", "sync": "memory_sync", "source-add": "memory_source",
-                        "learn": None, "learning-policy": "memory_policy"}[service]
+                        "learn": None, "learn-triggers": None, "learning-policy": "memory_policy"}[service]
             if not target:
                 return deny("YABook: destino de memória ausente.")
             if service != "init-apply" and (not cfg.get("memory_root") or str(Path(target).resolve()) != str(Path(cfg["memory_root"]).resolve())):
                 return deny("YABook: destino de memória não configurado.")
-            if service in ("learn", "learning-policy") and "--config" in parts:
+            if service in ("learn", "learn-triggers", "learning-policy") and "--config" in parts:
                 supplied = parts[parts.index("--config") + 1]
                 if Path(supplied).expanduser().resolve() != config_path().resolve():
                     return deny("YABook: política de outra configuração não se aplica à sessão.")
-            if service == "learn" and "--workspace" in parts:
+            if service in ("learn", "learn-triggers") and "--workspace" in parts:
                 supplied = parts[parts.index("--workspace") + 1]
                 if project(supplied) != root:
                     return deny("YABook: aprendizado pertence a outro projeto.")
@@ -503,6 +503,10 @@ def run(event):
                     text += "\nPistas de memória para esta tarefa (confirmar condições e fontes atuais): " + json.dumps(result, ensure_ascii=False)
                 elif result["already_delivered"]:
                     text += "\nMemórias relacionadas já entregues nesta sessão; use retrieve para aprofundar."
+                if len(result["knowledge"]) < 3 and not result["already_delivered"]:
+                    # Busca textual não entende sinônimos; o agente reformula e ensina a frase à memória.
+                    text += ("\nPistas fracas: antes de investigar do zero, tente retrieve com termos técnicos e sinônimos"
+                             " (tabelas, telas, fontes). Se achar o registro certo, use learn-triggers com a frase da pessoa.")
             except Exception:  # Leitura de memória degrada sem bloquear o prompt.
                 text += "\nBusca de memória indisponível; use fontes atuais do projeto."
         return context(event_name, text)

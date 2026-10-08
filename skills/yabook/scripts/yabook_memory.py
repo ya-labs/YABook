@@ -30,6 +30,12 @@ def main():
     learning.add_argument("--actor", required=True)
     learning.add_argument("--workspace", default=os.getcwd())
     learning.add_argument("--config", default=os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
+    triggers = sub.add_parser("learn-triggers", help="Acrescenta a frase da pessoa como gatilho de um registro")
+    triggers.add_argument("--id", required=True)
+    triggers.add_argument("--phrase", action="append", required=True)
+    triggers.add_argument("--actor", required=True)
+    triggers.add_argument("--workspace", default=os.getcwd())
+    triggers.add_argument("--config", default=os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
     policy = sub.add_parser("learning-policy")
     policy.add_argument("--mode", required=True, choices=["automatic", "manual"])
     policy.add_argument("--config", default=os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
@@ -161,6 +167,9 @@ def main():
     elif args.command == "learn":
         from memory_runtime.learning import learn
         result = learn(vault, read_json(args.input), args.actor, args.config, args.workspace)
+    elif args.command == "learn-triggers":
+        from memory_runtime.learning import learn_triggers
+        result = learn_triggers(vault, args.id, args.phrase, args.actor, args.config, args.workspace)
     elif args.command == "learning-policy":
         from memory_runtime.learning import set_policy
         result = set_policy(args.config, vault.root, args.mode)

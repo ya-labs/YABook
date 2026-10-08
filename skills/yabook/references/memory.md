@@ -104,6 +104,11 @@ Não guardar cada
 hipótese transitória: rejeite candidatos sem utilidade durável antes de chamar learn.
 Responder dúvida sobre comando ou contrato já documentado (YABook, manuais, código)
 não é aprendizado: memória guarda descobertas não óbvias, não cópia de documentação.
+Pistas fracas ou ausentes: reformule com termos técnicos e sinônimos (tabela, tela,
+fonte) e rode `retrieve` uma vez antes de investigar do zero. Se o registro certo não
+veio nas pistas, `learn-triggers --id <id> --phrase "<frase da pessoa>" --actor <agente>
+--workspace <raiz>` acrescenta a frase como gatilho (só termos de busca; vale também
+para hipótese e não exige do memory).
 Escreva conhecimento e procedimento a partir do sintoma: `content` em sintoma →
 causa → onde está → como verificar, e `triggers` (obrigatório no learn) com frases
 como a pessoa descreveria o problema, ex.: "checklist não chega no supervisor".

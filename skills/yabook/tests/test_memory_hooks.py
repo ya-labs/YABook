@@ -201,6 +201,15 @@ class HooksTest(unittest.TestCase):
             "command": "python3 yabook_memory.py --root " + self.tmp.name + " init-apply --plan " + str(plan)}))
         self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))
 
+    def test_learn_triggers_is_limited_to_configured_base(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
+        def inspect(command):
+            return hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
+        ok = inspect("python3 yabook_memory.py --root " + self.tmp.name + " learn-triggers --id R --phrase x --actor a")
+        self.assertNotIn("permissionDecision", ok.get("hookSpecificOutput", {}))
+        other = inspect("python3 yabook_memory.py --root /outra learn-triggers --id R --phrase x --actor a")
+        self.assertEqual(other["hookSpecificOutput"]["permissionDecision"], "deny")
+
     def test_learning_without_grant_and_policy_requires_grant(self):
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"mode": "automatic"}})
         def inspect(command):

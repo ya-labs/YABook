@@ -5,7 +5,8 @@ from .core import digest, read_json, write_json
 from .gitstore import apply_and_publish, clean, git, pending_automatic
 
 
-TRIGGERS = ("agent", "issue", "dev", "pr", "hook", "user")
+TRIGGERS = ("agent", "issue", "dev", "pr", "hook", "user", "retrieval")
+SEARCH_TERMS = ("triggers", "aliases", "keywords")
 
 
 def policy(config_path, root):
@@ -55,6 +56,9 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
             if {k: v for k, v in previous.items() if k not in ignored} == {k: v for k, v in value.items() if k not in ignored}:
                 continue
         changes.append(change)
+        # Só termos de busca mudaram: enriquecimento não altera fato, estado nem preferência.
+        enrichment = previous is not None and not change.get("delete") and {
+            k for k in set(previous) | set(value) if k not in ignored and previous.get(k) != value.get(k)} <= set(SEARCH_TERMS)
         if change.get("delete"):
             reasons.append("Exclusão definitiva exige revisão")
             continue
@@ -63,6 +67,10 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
             raise ValueError("Conhecimento/procedimento precisa de triggers com o sintoma como a pessoa o "
                              "descreveria (ex.: \"checklist não chega no supervisor\"): " + identifier)
         personal = collection == "records" and value.get("kind") in ("profile", "preference")
+        if enrichment:
+            if not personal and (not scope or value.get("scope", [])[:len(scope)] != scope):
+                reasons.append("Conhecimento fora do projeto configurado exige revisão")
+            continue
         origin = value.get("origin", previous.get("origin", {}) if previous else {})
         if origin.get("vault_id", snapshot["metadata"]["vault_id"]) != snapshot["metadata"]["vault_id"]:
             reasons.append("Incorporação de fonte externa exige revisão")
@@ -135,6 +143,25 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
     # Resumos invalidados pedem atualização do grupo em novo lote, sem bloquear este.
     return dict(status="memory_updated", proposal=result["proposal"], paths=result["paths"],
                 publication=result["publication"], stale_summaries=result["stale_summaries"])
+
+
+def learn_triggers(vault, identifier, phrases, actor, config_path, workspace):
+    """Acrescenta a frase da pessoa como gatilho de um registro achado fora das pistas."""
+    phrases = [" ".join(p.split()) for p in phrases if isinstance(p, str) and p.strip()]
+    if not 1 <= len(phrases) <= 3 or any(len(p) > 160 for p in phrases):
+        raise ValueError("Informe de 1 a 3 frases de até 160 caracteres")
+    current = vault.snapshot()["records"].get(identifier)
+    if current is None:
+        raise ValueError("Registro inexistente: " + identifier)
+    value = {k: v for k, v in current.items() if k not in ("id", "revision", "origin")}
+    value["triggers"] = list(dict.fromkeys(value.get("triggers", []) + phrases))
+    payload = {"learning": {"source": "development", "conflicts": [], "trigger": "retrieval"},
+               "assessment": {"verdict": "update", "reason": "Pergunta da pessoa não recuperou este registro pelas pistas.",
+                              "utility": "Recuperar o registro na próxima pergunta com a mesma formulação.",
+                              "application": "Pistas de memória por sintoma.",
+                              "evidence_status": "Somente gatilho de busca acrescentado; fato e evidências inalterados."},
+               "changes": [{"collection": "records", "id": identifier, "value": value}]}
+    return learn(vault, payload, actor, config_path, workspace)
 
 
 def recent(vault, limit=10):
