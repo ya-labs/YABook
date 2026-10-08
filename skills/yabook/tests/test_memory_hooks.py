@@ -41,6 +41,73 @@ class HooksTest(unittest.TestCase):
         state = hook.prompt_grant('```\n$yabook mode: auto\n```', {}, self.tmp.name)
         self.assertFalse(state.get("auto", False))
 
+    def test_selected_skill_and_chain_register_auto_and_commit(self):
+        selected = "[$yabook:yabook](/home/user/.codex/plugins/yabook/skills/yabook/SKILL.md)"
+        state = hook.prompt_grant(selected + " mode: auto & do commit", {}, self.tmp.name)
+        self.assertTrue(state["auto"])
+        self.assertEqual(state["goal"], "")
+        self.assertEqual(state["grant"], {"kind": "commit", "root": self.tmp.name})
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt=selected + " do commit"))
+        for command in ("rtk git add example.md", "rtk git commit -m 'fix: exemplo'"):
+            result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":command}))
+            self.assertNotEqual(result.get("hookSpecificOutput", {}).get("permissionDecision"), "deny")
+        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push"}))
+        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
+
+    def test_chains_are_processed_in_order_and_keep_merge_protection(self):
+        state = hook.prompt_grant("$yabook mode: auto & mode: work & do commit", {}, self.tmp.name)
+        self.assertFalse(state["auto"])
+        self.assertEqual(state["grant"]["kind"], "commit")
+        state = hook.prompt_grant("/yabook:yabook mode: auto & /yabook do commit", {}, self.tmp.name)
+        self.assertTrue(state["auto"])
+        self.assertEqual(state["grant"]["kind"], "commit")
+        result = hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"git merge other"}), state, self.tmp.name)
+        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
+        state = hook.prompt_grant("$yabook mode: auto & do merge", {}, self.tmp.name)
+        result=hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"git merge other"}),state,self.tmp.name)
+        self.assertNotEqual(result.get("hookSpecificOutput",{}).get("permissionDecision"),"deny")
+
+    def test_command_aliases_and_selected_skill_paths(self):
+        for prefix in ("$yabook", "$yabook:yabook", "/yabook", "/yabook:yabook",
+                       "[$yabook](/path/SKILL.md)", "[$yabook:yabook](</path with spaces/SKILL.md>)"):
+            with self.subTest(prefix=prefix):
+                state=hook.prompt_grant(prefix+" do commit",{},self.tmp.name)
+                self.assertEqual(state["grant"]["kind"],"commit")
+
+    def test_commit_followed_by_mode_auto_without_colon(self):
+        for mode in ("mode auto", "mode: auto", "mode:auto"):
+            with self.subTest(mode=mode):
+                state=hook.prompt_grant("[$yabook:yabook](/path/SKILL.md) do commit & "+mode,{},self.tmp.name)
+                self.assertTrue(state["auto"])
+                self.assertEqual(state["goal"],"")
+                result=hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"rtk git add example.md"}),state,self.tmp.name)
+                self.assertNotEqual(result.get("hookSpecificOutput",{}).get("permissionDecision"),"deny")
+                result=hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"rtk git merge other"}),state,self.tmp.name)
+                self.assertEqual(result["hookSpecificOutput"]["permissionDecision"],"deny")
+
+    def test_selected_skill_examples_and_open_fences_never_grant(self):
+        selected="[$yabook:yabook](/path/SKILL.md) mode: auto & do commit"
+        for text in ("> "+selected, "```text\n"+selected+"\n```", "~~~\n"+selected+"\n~~~",
+                     "```\n"+selected, "    "+selected, "\t"+selected, "`"+selected+"`",
+                     "Exemplo: "+selected, "[outra-skill](/path/SKILL.md) do commit", "$yabook:outra do commit"):
+            with self.subTest(text=text):
+                state=hook.prompt_grant(text,{},self.tmp.name)
+                self.assertFalse(state.get("auto",False))
+                self.assertFalse(state.get("grant"))
+
+    def test_ampersands_inside_goal_are_not_commands(self):
+        for goal in ('"revisar & do push"', "'revisar & do push'", "`revisar & do push`", r"revisar \& do push"):
+            state=hook.prompt_grant("$yabook mode: auto "+goal,{},self.tmp.name)
+            self.assertTrue(state["auto"])
+            self.assertEqual(state["goal"],goal)
+            self.assertIsNone(state["grant"])
+
+    def test_selected_skill_memory_chain_uses_exact_administrative_grant(self):
+        hook.write_json(hook.config_path(), {"memory_root":self.tmp.name})
+        state=hook.prompt_grant("[$yabook:yabook](/path/SKILL.md) mode: auto & do memory sync",{},self.tmp.name)
+        self.assertTrue(state["auto"])
+        self.assertEqual(state["grant"]["kind"],"memory_sync")
+
     def commit(self):
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash",
                       tool_input={"command": "rtk git commit -m 'fix: x'"}))

@@ -97,15 +97,63 @@ def deny(reason):
                                     "permissionDecisionReason": reason}}
 
 
+YABOOK_INVOCATION = r"(?:\$yabook(?::yabook)?|/yabook(?::yabook)?)"
+YABOOK_PREFIX = re.compile(
+    r"^(?:" + YABOOK_INVOCATION + r"|\[" + YABOOK_INVOCATION + r"\]\([^\n)]+\))\s+"
+)
+
+
+def unquoted_prompt(text):
+    """Retira exemplos Markdown, inclusive cercas abertas, sem executar seu conteúdo."""
+    lines, fence = [], None
+    for line in text.splitlines():
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence:
+            if marker and marker[1][0] == fence[0] and len(marker[1]) >= fence[1] and not marker[2].strip():
+                fence = None
+            continue
+        if line.lstrip().startswith(">") or line.startswith(("    ", "\t")):
+            continue
+        if marker:
+            fence = (marker[1][0], len(marker[1]))
+            continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def command_chain(command):
+    """O '&' separa comandos; aspas, inline code, escapes e '&&' são preservados."""
+    start, quote, escaped = 0, None, False
+    for index, char in enumerate(command):
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif quote:
+            if char == quote:
+                quote = None
+        elif char in "\"'`":
+            quote = char
+        elif char == "&" and (index == 0 or command[index - 1].isspace()) and (index + 1 == len(command) or command[index + 1].isspace()):
+            yield command[start:index].strip()
+            start = index + 1
+    yield command[start:].strip()
+
+
 def prompt_grant(text, state, root):
-    # Só comandos explícitos fora de blocos citados; conteúdo de memórias nunca passa aqui.
-    clean = re.sub(r"```.*?```", "", text, flags=re.S)
-    clean = "\n".join(line for line in clean.splitlines() if not line.lstrip().startswith(">"))
-    commands = re.findall(r"(?:^|\n)\s*(?:\$yabook|/yabook:yabook|/yabook)\s+([^\n]+)", clean)
+    # Só comandos explícitos fora de exemplos/citações; memória nunca passa aqui.
+    clean = unquoted_prompt(text)
+    commands = []
+    for line in clean.splitlines():
+        match = YABOOK_PREFIX.match(line.lstrip())
+        if match:
+            for part in command_chain(line.lstrip()[match.end():]):
+                commands.append(YABOOK_PREFIX.sub("", part, count=1))
     for command in commands:
-        if re.match(r"mode:\s+auto(?:\s|$)", command):
-            state.update(auto=True, project=root, goal=command[10:].strip(), grant=None)
-        elif command.startswith("mode"):
+        automatic = re.fullmatch(r"mode(?:\s*:\s*|\s+)auto(?:\s+(.*))?", command)
+        if automatic:
+            state.update(auto=True, project=root, goal=(automatic[1] or "").strip(), grant=None)
+        elif re.match(r"mode(?:\s|:|$)", command):
             state.update(auto=False, grant=None)
         elif command.startswith("do memory"):
             cfg = config()
