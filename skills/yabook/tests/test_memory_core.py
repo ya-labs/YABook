@@ -53,6 +53,13 @@ class MemoryCoreTest(unittest.TestCase):
         group = next(x for x in self.v.entries() if x["id"] == "G1")
         self.assertTrue(group["summary_stale"]); self.assertNotIn("summary", group)
 
+    def test_discard_removes_only_the_proposal(self):
+        p = self.v.prepare([dict(collection="records", id="R1", value=self.record())], self.assessment, "test")
+        self.assertEqual(self.v.discard(p["id"])["status"], "discarded")
+        with self.assertRaises(Exception):
+            self.v.proposal(p["id"])
+        self.assertEqual(list(self.v.entries()), [])
+
     def test_ambiguous_and_path_traversal(self):
         for identifier in ("R1", "R2"):
             self.v.prepare([dict(collection="records", id=identifier, value=self.record(identifier))], self.assessment, "test")

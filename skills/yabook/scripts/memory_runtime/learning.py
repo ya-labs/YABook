@@ -129,7 +129,9 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
             try:
                 path = enqueue(vault.root, original, actor, config_path, workspace)
                 return dict(status="queued", changed=False, queue=str(path),
-                            apply="O hook YABook aplica fora do sandbox ao concluir esta ferramenta; falhas aparecem no próximo início de sessão.")
+                            apply="O hook YABook aplica fora do sandbox ao concluir esta ferramenta; o resultado final "
+                                  "(aplicado ou revisão) aparece no próximo início de sessão. Informe "
+                                  "'Memória enviada para atualização', não 'Memória atualizada'.")
             except OSError:
                 pass
         return dict(status="sandbox_read_only", changed=False, hint=hint(vault.root))

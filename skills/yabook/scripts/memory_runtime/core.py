@@ -360,6 +360,12 @@ class Vault:
             raise ValueError("Proposta foi alterada; prepare nova prévia")
         return proposal
 
+    def discard(self, identifier):
+        """Descarta proposta pendente; a base canônica não muda."""
+        proposal = self.proposal(identifier)
+        (self.local / "proposals" / (proposal["id"] + ".json")).unlink()
+        return {"status": "discarded", "proposal": proposal["id"]}
+
     def apply(self, identifier, approval_hash):
         with self.lock():
             if (self.local / "transaction.json").exists():

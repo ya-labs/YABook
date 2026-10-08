@@ -41,6 +41,8 @@ def main():
     policy.add_argument("--config", default=os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
     recent = sub.add_parser("recent")
     recent.add_argument("--limit", type=int, default=10)
+    dc = sub.add_parser("discard", help="Descarta proposta pendente sem alterar a base")
+    dc.add_argument("id")
     pending = sub.add_parser("pending")
     pending.add_argument("id", nargs="?")
     apply = sub.add_parser("apply")
@@ -167,6 +169,8 @@ def main():
     elif args.command == "learn":
         from memory_runtime.learning import learn
         result = learn(vault, read_json(args.input), args.actor, args.config, args.workspace)
+    elif args.command == "discard":
+        result = vault.discard(args.id)
     elif args.command == "learn-triggers":
         from memory_runtime.learning import learn_triggers
         result = learn_triggers(vault, args.id, args.phrase, args.actor, args.config, args.workspace)

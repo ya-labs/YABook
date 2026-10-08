@@ -128,8 +128,9 @@ apresente a sugestão retornada para `config.toml` e não edite a configuração
 autorização; inclua essa sugestão no plano de `memory init` quando o host for o Codex.
 `pending_commit` é memória local atualizada com commit/push concluídos pelos hooks.
 `queued` é lote validado e enfileirado porque a base estava somente leitura; o hook
-o aplica fora do sandbox ao concluir a ferramenta. Informe `Memória atualizada` e,
-se o início da sessão avisar falha ou revisão do lote, relate-a.
+o aplica fora do sandbox ao concluir a ferramenta. Informe `Memória enviada para
+atualização` (o resultado final pode ser revisão) e relate falha ou revisão avisada
+no início da sessão.
 `recent --limit 10` consulta histórico compacto; revisão/correção usa proposta manual.
 
 Este fluxo usa o agente no checkpoint, sem trabalhador independente ou modelo
@@ -157,7 +158,7 @@ histórico da operação. Segredos e autorizações de sessão não são conheci
 Execute `python3 scripts/yabook_memory.py --root <base> <serviço>` relativo à
 skill instalada. `list`, `show <id>` e `review` inspecionam a base; `prepare
 --input <json> --actor <agente>` prepara a avaliação e mudanças; `pending [id]`
-mostra a prévia. `apply <id> --approval-hash <hash>` é o caminho manual, após aprovação
+mostra a prévia; `discard <id>` descarta uma proposta sem alterar a base. `apply <id> --approval-hash <hash>` é o caminho manual, após aprovação
 do conteúdo exato. `learn` aplica pela política local após curadoria. Não trate
 o hash como prova independente de autorização:
 o agente deve obter `do memory` ou autorização aplicável na conversa atual.
