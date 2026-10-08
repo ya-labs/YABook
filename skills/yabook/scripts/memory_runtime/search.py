@@ -62,7 +62,7 @@ def cosine(a, b):
 
 
 def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=None,
-           endpoint="http://127.0.0.1:11434/api/embed", expand=True, kinds=(), level="all"):
+           endpoint="http://127.0.0.1:11434/api/embed", expand=True, kinds=(), level="all", explain=False):
     if not 1 <= limit <= 50 or budget < 256 or budget > 100000:
         raise ValueError("Limite/orçamento inválido")
     entries = all_entries(vault, includes, excludes)
@@ -114,18 +114,40 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
     scores = {}
     for ranking in rankings:
         for rank, key in enumerate(ranking): scores[key] = scores.get(key, 0) + 1/(60+rank+1)
+    explanations = {}
+    if explain:
+        fields = ("title", "content", "application", "conditions", "summary", "keywords", "aliases", "triggers",
+                  "objective", "context", "actions", "outcome", "validation")
+        for identifier in scores:
+            entry = by_id[identifier]
+            matches = []
+            for field in fields:
+                values = entry.get(field, [])
+                values = values if isinstance(values, list) else [values]
+                for value in values:
+                    matched = [term for term in terms if re.search(r"\b" + re.escape(fold(term)) + r"\b", fold(value))]
+                    if matched:
+                        matches.append(dict(field=field, terms=list(dict.fromkeys(matched)),
+                                            **({"value": str(value)} if field in ("triggers", "keywords", "aliases") else {})))
+            explanations[identifier] = dict(lexical=identifier in lexical,
+                semantic=len(rankings) > 1 and identifier in rankings[1], matches=matches, via=[])
     if expand:
         for key in list(scores):
             entry = by_id[key]; namespace = entry.get("source", "own") + ":"
             neighbors = references(entry)
             for target in neighbors:
                 neighbor = namespace + target
-                if neighbor in by_id: scores[neighbor] = max(scores.get(neighbor, 0), scores[key]*0.5)
+                if neighbor in by_id:
+                    scores[neighbor] = max(scores.get(neighbor, 0), scores[key]*0.5)
+                    if explain:
+                        explanation = explanations.setdefault(neighbor, dict(lexical=False, semantic=False, matches=[], via=[]))
+                        explanation["via"].append(dict(key=key, title=entry["title"]))
     result = []
     for key in sorted(scores, key=lambda k:scores[k], reverse=True)[:limit]:
         e = by_id[key]
         hit = {k:e[k] for k in ("id", "revision", "title", "scope", "state", "kind", "collection", "parent", "keywords", "aliases", "triggers", "content", "application", "conditions", "evidence", "source", "source_revision", "origin", "origin_updates", "summary", "summary_stale", "objective", "context", "actions", "outcome", "validation", "learnings", "episodes") if k in e}
         hit.update(score=round(scores[key], 6), reason="Termos/significado e relações explícitas" if mode == "hybrid" else "Termos e relações explícitas")
+        if explain: hit["explanation"] = explanations[key]
         if len(json.dumps(result+[hit], ensure_ascii=False)) > budget:
             remaining = budget-len(json.dumps(result, ensure_ascii=False))-len(json.dumps({k:v for k,v in hit.items() if k not in ("content","evidence","summary")},ensure_ascii=False))-80
             if remaining < 100: break

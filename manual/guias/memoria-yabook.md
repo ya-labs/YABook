@@ -571,6 +571,25 @@ uma vez. Os filhos seguem o pai explícito e os grupos da mesma localização;
 pertencimento a vários grupos permanece visível nas relações do grafo. A árvore
 não é truncada pelo número de nós desenhados.
 
+As cores representam a posição na hierarquia completa, mesmo ao filtrar:
+roxo para raízes (sem pai), azul para ramos com filhos e verde para folhas.
+Árvore e grafo usam a mesma legenda. A seleção recebe contorno dourado sem
+perder a cor de hierarquia; origem e situação aparecem no painel de detalhes.
+
+O painel organiza textos em seções, listas e palavras-chave. Cada evidência
+mostra tipo, referência, forma de verificação, data e observações em um cartão.
+Relatos de sessão são identificados como relatos, sem sugerir nova validação.
+Identificadores, revisão e base de origem ficam em `Rastreabilidade e origem`.
+
+O filtro de data permite escolher criação na base, atualização na base ou última
+verificação e definir um período inclusivo. `Hoje` preenche início e fim com o
+dia atual no fuso do navegador; `Limpar datas` remove o período. Criação e
+atualização usam o histórico canônico de alterações (data registrada da proposta),
+sem depender da data dos arquivos no checkout. Criação significa entrada nesta
+base, não a data original da descoberta migrada. Fontes externas usam as datas
+explícitas disponíveis. Sem uma data conhecida para o campo escolhido, o registro
+não aparece no período; seus ancestrais podem aparecer para preservar a navegação.
+
 No grafo, arraste o fundo para navegar e use a roda do mouse ou os botões `+`/`−`
 para ampliar/reduzir. `Enquadrar` recupera a visão geral; nós podem ser arrastados
 individualmente. A distribuição usa forças e aproxima itens pela localização.
@@ -582,6 +601,25 @@ sem conexão. Clique no fundo ou em `Limpar seleção` para restaurar a visão;
 arrastar o fundo preserva a seleção. `Só conexões` limita o grafo ao item e seus
 vizinhos, mantendo a árvore disponível para navegar. Selecionar um item no
 mapa abre seus ancestrais na árvore para mostrar sua localização.
+
+A aba **Consulta de memória** permite descrever uma tarefa ou sintoma e consultar
+até 12 resultados com a busca textual real do runtime. Cada cartão apresenta
+resumo, termos encontrados por campo (incluindo gatilhos), relações que trouxeram
+o registro, aplicação, condições, estado, evidências e última verificação disponível.
+A classificação da busca não é grau de confiança. Relações sugeridas não ampliam
+a consulta; os escopos autorizados do servidor continuam sendo respeitados.
+
+`Ver no mapa e destacar conexões` abre o registro e seus vizinhos. Essa ação limpa
+os filtros do mapa para tornar o item visível e ativa `Só conexões`. A consulta
+manual usa a base disponível no servidor, independentemente dos filtros visuais
+do mapa. Não representa o contexto efetivamente entregue ao agente: recuperação
+por hooks também considera orçamento, nível e itens já entregues na sessão.
+
+O endpoint local `GET /api/query?q=<consulta>` usa a mesma busca textual e explica
+os resultados sem escrever memória, índices persistentes ou histórico de sessão.
+A consulta deve ter de 1 a 1.000 caracteres. A aba exige o servidor local;
+HTML exportado continua como snapshot navegável, com consulta desabilitada.
+O histórico de consultas reais do agente ainda não é apresentado nesta versão.
 
 Há dois modos: HTML exportado, que é um snapshot, ou servidor local somente
 leitura, que consulta novamente a base. O navegador verifica atualizações a cada

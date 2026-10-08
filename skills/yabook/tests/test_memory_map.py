@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
-from memory_runtime.core import Vault
-from memory_runtime.map import map_data, html, hierarchy
+from memory_runtime.core import Vault, write_json
+from memory_runtime.map import map_data, html, hierarchy, query_map
 
 
 class MapTest(unittest.TestCase):
@@ -19,6 +19,39 @@ class MapTest(unittest.TestCase):
             output=html(data)
             self.assertNotIn('</script><script>alert(1)',output)
             self.assertIn('\\u003c',output)
+
+    def test_map_dates_use_canonical_history_without_changing_records(self):
+        with tempfile.TemporaryDirectory() as d:
+            v=Vault(Path(d)/'vault');v.bootstrap('demo')
+            record=dict(id='dated',title='Memória com histórico',scope=['Org'],content='Fato',state='hypothesis',application='Consulta',last_verified='2026-09-28')
+            proposal=v.prepare([dict(collection='records',id='dated',value=record)],dict(verdict='add',reason='Contexto',utility='Consulta',application='Busca',evidence_status='Confirmado'),'test')
+            v.apply(proposal['id'],proposal['approval_hash'])
+            history=v.root/'history'
+            for path in history.glob('*.json'):path.unlink()
+            write_json(history/'creation.json',dict(created_at='2026-10-01T12:00:00Z',changes=[dict(collection='records',id='dated',before=None,after=record)]))
+            write_json(history/'update.json',dict(created_at='2026-10-08T12:00:00Z',changes=[dict(collection='records',id='dated',before=record,after=record)]))
+            before=v.snapshot()
+            node=next(n for n in map_data(v)['nodes'] if n['id']=='own:dated')
+            self.assertEqual(node['dates'],dict(created_at='2026-10-01T12:00:00Z',updated_at='2026-10-08T12:00:00Z',last_verified='2026-09-28'))
+            self.assertEqual(v.snapshot(),before)
+            for path in history.glob('*.json'):path.unlink()
+            node=next(n for n in map_data(v)['nodes'] if n['id']=='own:dated')
+            self.assertEqual(node['dates'],dict(last_verified='2026-09-28'))
+
+    def test_manual_query_uses_runtime_scope_and_does_not_write_state(self):
+        from test_memory_search import SearchTest
+        fixture=SearchTest();fixture.setUp()
+        try:
+            vault=fixture.v
+            before={str(p.relative_to(vault.root)):p.read_bytes() for p in vault.root.rglob('*') if p.is_file()}
+            result=query_map(vault,'checklist supervisor',[['Org']])
+            self.assertTrue(result['manual'])
+            self.assertEqual([hit['id'] for hit in result['results']],['R1'])
+            self.assertTrue(result['results'][0]['explanation']['lexical'])
+            self.assertEqual(before,{str(p.relative_to(vault.root)):p.read_bytes() for p in vault.root.rglob('*') if p.is_file()})
+            for query in ['', '   ', 'a'*1001]:
+                with self.assertRaises(ValueError):query_map(vault,query)
+        finally:fixture.doCleanups()
 
     def test_tree_prefers_explicit_parent_and_topic_over_project(self):
         nodes = [

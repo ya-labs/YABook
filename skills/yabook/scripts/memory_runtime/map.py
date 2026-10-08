@@ -2,7 +2,8 @@
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from .core import digest
+from urllib.parse import urlparse, parse_qs
+from .core import digest, read_json
 from .sources import all_entries
 
 
@@ -40,6 +41,21 @@ def hierarchy(nodes, links):
 
 def map_data(vault, includes=()):
     entries = all_entries(vault, includes)
+    # Datas vêm do histórico canônico, nunca do mtime do checkout/sync.
+    dates = {}
+    for path in (vault.root / "history").glob("*.json"):
+        receipt = read_json(path)
+        stamp = receipt.get("created_at")
+        if not stamp:
+            continue
+        for change in receipt.get("changes", []):
+            if not change.get("after"):
+                continue
+            key = (change.get("collection"), change.get("id"))
+            item = dates.setdefault(key, {})
+            item["updated_at"] = max(stamp, item.get("updated_at", stamp))
+            if change.get("before") is None:
+                item["created_at"] = min(stamp, item.get("created_at", stamp))
     nodes, links, seen = [], [], set()
     def node(identifier, title, kind, **values):
         if identifier not in seen:
@@ -53,7 +69,10 @@ def map_data(vault, includes=()):
             node(group, part, "scope", scope=entry["scope"][:index+1])
             if parent: links.append(dict(source=parent,target=group,type="contains"))
             parent = group
-        node(identifier, entry["title"], entry["collection"], entry=entry)
+        entry_dates = {key: entry[key] for key in ("created_at", "updated_at", "last_verified") if entry.get(key)}
+        if namespace == "own":
+            entry_dates.update(dates.get((entry["collection"], entry["id"]), {}))
+        node(identifier, entry["title"], entry["collection"], entry=entry, dates=entry_dates)
         if parent: links.append(dict(source=parent,target=identifier,type="contains"))
         if entry.get("parent"):
             links.append(dict(source=namespace+":"+entry["parent"],target=identifier,type="contains"))
@@ -83,20 +102,37 @@ def export_map(vault, output, includes=()):
     return dict(output=str(path),mode="snapshot-read-only")
 
 
+def query_map(vault, query, includes=()):
+    """Consulta manual explicável, sem registrar entrega ao agente nem escrever índices."""
+    from .search import search
+    query = query.strip()
+    if not query or len(query) > 1000:
+        raise ValueError("Informe uma consulta de 1 a 1.000 caracteres")
+    result = search(vault, query, includes, limit=12, budget=100000, explain=True)
+    return dict(result, query=query, revision=digest(vault.snapshot()), manual=True)
+
+
 def serve(vault, port=8765, includes=()):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             if self.headers.get("Origin") not in (None,f"http://127.0.0.1:{port}"):
                 self.send_error(403);return
-            if self.path not in ("/","/api/map"):
+            parsed = urlparse(self.path)
+            if parsed.path not in ("/", "/api/map", "/api/query"):
                 self.send_error(404);return
             try:
-                data=map_data(vault,includes)
-                payload=(json.dumps(data,ensure_ascii=False) if self.path=="/api/map" else html(data)).encode()
+                if parsed.path == "/api/query":
+                    query = parse_qs(parsed.query).get("q", [""])[0]
+                    if not query.strip() or len(query.strip()) > 1000:
+                        self.send_error(400, "Consulta vazia ou muito longa");return
+                    payload = json.dumps(query_map(vault, query, includes), ensure_ascii=False).encode()
+                else:
+                    data=map_data(vault,includes)
+                    payload=(json.dumps(data,ensure_ascii=False) if parsed.path=="/api/map" else html(data)).encode()
             except (ValueError,OSError,KeyError):
                 self.send_error(503,"Memória indisponível");return
             self.send_response(200)
-            self.send_header("Content-Type","application/json; charset=utf-8" if self.path=="/api/map" else "text/html; charset=utf-8")
+            self.send_header("Content-Type","application/json; charset=utf-8" if parsed.path.startswith("/api/") else "text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store")
             self.send_header("X-Content-Type-Options","nosniff")
             self.send_header("Content-Security-Policy","default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'")

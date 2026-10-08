@@ -22,6 +22,24 @@ class SearchTest(unittest.TestCase):
         self.assertEqual(result['results'][0]['id'],"R1")
         self.assertNotIn("R2",[e['id'] for e in result['results']])
 
+    def test_explanation_tracks_terms_triggers_and_relation_without_promoting_suggestions(self):
+        from memory_runtime.core import write_json
+        record=next(e for e in self.v.entries() if e['id']=='R1')
+        record.update(triggers=['checklist não chega ao supervisor'], relations=[dict(target='R3',type='depends_on'),dict(target='R4',type='related',suggested=True)])
+        write_json(self.v.path('records','R1'),{k:v for k,v in record.items() if k not in ('collection','source')})
+        for identifier in ['R3','R4']:
+            write_json(self.v.path('records',identifier),dict(id=identifier,title='Fonte auxiliar '+identifier,scope=['Org','App'],revision=1,state='hypothesis',content='Diagnóstico auxiliar',application='Consulta'))
+        result=search(self.v,'checklist supervisor',[['Org']],explain=True)
+        hits={h['id']:h for h in result['results']}
+        self.assertTrue(hits['R1']['explanation']['lexical'])
+        self.assertTrue(any(m['field']=='triggers' and 'supervisor' in m['terms'] for m in hits['R1']['explanation']['matches']))
+        self.assertFalse(hits['R3']['explanation']['lexical'])
+        self.assertEqual(hits['R3']['explanation']['via'][0]['key'],'own:R1')
+        self.assertNotIn('R4',hits)
+        plain=search(self.v,'checklist supervisor',[['Org']])
+        self.assertNotIn('explanation',plain['results'][0])
+        self.assertEqual([h['id'] for h in result['results']],[h['id'] for h in plain['results']])
+
     def test_optional_vectors_and_invalidated_cache(self):
         with patch('memory_runtime.search.embed',side_effect=lambda texts,*args:[[1.,0.] for t in texts]):
             result=search(self.v,"recebimento",[["Org"]],model="demo")
