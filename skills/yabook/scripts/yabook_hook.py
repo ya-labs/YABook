@@ -27,6 +27,9 @@ Após etapa relevante, consulte a política learning da base e faça curadoria c
 Em automatic, use learn para um lote com evidência, aplicação e sem conflitos;
 informe apenas Memória atualizada: <assunto/arquivo>. Não repita a investigação.
 do memory continua para propostas manuais/pendências; init e política exigem aprovação.
+Pistas de memória do tema que não explicam o sintoma não bastam: reformule com termos
+técnicos (tabelas, telas, fontes), rode retrieve uma vez antes de investigar do zero e,
+achando o registro certo, use learn-triggers com a frase da pessoa.
 """
 
 
