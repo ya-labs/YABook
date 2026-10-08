@@ -43,7 +43,7 @@ class SandboxTest(unittest.TestCase):
                    "assessment": dict(verdict="add", reason="r", utility="u", application="a", evidence_status="e"),
                    "changes": [dict(collection="records", id="R", value=dict(
                        title="T", kind="knowledge", scope=["Demo"], content="c", application="a", state="confirmed",
-                       evidence=[dict(type="code", ref="x", level="static")]))]}
+                       evidence=[dict(type="code", ref="x", level="static")], triggers=["dado não aparece"]))]}
         with patch("memory_runtime.sandbox.read_codex_sandbox", return_value={"default_permissions": False, "writable_roots": []}):
             result = learn(vault, payload, "test", config, self.root)
         self.assertEqual((result["status"], result["changed"]), ("sandbox_read_only", False))

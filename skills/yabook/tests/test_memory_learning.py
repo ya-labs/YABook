@@ -26,7 +26,8 @@ class LearningTest(unittest.TestCase):
                                application="Investigar sincronização", evidence_status="Código examinado"),
             "changes": [dict(collection="records", id="R-sync", value=dict(
                 title="Responsabilidade", kind="knowledge", scope=["Demo"], content="Operação recebe dados",
-                application="Investigar recebimento", state="confirmed", evidence=[dict(type="code", ref="fixture:source@revision", level="static")]))]}
+                application="Investigar recebimento", state="confirmed", evidence=[dict(type="code", ref="fixture:source@revision", level="static")],
+                triggers=["dados não chegam na sincronização"]))]}
 
     def run_learning(self, payload=None):
         return learn(self.vault, payload or self.payload, "test-agent", self.cfg, self.root)
@@ -41,6 +42,13 @@ class LearningTest(unittest.TestCase):
         self.assertNotIn("snapshot", history[0])
         self.assertEqual(self.run_learning()["status"], "unchanged")
         self.assertEqual(len(recent(self.vault)), 1)
+
+    def test_knowledge_requires_symptom_triggers(self):
+        payload = copy.deepcopy(self.payload)
+        payload["changes"][0]["value"].pop("triggers")
+        with self.assertRaisesRegex(ValueError, "sintoma"):
+            self.run_learning(payload)
+        self.assertEqual(self.vault.snapshot()["records"], {})
 
     def test_trigger_is_recorded_and_validated(self):
         payload = copy.deepcopy(self.payload)

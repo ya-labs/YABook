@@ -57,6 +57,10 @@ def learn(vault, payload, actor, config_path, workspace):
         if change.get("delete"):
             reasons.append("Exclusão definitiva exige revisão")
             continue
+        if collection == "records" and value.get("kind", "knowledge") in ("knowledge", "procedure") and not value.get("triggers"):
+            # Recuperação parte do sintoma que a pessoa descreve, não só do termo técnico da solução.
+            raise ValueError("Conhecimento/procedimento precisa de triggers com o sintoma como a pessoa o "
+                             "descreveria (ex.: \"checklist não chega no supervisor\"): " + identifier)
         personal = collection == "records" and value.get("kind") in ("profile", "preference")
         origin = value.get("origin", previous.get("origin", {}) if previous else {})
         if origin.get("vault_id", snapshot["metadata"]["vault_id"]) != snapshot["metadata"]["vault_id"]:

@@ -48,6 +48,16 @@ class RelevanceTest(unittest.TestCase):
         for topic in result["topics"]:
             self.assertNotIn("members", topic); self.assertNotIn("keywords", topic)
 
+    def test_symptom_trigger_finds_technical_record(self):
+        changes = [dict(collection="records", id="S1", value=dict(
+            title="PRV_CODIGO_ERP divergente da visita local", scope=["Org", "App"], kind="knowledge",
+            state="confirmed", content="Visita ERP 10 e local 12 não se vinculam.", application="Diagnóstico",
+            evidence=EVIDENCE, triggers=["checklist sumiu da tela do gestor"]))]
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        ids = [r["id"] for r in search(self.v, "o checklist sumiu da tela do gestor", level="knowledge")["results"]]
+        self.assertEqual(ids[0], "S1")
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]

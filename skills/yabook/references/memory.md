@@ -104,6 +104,9 @@ Não guardar cada
 hipótese transitória: rejeite candidatos sem utilidade durável antes de chamar learn.
 Responder dúvida sobre comando ou contrato já documentado (YABook, manuais, código)
 não é aprendizado: memória guarda descobertas não óbvias, não cópia de documentação.
+Escreva conhecimento e procedimento a partir do sintoma: `content` em sintoma →
+causa → onde está → como verificar, e `triggers` (obrigatório no learn) com frases
+como a pessoa descreveria o problema, ex.: "checklist não chega no supervisor".
 `learning.trigger` registra o que motivou o lote: `agent` (padrão), `issue`, `dev`,
 `pr`, `hook` ou `user`. `learning.checkpoint` local: `agent` (padrão, sem pedido no
 Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão).
