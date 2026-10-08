@@ -17,7 +17,7 @@ from memory_runtime.core import Vault, digest, read_json, write_json
 
 METHOD = """YABook ativo. Aplique o método YA LABS no projeto conforme AGENTS.md local.
 Antes de editar confira branch, worktree, staged/unstaged e último commit.
-Fora de auto, Git exige do ou preparação de dev; bypass libera somente edição.
+Fora de auto, Git e SVN exigem do ou preparação de dev; bypass libera somente edição.
 main/dev/release exigem a exceção anexada ou ajuste pontual autorizado em auto.
 Preserve trabalho alheio. Auto vale só nesta sessão/projeto; merge requer pedido.
 Use a skill YABook e suas referências para formatos, limites e decisões.
@@ -284,6 +284,32 @@ def remember_delivery(state, levels):
         delivered[item] = sorted(set(delivered.get(item, [])) | set(values))
 
 
+# Subcomandos SVN que alteram working copy ou repositório, com aliases; leitura fica livre.
+SVN_MUTATIONS = {
+    "commit": "commit", "ci": "commit", "add": "add", "delete": "delete", "del": "delete", "remove": "delete",
+    "rm": "delete", "move": "move", "mv": "move", "rename": "move", "ren": "move", "copy": "copy", "cp": "copy",
+    "mkdir": "mkdir", "propset": "propset", "pset": "propset", "ps": "propset", "propdel": "propdel",
+    "pdel": "propdel", "pd": "propdel", "propedit": "propedit", "pedit": "propedit", "pe": "propedit",
+    "changelist": "changelist", "cl": "changelist", "revert": "revert", "update": "update", "up": "update",
+    "switch": "switch", "sw": "switch", "merge": "merge", "resolve": "resolve", "resolved": "resolve",
+    "cleanup": "cleanup", "lock": "lock", "unlock": "unlock", "import": "import", "relocate": "relocate",
+    "patch": "patch"}
+SVN_GRANTS = {"commit": {"add", "delete", "move", "copy", "mkdir", "propset", "propdel", "changelist", "commit"},
+              "branch": {"update", "switch"}, "dev": {"update", "switch"}, "sync": {"update"},
+              "merge": {"merge", "resolve", "commit"}}
+SVN_GRANTS["pr"] = SVN_GRANTS["push"] = SVN_GRANTS["commit"]
+
+
+def svn_mutation(parts):
+    """Primeiro subcomando SVN que altera estado, em qualquer posição do comando (ex.: cd x && svn ps)."""
+    for index, token in enumerate(parts):
+        if Path(token).name == "svn":
+            sub = next((p for p in parts[index + 1:] if not p.startswith("-")), None)
+            if sub in SVN_MUTATIONS:
+                return SVN_MUTATIONS[sub]
+    return None
+
+
 PATCH_TARGET = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$", re.M)
 
 
@@ -345,6 +371,13 @@ def inspect_call(event, state, root):
                 return deny("YABook: worktree sujo; separe as alterações antes de trocar branch.")
             if not permit:
                 return deny("YABook: operação Git fora da autorização limitada da sessão.")
+    svn = svn_mutation(parts)
+    if svn:
+        kind = grant.get("kind")
+        permit = auto or (authorized and svn in SVN_GRANTS.get(kind, set()))
+        if not permit:
+            return deny("YABook: operação SVN (" + svn + ") altera o working copy ou o repositório; "
+                        "exige $yabook do correspondente ou mode: auto.")
     if any(Path(p).name == "yabook_memory.py" for p in parts):
         services = ("apply", "publish", "recover", "init-apply", "sync", "source-add", "learn", "learning-policy")
         service = next((p for p in parts if p in services), None)

@@ -149,6 +149,22 @@ class HooksTest(unittest.TestCase):
         self.assertFalse(hook.needs_memory("certo, prossiga"))
         self.assertTrue(hook.needs_memory("o checklist não chega no supervisor"))
 
+    def test_svn_mutations_need_grant_and_reads_stay_free(self):
+        def call(command):
+            return hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
+        def denied(result):
+            return result.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
+        for command in ("svn status", "rtk proxy svn diff node_modules", "svn propget svn:ignore node_modules", "svn log -l 5"):
+            self.assertFalse(denied(call(command)), command)
+        for command in ("svn propset svn:ignore '*' node_modules", "cd /x && svn ps svn:ignore '*' nm",
+                        "svn commit -m x", "svn revert --depth=empty node_modules", "svn update --set-depth=empty nm"):
+            self.assertTrue(denied(call(command)), command)
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do commit"))
+        self.assertFalse(denied(call("svn commit -m 'fix: x'")))
+        self.assertTrue(denied(call("svn revert file.js")))
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook mode: auto objetivo"))
+        self.assertFalse(denied(call("svn revert file.js")))
+
     def test_protected_branch_allows_edits_outside_repository(self):
         patch_text = "*** Begin Patch\n*** Add File: /tmp/lote.json\n+{}\n*** End Patch"
         event = dict(self.event, hook_event_name="PreToolUse", tool_name="apply_patch", tool_input={"command": patch_text})
