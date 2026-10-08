@@ -5,6 +5,8 @@ Consulte [contratos.md](contratos.md) antes de gerar, criar ou validar o PR.
 ## Pull Request
 
 Título objetivo, sem prefixo de tipo.
+Antes da prévia, confira em `recent` o aprendizado da entrega inteira e registre só
+o que faltar, por `memory.md` com `learning.trigger: pr`.
 Use texto e bullets simples para explicar entregas e validações, sem checklists
 ou caixas de progresso no corpo, inclusive em `Informações para IA`.
 

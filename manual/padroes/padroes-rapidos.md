@@ -53,6 +53,9 @@ Toda coisa nova relevante no projeto começa aqui. Quando surgir um problema,
 ajuste ou melhoria, transforme a necessidade em uma issue antes de criar branch
 ou implementar.
 
+Abra issue para demanda estabelecida: hipótese validada e desenvolvimento
+decidido. Investigação ainda em aberto continua na análise, não vira issue.
+
 Título objetivo, sem prefixo de tipo.
 
 `$yabook issue package` prepara um registro estável do propósito geral do pacote.

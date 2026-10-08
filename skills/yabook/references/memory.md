@@ -104,6 +104,9 @@ Não guardar cada
 hipótese transitória: rejeite candidatos sem utilidade durável antes de chamar learn.
 Responder dúvida sobre comando ou contrato já documentado (YABook, manuais, código)
 não é aprendizado: memória guarda descobertas não óbvias, não cópia de documentação.
+`learning.trigger` registra o que motivou o lote: `agent` (padrão), `issue`, `dev`,
+`pr`, `hook` ou `user`. `learning.checkpoint` local: `agent` (padrão, sem pedido no
+Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão).
 Validação estrutural não confirma fatos; a responsabilidade semântica é do agente.
 
 Um lote gera uma transação e, em base Git, um commit/push pelos paths validados.
