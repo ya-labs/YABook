@@ -566,6 +566,23 @@ escopos, registros, entidades, grupos e relações. O painel de detalhes mostra
 conteúdo, aplicação, evidência, estado, revisão e origem. Filtros ajudam a explorar
 assunto e fonte sem criar outra base de conhecimento.
 
+A árvore permite expandir/recolher cada localização ou grupo e também todos de
+uma vez. Os filhos seguem o pai explícito e os grupos da mesma localização;
+pertencimento a vários grupos permanece visível nas relações do grafo. A árvore
+não é truncada pelo número de nós desenhados.
+
+No grafo, arraste o fundo para navegar e use a roda do mouse ou os botões `+`/`−`
+para ampliar/reduzir. `Enquadrar` recupera a visão geral; nós podem ser arrastados
+individualmente. A distribuição usa forças e aproxima itens pela localização.
+Rótulos automáticos evitam sobreposição e mantêm o tamanho de leitura no zoom;
+as opções permitem mostrar todos ou ocultá-los.
+
+Selecionar um nó destaca suas ligações diretas e reduz a opacidade dos itens
+sem conexão. Clique no fundo ou em `Limpar seleção` para restaurar a visão;
+arrastar o fundo preserva a seleção. `Só conexões` limita o grafo ao item e seus
+vizinhos, mantendo a árvore disponível para navegar. Selecionar um item no
+mapa abre seus ancestrais na árvore para mostrar sua localização.
+
 Há dois modos: HTML exportado, que é um snapshot, ou servidor local somente
 leitura, que consulta novamente a base. O navegador verifica atualizações a cada
 quinze segundos. O servidor escuta somente `127.0.0.1`; não é um site público.

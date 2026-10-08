@@ -6,6 +6,38 @@ from .core import digest
 from .sources import all_entries
 
 
+def hierarchy(nodes, links):
+    """Um pai de navegação por localização; vínculos múltiplos continuam no grafo."""
+    by_id = {n["id"]: n for n in nodes}
+    candidates = {n["id"]: [] for n in nodes}
+    for link in links:
+        if link["type"] != "contains":
+            continue
+        parent, child = by_id[link["source"]], by_id[link["target"]]
+        pentry, centry = parent.get("entry", {}), child.get("entry", {})
+        if parent["kind"] != "scope" and pentry.get("collection") != "groups":
+            continue
+        pscope, cscope = pentry.get("scope", parent.get("scope", [])), centry.get("scope", child.get("scope", []))
+        if cscope[:len(pscope)] != pscope:
+            continue
+        explicit = bool(centry.get("parent") and centry["parent"] == pentry.get("id"))
+        # Pai explícito, grupo mais específico, depois localização sintética.
+        priority = (3 if explicit else 2 if pentry else 1, len(pscope),
+                    {"topic": 3, "collection": 2, "project": 1}.get(pentry.get("kind"), 0))
+        candidates[child["id"]].append((priority, parent["id"]))
+    parents = {}
+    for identifier in sorted(by_id):
+        for _, parent in sorted(candidates[identifier], key=lambda c: (tuple(-v for v in c[0]), c[1])):
+            cursor, seen = parent, {identifier}
+            while cursor is not None and cursor not in seen:
+                seen.add(cursor)
+                cursor = parents.get(cursor)
+            if cursor is None:
+                parents[identifier] = parent
+                break
+        by_id[identifier]["tree_parent"] = parents.get(identifier)
+
+
 def map_data(vault, includes=()):
     entries = all_entries(vault, includes)
     nodes, links, seen = [], [], set()
@@ -33,6 +65,7 @@ def map_data(vault, includes=()):
             links.append(dict(source=identifier,target=namespace+":"+relation["target"],type=relation["type"],
                               suggested=relation.get("suggested",False)))
     unique = {(e['source'],e['target'],e['type']): e for e in links if e['source'] in seen and e['target'] in seen}
+    hierarchy(nodes, list(unique.values()))
     return dict(schema_version=1,revision=digest(vault.snapshot()),nodes=nodes,links=list(unique.values()))
 
 
