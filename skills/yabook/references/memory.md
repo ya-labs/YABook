@@ -114,7 +114,9 @@ causa → onde está → como verificar, e `triggers` (obrigatório no learn) co
 como a pessoa descreveria o problema, ex.: "checklist não chega no supervisor".
 `learning.trigger` registra o que motivou o lote: `agent` (padrão), `issue`, `dev`,
 `pr`, `hook` ou `user`. `learning.checkpoint` local: `agent` (padrão, sem pedido no
-Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão).
+Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão; sem Git,
+após turno com edição, no máximo a cada `checkpoint_cooldown_minutes`, padrão 30).
+`learning.edit_commands` lista comandos de shell que contam como edição (ex.: script de encoding).
 Validação estrutural não confirma fatos; a responsabilidade semântica é do agente.
 
 Um lote gera uma transação e, em base Git, um commit/push pelos paths validados.

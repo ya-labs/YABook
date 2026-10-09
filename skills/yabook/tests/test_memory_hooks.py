@@ -290,6 +290,23 @@ class HooksTest(unittest.TestCase):
         self.commit("c4")
         self.assertEqual(hook.run(stop), {})  # padrão agent: sem pedido
 
+    def test_checkpoint_without_git_uses_configured_edit_commands_and_cooldown(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {
+            "mode": "automatic", "checkpoint": "hook", "edit_commands": ["edita.py"]}})
+        self.head = ""  # workspace sem Git, como um controle de fontes próprio
+        hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
+        stop = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
+        bash = lambda command: hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash",
+                                             tool_input={"command": command}))
+        bash("ls backup/")
+        self.assertEqual(hook.run(stop), {})  # sem edição, sem pedido
+        bash("python3 ~/.claude/edita.py wad821c03.p --anchor x")
+        self.assertEqual(hook.run(stop)["decision"], "block")
+        bash("python3 ~/.claude/edita.py wad821c04.p --anchor y")
+        self.assertEqual(hook.run(stop), {})  # dentro do intervalo
+        with patch.object(hook.time, "time", return_value=hook.time.time() + 31 * 60):
+            self.assertEqual(hook.run(stop)["decision"], "block")
+
     def test_memory_failure_degrades_but_authorization_still_denies(self):
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
         import sqlite3

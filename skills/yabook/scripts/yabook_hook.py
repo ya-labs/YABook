@@ -528,10 +528,13 @@ def run(event):
         write_json(path, state)
         return result
     if event_name == "PostToolUse":
-        if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
+        command = shell_command(event)
+        # Edição por ferramenta nativa ou por comando configurado (ex.: script que preserva encoding).
+        patterns = config().get("learning", {}).get("edit_commands", [])
+        if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit") or any(
+                isinstance(p, str) and p and p in command for p in patterns):
             state["edited"] = True
             write_json(path, state)
-        command = shell_command(event)
         # Commit da própria sessão confirmado pelo HEAD; tentativa bloqueada ou falha não conta.
         if COMMIT.search(command):
             head = git(root, "rev-parse", "HEAD")
@@ -546,20 +549,27 @@ def run(event):
     if event_name == "Stop":
         apply_learning_queue()
         publish_automatic(config())
-    if event_name == "Stop" and state.get("edited") and state.get("committed") and not event.get("stop_hook_active"):
-        # Entrega consolidada = novo commit após edições da sessão; edição isolada não basta.
+    if event_name == "Stop" and state.get("edited") and not event.get("stop_hook_active"):
         cfg = config()
+        head = git(root, "rev-parse", "HEAD")
         if cfg.get("learning", {}).get("checkpoint", "agent") != "hook" or state.get("learned"):
             # Modo agent: o agente julga; learn já chamado no turno dispensa novo pedido.
-            state.update(edited=False, committed=False, learned=False, learned_head=git(root, "rev-parse", "HEAD"))
+            state.update(edited=False, committed=False, learned=False, learned_head=head)
             write_json(path, state)
             return {}
-        head = git(root, "rev-parse", "HEAD")
-        if not head or head == state.get("learned_head", head):
-            state.setdefault("learned_head", head)
-            write_json(path, state)
-            return {}
-        state.update(edited=False, committed=False, learned_head=head)
+        if head:
+            # Com Git, entrega consolidada = commit da própria sessão; edição isolada não basta.
+            if not state.get("committed") or head == state.get("learned_head", head):
+                state.setdefault("learned_head", head)
+                write_json(path, state)
+                return {}
+        else:
+            # Sem Git (ex.: controle de fontes próprio), a entrega é o turno com edições,
+            # limitado por intervalo para não pedir curadoria a cada turno.
+            cooldown = 60 * cfg.get("learning", {}).get("checkpoint_cooldown_minutes", 30)
+            if time.time() - state.get("last_checkpoint_at", 0) < cooldown:
+                return {}
+        state.update(edited=False, committed=False, learned_head=head, last_checkpoint_at=time.time())
         write_json(path, state)
         if not cfg.get("memory_root"):
             return {}
