@@ -28,7 +28,8 @@ class SandboxTest(unittest.TestCase):
         self.assertEqual(settings, dict(default_permissions=False, writable_roots=["/data/memory", "~/outro"]))
         self.assertIsNone(codex_blocks("/data/memory/sub", settings))
         blocked = codex_blocks("/data/outra-base", settings)
-        self.assertIn('writable_roots = ["/data/outra-base"]', blocked["suggestion"])
+        expected = Path("/data/outra-base").resolve().as_posix()
+        self.assertIn('writable_roots = ["' + expected + '"]', blocked["suggestion"])
         self.toml.write_text('default_permissions = "dev"\n[permissions.dev]\nextends = ":workspace"\n')
         self.assertIn("perfil", codex_blocks("/data/memory", read_codex_sandbox(self.toml))["suggestion"])
         self.assertIsNone(read_codex_sandbox(self.root / "ausente.toml"))
@@ -75,6 +76,8 @@ class SandboxTest(unittest.TestCase):
         self.assertEqual(pending_notices("/projeto/a"), [])
 
     def read_only_setup(self):
+        if os.name == "nt":
+            self.skipTest("chmod não torna diretório somente leitura no Windows")
         vault = Vault(self.root / "memory"); vault.bootstrap("demo")
         config = self.root / "yabook.json"
         write_json(config, {"memory_root": str(vault.root), "projects": {str(self.root): ["Demo"]},
@@ -89,6 +92,7 @@ class SandboxTest(unittest.TestCase):
                        evidence=[dict(type="code", ref="x", level="static")], triggers=["dado não aparece"]))]}
         return vault, config, payload
 
+    @unittest.skipIf(os.name == "nt", "chmod não torna diretório somente leitura no Windows")
     def test_learn_reports_read_only_sandbox_without_changing_base(self):
         vault = Vault(self.root / "memory"); vault.bootstrap("demo")
         config = self.root / "yabook.json"

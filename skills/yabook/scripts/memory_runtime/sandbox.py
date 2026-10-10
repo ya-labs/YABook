@@ -35,7 +35,8 @@ def hint(root, settings=None):
         change = ("Declare " + root + " como raiz gravável no perfil de `default_permissions` em "
                   + str(codex_config_path()) + " (perfis não usam sandbox_workspace_write).")
     else:
-        change = '[sandbox_workspace_write]\nwritable_roots = ["' + root + '"]'
+        # Barra normal: barra invertida do Windows é escape inválido em string TOML.
+        change = '[sandbox_workspace_write]\nwritable_roots = ["' + Path(root).as_posix() + '"]'
     return dict(reason="O sandbox do agente monta a memória como somente leitura; a base não foi alterada.",
                 config=str(codex_config_path()), suggestion=change,
                 note="Sugira à pessoa; não edite config.toml sem autorização. .git e rede seguem protegidos: hooks publicam.")

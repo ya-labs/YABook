@@ -179,7 +179,8 @@ def prompt_grant(text, state, root):
             for part in command_chain(line.lstrip()[match.end():]):
                 commands.append(YABOOK_PREFIX.sub("", part, count=1))
     for command in commands:
-        automatic = re.fullmatch(r"mode(?:\s*:\s*|\s+)auto(?:\s+(.*))?", command)
+        # Pontuação logo após o modo ("mode: auto. objetivo") separa o objetivo, não troca o modo.
+        automatic = re.fullmatch(r"mode(?:\s*:\s*|\s+)auto(?:[.,;!]|(?=\s)|$)\s*(.*)", command, re.S)
         if automatic:
             state.update(auto=True, project=root, goal=(automatic[1] or "").strip(), grant=None)
         elif re.match(r"mode(?:\s|:|$)", command):
@@ -217,7 +218,12 @@ def prompt_grant(text, state, root):
 
 def command_parts(command):
     try:
-        parts = shlex.split(command)
+        if os.name == "nt":
+            # Modo POSIX trata a barra invertida de caminhos Windows como escape.
+            parts = [p[1:-1] if len(p) > 1 and p[0] == p[-1] and p[0] in "\"'" else p
+                     for p in shlex.split(command, posix=False)]
+        else:
+            parts = shlex.split(command)
     except ValueError:
         return []
     if parts and parts[0] == "rtk":
@@ -585,6 +591,9 @@ if __name__ == "__main__":
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument("--format", choices=["native", "generic"], default="native")
         args = parser.parse_args()
+        # Hosts trocam JSON em UTF-8; no Windows o padrão do console (cp1252) corrompe acentos.
+        sys.stdin.reconfigure(encoding="utf-8")
+        sys.stdout.reconfigure(encoding="utf-8")
         event = normalize_event(json.load(sys.stdin), args.format)
         print(json.dumps(event_response(run(event), args.format), ensure_ascii=False))
     except Exception as exc:

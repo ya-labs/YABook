@@ -1,2 +1,9 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Pacote do plugin: LF em qualquer sistema para validação, hash e sync idênticos
+.codex-plugin/** text=auto eol=lf
+.claude-plugin/** text=auto eol=lf
+assets/** text=auto eol=lf
+hooks/** text=auto eol=lf
+skills/yabook/** text=auto eol=lf

@@ -1,9 +1,8 @@
 """Leitura integral em blocos e cobertura retomável; a avaliação pertence ao agente."""
 from pathlib import Path
 from contextlib import contextmanager
-import fcntl
 
-from .core import COLLECTIONS, digest, read_json, write_json
+from .core import COLLECTIONS, digest, file_lock, read_json, write_json
 from .gitstore import inventory
 
 DECISIONS = {"migrated", "consolidated", "kept", "discarded", "pending"}
@@ -13,12 +12,8 @@ DECISIONS = {"migrated", "consolidated", "kept", "discarded", "pending"}
 def state_lock(path):
     path = Path(path).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
-    with Path(str(path) + ".lock").open("a") as stream:
-        fcntl.flock(stream, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(stream, fcntl.LOCK_UN)
+    with Path(str(path) + ".lock").open("a") as stream, file_lock(stream):
+        yield
 
 
 def start(agent, source, output, block_lines=200):

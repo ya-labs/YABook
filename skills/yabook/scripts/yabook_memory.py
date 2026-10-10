@@ -200,6 +200,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Saída JSON em UTF-8 também no console do Windows (cp1252 por padrão).
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     try:
         main()
     except (ValueError, KeyError, OSError) as exc:

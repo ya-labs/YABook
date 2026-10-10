@@ -58,6 +58,34 @@ def write_json(path, value):
             os.unlink(temporary)
 
 
+@contextlib.contextmanager
+def file_lock(stream):
+    """Trava exclusiva bloqueante: fcntl no POSIX, msvcrt (1 byte no início) no Windows."""
+    if os.name == "nt":
+        import msvcrt
+        stream.seek(0)
+        while True:
+            try:
+                msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+                break
+            except OSError as error:
+                # LK_LOCK desiste após ~10 s; outra sessão ainda segura a trava.
+                if error.errno != errno.EDEADLK:
+                    raise
+        try:
+            yield
+        finally:
+            stream.seek(0)
+            msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+    fcntl.flock(stream, fcntl.LOCK_EX)
+    try:
+        yield
+    finally:
+        fcntl.flock(stream, fcntl.LOCK_UN)
+
+
 def scoped(scope, includes=(), excludes=()):
     """Prefixos são componentes, nunca substring ou prefixo de nome."""
     def matches(prefix):
@@ -149,20 +177,17 @@ class Vault:
 
     @contextlib.contextmanager
     def lock(self):
-        import fcntl
         with self._mutex:
             if self._lock_depth:
                 yield
                 return
             self.local.mkdir(parents=True, exist_ok=True)
-            with (self.local / "lock").open("a") as stream:
-                fcntl.flock(stream, fcntl.LOCK_EX)
+            with (self.local / "lock").open("a") as stream, file_lock(stream):
                 self._lock_depth += 1
                 try:
                     yield
                 finally:
                     self._lock_depth -= 1
-                    fcntl.flock(stream, fcntl.LOCK_UN)
 
     def snapshot(self):
         try:
@@ -380,7 +405,7 @@ class Vault:
             return self._finish(proposal)
 
     def _finish(self, proposal):
-        paths = [str(self.path(c["collection"], c["id"]).relative_to(self.root)) for c in proposal["changes"]]
+        paths = [self.path(c["collection"], c["id"]).relative_to(self.root).as_posix() for c in proposal["changes"]]
         metadata_path = self.root / "memory.json"
         if read_json(metadata_path) != proposal["result"]["metadata"]:
             write_json(metadata_path, proposal["result"]["metadata"])
@@ -390,12 +415,12 @@ class Vault:
             for path in (self.root / collection).glob("*.json"):
                 if path.stem not in expected:
                     path.unlink()
-                    paths.append(str(path.relative_to(self.root)))
+                    paths.append(path.relative_to(self.root).as_posix())
             for identifier, value in expected.items():
                 path = self.path(collection, identifier)
                 if not path.exists() or read_json(path) != value:
                     write_json(path, value)
-                    paths.append(str(path.relative_to(self.root)))
+                    paths.append(path.relative_to(self.root).as_posix())
         # Histórico permanente proporcional aos itens alterados; o journal mantém o resultado completo.
         items = [dict(collection=c["collection"], id=c["id"], delete=bool(c.get("delete")),
                       remove_fields=c.get("remove_fields", []),
@@ -410,7 +435,7 @@ class Vault:
             receipt["metadata"] = dict(before=proposal["previous_metadata"], after=proposal["result"]["metadata"])
         history = self.root / "history" / (proposal["id"] + ".json")
         write_json(history, receipt)
-        paths.append(str(history.relative_to(self.root)))
+        paths.append(history.relative_to(self.root).as_posix())
         from .views import write_views
         paths.extend(write_views(self, proposal["result"]))
         if (self.root / ".git").exists():

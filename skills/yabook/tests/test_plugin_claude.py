@@ -42,7 +42,8 @@ class ClaudeAdapterTest(unittest.TestCase):
         self.assertEqual(sync_plugin(self.source, self.installed, self.home)["status"], "outdated")
         result = sync_claude(self.source, self.installed, self.home, apply=True, runner=self.runner)
         self.assertEqual((result["status"], result["adopted"], result["registration"]), ("updated", True, "updated"))
-        self.assertEqual(self.calls, [["marketplace", "update"], ["update", "yabook@yabook-local"]])
+        self.assertEqual(self.calls, [["marketplace", "update"], ["uninstall", "yabook@yabook-local"],
+                                      ["install", "yabook@yabook-local"]])
         self.calls.clear()
         result = sync_claude(self.source, self.installed, self.home, apply=True, runner=self.runner)
         self.assertEqual((result["status"], self.calls), ("synchronized", []))

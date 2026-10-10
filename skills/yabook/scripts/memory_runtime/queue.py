@@ -6,24 +6,33 @@ import stat
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .core import digest
+from .core import digest, file_lock
 
 
 def queue_dir():
+    if "YABOOK_QUEUE" in os.environ:
+        return Path(os.environ["YABOOK_QUEUE"])
+    if os.name == "nt":
+        # Perfil local do usuário: privado por ACL e independente do TEMP do sandbox.
+        local = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData/Local")
+        return Path(local) / "yabook" / "queue"
     # /tmp fixo: o TMPDIR do sandbox pode diferir do ambiente do hook.
-    return Path(os.environ.get("YABOOK_QUEUE", "/tmp/yabook-queue-%d" % os.getuid()))
+    return Path("/tmp/yabook-queue-%d" % os.getuid())
 
 
 def _private(path):
     """Fila compartilha /tmp: só diretório/arquivo próprio, sem link e sem acesso de terceiros."""
     info = os.lstat(path)
-    if stat.S_ISLNK(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+    if stat.S_ISLNK(info.st_mode):
+        raise ValueError("Fila de aprendizado com dono ou permissão inválidos: " + str(path))
+    # No Windows dono e modo POSIX não existem; a pasta do perfil já restringe o acesso.
+    if os.name != "nt" and (info.st_uid != os.getuid() or info.st_mode & 0o077):
         raise ValueError("Fila de aprendizado com dono ou permissão inválidos: " + str(path))
 
 
 def enqueue(root, payload, actor, config_path, workspace):
     directory = queue_dir()
-    directory.mkdir(mode=0o700, exist_ok=True)
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     _private(directory)
     item = dict(memory_root=str(Path(root).resolve()), config=str(Path(config_path).expanduser().resolve()),
                 workspace=str(workspace), actor=actor, payload=payload,
@@ -39,13 +48,8 @@ def enqueue(root, payload, actor, config_path, workspace):
 
 @contextlib.contextmanager
 def _locked(directory):
-    import fcntl
-    with open(directory / ".lock", "a") as stream:
-        fcntl.flock(stream, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(stream, fcntl.LOCK_UN)
+    with open(directory / ".lock", "a") as stream, file_lock(stream):
+        yield
 
 
 def apply_queue(config_path):

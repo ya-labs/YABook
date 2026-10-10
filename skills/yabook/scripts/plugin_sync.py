@@ -60,7 +60,8 @@ def validate_package(root, previous=False):
     for reference in references:
         if reference and reference.removeprefix("./") not in files:
             raise ValueError(f"Arquivo referenciado ausente: {reference}")
-    skill = files["skills/yabook/SKILL.md"].decode("utf-8")
+    # Checkout com autocrlf no Windows grava CRLF; o conteúdo da skill continua válido.
+    skill = files["skills/yabook/SKILL.md"].decode("utf-8").replace("\r\n", "\n")
     if not skill.startswith("---\n") or "name: yabook" not in skill.split("---", 2)[1]:
         raise ValueError("Skill inválida")
     return files

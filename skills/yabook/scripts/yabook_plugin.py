@@ -16,7 +16,7 @@ def fingerprint(root):
                   and "__pycache__" not in p.parts and "tests" not in p.relative_to(root).parts and p.suffix != ".pyc"]
     result = hashlib.sha256()
     for path in sorted(files):
-        result.update(str(path.relative_to(root)).encode()); result.update(b"\0"); result.update(path.read_bytes())
+        result.update(path.relative_to(root).as_posix().encode()); result.update(b"\0"); result.update(path.read_bytes())
     return result.hexdigest()[:16]
 
 

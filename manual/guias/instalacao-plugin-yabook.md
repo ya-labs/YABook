@@ -8,13 +8,16 @@ um repositório GitHub sem a aprovação do plano de inicialização.
 ## Requisitos
 
 - Python 3.10 ou superior, Git e GitHub CLI (`gh`) autenticado.
-- Linux ou macOS: o bloqueio de escrita usa `fcntl`, da biblioteca padrão.
+- Linux, macOS ou Windows: o bloqueio de escrita usa `fcntl` no POSIX e
+  `msvcrt` no Windows, ambos da biblioteca padrão.
 - Um host que aceite plugins e os eventos registrados em `hooks/hooks.json`.
 - Ollama somente se quiser busca semântica; a busca textual não depende dele.
 
 O runtime usa a biblioteca padrão do Python e SQLite com FTS5. Não há instalação
-de dependências por `pip` ou `npm`. Windows nativo não está homologado; use um
-ambiente Linux compatível. Testes de callbacks não substituem a verificação
+de dependências por `pip` ou `npm`. No Windows, `python3` precisa resolver para
+o Python instalado, pois os hooks o chamam por esse nome. O `.gitattributes`
+mantém o pacote em LF em qualquer sistema, para que validação, hash e `sync`
+coincidam entre máquinas. Testes de callbacks não substituem a verificação
 dos eventos na versão do Codex ou Claude instalada.
 
 ## 1. Preparar uma cópia do pacote
@@ -201,7 +204,8 @@ A configuração padrão é `~/.config/yabook/config.json`. A inicialização gr
 
 No Codex, comandos do agente rodam em sandbox: a base de memória fica somente
 leitura e consultas funcionam sem trava. Quando o `learn` não consegue gravar, ele
-valida o lote e o coloca em uma fila privada (`/tmp/yabook-queue-<uid>`, 0700); o hook,
+valida o lote e o coloca em uma fila privada (`/tmp/yabook-queue-<uid>`, 0700;
+no Windows, `%LOCALAPPDATA%\yabook\queue`); o hook,
 fora do sandbox, aplica o lote pela mesma validação ao concluir a ferramenta, no fim
 do turno ou no próximo início de sessão. Lotes que não puderem ser aplicados viram
 proposta pendente ou falha avisada no início da sessão. No modo somente leitura

@@ -75,6 +75,14 @@ class HooksTest(unittest.TestCase):
                 state=hook.prompt_grant(prefix+" do commit",{},self.tmp.name)
                 self.assertEqual(state["grant"]["kind"],"commit")
 
+    def test_mode_auto_followed_by_punctuation_keeps_goal(self):
+        for prompt in ("/yabook:yabook mode: auto. ajuste o Windows", "$yabook mode: auto, ajuste o Windows"):
+            with self.subTest(prompt=prompt):
+                state = hook.prompt_grant(prompt, {}, self.tmp.name)
+                self.assertTrue(state["auto"])
+                self.assertEqual(state["goal"], "ajuste o Windows")
+        self.assertFalse(hook.prompt_grant("$yabook mode: automatic", {"auto": True}, self.tmp.name)["auto"])
+
     def test_commit_followed_by_mode_auto_without_colon(self):
         for mode in ("mode auto", "mode: auto", "mode:auto"):
             with self.subTest(mode=mode):

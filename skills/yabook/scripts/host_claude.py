@@ -1,6 +1,7 @@
 """Adaptador Claude Code: marketplace local gerenciado e comandos oficiais `claude plugin`."""
 import glob
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -25,7 +26,8 @@ def find_claude():
     found = shutil.which("claude")
     if found:
         return found
-    candidates = sorted(glob.glob(str(Path.home() / ".vscode/extensions/anthropic.claude-code-*/resources/native-binary/claude")))
+    name = "claude.exe" if os.name == "nt" else "claude"
+    candidates = sorted(glob.glob(str(Path.home() / ".vscode/extensions/anthropic.claude-code-*/resources/native-binary" / name)))
     return candidates[-1] if candidates else None
 
 
@@ -87,7 +89,9 @@ def sync_claude(source, installed, home, apply=False, runner=run_claude):
             report["registration"] = "installed"
         elif report["status"] != "synchronized":
             runner(["marketplace", "update", MARKETPLACE])
-            runner(["update", SELECTOR, "--scope", "user"])
+            # `plugin update` ignora conteúdo novo com a mesma versão; reinstalar renova o cache.
+            runner(["uninstall", SELECTOR, "--scope", "user"])
+            runner(["install", SELECTOR, "--scope", "user"])
             report["registration"] = "updated"
     except FileNotFoundError:
         report["registration"] = "pending: Claude Code não encontrado; o pacote vale em nova sessão"
