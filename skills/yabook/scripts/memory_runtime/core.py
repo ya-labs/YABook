@@ -9,6 +9,7 @@ import os
 import re
 import tempfile
 import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,8 +39,21 @@ def digest(value):
                                      separators=(",", ":")).encode()).hexdigest()
 
 
+def _sharing_retry(operation):
+    """No Windows, ler ou substituir arquivo aberto por outro processo (hooks paralelos)
+    gera PermissionError transitório; no POSIX a operação é atômica e não repete."""
+    attempts = 50 if os.name == "nt" else 1
+    for attempt in range(attempts):
+        try:
+            return operation()
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(0.02)
+
+
 def read_json(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    return json.loads(_sharing_retry(lambda: Path(path).read_text(encoding="utf-8")))
 
 
 def write_json(path, value):
@@ -52,7 +66,7 @@ def write_json(path, value):
             stream.write("\n")
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        _sharing_retry(lambda: os.replace(temporary, path))
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
