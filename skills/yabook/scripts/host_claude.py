@@ -35,7 +35,7 @@ def run_claude(arguments):
     binary = find_claude()
     if not binary:
         raise FileNotFoundError("Claude Code não encontrado")
-    result = subprocess.run([binary, "plugin", *arguments], capture_output=True, text=True, timeout=120,
+    result = subprocess.run([binary, "plugin", *arguments], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
                             stdin=subprocess.DEVNULL)
     if result.returncode:
         raise ValueError("claude plugin " + " ".join(arguments[:2]) + " falhou: " + (result.stderr or result.stdout)[-300:])

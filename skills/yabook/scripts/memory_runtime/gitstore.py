@@ -10,7 +10,7 @@ from .core import Vault, COLLECTIONS, digest, read_json, write_json, SECRET
 
 def run(*args, check=True, timeout=60):
     try:
-        result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+        result = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         raise ValueError("Tempo esgotado em " + args[0] + "; usar cache ou repetir após verificar rede") from exc
     if check and result.returncode:

@@ -8,7 +8,7 @@ from plugin_sync import compare, validate_package
 
 def run_host(arguments):
     subprocess.run(["rtk", "proxy", "codex", "plugin", *arguments, "--json"], check=True,
-                   capture_output=True, text=True)
+                   capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def sync_codex(source, installed, home, apply=False, runner=run_host):
@@ -28,7 +28,7 @@ def sync_codex(source, installed, home, apply=False, runner=run_host):
         cache = Path(os.environ.get("CODEX_HOME", str(home / ".codex"))) / "plugins/cache"
         version = json.loads((source / ".codex-plugin/plugin.json").read_text())["version"]
         listing = subprocess.run(["rtk", "proxy", "codex", "plugin", "list", "--json"], check=True,
-                                 capture_output=True, text=True)
+                                 capture_output=True, text=True, encoding="utf-8", errors="replace")
         entries = json.loads(listing.stdout).get("installed", [])
         entry = next((p for p in entries if p.get("pluginId") == "yabook@" + marketplace), None)
         if entry and not entry.get("enabled"):

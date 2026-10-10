@@ -43,7 +43,7 @@ def config():
 
 
 def git(cwd, *args):
-    result = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, timeout=8)
+    result = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=8)
     return result.stdout.strip() if result.returncode == 0 else ""
 
 
