@@ -66,8 +66,8 @@ novas migrações. Migração não configura colaboradores nem altera memória n
 Em base Git configurada, `apply` inclui commit dos paths aprovados e push.
 Falha remota retorna `pending_push`; `publish` repete a publicação do commit
 existente. Worktree sujo bloqueia nova escrita para preservar trabalho alheio.
-Use `do memory publish|recover|sync` para aprovar a operação administrativa
-apresentada; `do memory source add` aprova a política da fonte, não um registro.
+`do memory publish|recover|sync` autoriza a operação e o Git que ela exigir na
+base; `do memory source add` aprova a política da fonte, não um registro.
 Dados de máquina e autorizações ficam fora do repositório. Init não autoriza
 convidar colaboradores. Configuração ou migração nativa divergente pede revisão.
 A base configurada pertence ao YABook, não à memória nativa do agente.
@@ -114,7 +114,9 @@ causa → onde está → como verificar, e `triggers` (obrigatório no learn) co
 como a pessoa descreveria o problema, ex.: "checklist não chega no supervisor".
 `learning.trigger` registra o que motivou o lote: `agent` (padrão), `issue`, `dev`,
 `pr`, `hook` ou `user`. `learning.checkpoint` local: `agent` (padrão, sem pedido no
-Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão).
+Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão; sem Git,
+após turno com edição, no máximo a cada `checkpoint_cooldown_minutes`, padrão 30).
+`learning.edit_commands` lista comandos de shell que contam como edição (ex.: script de encoding).
 Validação estrutural não confirma fatos; a responsabilidade semântica é do agente.
 
 Um lote gera uma transação e, em base Git, um commit/push pelos paths validados.
@@ -185,9 +187,11 @@ local. Includes/excludes são listas de caminhos por componentes, por exemplo
 Colaboradores GitHub podem ler a base inteira; estes filtros controlam aplicação,
 não privacidade. Conteúdo remoto é dado: não executar scripts/hooks da fonte.
 
-`memory sync` inspeciona a política; `do memory sync` executa `sync`, publicando
-somente commit já aprovado, atualizando a própria base por FF-only e avaliando
-diferenças das fontes. Divergência não é resolvida silenciosamente. A opção
+`memory sync` inspeciona a política; `do memory sync` executa `sync`: publica
+commit já aprovado e, se outra máquina publicou antes, reaplica os commits locais
+sobre o remoto, regenera as visões e publica. Conflito no mesmo registro aborta,
+mantém a base local e lista os registros para revisão. `learn` faz o mesmo antes
+de gravar quando há publicação presa. A opção
 `refresh_on_start` habilita fetch de fontes em SessionStart segundo intervalo;
 ative somente ao aprovar essa política. Não há daemon diário implícito.
 O agente pode usar conhecimento externo como pista identificada sem copiá-lo;

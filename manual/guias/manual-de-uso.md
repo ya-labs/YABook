@@ -586,13 +586,11 @@ Para `help dashboard`, a resposta esperada é:
 
 Ao usar a skill, diferencie geração de texto de execução.
 
-A trava de `do` vale somente quando a pessoa invoca a gramática `$yabook`, com
-uma exceção: mutações Git exigem `$yabook do` ou a autorização limitada de
-`$yabook dev`.
-
-Pedidos normais em linguagem natural podem autorizar outras alterações, mas não
-podem criar ou trocar branch, preparar arquivos, criar commit, alterar histórico
-ou interagir com remotes.
+A IA interpreta pedidos pela intenção, como no roteamento: “faça o commit”,
+“publica e abre o PR” ou `$yabook do <ação>` autorizam o objetivo, inclusive Git.
+Perguntas, discussões e prévias não executam. O hook do plugin só barra o que
+perde trabalho ou integra sem pedido (push forçado, merge, push em branch
+protegida, descarte de alterações e troca de branch com worktree sujo).
 
 Comandos como `$yabook init`, `$yabook diagnose`, `$yabook plan`, `$yabook issue`, `$yabook pr`, `$yabook branch name`, `$yabook commit message`, `$yabook status`, `$yabook check` e `$yabook review` servem para conversar, gerar propostas, inspecionar contexto ou apontar conformidade.
 

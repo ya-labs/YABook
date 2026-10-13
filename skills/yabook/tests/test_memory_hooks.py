@@ -27,8 +27,8 @@ class HooksTest(unittest.TestCase):
         self.assertIn("YABook ativo", result["hookSpecificOutput"]["additionalContext"])
         state = hook.read_json(hook.state_path(self.event)); self.assertFalse(state["auto"])
 
-    def test_git_without_grant_denied(self):
-        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push"}))
+    def test_force_push_denied(self):
+        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push --force"}))
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
 
     def test_explicit_auto_and_merge_limit(self):
@@ -52,7 +52,7 @@ class HooksTest(unittest.TestCase):
         for command in ("rtk git add example.md", "rtk git commit -m 'fix: exemplo'"):
             result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":command}))
             self.assertNotEqual(result.get("hookSpecificOutput", {}).get("permissionDecision"), "deny")
-        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push"}))
+        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push --force"}))
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
 
     def test_chains_are_processed_in_order_and_keep_merge_protection(self):
@@ -118,7 +118,7 @@ class HooksTest(unittest.TestCase):
     def test_claude_namespace_and_stop_does_not_loop(self):
         state = hook.prompt_grant("/yabook:yabook mode: auto objetivo", {}, self.tmp.name)
         self.assertTrue(state["auto"])
-        state = hook.prompt_grant("$yabook mode: automatico", {}, self.tmp.name)
+        state = hook.prompt_grant("$yabook mode: work", {"auto": True}, self.tmp.name)
         self.assertFalse(state.get("auto", False))
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {"checkpoint": "hook"}})
         hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
@@ -149,35 +149,6 @@ class HooksTest(unittest.TestCase):
         self.assertFalse(hook.needs_memory("certo, prossiga"))
         self.assertTrue(hook.needs_memory("o checklist não chega no supervisor"))
 
-    def test_git_mutation_in_compound_command_is_guarded(self):
-        def call(command):
-            result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
-            return result.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
-        for command in ("cd /repo && git add x && git commit -m 'y'", "cd /repo&&git push", "echo ok; rtk git commit -m z",
-                        "ls | git stash"):
-            self.assertTrue(call(command), command)
-        for command in ("cd /repo && git status && git log -1", "git diff --stat; git branch --show-current"):
-            self.assertFalse(call(command), command)
-        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do commit"))
-        self.assertFalse(call("cd /repo && git add x && git commit -m 'y'"))
-        self.assertTrue(call("cd /repo && git commit -m y && git push"))
-
-    def test_svn_mutations_need_grant_and_reads_stay_free(self):
-        def call(command):
-            return hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
-        def denied(result):
-            return result.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
-        for command in ("svn status", "rtk proxy svn diff node_modules", "svn propget svn:ignore node_modules", "svn log -l 5"):
-            self.assertFalse(denied(call(command)), command)
-        for command in ("svn propset svn:ignore '*' node_modules", "cd /x && svn ps svn:ignore '*' nm",
-                        "svn commit -m x", "svn revert --depth=empty node_modules", "svn update --set-depth=empty nm"):
-            self.assertTrue(denied(call(command)), command)
-        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do commit"))
-        self.assertFalse(denied(call("svn commit -m 'fix: x'")))
-        self.assertTrue(denied(call("svn revert file.js")))
-        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook mode: auto objetivo"))
-        self.assertFalse(denied(call("svn revert file.js")))
-
     def test_protected_branch_allows_edits_outside_repository(self):
         patch_text = "*** Begin Patch\n*** Add File: /tmp/lote.json\n+{}\n*** End Patch"
         event = dict(self.event, hook_event_name="PreToolUse", tool_name="apply_patch", tool_input={"command": patch_text})
@@ -194,6 +165,38 @@ class HooksTest(unittest.TestCase):
         hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook bypass corrigir texto"))
         self.assertNotIn("permissionDecision", hook.run(event)["hookSpecificOutput"])
 
+    def test_git_is_agent_judgment_with_safety_net(self):
+        worktree = {"branch": "feature", "status": ""}
+        self.git.stop()
+        fake = patch.object(hook, "git", side_effect=lambda cwd, *args: worktree["branch"] if args == ("branch", "--show-current")
+                            else worktree["status"] if args[:1] == ("status",) else "")
+        fake.start(); self.addCleanup(fake.stop)
+        event = self.event
+        def denied(command, prompt=None):
+            if prompt:
+                hook.run(dict(event, hook_event_name="UserPromptSubmit", prompt=prompt))
+            result = hook.run(dict(event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
+            return result.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
+        # Sem comando yabook: o agente decide pelo contexto.
+        for command in ("cd /repo && git add x && git commit -m 'y'", "git fetch && git rebase origin/main && git push",
+                        "git stash", "git reset --soft HEAD~1", "git switch -c nova", "git push -u origin feature",
+                        "git merge --abort", "svn commit -m x", "svn propset svn:ignore '*' nm", "svn update"):
+            self.assertFalse(denied(command), command)
+        # Rede de segurança: perda de trabalho, histórico reescrito, integração e branch protegida.
+        for command in ("git push --force", "git push -f origin feature", "git push origin +feature",
+                        "git push --force-with-lease", "git push origin main", "git push origin HEAD:release/1.0",
+                        "git merge outra", "git clean -fd", "git stash drop", "svn revert file.js"):
+            self.assertTrue(denied(command), command)
+        worktree["status"] = "?? sujo.txt"
+        self.assertTrue(denied("git switch main"))
+        self.assertTrue(denied("git reset --hard"))
+        self.assertFalse(denied("git switch -c leva-junto"))
+        self.assertFalse(denied("git merge outra", "pode fazer o merge da outra"))
+        self.assertFalse(denied("git push origin main", "$yabook do push"))
+        self.assertTrue(denied("git push --force"))  # nem com pedido de push
+        self.assertFalse(denied("git push --force-with-lease", "yabook mode auto"))
+        self.assertFalse(denied("svn revert file.js"))
+
     def test_administration_is_not_a_record_identifier(self):
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
         for command, service in (("sync", "sync"), ("publish", "publish"),
@@ -204,7 +207,22 @@ class HooksTest(unittest.TestCase):
             self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash",
             tool_input={"command": "python3 yabook_memory.py --root " + self.tmp.name + " sync"}))
-        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))  # manutenção do objetivo de memória
+        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash",
+            tool_input={"command": "python3 yabook_memory.py --root /outra/base sync"}))
+        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")  # base errada continua barrada
+
+    def test_commands_are_read_by_intent_not_spelling(self):
+        for text in ("yabook mode auto.", "yabook mode auto;", "yabook mode autop", "/yabook:yabook Modo automático",
+                     "$yabook auto, implemente"):
+            self.assertTrue(hook.prompt_grant(text, {}, "/r").get("auto"), text)
+        state = hook.prompt_grant("yabook mode auto & dev", {}, "/r")
+        self.assertEqual((state["auto"], state["grant"]["kind"]), (True, "dev"))
+        self.assertEqual(hook.prompt_grant("$yabook mode: auto - faça x", {}, "/r")["goal"], "faça x")
+        self.assertFalse(hook.prompt_grant("$yabook mode work", {"auto": True}, "/r")["auto"])
+        self.assertEqual(hook.prompt_grant("$yabook do comit.", {}, "/r")["grant"]["kind"], "commit")
+        self.assertEqual(hook.prompt_grant("$yabook do: PR;", {}, "/r")["grant"]["kind"], "pr")
+        self.assertNotIn("auto", hook.prompt_grant("veja: yabook mode auto", {}, "/r"))
 
     def test_first_initialization_without_existing_configuration(self):
         plan = Path(self.tmp.name) / "plan.json"
@@ -236,7 +254,7 @@ class HooksTest(unittest.TestCase):
                                  tool_input={"command": "python3 yabook_memory.py --root " + self.tmp.name + " " + command}))
         self.assertNotIn("permissionDecision", inspect("learn --input data.json --actor demo").get("hookSpecificOutput", {}))
         self.assertEqual(inspect("apply P-example --approval-hash hash")["hookSpecificOutput"]["permissionDecision"], "deny")
-        self.assertEqual(inspect("learning-policy --mode automatic")["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertNotIn("permissionDecision", inspect("learning-policy --mode automatic").get("hookSpecificOutput", {}))
         self.assertEqual(inspect("learn --config /other/config.json --input data.json --actor demo")["hookSpecificOutput"]["permissionDecision"], "deny")
         hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do memory policy manual"))
         self.assertNotIn("permissionDecision", inspect("learning-policy --mode manual").get("hookSpecificOutput", {}))
@@ -289,6 +307,23 @@ class HooksTest(unittest.TestCase):
         hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Edit"))
         self.commit("c4")
         self.assertEqual(hook.run(stop), {})  # padrão agent: sem pedido
+
+    def test_checkpoint_without_git_uses_configured_edit_commands_and_cooldown(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name, "learning": {
+            "mode": "automatic", "checkpoint": "hook", "edit_commands": ["edita.py"]}})
+        self.head = ""  # workspace sem Git, como um controle de fontes próprio
+        hook.run(dict(self.event, hook_event_name="SessionStart", source="startup"))
+        stop = dict(self.event, hook_event_name="Stop", stop_hook_active=False)
+        bash = lambda command: hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash",
+                                             tool_input={"command": command}))
+        bash("ls backup/")
+        self.assertEqual(hook.run(stop), {})  # sem edição, sem pedido
+        bash("python3 ~/.claude/edita.py wad821c03.p --anchor x")
+        self.assertEqual(hook.run(stop)["decision"], "block")
+        bash("python3 ~/.claude/edita.py wad821c04.p --anchor y")
+        self.assertEqual(hook.run(stop), {})  # dentro do intervalo
+        with patch.object(hook.time, "time", return_value=hook.time.time() + 31 * 60):
+            self.assertEqual(hook.run(stop)["decision"], "block")
 
     def test_memory_failure_degrades_but_authorization_still_denies(self):
         hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})

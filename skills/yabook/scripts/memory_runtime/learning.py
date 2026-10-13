@@ -109,6 +109,13 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
     if mode != "automatic":
         reasons.append("Política de aprendizado manual")
     # Uma transação interrompida/publicação pendente não permite novas escritas.
+    # Publicação já commitada e presa (ex.: outra máquina publicou antes) é resolvida aqui.
+    if (vault.local / "publication.json").exists() and not pending_automatic(vault):
+        from .gitstore import settle
+        try:
+            settle(vault)
+        except (OSError, ValueError):
+            pass  # sandbox ou offline: segue para a regra abaixo
     # Lote automático sem commit (sandbox) não impede o próximo; manual pendente, sim.
     accumulated = pending_automatic(vault)
     if (vault.local / "publication.json").exists() and not accumulated or (vault.local / "transaction.json").exists():

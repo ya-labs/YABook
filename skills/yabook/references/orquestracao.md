@@ -29,8 +29,7 @@ Em `mode: auto` explicitamente ativo, pedidos de execução inequívocos autoriz
 o objetivo e seus pré-requisitos sem `do`, `bypass` ou checkpoints aprovados.
 Avance na implementação, validação e commits; execute operações remotas apenas
 quando incluídas no pedido. Não converta perguntas, discussões ou prévias em
-escrita e não infira ativação do modo. As travas de autorização abaixo valem
-fora de `auto`.
+escrita.
 
 Antes de iniciar novas edições, aplique a avaliação descrita em
 `git/checkpoint.md`. Interrompa somente quando as alterações pendentes formarem um bloco
@@ -94,19 +93,12 @@ composição. Não trate comandos inferidos como se tivessem sido digitados.
 
 ## Segurança
 
-- Somente `$yabook do` e aliases documentados autorizam escrita na gramática
-  YABook. `$yabook dev` é o atalho para implementar a issue atual, não um gate
-  exclusivo para edição.
-- A regra inclui mutações Git locais e remotas; o roteamento pode inferir apenas
-  inspeções Git somente leitura.
-- Pedidos diretos fora da gramática `$yabook` também não autorizam mutações Git
-  em projetos YA LABS.
-- Não infira `dev` a partir de um pedido ambíguo; desenvolvimento exige o
-  comando explícito ou outra autorização de escrita documentada.
-- Verbos em linguagem natural depois de `$yabook` não equivalem a `do`.
-- Sem `do`, entregue proposta, análise ou orientação e informe o comando
-  necessário para executar.
-- Mesmo com `do`, realize apenas os artefatos explicitamente autorizados.
+- Autorização é inferida como a rota: pedido claro de execução (`do`, “pode
+  commitar”, “publica e abre o PR”, “implementa”) autoriza o objetivo e seus
+  passos, inclusive Git. Pergunta, discussão ou prévia (`$yabook issue`) não.
+- Comando errado ou incompleto é corrigido pela intenção, sem pedir que a pessoa
+  repita a sintaxe.
+- Não amplie o objetivo; merge e push em branch protegida exigem pedido.
 - Diante de dúvida material, pare e peça a decisão da pessoa usuária.
 
 ## Etapas

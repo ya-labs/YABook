@@ -20,6 +20,10 @@ $yabook mode: auto - implemente as melhorias e organize os commits
 $yabook def mode study for Angular
 ```
 
+Leia a intenção, não a grafia: `mode auto.`, `mode autop`, `modo automático`,
+`yabook auto, <objetivo>` e `mode auto & dev` ativam `auto`; o mesmo vale para
+ações de `do` com pontuação ou erro de digitação, conforme o roteamento.
+
 Precedência: modo da solicitação, conversa, área e padrão. Modo da conversa é
 temporário. Modo por área só é persistido por `do plan`.
 

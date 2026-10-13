@@ -2,13 +2,15 @@
 
 Use quando a rota puder alterar Git local ou remoto.
 
-Somente `$yabook do` ou um alias documentado de `do` autoriza mutações Git
-específicas. `$yabook dev` é o atalho de implementação da issue atual e não um
-gate exclusivo para editar arquivos. Pedidos diretos genéricos fora da issue
-atual não autorizam mutações.
+O pedido da pessoa autoriza mutações Git, seja `$yabook do <ação>` ou linguagem
+natural interpretada pelo contexto (“pode commitar”, “sobe e abre o PR”). Autoriza
+o objetivo, não um comando: inclui os passos necessários para cumpri-lo. Na
+dúvida sobre o pedido, pergunte. O hook só barra push forçado, push em branch
+protegida e merge sem pedido, descarte de trabalho e troca de branch com
+worktree sujo. `$yabook dev` é o atalho de implementação da issue atual e não um
+gate exclusivo para editar arquivos.
 
-Essa exigência de `do` vale fora de `mode: auto`. Com ativação explícita de
-`auto`, o objetivo delegado autoriza seus pré-requisitos, branches e commits,
+Com ativação explícita de `auto`, o objetivo delegado autoriza seus pré-requisitos, branches e commits,
 sem aprovação de checkpoints. Operações remotas só entram no pedido autorizado;
 abrir PR inclui push da branch, implementar não implica publicar. Merge exige
 pedido explícito, mas não a sintaxe `do`. Preserve trabalho existente e respeite
@@ -38,14 +40,14 @@ git push
 
 ## Escopo
 
-- Execute apenas a ação autorizada.
-- `do commit` não autoriza push.
+- Cumpra o objetivo autorizado; não amplie para outro.
+- Push só quando o objetivo é publicar (`pr`, `push`, `branch`, `sync`,
+  `release`, `merge`, operações de memória). `do commit` não autoriza push.
 - `do branch` não autoriza editar arquivos.
 - `do pr` pode criar commits coerentes, enviar a branch e criar ou atualizar o
   PR; não autoriza merge.
-- `do rebase` autoriza somente o rebase previamente inspecionado. Não autoriza
-  `push --force-with-lease`, push comum, PR, merge, release ou resolução
-  silenciosa de conflitos.
+- `do rebase` não autoriza push, PR, merge, release ou resolução silenciosa de
+  conflitos de conteúdo.
 - `do merge` pode cumprir pré-requisitos do PR e integrar após as validações.
 - Merge exige pedido explícito.
 - `bypass` não substitui `do`.

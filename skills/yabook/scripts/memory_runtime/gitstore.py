@@ -287,3 +287,69 @@ def apply_and_publish(vault, identifier, approval_hash, automatic=False):
     result = vault.apply(identifier, approval_hash)
     result["publication"] = publish(vault, result["paths"], "docs: aplica memória " + result["proposal"]) if (vault.root / ".git").exists() else dict(status="local_only")
     return result
+
+
+def reconcile(vault):
+    """Alinha a base com o remoto quando outra máquina publicou: reaplica commits locais por cima,
+    regenera visões geradas e atualiza a publicação pendente. Conflito em registros não é resolvido."""
+    if not (vault.root / ".git").exists():
+        return dict(status="local_only")
+    branch = git(vault.root, "branch", "--show-current").stdout.strip()
+    if git(vault.root, "fetch", "origin", branch, check=False).returncode:
+        return dict(status="offline")
+    counts = git(vault.root, "rev-list", "--left-right", "--count", "HEAD...origin/" + branch, check=False).stdout.split()
+    ahead, behind = (int(counts[0]), int(counts[1])) if len(counts) == 2 else (0, 0)
+    if not behind:
+        return dict(status="up_to_date", ahead=ahead)
+    with vault.lock():
+        if (vault.local / "transaction.json").exists():
+            raise ValueError("Transação interrompida; execute recover antes de sincronizar")
+        if pending_automatic(vault):
+            return dict(status="pending_commit", hint="Conclua o publish fora do sandbox antes de sincronizar")
+        clean(vault)
+        if not ahead:
+            git(vault.root, "merge", "--ff-only", "origin/" + branch)
+            return dict(status="updated", behind=behind)
+        conflicts = []
+        rebase = git(vault.root, "-c", "core.editor=true", "rebase", "origin/" + branch, check=False)
+        while rebase.returncode:
+            conflicts = git(vault.root, "diff", "--name-only", "--diff-filter=U").stdout.split()
+            if not conflicts or any(not c.startswith("views/") for c in conflicts):
+                git(vault.root, "rebase", "--abort", check=False)
+                records = sorted({Path(c).stem for c in conflicts if not c.startswith("views/")})
+                return dict(status="conflict", records=records, ahead=ahead, behind=behind,
+                            hint="As duas máquinas alteraram os mesmos registros; a base local ficou como estava.")
+            # Visões são derivadas dos JSON: qualquer lado serve, elas são regeneradas ao final.
+            for path in conflicts:
+                if git(vault.root, "checkout", "--theirs", "--", path, check=False).returncode:
+                    git(vault.root, "rm", "-q", "--", path)  # apagada de um dos lados
+            git(vault.root, "add", "-A", "--", "views")
+            rebase = git(vault.root, "-c", "core.editor=true", "rebase", "--continue", check=False)
+        snapshot = vault._snapshot()
+        vault.validate(snapshot)
+        from .views import write_views
+        changed = write_views(vault, snapshot)
+        if changed:
+            git(vault.root, "add", "--", *changed)
+            git(vault.root, "commit", "-m", "docs: regenera visões após sincronizar memória")
+        pending = vault.local / "publication.json"
+        head = git(vault.root, "rev-parse", "HEAD").stdout.strip()
+        # O rebase muda o hash do commit pendente; o recibo acompanha o novo HEAD para o push.
+        receipt = read_json(pending) if pending.exists() else dict(
+            paths=[], message="docs: regenera visões após sincronizar memória", files={}, automatic=True)
+        receipt.update(paths=sorted(set(receipt["paths"]) | set(changed)), commit=head)
+        write_json(pending, receipt)
+    return dict(status="rebased", ahead=ahead, behind=behind, regenerated=changed)
+
+
+def settle(vault):
+    """Conclui publicação pendente; se o remoto divergiu, reconcilia antes de publicar de novo."""
+    if not (vault.local / "publication.json").exists():
+        return None
+    result = publish(vault)
+    if result.get("status") == "pending_push":
+        reconciled = reconcile(vault)
+        if reconciled["status"] in ("rebased", "updated"):
+            result = publish(vault)
+        result["reconcile"] = reconciled
+    return result
