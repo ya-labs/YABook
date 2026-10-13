@@ -6,6 +6,7 @@ import hashlib
 import argparse
 import json
 import os
+import difflib
 import re
 import shlex
 import subprocess
@@ -17,8 +18,9 @@ from memory_runtime.core import Vault, digest, read_json, write_json
 
 METHOD = """YABook ativo. Aplique o método YA LABS no projeto conforme AGENTS.md local.
 Antes de editar confira branch, worktree, staged/unstaged e último commit.
-Fora de auto, Git e SVN exigem do ou preparação de dev; bypass libera somente edição.
-main/dev/release exigem a exceção anexada ou ajuste pontual autorizado em auto.
+Git e SVN seguem o pedido da pessoa e o roteamento, inferidos pelo contexto; na dúvida, pergunte.
+Edição e push em main/dev/release exigem exceção pedida ou auto. O hook barra force push,
+merge sem pedido, descarte de trabalho e troca de branch com worktree sujo.
 Preserve trabalho alheio. Auto vale só nesta sessão/projeto; merge requer pedido.
 Use a skill YABook e suas referências para formatos, limites e decisões.
 Conclua respostas operacionais com Próxima etapa e informe commits/validação.
@@ -126,10 +128,27 @@ def deny(reason):
                                     "permissionDecisionReason": reason}}
 
 
-YABOOK_INVOCATION = r"(?:\$yabook(?::yabook)?|/yabook(?::yabook)?)"
+YABOOK_INVOCATION = r"(?:[$/]?yabook(?::yabook)?)"
 YABOOK_PREFIX = re.compile(
-    r"^(?:" + YABOOK_INVOCATION + r"|\[" + YABOOK_INVOCATION + r"\]\([^\n)]+\))\s+"
+    r"^(?:" + YABOOK_INVOCATION + r"|\[" + YABOOK_INVOCATION + r"\]\([^\n)]+\))[:,]?\s+", re.I
 )
+MODES = ("auto", "study", "work", "prod")
+ACTIONS = ("issue", "branch", "commit", "pr", "push", "merge", "sync", "release", "publish", "rebase", "apk", "plan")
+
+
+def intended_mode(command):
+    """Lê a intenção, não a grafia: "mode auto.", "Mode: autop", "modo automático" valem como auto."""
+    match = re.match(r"mod[eo]\b[\s:]*([^\W\d_]*)[\s.,;:!\-–]*(.*)", command, re.S | re.I)
+    if not match:
+        # "yabook auto ..." sem a palavra mode também expressa a intenção.
+        match = re.match(r"(aut[^\W\d_]*)[\s.,;:!\-–]*(.*)", command, re.S | re.I)
+        if not match:
+            return None
+    word = match[1].casefold()
+    if word.startswith("aut"):
+        return "auto", match[2].strip()
+    close = difflib.get_close_matches(word, MODES, n=1, cutoff=0.6)
+    return (close[0] if close else word), match[2].strip()
 
 
 def unquoted_prompt(text):
@@ -179,14 +198,17 @@ def prompt_grant(text, state, root):
             for part in command_chain(line.lstrip()[match.end():]):
                 commands.append(YABOOK_PREFIX.sub("", part, count=1))
     for command in commands:
-        automatic = re.fullmatch(r"mode(?:\s*:\s*|\s+)auto(?:\s+(.*))?", command)
-        if automatic:
-            state.update(auto=True, project=root, goal=(automatic[1] or "").strip(), grant=None)
-        elif re.match(r"mode(?:\s|:|$)", command):
+        command = command.strip()
+        mode = intended_mode(command)
+        if mode and mode[0] == "auto":
+            state.update(auto=True, project=root, goal=mode[1], grant=None)
+        elif mode:
             state.update(auto=False, grant=None)
-        elif command.startswith("do memory"):
+        elif re.match(r"do\W+memory\b", command, re.I):
             cfg = config()
-            operation = command.removeprefix("do memory").strip()
+            # Pontuação final e caixa não mudam a operação pedida.
+            operation = re.sub(r"[.!;,]+$", "", re.sub(r"^do\W+memory\b", "", command, flags=re.I).strip())
+            operation = operation.casefold() if operation.casefold() in ("init", "sync", "publish", "recover") else operation
             administrative = {"init": "memory_init", "sync": "memory_sync",
                               "publish": "memory_publish", "recover": "memory_recover"}
             kind = administrative.get(operation)
@@ -199,18 +221,21 @@ def prompt_grant(text, state, root):
             elif cfg.get("memory_root"):
                 state["grant"] = {"kind": "memory", "root": str(Path(cfg["memory_root"]).resolve()),
                                   "request": command, "proposal": None}
-                if command != "do memory init":
-                    words = command.split()
-                    proposal = Vault(cfg["memory_root"]).proposal(words[2] if len(words) > 2 else None)
+                if operation != "init":
+                    words = operation.split()
+                    proposal = Vault(cfg["memory_root"]).proposal(words[0] if words else None)
                     state["grant"].update(proposal=proposal["id"], approval_hash=proposal["approval_hash"])
-        elif command.startswith("do ") or command.startswith("do: "):
-            action = command.replace("do:", "do", 1).split(maxsplit=2)[1]
-            state["grant"] = {"kind": action, "root": root}
-        elif command.startswith("dev"):
+        elif re.match(r"do\b\W", command, re.I):
+            action = re.sub(r"\W+$", "", re.sub(r"^do\W+", "", command, flags=re.I).split(maxsplit=1)[0]).casefold()
+            # Ação com erro de digitação ("do comit") vale pela ação conhecida mais próxima.
+            close = difflib.get_close_matches(action, ACTIONS, n=1, cutoff=0.75)
+            state["grant"] = {"kind": close[0] if close else action, "root": root}
+        elif re.match(r"dev\b", command, re.I):
             state["grant"] = {"kind": "dev", "root": root}
-        elif command.startswith("bypass "):
+        elif re.match(r"bypass\b", command, re.I):
             state["grant"] = {"kind": "bypass", "root": root, "request": command[7:]}
-    if state.get("auto") and re.search(r"^(?:faça|execute|realize)\s+(?:o\s+)?merge\b", clean.strip(), re.I):
+    # Pedido de merge em qualquer forma ("faça o merge", "pode mergear") vale para a sessão.
+    if re.search(r"\bmerg", clean, re.I) and not re.search(r"\b(?:não|nao|sem)\s+(?:\w+\s+){0,2}merg", clean, re.I):
         state["merge_requested"] = True
     return state
 
@@ -272,6 +297,40 @@ COMMIT = re.compile(r"\bgit\b[^;&|\n]*\bcommit\b")
 LEARN = re.compile(r"yabook_memory\.py\b.*\blearn\b")
 
 
+PROTECTED = re.compile(r"^(?:main|master|dev|release.*)$")
+
+
+def dangerous_git(segment, target, state, grant, auto):
+    """Rede de segurança: o agente decide o Git pelo objetivo; aqui só o que perde trabalho,
+    reescreve histórico publicado ou integra sem pedido."""
+    words = segment[1:]
+    if "-C" in words:
+        words = words[:words.index("-C")] + words[words.index("-C") + 2:]
+    sub = next((w for w in words if not w.startswith("-")), None)
+    explicit = grant.get("root") == target and grant.get("kind") not in (None, "dev")
+    if sub == "push":
+        if any(w in ("-f", "--force") or w.startswith("--force=") or w.startswith("+") for w in words):
+            return "push --force reescreve histórico remoto; use --force-with-lease com pedido explícito."
+        if any(w.startswith("--force-with-lease") for w in words) and not (auto or explicit):
+            return "push --force-with-lease reescreve a branch remota; confirme com a pessoa."
+        refs = [w.split(":")[-1] for w in words[words.index("push") + 1:] if not w.startswith("-")][1:]
+        if any(PROTECTED.match(r) for r in refs or [git(target, "branch", "--show-current")]) and not (auto or explicit):
+            return "push direto para branch protegida exige pedido explícito."
+    if sub == "merge" and not any(w in ("--abort", "--continue") for w in words):
+        if not (grant.get("kind") == "merge" or state.get("merge_requested")):
+            return "merge exige pedido explícito da pessoa."
+    dirty = sub in ("reset", "switch", "checkout") and git(target, "status", "--porcelain")
+    if sub == "reset" and "--hard" in words and dirty:
+        return "reset --hard descartaria alterações não commitadas; faça stash ou commit antes."
+    if sub == "clean" and any(w == "--force" or w.startswith("-") and not w.startswith("--") and "f" in w for w in words):
+        return "git clean apaga arquivos não versionados; confirme com a pessoa."
+    if sub == "stash" and any(w in ("drop", "clear") for w in words):
+        return "stash drop/clear apaga trabalho guardado; confirme com a pessoa."
+    if sub in ("switch", "checkout") and dirty and "--" not in words and not any(w in ("-c", "-b", "-C", "-B") for w in words):
+        return "worktree sujo; separe as alterações antes de trocar branch."
+    return None
+
+
 def shell_command(event):
     """Comando de shell da ferramenta; conteúdo de edições não é comando executado."""
     if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
@@ -297,10 +356,6 @@ SVN_MUTATIONS = {
     "switch": "switch", "sw": "switch", "merge": "merge", "resolve": "resolve", "resolved": "resolve",
     "cleanup": "cleanup", "lock": "lock", "unlock": "unlock", "import": "import", "relocate": "relocate",
     "patch": "patch"}
-SVN_GRANTS = {"commit": {"add", "delete", "move", "copy", "mkdir", "propset", "propdel", "changelist", "commit"},
-              "branch": {"update", "switch"}, "dev": {"update", "switch"}, "sync": {"update"},
-              "merge": {"merge", "resolve", "commit"}}
-SVN_GRANTS["pr"] = SVN_GRANTS["push"] = SVN_GRANTS["commit"]
 
 
 def svn_mutation(parts):
@@ -359,43 +414,18 @@ def inspect_call(event, state, root):
         target = root
         if "-C" in segment:
             target = project(segment[segment.index("-C") + 1])
-        mutation = next((p for p in segment[1:] if p in ("add", "commit", "push", "pull", "fetch", "switch", "checkout", "merge", "rebase", "reset", "restore", "stash", "clean", "tag", "branch", "cherry-pick", "revert")), None)
-        # branch --show-current é somente leitura.
-        if mutation == "branch" and any(p in segment for p in ("--show-current", "--list", "-a", "-r")): mutation = None
-        if mutation:
-            applicable = grant.get("root") == target
-            permit = auto and target == root
-            kind = grant.get("kind")
-            allowed = {"commit": {"add", "commit"}, "pr": {"add", "commit", "push"},
-                       "branch": {"fetch", "switch", "checkout", "branch", "push"},
-                       "dev": {"fetch", "switch", "checkout", "branch"},
-                       "rebase": {"rebase"}, "merge": {"merge", "add", "commit", "push"},
-                       "push": {"push"}, "sync": {"fetch", "pull", "push"}}
-            permit |= applicable and mutation in allowed.get(kind, set())
-            # Publicação de memória deve passar pela ferramenta com validação de paths.
-            if kind == "memory": permit = False
-            if mutation == "merge" and not (applicable and kind == "merge" or auto and state.get("merge_requested")):
-                permit = False
-            if mutation in ("switch", "checkout") and git(target, "status", "--porcelain"):
-                return deny("YABook: worktree sujo; separe as alterações antes de trocar branch.")
-            if not permit:
-                return deny("YABook: operação Git fora da autorização limitada da sessão.")
-    svn = svn_mutation(spaced)
-    if svn:
-        kind = grant.get("kind")
-        permit = auto or (authorized and svn in SVN_GRANTS.get(kind, set()))
-        if not permit:
-            return deny("YABook: operação SVN (" + svn + ") altera o working copy ou o repositório; "
-                        "exige $yabook do correspondente ou mode: auto.")
+        risk = dangerous_git(segment, target, state, grant, auto)
+        if risk:
+            return deny("YABook: " + risk)
+    # Reverter descarta trabalho local sem volta; o resto do SVN segue o julgamento do agente.
+    if svn_mutation(spaced) == "revert" and not (auto or authorized and grant.get("kind") in ("revert", "bypass")):
+        return deny("YABook: svn revert descarta alterações locais; confirme com a pessoa antes.")
     if any(Path(p).name == "yabook_memory.py" for p in parts):
         services = ("apply", "publish", "recover", "init-apply", "sync", "source-add", "learn", "learn-triggers", "learning-policy")
         service = next((p for p in parts if p in services), None)
         if service:
             cfg = config()
             target = parts[parts.index("--root") + 1] if "--root" in parts else ""
-            required = {"apply": "memory", "publish": "memory_publish", "recover": "memory_recover",
-                        "init-apply": "memory_init", "sync": "memory_sync", "source-add": "memory_source",
-                        "learn": None, "learn-triggers": None, "learning-policy": "memory_policy"}[service]
             if not target:
                 return deny("YABook: destino de memória ausente.")
             # ~ não é expandido pelo shlex: comparar caminhos já expandidos.
@@ -409,8 +439,6 @@ def inspect_call(event, state, root):
                 supplied = parts[parts.index("--workspace") + 1]
                 if project(str(Path(supplied).expanduser())) != root:
                     return deny("YABook: aprendizado pertence a outro projeto.")
-            if required is not None and grant.get("kind") != required:
-                return deny("YABook: memória precisa de aprovação explícita da proposta.")
             if service == "init-apply":
                 if "--plan" not in parts:
                     return deny("YABook: inicialização exige plano apresentado.")
@@ -418,10 +446,15 @@ def inspect_call(event, state, root):
                 if str(Path(plan["root"]).resolve()) != str(Path(target).resolve()):
                     return deny("YABook: base diferente do plano de inicialização.")
             if "apply" in parts:
+                # Integridade: aplica exatamente a proposta apresentada (id e hash conferem).
                 index = parts.index("apply")
                 identifier = parts[index + 1] if index + 1 < len(parts) else None
-                if identifier != grant.get("proposal") or grant.get("approval_hash") not in parts:
-                    return deny("YABook: proposta diferente da aprovada.")
+                try:
+                    proposal = Vault(cfg["memory_root"]).proposal(identifier)
+                except (OSError, ValueError, KeyError):
+                    proposal = {}
+                if not proposal or proposal.get("approval_hash") not in parts:
+                    return deny("YABook: proposta diferente da apresentada.")
     # Shell composto, scripts e MCP exigem análise pela skill; não afirmar cobertura completa.
     if edit or "Bash" == name:
         text = "Estado YABook: " + json.dumps({"branch": branch,

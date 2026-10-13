@@ -26,16 +26,16 @@ Regras: [contexto.md](references/contexto.md).
 
 ## Segurança
 
-- Fora de `auto`, não infira `do`: análise/prévia, salvo autorizações de `dev`
-  e `bypass`.
+- Infira rota e autorização pelo contexto: pedido claro autoriza o objetivo;
+  na dúvida, pergunte.
 - `dev` implementa e valida a issue; fora de `auto`, termina antes de commit/PR.
   Não é gate exclusivo para editar nem autoriza merge/release.
 - `bypass` dispensa issue/branch só para a ação anexada; não autoriza Git.
 - `auto` explícito dispensa `do`, `bypass` e aprovação de checkpoints no objetivo.
   Vale na conversa do projeto atual até outro modo; sem persistir ou transferir.
   Permissões do ambiente continuam válidas.
-- Git: `do` ou delegação em `auto`. Leia [mutações](references/git/mutacoes.md)
-  só ao executar. Respeite o objetivo; merge exige pedido explícito.
+- Git: leia [mutações](references/git/mutacoes.md) só ao executar; merge e push
+  em branch protegida exigem pedido.
 - Antes de editar, atualize status, diffs staged/unstaged e último commit;
   aplique [checkpoint](references/git/checkpoint.md) a trabalho independente.
 - Reuse contexto; uma inspeção inicial e validação final. Reabra por lacuna.

@@ -87,13 +87,15 @@ Quando alterar arquivos neste repositório, termine a resposta com uma sugestão
 
 ### Trava obrigatória de Git
 
-Fora de `mode: auto`, comandos Git que alteram estado local ou remoto só podem ser executados quando a
-pessoa usar `$yabook do <ação>` ou `$yabook dev` dentro do escopo de preparação
-e implementação da issue atual.
+Mutações Git e SVN seguem o pedido da pessoa, interpretado pelo contexto como no
+roteamento: “pode commitar”, “publica e abre o PR” ou `$yabook do <ação>` autorizam
+o objetivo inteiro, com os passos necessários. Na dúvida sobre o que foi pedido,
+pergunte; não amplie o objetivo por conta própria.
 
-Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
-para o remoto” não autorizam a mutação. Oriente a pessoa a repetir o pedido com
-`$yabook do`.
+O hook do plugin é rede de segurança, não gate: barra push forçado, push direto
+em `main`, `dev` ou release sem pedido, merge sem pedido, descarte de trabalho
+(`reset --hard` com alterações, `clean -f`, `stash drop`, `svn revert`) e troca
+de branch com worktree sujo.
 
 Em `auto`, a delegação substitui essas confirmações dentro do objetivo solicitado.
 Operações remotas dependem do pedido e merge exige pedido explícito. O modo vale

@@ -70,13 +70,9 @@ Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo
 
 ### Trava obrigatória de Git
 
-Fora de `mode: auto`, comandos Git que alteram estado local ou remoto só podem ser executados quando a
-pessoa usar `$yabook do <ação>` ou `$yabook dev` dentro do escopo de preparação
-e implementação da issue atual.
-
-Pedidos diretos como “crie uma branch”, “faça commit”, “faça merge” ou “envie
-para o remoto” não autorizam a mutação. A IA deve orientar a pessoa a repetir o
-pedido com `$yabook do`.
+Mutações Git seguem o pedido da pessoa, interpretado pelo contexto: “crie uma
+branch”, “faça commit” ou `$yabook do <ação>` autorizam o objetivo e seus passos.
+Na dúvida, pergunte. Merge e push em branch protegida exigem pedido explícito.
 
 Em `auto`, a delegação autoriza os passos necessários ao objetivo sem essas
 confirmações. Operações remotas dependem do pedido e merge exige pedido explícito.
