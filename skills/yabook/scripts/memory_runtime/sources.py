@@ -158,12 +158,10 @@ def all_entries(vault, includes=(), excludes=()):
 
 
 def sync(vault):
-    publication = publish(vault)
-    clean(vault)
-    if (vault.root / ".git").exists():
-        # FF-only não resolve conflito sem avaliação e não mistura históricos de colegas.
-        branch = git(vault.root, "branch", "--show-current").stdout.strip()
-        result = git(vault.root, "pull", "--ff-only", "origin", branch, check=False)
-        own = "updated" if result.returncode == 0 else "offline_or_diverged"
-    else: own = "local_only"
+    from .gitstore import reconcile, settle
+    # Publicação pendente presa por divergência é reconciliada e publicada aqui mesmo.
+    publication = settle(vault) or dict(status="unchanged")
+    own = reconcile(vault)
+    if own.get("status") == "rebased":
+        publication = settle(vault) or publication
     return dict(publication=publication, own=own, sources=refresh(vault, force=True))
