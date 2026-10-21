@@ -157,6 +157,24 @@ class RelevanceTest(unittest.TestCase):
         self.assertEqual([(k["id"], k["project"]) for k in found], [("BOLETO", "Org / Fontes")])
         self.assertEqual(retrieve(self.v, "xyz999q.p", [["Org", "App"]], other=2)["knowledge"], [])
 
+    def test_symptom_match_ranks_first_and_weak_matches_are_cut(self):
+        import yabook_hook
+        self.assertFalse(yabook_hook.needs_memory("<task-notification>\n<task-id>x</task-id> tarefa concluída"))
+        base = dict(scope=["Org", "App"], kind="knowledge", state="confirmed", evidence=EVIDENCE, application="Aplicar")
+        changes = [dict(collection="records", id="SINTOMA", value=dict(base, title="Selo de pendência do envio",
+                        content="O selo some quando o envio conclui.", triggers=["envio concluído continua pendente"])),
+                   dict(collection="records", id="FRACO", value=dict(base, title="Câmera da tela",
+                        content="A câmera trava; o envio continua depois e fica pendente na fila.", triggers=["câmera trava"])),
+                   dict(collection="records", id="FORA", value=dict(base, scope=["Org", "Outro"], title="Fila de outro app",
+                        content="Envio pendente em outro app.", triggers=["fila parada"]))]
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        ids = [k["id"] for k in retrieve(self.v, "envio concluído continua pendente", [["Org", "App"]], budget=3500,
+                                         excerpt=300, other=2)["knowledge"]]
+        self.assertEqual(ids[0], "SINTOMA")
+        self.assertNotIn("FRACO", ids)  # só conteúdo, bem abaixo do gatilho
+        self.assertNotIn("FORA", ids)   # outro projeto abaixo do piso
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]

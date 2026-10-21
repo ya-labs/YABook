@@ -214,12 +214,15 @@ SessionStart carrega esse contexto automaticamente.
 `retrieve <consulta> --scope <Org/Projeto> --budget 6000` recupera assuntos e
 conhecimento, sem experiências/evidências extensas. `--experiences` aprofunda
 relatos; `--evidence` inclui fontes, exigindo `--experiences`. Registros sem
-grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes: só o
-que casou com a consulta, até três registros do assunto que casou e um vizinho
-por relação explícita; entidade vale pelos registros que a citam. Até dois
-registros de outros projetos entram com `project` marcando a origem, quando
-contêm ao menos 75% dos termos da consulta ou o mesmo nome técnico. Um nome
-técnico sozinho (`lnws_gvintegra.p`, `wgv024c1`) basta para o hook buscar.
+grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes, por
+força da correspondência: nome técnico exato e frase de gatilho contida na
+pergunta, depois termo em título, gatilho ou apelido, depois conteúdo; abaixo de
+60% da melhor nota não entra. Seguem até três registros do assunto que casou e um
+vizinho por relação explícita; entidade vale pelos registros que a citam. Até
+dois registros de outros projetos disputam a mesma ordem, com `project` marcando
+a origem, quando contêm 75% dos termos ou o mesmo nome técnico. Um nome técnico
+sozinho (`lnws_gvintegra.p`, `wgv024c1`) basta para o hook buscar. Gatilho bom é
+a frase que a pessoa usaria, não uma palavra solta.
 Não considere hipóteses diagnósticos nem preferências inferidas regras obrigatórias.
 
 Novas bases usam schema 2. Schema 1 permanece legível; atualização de formato

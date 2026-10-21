@@ -9,9 +9,11 @@ LEVELS = ("index", "knowledge", "evidence")
 ENTITY_RECORDS = 2
 TOPICS = 3
 TOPIC_MEMBERS = 3
-FOREIGN_AFTER = 3
+FOREIGN_MIN = 4  # nota mínima para registro de outro projeto entrar
 SEARCH_BUDGET = 60000
 QUERY_CHARS = 200
+STRONG_FIELDS = ("title", "triggers", "aliases", "keywords")
+WEAK_SHARE = 0.6  # fração da melhor nota abaixo da qual a correspondência direta sai
 STRONG_SHARE = 0.75  # parcela dos termos da consulta exigida fora do projeto
 
 
@@ -50,6 +52,24 @@ def strong_match(entry, query):
     return found >= min(4, max(2, math.ceil(len(wanted) * STRONG_SHARE)))
 
 
+def quality(entry, query):
+    """Força da correspondência com o problema descrito: nome técnico exato e frase de gatilho
+    contida na pergunta pesam mais; depois termo em título, gatilho ou apelido; por último, conteúdo."""
+    import re
+    from .search import STOPWORDS, fold, identifiers
+    def words(value):
+        return fold(" ".join(map(str, value)) if isinstance(value, list) else str(value or ""))
+    strong = " ".join(words(entry.get(field)) for field in STRONG_FIELDS)
+    body = words(entry.get("content")) + " " + words(entry.get("application"))
+    question = fold(query)
+    score = sum(5 for name in identifiers(query) if fold(name) in strong + " " + body)
+    score += sum(3 for trigger in entry.get("triggers", []) if len(trigger) > 8 and fold(trigger) in question)
+    for term in {fold(t) for t in re.findall(r"[\w-]+", query) if t.casefold() not in STOPWORDS}:
+        pattern = r"\b" + re.escape(term) + r"\b"
+        score += 2 if re.search(pattern, strong) else 1 if re.search(pattern, body) else 0
+    return score
+
+
 def other_projects(vault, query, includes, limit, model=None):
     """Registros próprios fora dos escopos da sessão que casam fortemente com a consulta."""
     from .core import scoped
@@ -84,13 +104,28 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
         entry = by_key.get(identifier)
         if entry and identifier not in order and kind(entry) != "profile":
             order.append(identifier)
-    for entry in knowledge["results"]:
+    # Correspondências diretas em ordem de força; as bem abaixo da melhor não completam a lista.
+    direct = []
+    for rank, entry in enumerate(knowledge["results"]):
+        full = by_key.get(key(entry), entry)
         if entry["collection"] == "entities":
             citing = [e for e in entries if e["collection"] == "records" and entry["id"] in e.get("entities", [])
                       and e.get("source", "own") == entry.get("source", "own")]
-            for record in ordered(citing)[:ENTITY_RECORDS]: add(key(record))
+            direct += [(quality(full, query), rank, key(record)) for record in ordered(citing)[:ENTITY_RECORDS]]
         else:
-            add(key(entry))
+            direct.append((quality(full, query), rank, key(entry)))
+    # Outros projetos disputam a mesma ordem pela nota, poucos, com piso próprio e origem marcada.
+    foreign = []
+    if other and includes:
+        local = {identifier for _, _, identifier in direct}
+        for entry in other_projects(vault, query, includes, other, model):
+            score = quality(entry, query)
+            if key(entry) not in local and score >= FOREIGN_MIN:
+                by_key[key(entry)] = entry; foreign.append(key(entry))
+                direct.append((score, len(direct), key(entry)))
+    best = max((score for score, _, _ in direct), default=0)
+    for score, _, identifier in sorted(direct, key=lambda item: (-item[0], item[1])):
+        if score >= best * WEAK_SHARE: add(identifier)
     # Assunto que casou (apelido, gatilho) vale pelos seus registros, em número limitado.
     for found in (e for e in topics["results"] if e["collection"] == "groups"):
         group = by_key.get(key(found), found)  # resultado da busca vem sem a lista de membros
@@ -98,14 +133,6 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
         members = [by_key.get(namespace + m) for m in group.get("members", [])]
         for member in [m for m in members if m and m["collection"] == "records"][:TOPIC_MEMBERS]:
             add(key(member))
-    # Outros projetos depois dos três primeiros do escopo da sessão (para não perderem
-    # espaço no orçamento), poucos e com a origem marcada.
-    foreign = []
-    if other and includes:
-        for entry in other_projects(vault, query, includes, other, model):
-            if key(entry) not in order:
-                by_key[key(entry)] = entry; foreign.append(key(entry))
-        order[FOREIGN_AFTER:FOREIGN_AFTER] = foreign
     # No máximo um vizinho direto por item, logo após a origem para sobreviver ao
     # orçamento: a relação explícita mais próxima. Preferência condicional relacionada
     # vale como vizinho; perfil não (já chega no início da sessão).
@@ -119,8 +146,10 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
             if related and related["collection"] == "records" and kind(related) != "profile" \
                     and target not in order and target not in chosen:
                 chosen.append(target); break
+    # Assuntos que casaram com a pergunta e o do melhor resultado, para orientar; os grupos
+    # de cada registro encontrado viravam recheio.
     groups = [key(e) for e in topics["results"] if e["collection"] == "groups"]
-    for identifier in order:
+    for identifier in order[:1]:
         entry = by_key[identifier]
         parents = [g for g in entries if g["collection"] == "groups" and entry["id"] in g.get("members", [])]
         if entry.get("parent"): parents += [by_key.get(entry.get("source", "own") + ":" + entry["parent"])]
