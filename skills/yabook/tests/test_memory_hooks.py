@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import tempfile
@@ -30,6 +31,19 @@ class HooksTest(unittest.TestCase):
     def test_force_push_denied(self):
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push --force"}))
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
+
+    def test_stats_record_host_result_and_failure_reason(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
+        stats = Path(self.tmp.name) / "hook-stats.jsonl"
+        with patch("memory_runtime.retrieval.retrieve", side_effect=ValueError("Transação interrompida")):
+            hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="checklist do supervisor não chega"))
+        hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": "git push --force"}))
+        rows = [json.loads(line) for line in stats.read_text().splitlines()]
+        failure = next(r for r in rows if r["event"] == "UserPromptSubmit")
+        self.assertEqual((failure["result"], failure["error"]), ("erro", "ValueError: Transação interrompida"))
+        self.assertIn(failure["host"], ("claude", "codex", "unknown"))
+        self.assertEqual(next(r for r in rows if r["event"] == "PreToolUse")["result"], "deny")
+        self.assertNotIn("supervisor", stats.read_text())  # o texto do prompt não vai para o log
 
     def test_auto_releases_every_hook_lock(self):
         def denied(command):

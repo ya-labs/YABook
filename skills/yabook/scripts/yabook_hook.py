@@ -93,21 +93,34 @@ def event_response(output, protocol="native"):
                 reason=details.get("permissionDecisionReason", output.get("reason", "")))
 
 
-def context(event_name, text):
-    record_stats(event_name, len(text))
+def context(event_name, text, **details):
+    record_stats(event_name, len(text), **details)
     return {"hookSpecificOutput": {"hookEventName": event_name, "additionalContext": text}}
 
 
-def record_stats(event_name, characters):
-    """Tamanho injetado por evento, para comparar o custo dos hooks com o uso do agente."""
+def host(event=None):
+    """Agente que executou o hook: o mesmo hooks.json serve Claude Code e Codex."""
+    if event and event.get("agent"):
+        return event["agent"]
+    location = str(Path(__file__).resolve())
+    if "/.codex/" in location or os.environ.get("CODEX_HOME"):
+        return "codex"
+    if "claude" in location or os.environ.get("CLAUDECODE") or os.environ.get("CLAUDE_PLUGIN_ROOT"):
+        return "claude"
+    return "unknown"
+
+
+def record_stats(event_name, characters, **details):
+    """Tamanho injetado, resultado e host por evento, para medir custo e diagnosticar falhas.
+    Fica só nesta máquina; nunca grava o texto do prompt nem conteúdo da memória."""
     try:
         path = config_path().parent / "hook-stats.jsonl"
         if path.exists() and path.stat().st_size > 2_000_000:
             path.replace(path.with_suffix(".jsonl.1"))
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("a", encoding="utf-8") as stream:
-            stream.write(json.dumps({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "event": event_name,
-                                     "chars": characters}) + "\n")
+            stream.write(json.dumps(dict({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "event": event_name,
+                                          "chars": characters, "host": host()}, **details), ensure_ascii=False) + "\n")
     except OSError:
         pass
 
@@ -124,6 +137,7 @@ def needs_memory(prompt):
 
 
 def deny(reason):
+    record_stats("PreToolUse", 0, result="deny", reason=reason[:160])
     return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
                                     "permissionDecisionReason": reason}}
 
@@ -540,6 +554,7 @@ def run(event):
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."
         cfg = config()
+        details = dict(result="sem_busca")
         if cfg.get("memory_root") and event.get("prompt", "").strip() and needs_memory(event["prompt"]):
             try:
                 from memory_runtime.retrieval import delivered_levels, retrieve
@@ -549,17 +564,24 @@ def run(event):
                                   delivered=state.get("delivered", {}), other=2)
                 remember_delivery(state, delivered_levels(result))
                 write_json(path, state)
+                details = dict(result="sem_pistas", knowledge=len(result["knowledge"]), topics=len(result["topics"]),
+                               other=sum(1 for k in result["knowledge"] if k.get("project")),
+                               repeated=result["already_delivered"])
                 if result["topics"] or result["knowledge"]:
+                    details["result"] = "pistas"
                     text += "\nPistas de memória para esta tarefa (confirmar condições e fontes atuais): " + json.dumps(result, ensure_ascii=False)
                 elif result["already_delivered"]:
+                    details["result"] = "ja_entregue"
                     text += "\nMemórias relacionadas já entregues nesta sessão; use retrieve para aprofundar."
                 if len(result["knowledge"]) < 3 and not result["already_delivered"]:
                     # Busca textual não entende sinônimos; o agente reformula e ensina a frase à memória.
                     text += ("\nPistas fracas: antes de investigar do zero, tente retrieve com termos técnicos e sinônimos"
                              " (tabelas, telas, fontes). Se achar o registro certo, use learn-triggers com a frase da pessoa.")
-            except Exception:  # Leitura de memória degrada sem bloquear o prompt.
+            except Exception as error:  # Leitura de memória degrada sem bloquear o prompt.
+                # O tipo e a mensagem do erro ficam no log local para diagnóstico.
+                details = dict(result="erro", error=type(error).__name__ + ": " + str(error)[:160])
                 text += "\nBusca de memória indisponível; use fontes atuais do projeto."
-        return context(event_name, text)
+        return context(event_name, text, **details)
     if event_name == "PreToolUse":
         state["pretool_seen"] = True
         if COMMIT.search(shell_command(event)):
@@ -616,7 +638,10 @@ def run(event):
         automatic = cfg.get("learning", {}).get("mode") == "automatic"
         instruction = ("Use learn para aplicar um único lote curado de descobertas comprovadas, sem conflitos, no escopo configurado. Não peça do memory para esse lote. Use learning.trigger hook. Informe apenas Memória atualizada: <assunto/arquivo>; hipóteses, inferências e conflitos ficam pendentes."
                        if automatic else "Prepare uma proposta apenas se houver aprendizado útil; a política manual exige do memory antes de aplicar.")
-        return {"decision": "block", "reason": "Avalie uma vez o aprendizado desta etapa conforme memory.md, consultando apenas memórias relacionadas. " + instruction + " Não grave sem novidade útil, não refaça o desenvolvimento e não reinjete o histórico na conversa."}
+        reason = ("Avalie uma vez o aprendizado desta etapa conforme memory.md, consultando apenas memórias relacionadas. "
+                  + instruction + " Não grave sem novidade útil, não refaça o desenvolvimento e não reinjete o histórico na conversa.")
+        record_stats("Stop", len(reason), result="curadoria", git=bool(head))
+        return {"decision": "block", "reason": reason}
     return {}
 
 
