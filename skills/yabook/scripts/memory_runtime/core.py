@@ -97,6 +97,9 @@ def check_evidence(entry):
             raise ValueError("Evidência precisa de referência")
         if "date" in item and not (isinstance(item["date"], str) and DATE.fullmatch(item["date"])):
             raise ValueError("Data de evidência inválida (AAAA-MM-DD)")
+        # Relato fora da base (sessão de agente) precisa de resumo portátil: verificado e o que faltou.
+        if "summary" in item and not (isinstance(item["summary"], str) and 0 < len(item["summary"].strip()) <= 400):
+            raise ValueError("Resumo de evidência precisa de texto com até 400 caracteres")
     provenance = entry.get("provenance", [])
     if not isinstance(provenance, list):
         raise ValueError("Procedência precisa ser lista")

@@ -150,7 +150,9 @@ dela não entra no contexto nem nas pistas. Perfil curto: o contexto corta o tex
 Experiências ficam em `episodes`: objective, context, actions, outcome, validation,
 evidence e learnings (IDs de records). Preserve relatos ao corrigir fatos atuais.
 Guarde descobertas compactas com aplicação, condições e evidência; não copie
-logs completos. Pessoa, organização, projeto e assunto são componentes de
+logs completos. Evidência que aponta para relato fora da base (sessão de agente,
+arquivo local) leva `summary` (até 400 caracteres: o que foi verificado e o que
+faltou), para valer em outra máquina; `available` diz onde está o relato. Pessoa, organização, projeto e assunto são componentes de
 escopo. Entidades identificam fontes/operacões pelo projeto e localização.
 Grupos `project|topic|collection` referenciam membros, com `parent` para hierarquia.
 Use IDs estáveis de projeto; `project_id` deve apontar ao projeto do mesmo escopo.
