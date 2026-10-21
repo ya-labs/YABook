@@ -67,6 +67,20 @@ class MaintenanceTest(unittest.TestCase):
         self.assertIn("Faxina da memória recomendada (1 problema acumulado)", context)
         self.assertIn("memory clean", context)
 
+    def test_portable_evidence_summary_is_validated_and_clears_diagnosis(self):
+        base = read_json(self.vault.root / "records/R1.json")
+        elsewhere = dict(type="session", level="reported", ref="rollout_summaries/x.md",
+                         available="fora desta máquina; provável memória nativa do Codex no Windows")
+        value = {k: v for k, v in base.items() if k not in ("id", "revision", "origin")}
+        value["evidence"] = EVIDENCE + [elsewhere]
+        self.apply([dict(collection="records", id="R1", value=value)])
+        self.assertEqual(maintenance.diagnose(self.vault, self.cfg)["judgment"]["evidence_elsewhere"], ["R1"])
+        with self.assertRaisesRegex(ValueError, "400"):
+            self.vault.prepare([dict(collection="records", id="R1", value=dict(value, evidence=[dict(elsewhere, summary="x" * 401)]))],
+                               ASSESSMENT, "test")
+        self.apply([dict(collection="records", id="R1", value=dict(value, evidence=EVIDENCE + [dict(elsewhere, summary="Teste passou; APK pendente.")]))])
+        self.assertEqual(maintenance.diagnose(self.vault, self.cfg)["judgment"]["evidence_elsewhere"], [])
+
     def test_diagnose_separates_mechanical_from_judgment(self):
         self.apply([dict(collection="records", id="H", value=dict(title="Hipótese velha", kind="knowledge", scope=["Demo"],
                          content="Talvez.", application="Ver", state="hypothesis", triggers=["fila"],
