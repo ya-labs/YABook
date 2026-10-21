@@ -114,6 +114,19 @@ class RelevanceTest(unittest.TestCase):
         self.assertTrue(all(k["project"].startswith("Org / Outro") for k in result))
         self.assertNotIn("FRACO", [k["id"] for k in result])
 
+    def test_candidates_are_not_cut_by_hint_budget_before_selection(self):
+        heavy = [dict(type="code", ref="fixture %d " % i + "x" * 200, level="static") for i in range(30)]
+        base = dict(scope=["Org", "App"], kind="knowledge", state="confirmed", application="Aplicar")
+        changes = [dict(collection="records", id="PESADO", value=dict(base, title="Migration remota sem Docker",
+                        content="Aplicar migration remota.", evidence=heavy, triggers=["aplicar migration sem docker"],
+                        application="Aplicar migration com cuidado. " * 120)),
+                   dict(collection="records", id="LEVE", value=dict(base, title="Migration só com autorização",
+                        content="Migration remota só com autorização.", evidence=EVIDENCE, triggers=["aplicar migration remota"]))]
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        ids = [k["id"] for k in retrieve(self.v, "aplicar migration remota sem docker", [["Org"]], budget=3500, excerpt=300)["knowledge"]]
+        self.assertEqual(set(ids[:2]), {"PESADO", "LEVE"})
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]
