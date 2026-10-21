@@ -98,6 +98,22 @@ class RelevanceTest(unittest.TestCase):
         self.assertEqual(ids[:2], ["CITA", "VIZ"])  # registro que cita a entidade e seu vizinho direto
         self.assertNotIn("ENT", ids); self.assertNotIn("AAA", ids)
 
+    def test_other_projects_enter_with_strong_match_limit_and_origin(self):
+        base = dict(kind="knowledge", state="confirmed", evidence=EVIDENCE, application="Aplicar")
+        changes = [dict(collection="records", id="X%d" % i, value=dict(base, scope=["Org", "Outro%d" % i],
+                        title="Expo SDK 57 quebra dependência nativa %d" % i,
+                        content="Expo SDK 57 exige alinhar dependência nativa.", triggers=["expo sdk 57"])) for i in range(3)]
+        changes.append(dict(collection="records", id="FRACO", value=dict(base, scope=["Org", "Outro"],
+                            title="Checklist do expo", content="Tela de checklist.", triggers=["tela"])))
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        query = "dependência nativa do expo sdk 57"
+        self.assertEqual(retrieve(self.v, query, [["Org", "App"]])["knowledge"], [])
+        result = retrieve(self.v, query, [["Org", "App"]], other=2)["knowledge"]
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all(k["project"].startswith("Org / Outro") for k in result))
+        self.assertNotIn("FRACO", [k["id"] for k in result])
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]
