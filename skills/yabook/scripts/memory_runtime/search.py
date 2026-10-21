@@ -30,6 +30,15 @@ def fold(value):
     return "".join(c for c in unicodedata.normalize("NFKD", str(value).casefold()) if not unicodedata.combining(c))
 
 
+IDENTIFIER = re.compile(r"(?=[\w./-]*[A-Za-z])(?:[\w-]+[._/][\w./-]+|(?=[\w-]*\d)[A-Za-z][\w-]{3,})")
+
+
+def identifiers(text_value):
+    """Nomes técnicos (fonte, tabela, serviço): com ponto, sublinhado ou barra, ou letras com
+    números (ex.: lnws_gvintegra.p, wgv024c1). Palavra comum sozinha não conta."""
+    return [m.group(0).strip("./-") for m in IDENTIFIER.finditer(text_value) if len(m.group(0)) >= 4]
+
+
 def uid(entry):
     return entry.get("source", "own") + ":" + entry["id"]
 

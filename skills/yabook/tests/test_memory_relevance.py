@@ -142,6 +142,21 @@ class RelevanceTest(unittest.TestCase):
         found = retrieve(self.v, "fila de integração sem retorno do ERP", [["Org", "App"]], budget=3500, excerpt=300, other=2)
         self.assertEqual(len([k for k in found["knowledge"] if k.get("project")]), 2)
 
+    def test_technical_name_alone_finds_record_even_in_other_project(self):
+        import yabook_hook
+        for prompt in ("lnws_gvintegra.p", "wgv024c1", "src/app.js"):
+            self.assertTrue(yabook_hook.needs_memory(prompt), prompt)
+        for prompt in ("beleza", "prossiga", "2026-10-21", "procolpre"):
+            self.assertFalse(yabook_hook.needs_memory(prompt), prompt)
+        changes = [dict(collection="records", id="BOLETO", value=dict(
+            scope=["Org", "Fontes"], kind="knowledge", state="confirmed", evidence=EVIDENCE, application="Abrir PDF",
+            title="Boletos em PDF no wgv024c1", content="wgv024c1 gera o PDF do boleto.", triggers=["boleto em pdf"]))]
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        found = retrieve(self.v, "wgv024c1", [["Org", "App"]], other=2)["knowledge"]
+        self.assertEqual([(k["id"], k["project"]) for k in found], [("BOLETO", "Org / Fontes")])
+        self.assertEqual(retrieve(self.v, "xyz999q.p", [["Org", "App"]], other=2)["knowledge"], [])
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]

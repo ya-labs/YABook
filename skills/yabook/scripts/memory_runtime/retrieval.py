@@ -38,11 +38,15 @@ def delivered_levels(result, evidence=False):
 def strong_match(entry, query):
     """Fora do projeto exige mais termos da consulta no registro que dentro dele."""
     import math, re
-    from .search import STOPWORDS, fold, text
+    from .search import STOPWORDS, fold, identifiers, text
+    body = fold(text(entry))
+    # Nome técnico exato vale por si: o mesmo fonte citado em outro projeto é a mesma coisa.
+    if any(fold(name) in body for name in identifiers(query)):
+        return True
     wanted = {fold(t) for t in re.findall(r"[\w-]+", query) if t.casefold() not in STOPWORDS}
     if len(wanted) < 2:
         return False
-    found = sum(1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", fold(text(entry))))
+    found = sum(1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", body))
     return found >= min(4, max(2, math.ceil(len(wanted) * STRONG_SHARE)))
 
 

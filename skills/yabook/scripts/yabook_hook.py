@@ -131,9 +131,10 @@ CONTINUATION = frozenset("ok certo sim beleza prossiga prossegue continue contin
 
 def needs_memory(prompt):
     """Continuações curtas ("prossiga", "pode implementar") não trazem assunto novo para buscar."""
-    from memory_runtime.search import STOPWORDS
+    from memory_runtime.search import STOPWORDS, identifiers
     terms = {t.casefold() for t in re.findall(r"[\w-]+", prompt)} - STOPWORDS - CONTINUATION
-    return len(terms) >= 2
+    # Um nome técnico sozinho (ex.: lnws_gvintegra.p) já é assunto suficiente para buscar.
+    return len(terms) >= 2 or bool(identifiers(prompt))
 
 
 def deny(reason):
