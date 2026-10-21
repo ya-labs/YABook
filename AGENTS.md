@@ -98,7 +98,8 @@ em `main`, `dev` ou release sem pedido, merge sem pedido, descarte de trabalho
 de branch com worktree sujo.
 
 Em `auto`, a delegação substitui essas confirmações dentro do objetivo solicitado.
-Operações remotas dependem do pedido e merge exige pedido explícito. O modo vale
+O hook não barra nada em `auto`: push, merge de PR e branch protegida entram no
+objetivo sem pedido separado. O modo vale
 na conversa do projeto atual até outro modo; não persista nem transfira a
 ativação. Preserve trabalho existente, use isolamento quando necessário e faça
 checkpoints do próprio trabalho sem pausa. As regras de checkpoint abaixo

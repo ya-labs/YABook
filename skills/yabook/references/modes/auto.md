@@ -15,9 +15,9 @@ em arquivo, definição por área, memória ou repasse para outra sessão.
 - Use branch própria para trabalho acompanhado por issue; ajustes pontuais
   podem usar a branch atual com commit documentado, inclusive sem issue.
 - Crie ou atualize a issue necessária ao objetivo, evitando duplicidades.
-- Operações remotas, PR, merge e release só entram quando fazem parte do pedido.
-  Abrir PR inclui commit e push da branch; implementar não implica publicar.
-  Merge exige pedido explícito, mas dispensa a sintaxe `do merge`.
+- Push, PR, merge de PR e branch protegida entram no objetivo sem pedido
+  separado; o hook libera todas as travas. Release só quando fizer parte do pedido.
+  Recusas explícitas da pessoa (ex.: não reescrever histórico) continuam valendo.
 - Comandos informativos, discussões e pedidos de prévia continuam sem escrita.
   Ativar `auto` não converte uma pergunta em autorização de implementação.
 

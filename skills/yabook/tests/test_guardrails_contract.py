@@ -15,7 +15,7 @@ class GuardrailsContractTest(unittest.TestCase):
         for text in (
             "fluxo YABook",
             "checkpoint",
-            "mutações Git sem `$yabook do <ação>`",
+            "mutações Git seguem o pedido da pessoa",
             "$yabook bypass <ação>",
             "Próxima etapa",
             "tipo: descrição curta",
@@ -35,7 +35,7 @@ class GuardrailsContractTest(unittest.TestCase):
     def test_auto_tem_excecao_explicita_nas_travas_globais(self) -> None:
         self.assertIn("Fora de `mode: auto`", self.reference)
         self.assertIn("explicitamente ativado", self.reference)
-        self.assertIn("merge exige pedido explícito", self.reference)
+        self.assertIn("merge de PR e branch protegida entram", self.reference)
         self.assertIn("Outro modo, projeto ou sessão encerra `auto`", self.reference)
 
     def test_bypass_exige_sugestao_completa_e_pacote_preserva_corpos(self) -> None:

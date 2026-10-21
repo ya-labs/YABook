@@ -31,10 +31,16 @@ class HooksTest(unittest.TestCase):
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"rtk git push --force"}))
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
 
-    def test_explicit_auto_and_merge_limit(self):
-        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook mode: auto objetivo"))
-        result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command":"git merge branch"}))
-        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
+    def test_auto_releases_every_hook_lock(self):
+        def denied(command):
+            result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash", tool_input={"command": command}))
+            return result.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
+        locked = ("git merge branch", "git push origin main", "git push --force", "git clean -fd", "git stash drop")
+        self.assertTrue(all(denied(c) for c in locked))
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="concordo. /yabook:yabook mode: auto pode prosseguir"))
+        self.assertFalse(any(denied(c) for c in locked))
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook mode: work"))
+        self.assertTrue(denied("git merge branch"))
         state = hook.prompt_grant("não faça merge; apenas prepare a revisão", {"auto": True}, self.tmp.name)
         self.assertFalse(state.get("merge_requested", False))
 
@@ -62,6 +68,7 @@ class HooksTest(unittest.TestCase):
         state = hook.prompt_grant("/yabook:yabook mode: auto & /yabook do commit", {}, self.tmp.name)
         self.assertTrue(state["auto"])
         self.assertEqual(state["grant"]["kind"], "commit")
+        state = hook.prompt_grant("$yabook mode: work & do commit", {}, self.tmp.name)
         result = hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"git merge other"}), state, self.tmp.name)
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")
         state = hook.prompt_grant("$yabook mode: auto & do merge", {}, self.tmp.name)
@@ -84,7 +91,7 @@ class HooksTest(unittest.TestCase):
                 result=hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"rtk git add example.md"}),state,self.tmp.name)
                 self.assertNotEqual(result.get("hookSpecificOutput",{}).get("permissionDecision"),"deny")
                 result=hook.inspect_call(dict(tool_name="Bash",tool_input={"command":"rtk git merge other"}),state,self.tmp.name)
-                self.assertEqual(result["hookSpecificOutput"]["permissionDecision"],"deny")
+                self.assertNotEqual(result.get("hookSpecificOutput",{}).get("permissionDecision"),"deny")  # auto libera
 
     def test_selected_skill_examples_and_open_fences_never_grant(self):
         selected="[$yabook:yabook](/path/SKILL.md) mode: auto & do commit"
@@ -223,6 +230,9 @@ class HooksTest(unittest.TestCase):
         self.assertEqual(hook.prompt_grant("$yabook do comit.", {}, "/r")["grant"]["kind"], "commit")
         self.assertEqual(hook.prompt_grant("$yabook do: PR;", {}, "/r")["grant"]["kind"], "pr")
         self.assertNotIn("auto", hook.prompt_grant("veja: yabook mode auto", {}, "/r"))
+        self.assertTrue(hook.prompt_grant("ok, $yabook mode auto e segue", {}, "/r")["auto"])
+        self.assertNotIn("auto", hook.prompt_grant("use `/yabook:yabook mode auto` depois", {}, "/r"))
+        self.assertNotIn("auto", hook.prompt_grant("veja em a/yabook mode auto", {}, "/r"))
 
     def test_first_initialization_without_existing_configuration(self):
         plan = Path(self.tmp.name) / "plan.json"

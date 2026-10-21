@@ -89,8 +89,8 @@ Use modos para evitar prompts longos sobre a postura esperada da IA.
 
 `study`, `work` e `prod` mantêm as autorizações existentes. `auto` exige ativação
 explícita e dispensa `do`, `bypass` e aprovação de checkpoints dentro do objetivo
-delegado; preserve trabalho existente e permissões do ambiente. Operações remotas
-dependem do pedido e merge exige pedido explícito. A ativação vale na conversa
+delegado; preserve trabalho existente e permissões do ambiente. Push, merge de PR
+e branch protegida entram no objetivo sem pedido separado. A ativação vale na conversa
 do projeto atual até outro modo, sem persistência ou transferência para sessões.
 
 `mode: work` indica mentoria de implementação. Ele não é o mesmo que o comando

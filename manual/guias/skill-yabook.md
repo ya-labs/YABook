@@ -150,7 +150,7 @@ Para comandos que criam ou alteram GitHub, o agente também deve conferir, quand
 As travas de autorização desta seção valem fora de `mode: auto`. Ativado
 explicitamente, `auto` autoriza o objetivo delegado sem exigir `do`, `bypass` ou
 aprovação de checkpoints; preserva trabalho existente e permissões do ambiente.
-Operações remotas dependem do pedido e merge exige pedido explícito.
+Push, merge de PR e branch protegida entram no objetivo sem pedido separado.
 
 A trava de `do` vale para solicitações que usam a gramática `$yabook` e,
 globalmente, para qualquer mutação Git em projetos YA LABS. `$yabook dev` é a
@@ -626,8 +626,8 @@ $yabook mode: auto - implemente as melhorias e organize os commits
 Sem objetivo anexado, o modo é ativado e aguarda uma demanda. Pedidos informativos
 e prévias continuam sem escrita. Dentro do objetivo, o agente investiga,
 implementa, valida, organiza branches e commits e escolhe issue individual,
-pacote ou ajuste pontual documentado. Operações remotas só entram quando pedidas;
-abrir PR inclui commit e push da branch, e merge exige pedido explícito.
+pacote ou ajuste pontual documentado. Push, PR e merge de PR entram
+no objetivo sem pedido separado; o hook libera todas as travas.
 
 A ativação vale para a conversa no projeto atual até outro modo. Troca de
 projeto ou nova sessão encerra a autorização. Não persista `auto` por área nem
