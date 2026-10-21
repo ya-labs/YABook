@@ -218,7 +218,8 @@ grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes: só o
 que casou com a consulta, até três registros do assunto que casou e um vizinho
 por relação explícita; entidade vale pelos registros que a citam. Até dois
 registros de outros projetos entram com `project` marcando a origem, quando
-contêm ao menos 75% dos termos da consulta.
+contêm ao menos 75% dos termos da consulta ou o mesmo nome técnico. Um nome
+técnico sozinho (`lnws_gvintegra.p`, `wgv024c1`) basta para o hook buscar.
 Não considere hipóteses diagnósticos nem preferências inferidas regras obrigatórias.
 
 Novas bases usam schema 2. Schema 1 permanece legível; atualização de formato
