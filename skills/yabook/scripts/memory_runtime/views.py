@@ -75,22 +75,48 @@ def bounded(value, budget):
     return result
 
 
-def session_context(vault, scope=(), budget=4500):
+PLATFORMS = {"linux": "linux", "win32": "windows", "cygwin": "windows", "darwin": "macos"}
+PREFERENCE_CHARS = 240
+PROFILE_CHARS = 360
+PROJECT_TOPICS = 2
+
+
+def on_this_machine(entry, platform=None):
+    """Registro com `platform` (texto ou lista) só vale no sistema correspondente."""
+    import sys
+    wanted = entry.get("platform")
+    if not wanted:
+        return True
+    current = platform or PLATFORMS.get(sys.platform, sys.platform)
+    return current in ([wanted] if isinstance(wanted, str) else wanted)
+
+
+def clip(text, limit):
+    return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "…"
+
+
+def session_context(vault, scope=(), budget=4500, platform=None):
     from .sources import all_entries
     scopes = [["Pessoa"]] + ([list(scope)] if scope else [])
-    entries = all_entries(vault, scopes)
+    entries = [e for e in all_entries(vault, scopes) if on_this_machine(e, platform)]
     active = [e for e in ordered(entries) if e["collection"] == "records" and e.get("source") == "own"
               and e.get("state") == "confirmed" and (kind(e) == "profile" or
               kind(e) == "preference" and e.get("authority") == "explicit" and e.get("activation") == "always")]
-    brief = lambda e: {k: e[k] for k in ("id", "revision", "source", "title", "kind", "content", "application", "conditions") if k in e}
-    # Tópicos do projeto configurado antes dos pessoais; índice compacto para caber no orçamento.
+    def brief(entry, limit):
+        item = {k: entry[k] for k in ("id", "revision", "title") if k in entry}
+        if entry.get("source", "own") != "own": item["source"] = entry["source"]
+        item["content"] = clip(entry.get("content", ""), limit)
+        return item
+    # Espaço por seção: preferências permanentes primeiro e inteiras na lista; perfil
+    # resumido; assuntos do projeto antes dos demais; índice com o que sobrar.
     own = lambda e: bool(scope) and e["scope"][:len(scope)] == list(scope)
     groups = [e for e in entries if e["collection"] == "groups"]
-    topics = compact([e for e in groups if own(e)], summary=160) + compact([e for e in groups if not own(e)])
+    project = [e for e in ordered(groups) if own(e)]
+    topics = compact(project[:PROJECT_TOPICS], summary=160) + compact(project[PROJECT_TOPICS:] + [e for e in groups if not own(e)])
     conditional = [e for e in entries if kind(e) in ("preference", "procedure") and e not in active]
     return bounded(dict(revision=digest(vault.snapshot()), scope=list(scope),
-                        profile=[brief(e) for e in active if kind(e) == "profile"],
-                        preferences=[brief(e) for e in active if kind(e) == "preference"],
+                        preferences=[brief(e, PREFERENCE_CHARS) for e in active if kind(e) == "preference"],
+                        profile=[brief(e, PROFILE_CHARS) for e in active if kind(e) == "profile"],
                         topics=topics, conditional=compact(conditional),
                         index=compact([e for e in entries if e["collection"] != "groups" and e not in active and e not in conditional])), budget)
 
