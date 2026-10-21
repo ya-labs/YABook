@@ -205,6 +205,9 @@ significa corrigir automaticamente a versão incorporada: apresentar diferença.
 ## Recuperação em camadas
 
 `index --scope <Org/Projeto>` mostra o índice por tipo e assunto.
+`contract-review --repo <raiz> --base <ref> [--term <t>]` lista registros que citam
+trechos de código removidos da documentação (`gone`: saíram do contrato;
+`changed`: saíram de um trecho). São candidatos: leia e decida antes do learn.
 `context --scope <Org/Projeto> --budget 4500` monta, nesta ordem, todas as
 preferências permanentes, perfil resumido, dois assuntos do projeto e índice;
 SessionStart carrega esse contexto automaticamente.

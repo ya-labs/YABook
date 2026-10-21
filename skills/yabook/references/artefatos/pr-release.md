@@ -6,7 +6,9 @@ Consulte [contratos.md](contratos.md) antes de gerar, criar ou validar o PR.
 
 Título objetivo, sem prefixo de tipo.
 Antes da prévia, confira em `recent` o aprendizado da entrega inteira e registre só
-o que faltar, por `memory.md` com `learning.trigger: pr`.
+o que faltar, por `memory.md` com `learning.trigger: pr`. Se o PR muda contrato
+(regra, comando, fluxo), rode `contract-review --repo <raiz> --base <base>` e
+atualize ou substitua os registros que o contradizem, no mesmo lote.
 Use texto e bullets simples para explicar entregas e validações, sem checklists
 ou caixas de progresso no corpo, inclusive em `Informações para IA`.
 

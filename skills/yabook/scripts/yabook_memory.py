@@ -102,6 +102,11 @@ def main():
     retrieve.add_argument("--experiences", action="store_true")
     retrieve.add_argument("--evidence", action="store_true")
     retrieve.add_argument("--model")
+    contract = sub.add_parser("contract-review", help="Registros que citam trechos removidos de um contrato")
+    contract.add_argument("--repo", help="Repositório do contrato (diff da documentação)")
+    contract.add_argument("--base", help="Referência anterior à mudança, ex.: main ou o commit de base do PR")
+    contract.add_argument("--head", default="HEAD")
+    contract.add_argument("--term", action="append", default=[], help="Termo extra, repetível")
     ve = sub.add_parser("vectors-export"); ve.add_argument("--output", required=True)
     vi = sub.add_parser("vectors-import"); vi.add_argument("--input", required=True)
     visual = sub.add_parser("map")
@@ -121,6 +126,13 @@ def main():
         from memory_runtime.retrieval import retrieve
         result = retrieve(vault, args.query, [s.split("/") for s in args.scope], args.budget,
                           args.experiences, args.evidence, args.model)
+    elif args.command == "contract-review":
+        from memory_runtime.contract import removed_terms, review
+        if bool(args.repo) != bool(args.base): raise ValueError("Informe --repo e --base juntos")
+        terms = removed_terms(args.repo, args.base, args.head) if args.repo else dict(gone=[], changed=[])
+        terms["gone"] += args.term  # termo informado à mão é tratado como extinto
+        if not terms["gone"] + terms["changed"]: raise ValueError("Nenhum termo removido; informe --term")
+        result = review(vault, terms["gone"], terms["changed"])
     elif args.command == "map":
         scopes=[s.split("/") for s in args.scope]
         if args.serve:
