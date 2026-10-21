@@ -9,6 +9,8 @@ LEVELS = ("index", "knowledge", "evidence")
 ENTITY_RECORDS = 2
 TOPICS = 3
 TOPIC_MEMBERS = 3
+FOREIGN_AFTER = 3
+STRONG_SHARE = 0.75  # parcela dos termos da consulta exigida fora do projeto
 
 
 def delivery_key(entry):
@@ -31,9 +33,36 @@ def delivered_levels(result, evidence=False):
     return levels
 
 
+def strong_match(entry, query):
+    """Fora do projeto exige mais termos da consulta no registro que dentro dele."""
+    import math, re
+    from .search import STOPWORDS, fold, text
+    wanted = {fold(t) for t in re.findall(r"[\w-]+", query) if t.casefold() not in STOPWORDS}
+    if len(wanted) < 2:
+        return False
+    found = sum(1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", fold(text(entry))))
+    return found >= min(4, max(2, math.ceil(len(wanted) * STRONG_SHARE)))
+
+
+def other_projects(vault, query, includes, limit, model=None):
+    """Registros próprios fora dos escopos da sessão que casam fortemente com a consulta."""
+    from .core import scoped
+    found = search(vault, query, (), limit=12, level="knowledge", model=model, expand=False)["results"]
+    result = []
+    for entry in found:
+        if entry["collection"] != "records" or entry.get("source", "own") != "own" or scoped(entry["scope"], includes):
+            continue
+        if kind(entry) in PERSONAL or not on_this_machine(entry) or not strong_match(entry, query):
+            continue
+        result.append(entry)
+        if len(result) == limit: break
+    return result
+
+
 def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence=False, model=None, delivered=None,
-             excerpt=None):
-    """excerpt limita content/application por item (pistas do hook); show/retrieve aprofundam."""
+             excerpt=None, other=0):
+    """excerpt limita content/application por item (pistas do hook); show/retrieve aprofundam.
+    other: quantos registros de outros projetos podem entrar, marcados com a origem."""
     if not 512 <= budget <= 100000: raise ValueError("Orçamento inválido")
     if evidence and not experiences: raise ValueError("Evidências exigem nível de experiência")
     entries = [e for e in all_entries(vault, includes) if on_this_machine(e)]
@@ -61,6 +90,14 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
         members = [by_key.get(namespace + m) for m in group.get("members", [])]
         for member in [m for m in members if m and m["collection"] == "records"][:TOPIC_MEMBERS]:
             add(key(member))
+    # Outros projetos depois dos três primeiros do escopo da sessão (para não perderem
+    # espaço no orçamento), poucos e com a origem marcada.
+    foreign = []
+    if other and includes:
+        for entry in other_projects(vault, query, includes, other, model):
+            if key(entry) not in order:
+                by_key[key(entry)] = entry; foreign.append(key(entry))
+        order[FOREIGN_AFTER:FOREIGN_AFTER] = foreign
     # No máximo um vizinho direto por item, logo após a origem para sobreviver ao
     # orçamento: a relação explícita mais próxima, nunca pessoal.
     chosen = []
@@ -100,6 +137,8 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
             for field in ("content", "application", "conditions"):
                 if isinstance(value.get(field), str) and len(value[field]) > excerpt:
                     value[field] = value[field][:excerpt].rsplit(" ", 1)[0] + "…"
+        if key(entry) in foreign:
+            value["project"] = " / ".join(entry["scope"][:2])  # pista de outro projeto
         if evidence and entry.get("evidence"): value["evidence"] = entry["evidence"]
         return value
     delivered = delivered or {}

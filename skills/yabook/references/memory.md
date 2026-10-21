@@ -112,6 +112,8 @@ para hipótese e não exige do memory).
 Escreva conhecimento e procedimento a partir do sintoma: `content` em sintoma →
 causa → onde está → como verificar, e `triggers` (obrigatório no learn) com frases
 como a pessoa descreveria o problema, ex.: "checklist não chega no supervisor".
+Conhecimento de tecnologia (ex.: Expo, Cordova, React) não depende do projeto:
+cite a tecnologia e a versão no título e em `keywords` para outros projetos o acharem.
 `learning.trigger` registra o que motivou o lote: `agent` (padrão), `issue`, `dev`,
 `pr`, `hook` ou `user`. `learning.checkpoint` local: `agent` (padrão, sem pedido no
 Stop) ou `hook` (pede curadoria uma vez após edição e commit da própria sessão; sem Git,
@@ -211,7 +213,9 @@ conhecimento, sem experiências/evidências extensas. `--experiences` aprofunda
 relatos; `--evidence` inclui fontes, exigindo `--experiences`. Registros sem
 grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes: só o
 que casou com a consulta, até três registros do assunto que casou e um vizinho
-por relação explícita; entidade vale pelos registros que a citam.
+por relação explícita; entidade vale pelos registros que a citam. Até dois
+registros de outros projetos entram com `project` marcando a origem, quando
+contêm ao menos 75% dos termos da consulta.
 Não considere hipóteses diagnósticos nem preferências inferidas regras obrigatórias.
 
 Novas bases usam schema 2. Schema 1 permanece legível; atualização de formato

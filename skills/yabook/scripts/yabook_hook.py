@@ -546,7 +546,7 @@ def run(event):
                 scope = cfg.get("projects", {}).get(root, [])
                 vault = Vault(cfg["memory_root"])
                 result = retrieve(vault, event["prompt"], [["Pessoa"]] + ([scope] if scope else []), budget=3500, excerpt=300,
-                                  delivered=state.get("delivered", {}))
+                                  delivered=state.get("delivered", {}), other=2)
                 remember_delivery(state, delivered_levels(result))
                 write_json(path, state)
                 if result["topics"] or result["knowledge"]:
