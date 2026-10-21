@@ -72,10 +72,11 @@ Os formatos de issue, branch, commit e Pull Request devem seguir o YABook, salvo
 
 Mutações Git seguem o pedido da pessoa, interpretado pelo contexto: “crie uma
 branch”, “faça commit” ou `$yabook do <ação>` autorizam o objetivo e seus passos.
-Na dúvida, pergunte. Merge e push em branch protegida exigem pedido explícito.
+Na dúvida, pergunte. Fora de `auto`, merge e push em branch protegida exigem
+pedido explícito.
 
 Em `auto`, a delegação autoriza os passos necessários ao objetivo sem essas
-confirmações. Operações remotas dependem do pedido e merge exige pedido explícito.
+confirmações, inclusive merge de PR e push em branch protegida.
 Outro modo, troca de projeto ou nova sessão encerra a autorização; não persista
 a ativação. Separe trabalho alheio, prefira isolamento e faça checkpoints do
 próprio trabalho sem pausa. As regras de checkpoint abaixo valem fora de `auto`.

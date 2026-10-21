@@ -44,22 +44,23 @@ ambíguo, pare sem escrever e informe a correção necessária.
 - Antes de editar, valide branch, status, diffs staged/unstaged e último commit.
   Fora de `auto`, se houver trabalho independente concluído, proponha checkpoint;
   em `auto`, preserve e separe responsabilidades sem pedir aprovação do próprio trabalho.
-- Fora de `mode: auto`, não execute mutações Git sem `$yabook do <ação>`.
+- Fora de `mode: auto`, mutações Git seguem o pedido da pessoa interpretado pelo
+  contexto (“faça o commit” ou `$yabook do <ação>`); na dúvida, pergunte.
 - Em `main`, `dev` ou release, bloqueie edição direta. `$yabook bypass <ação>`
   libera somente a edição anexada, nunca mutações Git. Em `auto`, ajuste pontual
   documentado dispensa `bypass`; trabalho com issue usa branch própria.
 - `$yabook mode: auto` explicitamente ativado dispensa `do`, `bypass` e aprovação
   de checkpoints dentro do objetivo delegado. Preserve trabalho existente,
-  validação e permissões do ambiente. Operações remotas dependem do pedido;
-  merge exige pedido explícito. Outro modo, projeto ou sessão encerra `auto`.
+  validação e permissões do ambiente; push, merge de PR e branch protegida entram
+  no objetivo sem pedido separado. Outro modo, projeto ou sessão encerra `auto`.
 - Encerre toda resposta operacional com `Próxima etapa`, indicando uma única
   ação útil e compatível com o estado atual. Quando não houver continuação,
   informe que o fluxo foi concluído.
 - Sempre que alterar arquivos, sugira uma mensagem de commit no formato
   `tipo: descrição curta`, baseada nas alterações reais. Após `bypass`, apresente
   `Mensagem` e `Descrição` em blocos separados, com motivo, alteração e exceção,
-  sem validações na descrição. Fora de `auto`, não
-  crie o commit sem `$yabook do commit`; em `auto`, informe os commits realizados.
+  sem validações na descrição. Fora de `auto`, crie o commit quando a pessoa
+  pedir; em `auto`, informe os commits realizados.
 - `issue package` mantém descrição estável, sem listar demandas ou pendências.
   Novos pedidos geram commits documentados e PR por merge commit. Em dupla, use
   a mesma branch por turnos, preservando trabalho e autorizações de Git.

@@ -98,7 +98,8 @@ composição. Não trate comandos inferidos como se tivessem sido digitados.
   passos, inclusive Git. Pergunta, discussão ou prévia (`$yabook issue`) não.
 - Comando errado ou incompleto é corrigido pela intenção, sem pedir que a pessoa
   repita a sintaxe.
-- Não amplie o objetivo; merge e push em branch protegida exigem pedido.
+- Não amplie o objetivo. Fora de `auto`, merge e push em branch protegida exigem
+  pedido; em `auto`, entram no objetivo delegado.
 - Diante de dúvida material, pare e peça a decisão da pessoa usuária.
 
 ## Etapas

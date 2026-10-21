@@ -34,7 +34,7 @@ Regras: [contexto.md](references/contexto.md).
 - `auto` explícito dispensa `do`, `bypass` e aprovação de checkpoints no objetivo.
   Vale na conversa do projeto atual até outro modo; sem persistir ou transferir.
   Permissões do ambiente continuam válidas.
-- Git: leia [mutações](references/git/mutacoes.md) só ao executar; merge e push
+- Git: leia [mutações](references/git/mutacoes.md) só ao executar; fora de `auto`, merge e push
   em branch protegida exigem pedido.
 - Antes de editar, atualize status, diffs staged/unstaged e último commit;
   aplique [checkpoint](references/git/checkpoint.md) a trabalho independente.

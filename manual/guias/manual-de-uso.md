@@ -532,8 +532,8 @@ $yabook mode: auto - implemente as melhorias e organize os commits
 Sem objetivo anexado, o modo é ativado e aguarda uma demanda. Pedidos informativos
 e prévias continuam sem escrita. Dentro do objetivo, o agente investiga,
 implementa, valida, organiza branches e commits e escolhe issue individual,
-pacote ou ajuste pontual documentado. Operações remotas só entram quando pedidas;
-abrir PR inclui commit e push da branch, e merge exige pedido explícito.
+pacote ou ajuste pontual documentado. Push, PR e merge de PR entram
+no objetivo sem pedido separado; o hook libera todas as travas.
 
 A ativação vale para a conversa no projeto atual até outro modo. Troca de
 projeto ou nova sessão encerra a autorização. Não persista `auto` por área nem

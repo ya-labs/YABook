@@ -112,8 +112,8 @@ somente com `$yabook do commit`, sem voltar a exigir issue para essa conclusão.
 `$yabook mode: auto` ativa autorização contínua na conversa do projeto atual.
 O agente escolhe o caminho adequado, implementa, valida, organiza branches e
 commits sem exigir `do`, `bypass` ou aprovação de checkpoints do próprio trabalho.
-Operações remotas só entram quando fazem parte do pedido; merge exige pedido
-explícito, dispensando a sintaxe `do`. Pedidos informativos continuam sem escrita.
+Push, PR e merge de PR entram no objetivo sem pedido separado; o hook não barra
+nada em `auto`. Pedidos informativos continuam sem escrita.
 
 Preserve alterações existentes e use isolamento quando necessário. Interrompa
 somente por decisão indispensável, risco concreto de perder trabalho ou aprovação
