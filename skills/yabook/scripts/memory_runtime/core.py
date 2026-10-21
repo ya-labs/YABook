@@ -293,6 +293,14 @@ class Vault:
             previous = {}
             for change in changes:
                 collection, identifier = change["collection"], change["id"]
+                if collection == "metadata":
+                    # Só o registro de manutenção (faxina) muda pelos metadados; o resto é do runtime.
+                    if identifier != "memory" or set(change.get("value", {})) != {"maintenance"} \
+                            or ("metadata", identifier) in touched:
+                        raise ValueError("Metadados aceitam só maintenance em metadata/memory")
+                    touched.add(("metadata", identifier))
+                    proposed["metadata"]["maintenance"] = change["value"]["maintenance"]
+                    continue
                 self.path(collection, identifier)
                 if (collection, identifier) in touched:
                     raise ValueError("Registro repetido na proposta")
@@ -380,7 +388,8 @@ class Vault:
             return self._finish(proposal)
 
     def _finish(self, proposal):
-        paths = [str(self.path(c["collection"], c["id"]).relative_to(self.root)) for c in proposal["changes"]]
+        paths = [str(self.path(c["collection"], c["id"]).relative_to(self.root)) for c in proposal["changes"]
+                 if c["collection"] != "metadata"]
         metadata_path = self.root / "memory.json"
         if read_json(metadata_path) != proposal["result"]["metadata"]:
             write_json(metadata_path, proposal["result"]["metadata"])

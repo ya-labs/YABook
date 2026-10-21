@@ -1,6 +1,6 @@
 # Memória própria do YABook
 
-Use para `memory`, `search|index|context|retrieve|show|add|edit|forget|review|recent|policy|init|source|sync|map`
+Use para `memory`, `search|index|context|retrieve|show|add|edit|forget|review|recent|policy|init|source|sync|map|clean`
 dentro da família `memory`, e `do memory`.
 `memory init` prepara a migração detalhada; `do memory init` aplica somente o
 plano aprovado. Use o mesmo repositório pessoal em casa e no trabalho. Aceite
@@ -259,6 +259,22 @@ refutada, responsabilidade confirmada e limites de aplicação. Use learn em aut
 em manual, apresente proposta. Curadoria continua obrigatória em ambos os modos.
 Memória externa é evidência de
 origem identificada; confirme fontes atuais antes de decisões críticas.
+
+## Faxina periódica
+
+`memory clean` ("faxina", "limpa a memória") roda `clean-check`: diagnóstico com
+`mechanical` (resumos desatualizados, registros sem grupo) e `judgment` (propostas
+antigas, hipóteses paradas, gatilhos de uma palavra, evidência só em outra
+máquina), mais `contract-review` desde a última faxina. Sem pedido de execução,
+mostre o diagnóstico e o plano por tema. Executada, aplique um lote por tema
+(`prepare` e `apply` com hash literal, grupos por último) e termine com
+`clean-done --batches <n> --actor <agente>`, que grava a data na base.
+SessionStart recomenda a faxina por tempo e volume, problemas ou tempo com
+alteração (`learning.cleanup`: `days` 14, `changes` 10, `problems` 10,
+`max_days` 30); sugira uma vez na sessão e não limpe sem pedido. No `learn`,
+`group` na mudança encaixa o registro no grupo e atualiza o resumo; confira se o
+texto do resumo cobre o registro. Mudança só em termos de busca ou evidência
+mantém o resumo válido.
 
 ## Mapa e instalação
 

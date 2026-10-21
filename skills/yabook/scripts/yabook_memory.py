@@ -107,6 +107,11 @@ def main():
     contract.add_argument("--base", help="Referência anterior à mudança, ex.: main ou o commit de base do PR")
     contract.add_argument("--head", default="HEAD")
     contract.add_argument("--term", action="append", default=[], help="Termo extra, repetível")
+    sub.add_parser("clean-check", help="Diagnóstico da faxina e se ela é recomendada (somente leitura)")
+    done = sub.add_parser("clean-done", help="Registra a faxina concluída na base")
+    done.add_argument("--batches", type=int, required=True, help="Lotes aplicados na faxina")
+    done.add_argument("--note", default="")
+    done.add_argument("--actor", required=True)
     ve = sub.add_parser("vectors-export"); ve.add_argument("--output", required=True)
     vi = sub.add_parser("vectors-import"); vi.add_argument("--input", required=True)
     visual = sub.add_parser("map")
@@ -126,6 +131,17 @@ def main():
         from memory_runtime.retrieval import retrieve
         result = retrieve(vault, args.query, [s.split("/") for s in args.scope], args.budget,
                           args.experiences, args.evidence, args.model)
+    elif args.command in ("clean-check", "clean-done"):
+        from memory_runtime import maintenance
+        config = Path(os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
+        cfg = read_json(config) if config.exists() else {}
+        if args.command == "clean-check":
+            result = maintenance.diagnose(vault, cfg)
+        else:
+            assessment = dict(verdict="update", reason="Faxina da memória concluída", utility="Base a recomendar a próxima faxina",
+                              application="Manutenção periódica", evidence_status="Lotes aplicados: %d" % args.batches)
+            proposal = vault.prepare([maintenance.done_change(vault, args.batches, args.note)], assessment, args.actor)
+            result = apply_and_publish(vault, proposal["id"], proposal["approval_hash"])
     elif args.command == "contract-review":
         from memory_runtime.contract import removed_terms, review
         if bool(args.repo) != bool(args.base): raise ValueError("Informe --repo e --base juntos")
