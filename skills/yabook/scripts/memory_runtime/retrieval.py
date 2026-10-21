@@ -2,7 +2,7 @@
 from .core import digest
 from .search import search
 from .sources import all_entries
-from .views import PERSONAL, bounded, compact, key, kind, on_this_machine, ordered
+from .views import PERSONAL, bounded, clip, compact, key, kind, on_this_machine, ordered
 
 
 LEVELS = ("index", "knowledge", "evidence")
@@ -11,6 +11,7 @@ TOPICS = 3
 TOPIC_MEMBERS = 3
 FOREIGN_AFTER = 3
 SEARCH_BUDGET = 60000
+QUERY_CHARS = 200
 STRONG_SHARE = 0.75  # parcela dos termos da consulta exigida fora do projeto
 
 
@@ -48,7 +49,7 @@ def strong_match(entry, query):
 def other_projects(vault, query, includes, limit, model=None):
     """Registros próprios fora dos escopos da sessão que casam fortemente com a consulta."""
     from .core import scoped
-    found = search(vault, query, (), limit=12, level="knowledge", model=model, expand=False)["results"]
+    found = search(vault, query, (), limit=12, budget=SEARCH_BUDGET, level="knowledge", model=model, expand=False)["results"]
     result = []
     for entry in found:
         if entry["collection"] != "records" or entry.get("source", "own") != "own" or scoped(entry["scope"], includes):
@@ -148,7 +149,8 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
     delivered = delivered or {}
     level = "evidence" if evidence else "knowledge"
     fresh = [e for e in items if not covered(delivered, e, "index" if e["collection"] == "groups" else level)]
-    return bounded(dict(revision=digest(vault.snapshot()), query=query,
+    # A consulta volta resumida: o prompt inteiro (ex.: texto colado) estourava o orçamento.
+    return bounded(dict(revision=digest(vault.snapshot()), query=clip(query, QUERY_CHARS),
                         degraded=topics["degraded"] or knowledge["degraded"],
                         already_delivered=len(items) - len(fresh),
                         # Conhecimento ocupa o orçamento antes do índice de assuntos.

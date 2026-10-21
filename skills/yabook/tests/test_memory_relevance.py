@@ -127,6 +127,21 @@ class RelevanceTest(unittest.TestCase):
         ids = [k["id"] for k in retrieve(self.v, "aplicar migration remota sem docker", [["Org"]], budget=3500, excerpt=300)["knowledge"]]
         self.assertEqual(set(ids[:2]), {"PESADO", "LEVE"})
 
+    def test_long_prompt_and_heavy_foreign_candidate(self):
+        long_prompt = "checklist do supervisor não chega quando o envio falha. " + "contexto colado " * 400
+        result = retrieve(self.v, long_prompt, [["Org", "App"]], budget=3500, excerpt=300)
+        self.assertLessEqual(len(result["query"]), 201)
+        self.assertTrue(result["knowledge"])
+        heavy = [dict(type="code", ref="fixture %d " % i + "x" * 200, level="static") for i in range(30)]
+        base = dict(kind="knowledge", state="confirmed", triggers=["fila sem retorno"])
+        changes = [dict(collection="records", id="FORA%d" % i, value=dict(base, scope=["Org", "Outro"],
+                        title="Fila de integração sem retorno %d" % i, content="Fila de integração sem retorno do ERP.",
+                        application="Verificar a fila. " * 150, evidence=heavy)) for i in range(2)]
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        found = retrieve(self.v, "fila de integração sem retorno do ERP", [["Org", "App"]], budget=3500, excerpt=300, other=2)
+        self.assertEqual(len([k for k in found["knowledge"] if k.get("project")]), 2)
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]
