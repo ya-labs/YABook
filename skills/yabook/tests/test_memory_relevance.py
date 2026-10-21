@@ -62,6 +62,42 @@ class RelevanceTest(unittest.TestCase):
         ids = [r["id"] for r in search(self.v, "o checklist sumiu da tela do gestor", level="knowledge")["results"]]
         self.assertEqual(ids[0], "S1")
 
+    def test_session_start_keeps_every_permanent_preference_and_filters_machine(self):
+        statement = [dict(type="conversation", ref="fixture", level="statement")]
+        personal = dict(scope=["Pessoa"], state="confirmed", evidence=statement)
+        changes = [dict(collection="records", id="PW", value=dict(personal, title="Ambiente Windows", kind="profile",
+                        platform="windows", content="C:\\Users\\x " * 200, application="Comandos"))]
+        changes.append(dict(collection="records", id="PD", value=dict(personal, title="Perfil", kind="profile",
+                            content="Desenvolvedor " * 200, application="Contexto")))
+        for i in range(7):
+            changes.append(dict(collection="records", id="PR%d" % i, value=dict(personal, title="Preferência %d" % i,
+                                kind="preference", authority="explicit", activation="always",
+                                content="Regra permanente %d " % i * 30, application="Sempre")))
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        context = session_context(self.v, ["Org", "App"], budget=4200, platform="linux")
+        self.assertEqual(len(context["preferences"]), 7)
+        self.assertEqual([e["id"] for e in context["profile"]], ["PD"])
+        self.assertLessEqual(len(context["profile"][0]["content"]), 361)
+        self.assertIn("PW", [e["id"] for e in session_context(self.v, ["Org", "App"], platform="windows")["profile"]])
+
+    def test_retrieve_delivers_matches_without_alphabetical_filler(self):
+        changes = [dict(collection="entities", id="ENT", value=dict(title="exemplo-envio.p", scope=["Org", "App"],
+                        kind="fonte", aliases=["exemplo-envio.p"], evidence=EVIDENCE))]
+        base = dict(scope=["Org", "App"], kind="knowledge", state="confirmed", evidence=EVIDENCE, application="Investigar")
+        changes.append(dict(collection="records", id="CITA", value=dict(base, title="Fila do envio",
+                            content="Fila grava antes do envio.", entities=["ENT"], triggers=["fila do envio"],
+                            relations=[dict(target="VIZ", type="related")])))
+        changes.append(dict(collection="records", id="VIZ", value=dict(base, title="Reenvio manual",
+                            content="Reenvio depende da fila.", triggers=["reenvio manual"])))
+        changes.append(dict(collection="records", id="AAA", value=dict(base, title="Agro modal sem relação",
+                            content="Modal de busca.", triggers=["modal de busca"])))
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        ids = [k["id"] for k in retrieve(self.v, "exemplo-envio.p", [["Org"]], budget=3500, excerpt=300)["knowledge"]]
+        self.assertEqual(ids[:2], ["CITA", "VIZ"])  # registro que cita a entidade e seu vizinho direto
+        self.assertNotIn("ENT", ids); self.assertNotIn("AAA", ids)
+
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)
         order = [t["id"] for t in context["topics"]]

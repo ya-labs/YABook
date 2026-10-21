@@ -143,6 +143,8 @@ e exclusões definitivas continuam com autorização específica.
 Separe perfil (`profile`), preferências (`preference`), procedimentos (`procedure`)
 e conhecimento (`knowledge`) nos registros. Preferências declaram `authority`
 (explicit/inferred) e `activation` (always/conditional); permanente exige explícita.
+Registro de uma máquina declara `platform` (`linux`, `windows`, `macos`); fora
+dela não entra no contexto nem nas pistas. Perfil curto: o contexto corta o texto.
 Experiências ficam em `episodes`: objective, context, actions, outcome, validation,
 evidence e learnings (IDs de records). Preserve relatos ao corrigir fatos atuais.
 Guarde descobertas compactas com aplicação, condições e evidência; não copie
@@ -201,12 +203,15 @@ significa corrigir automaticamente a versão incorporada: apresentar diferença.
 ## Recuperação em camadas
 
 `index --scope <Org/Projeto>` mostra o índice por tipo e assunto.
-`context --scope <Org/Projeto> --budget 4500` monta perfil/preferências próprias
-e índice inicial; SessionStart carrega esse contexto automaticamente.
+`context --scope <Org/Projeto> --budget 4500` monta, nesta ordem, todas as
+preferências permanentes, perfil resumido, dois assuntos do projeto e índice;
+SessionStart carrega esse contexto automaticamente.
 `retrieve <consulta> --scope <Org/Projeto> --budget 6000` recupera assuntos e
 conhecimento, sem experiências/evidências extensas. `--experiences` aprofunda
 relatos; `--evidence` inclui fontes, exigindo `--experiences`. Registros sem
-grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes.
+grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes: só o
+que casou com a consulta, até três registros do assunto que casou e um vizinho
+por relação explícita; entidade vale pelos registros que a citam.
 Não considere hipóteses diagnósticos nem preferências inferidas regras obrigatórias.
 
 Novas bases usam schema 2. Schema 1 permanece legível; atualização de formato

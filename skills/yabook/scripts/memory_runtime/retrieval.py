@@ -2,10 +2,13 @@
 from .core import digest
 from .search import search
 from .sources import all_entries
-from .views import bounded, compact, key, references
+from .views import PERSONAL, bounded, compact, key, kind, on_this_machine, ordered
 
 
 LEVELS = ("index", "knowledge", "evidence")
+ENTITY_RECORDS = 2
+TOPICS = 3
+TOPIC_MEMBERS = 3
 
 
 def delivery_key(entry):
@@ -33,42 +36,55 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
     """excerpt limita content/application por item (pistas do hook); show/retrieve aprofundam."""
     if not 512 <= budget <= 100000: raise ValueError("Orçamento inválido")
     if evidence and not experiences: raise ValueError("Evidências exigem nível de experiência")
-    entries = all_entries(vault, includes)
+    entries = [e for e in all_entries(vault, includes) if on_this_machine(e)]
     by_key = {key(e): e for e in entries}
     topics = search(vault, query, includes, budget=budget, level="index", model=model, expand=False)
     knowledge = search(vault, query, includes, budget=budget, level="knowledge", model=model, expand=False)
-    selected = {key(e) for e in topics["results"] + knowledge["results"]}
-    for entry in entries:
-        namespace = entry.get("source", "own") + ":"
-        if entry["collection"] == "groups" and any(namespace + member in selected for member in entry.get("members", [])):
-            selected.add(key(entry))
-    # A consulta lexical/vetorial também alcança um registro sem grupo, evitando
-    # que uma classificação incompleta torne o conhecimento invisível.
-    frontier = [(i, 0) for i in selected]
-    while frontier:
-        identifier, depth = frontier.pop()
+    # Só o que casou com a consulta, na ordem da busca. Entidade não tem conteúdo:
+    # vale pelos registros que a citam. Perfil já chega no início da sessão.
+    order = []
+    def add(identifier):
         entry = by_key.get(identifier)
-        if not entry: continue
+        if entry and identifier not in order and kind(entry) != "profile":
+            order.append(identifier)
+    for entry in knowledge["results"]:
+        if entry["collection"] == "entities":
+            citing = [e for e in entries if e["collection"] == "records" and entry["id"] in e.get("entities", [])
+                      and e.get("source", "own") == entry.get("source", "own")]
+            for record in ordered(citing)[:ENTITY_RECORDS]: add(key(record))
+        else:
+            add(key(entry))
+    # Assunto que casou (apelido, gatilho) vale pelos seus registros, em número limitado.
+    for found in (e for e in topics["results"] if e["collection"] == "groups"):
+        group = by_key.get(key(found), found)  # resultado da busca vem sem a lista de membros
+        namespace = group.get("source", "own") + ":"
+        members = [by_key.get(namespace + m) for m in group.get("members", [])]
+        for member in [m for m in members if m and m["collection"] == "records"][:TOPIC_MEMBERS]:
+            add(key(member))
+    # No máximo um vizinho direto por item, logo após a origem para sobreviver ao
+    # orçamento: a relação explícita mais próxima, nunca pessoal.
+    chosen = []
+    for identifier in order:
+        chosen.append(identifier)
+        entry = by_key[identifier]
         namespace = entry.get("source", "own") + ":"
-        parent = entry.get("parent")
-        if parent and namespace + parent in by_key: selected.add(namespace + parent)
-        if depth >= 3: continue
-        neighbors = [i for i in references(entry) if i != parent]
-        if entry["collection"] == "groups":
-            neighbors += [e["id"] for e in entries if e.get("source", "own") == entry.get("source", "own") and e.get("parent") == entry["id"]]
-        for reference in neighbors:
-            target = namespace + reference
+        for target in (namespace + r["target"] for r in entry.get("relations", []) if not r.get("suggested")):
             related = by_key.get(target)
-            if related and target not in selected and (related["collection"] != "episodes" or experiences):
-                selected.add(target); frontier.append((target, depth + 1))
+            if related and related["collection"] == "records" and kind(related) not in PERSONAL \
+                    and target not in order and target not in chosen:
+                chosen.append(target); break
+    groups = [key(e) for e in topics["results"] if e["collection"] == "groups"]
+    for identifier in order:
+        entry = by_key[identifier]
+        parents = [g for g in entries if g["collection"] == "groups" and entry["id"] in g.get("members", [])]
+        if entry.get("parent"): parents += [by_key.get(entry.get("source", "own") + ":" + entry["parent"])]
+        groups += [key(g) for g in parents if g]
+    selected = chosen + list(dict.fromkeys(groups))[:TOPICS]
     if experiences:
         for entry in entries:
             if entry["collection"] == "episodes" and any(entry.get("source", "own") + ":" + r in selected for r in entry.get("learnings", [])):
-                selected.add(key(entry))
-    items = [by_key[i] for i in selected if i in by_key]
-    # Priorização determinística e sem promoção de hipóteses ou conteúdo externo.
-    ranked = {key(e): i for i, e in enumerate(topics["results"] + knowledge["results"])}
-    items.sort(key=lambda e: (ranked.get(key(e), 999), e["title"].casefold(), key(e)))
+                selected.append(key(entry))
+    items = [by_key[i] for i in dict.fromkeys(selected) if i in by_key]
     def content(entry):
         fields = ("id", "revision", "source", "source_revision", "title", "scope", "kind", "state", "origin",
                   "content", "application", "conditions", "summary_stale", "authority", "activation", "triggers")
