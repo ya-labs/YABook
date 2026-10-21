@@ -29,6 +29,43 @@ def set_policy(config_path, root, mode):
 
 
 ACTORS = {"claude-code": "claude", "claude_code": "claude", "openai-codex": "codex"}
+# Mudança só nesses campos não altera o sentido do registro: o resumo do grupo continua válido.
+NON_SEMANTIC = SEARCH_TERMS + ("evidence", "last_verified", "provenance")
+
+
+def group_updates(snapshot, changes):
+    """Encaixa registro no grupo indicado (`group` na mudança) e reconhece no resumo a nova revisão
+    de mudanças que não alteram o sentido, para a base não acumular registro solto nem resumo vencido."""
+    import copy
+    touched = {c["id"] for c in changes if c["collection"] == "groups"}
+    groups = {}
+    def editable(identifier):
+        group = snapshot["groups"][identifier]
+        return groups.setdefault(identifier, {k: v for k, v in copy.deepcopy(group).items() if k not in ("id", "revision", "origin")})
+    for change in changes:
+        if change["collection"] != "records" or change.get("delete"):
+            continue
+        identifier, value = change["id"], change.get("value", {})
+        previous = snapshot["records"].get(identifier)
+        revision = (previous or {}).get("revision", 0) + 1
+        target = change.get("group")
+        if target and target not in touched:
+            group = snapshot["groups"].get(target)
+            if not group:
+                raise ValueError("Grupo indicado não existe: " + target)
+            if value.get("scope", [])[:len(group["scope"])] != group["scope"]:
+                raise ValueError("Registro fora do escopo do grupo indicado: " + target)
+            entry = editable(target)
+            if identifier not in entry.get("members", []):
+                entry["members"] = entry.get("members", []) + [identifier]
+            if entry.get("summary"):
+                entry.setdefault("summary_sources", {})[identifier] = revision
+        if previous and {k for k in set(previous) | set(value) if k not in ("id", "revision", "origin")
+                         and previous.get(k) != value.get(k)} <= set(NON_SEMANTIC):
+            for gid, group in snapshot["groups"].items():
+                if gid not in touched and group.get("summary_sources", {}).get(identifier) == previous.get("revision"):
+                    editable(gid)["summary_sources"][identifier] = revision
+    return [dict(collection="groups", id=gid, value=value) for gid, value in groups.items()]
 
 
 def learn(vault, payload, actor, config_path, workspace, queue=True):
@@ -106,6 +143,7 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
                 reasons.append("Comportamento permanente exige declaração da pessoa")
     if not changes:
         return dict(status="unchanged")
+    changes += group_updates(snapshot, changes)
     if not any(c["collection"] in ("records", "episodes") for c in changes):
         reasons.append("Agrupamento isolado exige revisão")
     if conflicts:
