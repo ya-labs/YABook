@@ -238,9 +238,17 @@ o código atual quando a decisão depende de uma versão ou contrato que mudou.
 ## Abertura automática da sessão
 
 `SessionStart` entrega o método, a revisão da base e um contexto do escopo
-configurado limitado por orçamento de caracteres, sem quantidade fixa de entradas.
+configurado limitado por orçamento de caracteres: todas as preferências
+permanentes, o perfil resumido, os assuntos do projeto e um índice com o que
+sobrar. Registros marcados com `platform` só entram na máquina correspondente.
 Não despeja toda a memória na conversa.
 O agente busca o conteúdo completo quando a intenção da pessoa exige detalhes.
+
+A cada prompt, as pistas trazem o que casou com a pergunta no projeto atual e até
+dois registros de outros projetos com correspondência forte, marcados com a origem.
+O arquivo local `hook-stats.jsonl`, ao lado da configuração, registra por evento o
+host (Claude ou Codex), o tamanho injetado, o resultado da busca e o motivo de
+falhas, sem guardar o texto do prompt.
 
 Não há comando `memory load` necessário no fluxo com hooks ativos. A configuração
 local associa raiz de projeto a escopo; veja o manual de instalação. Sem essa

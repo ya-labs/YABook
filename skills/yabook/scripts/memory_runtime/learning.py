@@ -28,7 +28,11 @@ def set_policy(config_path, root, mode):
     return dict(status="configured", mode=mode)
 
 
+ACTORS = {"claude-code": "claude", "claude_code": "claude", "openai-codex": "codex"}
+
+
 def learn(vault, payload, actor, config_path, workspace, queue=True):
+    actor = ACTORS.get(actor.strip().casefold(), actor.strip())  # um nome por agente no histórico
     original = payload
     cfg, mode = policy(config_path, vault.root)
     learning = payload.get("learning", {})
