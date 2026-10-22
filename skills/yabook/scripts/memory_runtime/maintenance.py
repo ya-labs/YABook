@@ -1,9 +1,10 @@
 """Faxina periódica da memória: diagnóstico, recomendação por tempo/volume/problemas e registro."""
 import glob
+import re
 import os
 from datetime import datetime, timezone
 
-from .core import read_json, snapshot_entries, stale_groups
+from .core import read_json, snapshot_entries, stale_groups, write_json
 
 DEFAULTS = dict(days=14, changes=10, problems=10, max_days=30, proposal_days=14, hypothesis_days=60)
 LIMIT = 20  # itens listados por categoria; a contagem é sempre completa
@@ -98,8 +99,7 @@ def diagnose(vault, cfg):
         found_triggers = entry.get("triggers") or []
         if entry.get("kind") in ("knowledge", "procedure") and found_triggers and all(len(t.split()) == 1 for t in found_triggers):
             triggers.append(entry["id"])
-        if any("rollout_summaries/" in e.get("ref", "") and "summary" not in e
-               and "fora desta máquina" in e.get("available", "") for e in entry.get("evidence", [])):
+        if any(not portable(e) for e in entry.get("evidence", [])):
             evidence.append(entry["id"])
     judgment = dict(old_proposals=sorted(proposals), old_hypotheses=sorted(hypotheses),
                     single_word_triggers=sorted(triggers), evidence_elsewhere=sorted(evidence))
@@ -110,7 +110,38 @@ def diagnose(vault, cfg):
                 judgment={k: v[:LIMIT] for k, v in judgment.items()})
 
 
-def done_change(vault, batches, note=""):
-    """Mudança de metadados que registra a faxina; vai num lote próprio ou junto do último."""
+LOCAL_REPORT = re.compile(r"rollout_summaries/|(?:^|/)sessions?/|\.jsonl\b|^(?:/home/|/Users/|/tmp/|~/|[A-Za-z]:\\)")
+
+
+def portable(item):
+    """Evidência vale em outra máquina se não aponta para relato/arquivo local ou se traz resumo."""
+    return bool(item.get("summary")) or not LOCAL_REPORT.search(item.get("ref", ""))
+
+
+def check(vault, cfg):
+    """Diagnóstico que também fica salvo localmente como o "antes" da próxima conclusão."""
+    report = diagnose(vault, cfg)
+    write_json(vault.local / "clean-check.json", dict(at=now().isoformat(), totals=report["totals"]))
+    return report
+
+
+def done_change(vault, batches, note="", cfg=None):
+    """Registra a faxina só se o número de lotes bate com o histórico; guarda o diagnóstico de
+    antes (último clean-check desde a faxina anterior) e de depois, e as pendências mantidas."""
+    batches = int(batches)
+    snapshot = vault.snapshot()
+    applied = changes_since(vault, last_cleanup(snapshot))
+    after = diagnose(vault, cfg or {})
+    pending = sum(len(v) for v in after["mechanical"].values())
+    if batches < 0 or batches > applied:
+        raise ValueError(f"Lotes informados ({batches}) não batem com os aplicados desde a última faxina ({applied})")
+    if batches == 0 and pending:
+        raise ValueError("Faxina sem lotes com pendências mecânicas: encaixe registros e revise resumos antes de concluir")
+    saved = vault.local / "clean-check.json"
+    before = read_json(saved) if saved.exists() else None
+    if before and (parse(before.get("at")) or now()) < last_cleanup(snapshot):
+        before = None  # diagnóstico anterior à última faxina não descreve esta
     return dict(collection="metadata", id="memory", value=dict(maintenance=dict(
-        last_cleanup=now().isoformat(), batches=int(batches), note=note[:200])))
+        last_cleanup=now().isoformat(), batches=batches, note=note[:200],
+        before=before["totals"] if before else None, after=after["totals"],
+        kept={k: v for k, v in after["judgment"].items() if v})))

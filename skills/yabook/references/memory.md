@@ -219,7 +219,8 @@ relatos; `--evidence` inclui fontes, exigindo `--experiences`. Registros sem
 grupo continuam pesquisáveis. UserPromptSubmit busca pistas pertinentes, por
 força da correspondência: nome técnico exato e frase de gatilho contida na
 pergunta, depois termo em título, gatilho ou apelido, depois conteúdo; abaixo de
-60% da melhor nota não entra. Seguem até três registros do assunto que casou e um
+60% da melhor nota não entra. Seguem até três registros do assunto que casou (com
+nota de ao menos 50% da melhor), um
 vizinho por relação explícita; entidade vale pelos registros que a citam. Até
 dois registros de outros projetos disputam a mesma ordem, com `project` marcando
 a origem, quando contêm 75% dos termos ou o mesmo nome técnico. Um nome técnico
@@ -266,11 +267,14 @@ origem identificada; confirme fontes atuais antes de decisões críticas.
 
 `memory clean` ("faxina", "limpa a memória") roda `clean-check`: diagnóstico com
 `mechanical` (resumos desatualizados, registros sem grupo) e `judgment` (propostas
-antigas, hipóteses paradas, gatilhos de uma palavra, evidência só em outra
-máquina), mais `contract-review` desde a última faxina. Sem pedido de execução,
-mostre o diagnóstico e o plano por tema. Executada, aplique um lote por tema
-(`prepare` e `apply` com hash literal, grupos por último) e termine com
-`clean-done --batches <n> --actor <agente>`, que grava a data na base.
+antigas, hipóteses paradas, gatilhos de uma palavra, evidência em relato de
+sessão ou caminho local sem `summary`), mais `contract-review` desde a última
+faxina. Sem pedido de execução, mostre o diagnóstico e o plano por tema.
+Executada, rode `clean-check` antes (fica salvo como "antes"), aplique um lote por
+tema (`prepare` e `apply` com hash literal, grupos por último) e termine com
+`clean-done --batches <n> --actor <agente>`. Ele recusa lotes negativos, acima
+dos aplicados desde a última faxina, ou zero com pendência mecânica, e grava na
+base a data, o diagnóstico antes e depois e as pendências de julgamento mantidas.
 SessionStart recomenda a faxina por tempo e volume, problemas ou tempo com
 alteração (`learning.cleanup`: `days` 14, `changes` 10, `problems` 10,
 `max_days` 30); sugira uma vez na sessão e não limpe sem pedido. No `learn`,

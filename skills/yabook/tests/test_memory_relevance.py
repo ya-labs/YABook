@@ -153,8 +153,10 @@ class RelevanceTest(unittest.TestCase):
             title="Boletos em PDF no wgv024c1", content="wgv024c1 gera o PDF do boleto.", triggers=["boleto em pdf"]))]
         assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
         p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
-        found = retrieve(self.v, "wgv024c1", [["Org", "App"]], other=2)["knowledge"]
-        self.assertEqual([(k["id"], k["project"]) for k in found], [("BOLETO", "Org / Fontes")])
+        for query in ("wgv024c1", "explique wgv024c1", "quero entender wgv024c1"):
+            found = retrieve(self.v, query, [["Org", "App"]], other=2)["knowledge"]
+            self.assertEqual([(k["id"], k["project"]) for k in found], [("BOLETO", "Org / Fontes")], query)
+        self.assertEqual([k["id"] for k in retrieve(self.v, "explique wgv024c1", [["Org", "Fontes"]])["knowledge"]], ["BOLETO"])
         self.assertEqual(retrieve(self.v, "xyz999q.p", [["Org", "App"]], other=2)["knowledge"], [])
 
     def test_symptom_match_ranks_first_and_weak_matches_are_cut(self):
@@ -174,6 +176,20 @@ class RelevanceTest(unittest.TestCase):
         self.assertEqual(ids[0], "SINTOMA")
         self.assertNotIn("FRACO", ids)  # só conteúdo, bem abaixo do gatilho
         self.assertNotIn("FORA", ids)   # outro projeto abaixo do piso
+
+    def test_topic_members_pass_the_same_cut_as_direct_matches(self):
+        base = dict(scope=["Org", "App"], kind="knowledge", state="confirmed", evidence=EVIDENCE, application="Aplicar")
+        changes = [dict(collection="records", id="PDF", value=dict(base, title="PDF do gerencial online no navegador",
+                        content="O PDF do gerencial online abre pelo navegador do app.", triggers=["pdf não abre no gerencial online"])),
+                   dict(collection="records", id="AGENDA", value=dict(base, title="Agenda de visitas",
+                        content="Agenda de visitas do vendedor.", triggers=["agenda vazia"])),
+                   dict(collection="groups", id="GER", value=dict(title="Gerencial online", scope=["Org", "App"], kind="topic",
+                        members=["AGENDA", "PDF"], keywords=["gerencial online"], summary="Telas do gerencial online.",
+                        summary_sources={"AGENDA": 1, "PDF": 1}))]
+        assessment = dict(verdict="add", reason="t", utility="t", application="t", evidence_status="t")
+        p = self.v.prepare(changes, assessment, "test"); self.v.apply(p["id"], p["approval_hash"])
+        ids = [k["id"] for k in retrieve(self.v, "pdf não abre no gerencial online", [["Org", "App"]], budget=3500, excerpt=300)["knowledge"]]
+        self.assertEqual(ids, ["PDF"])
 
     def test_session_context_lists_project_topics_first(self):
         context = session_context(self.v, ["Org", "App"], budget=4200)

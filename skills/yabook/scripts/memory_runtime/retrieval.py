@@ -14,6 +14,7 @@ SEARCH_BUDGET = 60000
 QUERY_CHARS = 200
 STRONG_FIELDS = ("title", "triggers", "aliases", "keywords")
 WEAK_SHARE = 0.6  # fração da melhor nota abaixo da qual a correspondência direta sai
+TOPIC_SHARE = 0.5  # membros de assunto que casou têm um pouco mais de margem
 STRONG_SHARE = 0.75  # parcela dos termos da consulta exigida fora do projeto
 
 
@@ -131,7 +132,9 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
         group = by_key.get(key(found), found)  # resultado da busca vem sem a lista de membros
         namespace = group.get("source", "own") + ":"
         members = [by_key.get(namespace + m) for m in group.get("members", [])]
-        for member in [m for m in members if m and m["collection"] == "records"][:TOPIC_MEMBERS]:
+        # Mesmo corte das correspondências diretas; sem elas, o apelido do assunto basta.
+        candidates = [m for m in members if m and m["collection"] == "records" and quality(m, query) >= best * TOPIC_SHARE]
+        for member in candidates[:TOPIC_MEMBERS]:
             add(key(member))
     # No máximo um vizinho direto por item, logo após a origem para sobreviver ao
     # orçamento: a relação explícita mais próxima. Preferência condicional relacionada
