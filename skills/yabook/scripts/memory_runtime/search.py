@@ -94,7 +94,13 @@ def search(vault, query, includes=(), excludes=(), limit=8, budget=6000, model=N
         # Um termo solto (ex.: "app") não torna o registro relevante: exige dois termos casados.
         wanted = {fold(t) for t in terms}
         needed = min(2, len(wanted))
-        lexical = [i for i in lexical if sum(1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", fold(text(by_id[i])))) >= needed]
+        # Nome técnico exato vale por si: "explique wgv024c1" não pode perder o registro do wgv024c1.
+        names = [fold(n) for n in identifiers(query)]
+        def relevant(identifier):
+            body = fold(text(by_id[identifier]))
+            return any(n in body for n in names) or sum(
+                1 for t in wanted if re.search(r"\b" + re.escape(t) + r"\b", body)) >= needed
+        lexical = [i for i in lexical if relevant(i)]
     finally:
         connection.close()
     rankings = [lexical]; mode = "textual"; degraded = None

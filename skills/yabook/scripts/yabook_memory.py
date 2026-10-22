@@ -136,11 +136,11 @@ def main():
         config = Path(os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
         cfg = read_json(config) if config.exists() else {}
         if args.command == "clean-check":
-            result = maintenance.diagnose(vault, cfg)
+            result = maintenance.check(vault, cfg)
         else:
             assessment = dict(verdict="update", reason="Faxina da memória concluída", utility="Base a recomendar a próxima faxina",
                               application="Manutenção periódica", evidence_status="Lotes aplicados: %d" % args.batches)
-            proposal = vault.prepare([maintenance.done_change(vault, args.batches, args.note)], assessment, args.actor)
+            proposal = vault.prepare([maintenance.done_change(vault, args.batches, args.note, cfg)], assessment, args.actor)
             result = apply_and_publish(vault, proposal["id"], proposal["approval_hash"])
     elif args.command == "contract-review":
         from memory_runtime.contract import removed_terms, review
