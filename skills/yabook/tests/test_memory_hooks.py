@@ -233,6 +233,32 @@ class HooksTest(unittest.TestCase):
             tool_input={"command": "python3 yabook_memory.py --root /outra/base sync"}))
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")  # base errada continua barrada
 
+    def test_memory_operation_is_not_a_proposal_lookup(self):
+        hook.write_json(hook.config_path(), {"memory_root": self.tmp.name})
+        proposals = Path(self.tmp.name) / ".yabook-local/proposals"
+        for prompt in ("/yabook:yabook do memory clean", "$yabook do memory review", "$yabook do memory"):
+            result = hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt=prompt))
+            self.assertIn("Estado operacional", result["hookSpecificOutput"]["additionalContext"], prompt)
+            grant = hook.read_json(hook.state_path(self.event))["grant"]
+            self.assertEqual((grant["kind"], grant["proposal"]), ("memory", None), prompt)
+        proposals.mkdir(parents=True)
+        for name in ("P-aaaa", "P-bbbb"):
+            hook.write_json(proposals / (name + ".json"), {"id": name})
+        state = hook.prompt_grant("$yabook do memory", {}, "/r")  # pendências ambíguas não quebram o prompt
+        self.assertIsNone(state["grant"]["proposal"])
+        with patch.object(hook.Vault, "proposal", return_value={"id": "P-abc123", "approval_hash": "h"}) as found:
+            state = hook.prompt_grant("$yabook do memory P-abc123", {}, "/r")
+        found.assert_called_once_with("P-abc123")
+        self.assertEqual((state["grant"]["proposal"], state["grant"]["approval_hash"]), ("P-abc123", "h"))
+
+    def test_internal_error_only_fails_closed_for_tools(self):
+        import io
+        with patch.object(hook, "run", side_effect=FileNotFoundError("x")), patch("sys.stderr", io.StringIO()):
+            for name, code in (("UserPromptSubmit", 0), ("SessionStart", 0), ("Stop", 0), ("PreToolUse", 2)):
+                event = io.StringIO(json.dumps(dict(self.event, hook_event_name=name)))
+                self.assertEqual(hook.main([], event), code, name)
+            self.assertEqual(hook.main([], io.StringIO("não é json")), 2)
+
     def test_commands_are_read_by_intent_not_spelling(self):
         for text in ("yabook mode auto.", "yabook mode auto;", "yabook mode autop", "/yabook:yabook Modo automático",
                      "$yabook auto, implemente"):
