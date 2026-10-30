@@ -288,7 +288,7 @@ repositório remoto é uma operação separada.
 | Sintoma | Verificação |
 | --- | --- |
 | Skill aparece, memória não carrega | Confirmar hooks e nova sessão; presença da skill não prova execução de `SessionStart` |
-| Hook retorna erro | Conferir Python, JSON de configuração, paths e log do host; o stderr informa a classe do erro |
+| Hook retorna erro | Conferir Python, JSON de configuração, paths e log do host; o stderr informa a classe e a mensagem do erro. Só `PreToolUse` (ou evento ilegível) falha fechado; nos demais eventos o erro não descarta o prompt nem a sessão |
 | Mapa traz só memórias pessoais | Cadastrar raiz Git exata em `projects` |
 | Fonte conectada está desatualizada | Executar sync aprovado; verificar intervalo, acesso GitHub e cache |
 | Publicação pendente | Corrigir rede/autenticação e repetir `publish` autorizado; não reaplicar a proposta |

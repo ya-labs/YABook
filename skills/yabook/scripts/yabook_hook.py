@@ -245,10 +245,15 @@ def prompt_grant(text, state, root):
             elif cfg.get("memory_root"):
                 state["grant"] = {"kind": "memory", "root": str(Path(cfg["memory_root"]).resolve()),
                                   "request": command, "proposal": None}
-                if operation != "init":
-                    words = operation.split()
-                    proposal = Vault(cfg["memory_root"]).proposal(words[0] if words else None)
-                    state["grant"].update(proposal=proposal["id"], approval_hash=proposal["approval_hash"])
+                words = operation.split()
+                # Só ID de proposta (ou nenhuma operação) vincula proposta; "clean", "review" e texto livre
+                # seguem como pedido de memória que o agente interpreta. O apply confere ID e hash no PreToolUse.
+                if not words or re.fullmatch(r"P-[0-9a-f]+", words[0]):
+                    try:
+                        proposal = Vault(cfg["memory_root"]).proposal(words[0] if words else None)
+                        state["grant"].update(proposal=proposal["id"], approval_hash=proposal["approval_hash"])
+                    except (OSError, ValueError, KeyError):
+                        pass
         elif re.match(r"do\b\W", command, re.I):
             action = re.sub(r"\W+$", "", re.sub(r"^do\W+", "", command, flags=re.I).split(maxsplit=1)[0]).casefold()
             # Ação com erro de digitação ("do comit") vale pela ação conhecida mais próxima.
@@ -657,14 +662,20 @@ def run(event):
     return {}
 
 
-if __name__ == "__main__":
+def main(argv=None, stream=None):
+    event = None
     try:
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument("--format", choices=["native", "generic"], default="native")
-        args = parser.parse_args()
-        event = normalize_event(json.load(sys.stdin), args.format)
+        args = parser.parse_args(argv)
+        event = normalize_event(json.load(stream or sys.stdin), args.format)
         print(json.dumps(event_response(run(event), args.format), ensure_ascii=False))
+        return 0
     except Exception as exc:
-        # Uma negação suportada bloqueia; erro de callback pode não bloquear no host.
-        print("YABook hook: " + type(exc).__name__, file=sys.stderr)
-        sys.exit(2)
+        print("YABook hook: " + type(exc).__name__ + ": " + str(exc)[:160], file=sys.stderr)
+        # Só a trava de ferramenta falha fechada; erro ao ler prompt, contexto ou checkpoint não descarta o pedido.
+        return 2 if not event or event.get("hook_event_name") == "PreToolUse" else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
