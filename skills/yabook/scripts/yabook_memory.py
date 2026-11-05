@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI de serviços; o agente YABook prepara avaliações e obtém a aprovação."""
+"""CLI de serviços; o agente YABook faz curadoria conforme a política aprovada."""
 import argparse
 import json
 import os
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from memory_runtime.core import Vault, read_json
 from memory_runtime.gitstore import apply_and_publish, init_plan, init_apply, inventory, publish
-from memory_runtime.sources import source_add, refresh, sync, all_entries
+from memory_runtime.sources import source_add, refresh, sync, sync_apply, all_entries
 from memory_runtime.search import search, export_vectors, import_vectors
 from memory_runtime.map import export_map, serve
 
@@ -81,7 +81,10 @@ def main():
     sub.add_parser("publish")
     source = sub.add_parser("source-add")
     source.add_argument("--input", required=True)
-    sub.add_parser("sync")
+    sub.add_parser("sync", help="Sincroniza a base e prepara novidades externas para curadoria")
+    incorporation = sub.add_parser("sync-apply", help="Incorpora um lote externo curado pelo agente")
+    incorporation.add_argument("--input", required=True)
+    incorporation.add_argument("--actor", required=True)
     lookup = sub.add_parser("search")
     lookup.add_argument("query")
     lookup.add_argument("--scope", action="append", default=[], help="Componentes separados por /")
@@ -167,6 +170,8 @@ def main():
         result = source_add(vault, read_json(args.input))
     elif args.command == "sync":
         result = sync(vault)
+    elif args.command == "sync-apply":
+        result = sync_apply(vault, read_json(args.input), args.actor)
     elif args.command == "inventory":
         result = inventory(args.agent, args.source)
     elif args.command == "init-plan":

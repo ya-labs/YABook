@@ -297,12 +297,16 @@ class Vault:
             for change in changes:
                 collection, identifier = change["collection"], change["id"]
                 if collection == "metadata":
-                    # Só o registro de manutenção (faxina) muda pelos metadados; o resto é do runtime.
-                    if identifier != "memory" or set(change.get("value", {})) != {"maintenance"} \
+                    # Manutenção e ledger de incorporação compartilham o journal dos registros.
+                    value = change.get("value", {})
+                    if identifier != "memory" or not value or set(value) - {"maintenance", "source_sync"} \
                             or ("metadata", identifier) in touched:
-                        raise ValueError("Metadados aceitam só maintenance em metadata/memory")
+                        raise ValueError("Metadados aceitam só maintenance/source_sync em metadata/memory")
+                    if "source_sync" in value and (not isinstance(value["source_sync"], dict) or
+                            value["source_sync"].get("version") != 1 or not isinstance(value["source_sync"].get("entries"), dict)):
+                        raise ValueError("Ledger de incorporação inválido")
                     touched.add(("metadata", identifier))
-                    proposed["metadata"]["maintenance"] = change["value"]["maintenance"]
+                    proposed["metadata"].update(value)
                     continue
                 self.path(collection, identifier)
                 if (collection, identifier) in touched:
@@ -456,6 +460,10 @@ class Vault:
 
     def review(self):
         seen, findings = {}, []
+        for key, item in self.snapshot()["metadata"].get("source_sync", {}).get("entries", {}).items():
+            if item.get("decision") == "pending":
+                findings.append(dict(kind="source_sync_pending", id=key, source=item["source"],
+                                     target=item.get("target"), reasons=[item["reason"]]))
         for path in sorted((self.local / "proposals").glob("P-*.json")):
             proposal = self.proposal(path.stem)
             findings.append({"kind": "pending_proposal", "id": proposal["id"],

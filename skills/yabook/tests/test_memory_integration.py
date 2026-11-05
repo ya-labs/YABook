@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from memory_runtime.core import Vault, digest, write_json
-from memory_runtime.gitstore import git, init_apply, publish
+from memory_runtime.gitstore import git, init_apply, publish, run
 from memory_runtime.sources import refresh, all_entries
 
 
@@ -62,7 +62,14 @@ class IntegrationTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             source,p,_,remote=self.fixture(d);source.apply(p["id"],p["approval_hash"]);publish(source)
             own=Vault(Path(d)/"own");own.bootstrap("other")
-            write_json(own.local/"sources.json",{"colleague":dict(remote=str(remote),branch="main",includes=[["Org"]],refresh_seconds=60)})
+            url="https://github.com/demo/YABook-memory-demo.git"
+            def local_clone(*args,**kwargs):
+                if args[:4]==("git","clone","--bare",url):
+                    args=(*args[:3],str(remote),*args[4:])
+                return run(*args,**kwargs)
+            cloner=patch("memory_runtime.sources.run",side_effect=local_clone)
+            cloner.start();self.addCleanup(cloner.stop)
+            write_json(own.local/"sources.json",{"colleague":dict(id="colleague",remote=url,branch="main",includes=[["Org"]],refresh_seconds=60)})
             report=refresh(own,force=True)
             self.assertEqual(report[0]["added"],["R1"])
             self.assertEqual(all_entries(own)[0]["content"],"Pista")

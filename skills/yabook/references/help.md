@@ -12,7 +12,7 @@ altera estado.
 - GitHub: `issue`, `branch`, `commit`, `pr`, `release`;
 - qualidade: `check`, `review`, `docs`;
 - plugin instalado: `sync` (comparar), `do sync` (atualizar automaticamente).
-- memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review|recent|clean` (faxina), `do memory [id]` (manual/pendências), `do memory policy automatic|manual` (política local). Aprendizado cotidiano segue a política sem aprovação individual.
+- memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review|recent|clean` (faxina), `do memory [id]` (manual/pendências), `do memory policy automatic|manual` (política local). `memory source add` configura fontes compartilhadas; `do memory sync` sincroniza e incorpora novidades após curadoria do agente, conforme a política da fonte. Aprendizado cotidiano segue a política sem aprovação individual.
 
 Para tópico específico, carregue somente:
 

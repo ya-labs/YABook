@@ -43,6 +43,35 @@ class LearningTest(unittest.TestCase):
         self.assertEqual(self.run_learning()["status"], "unchanged")
         self.assertEqual(len(recent(self.vault)), 1)
 
+    def test_development_can_enrich_an_incorporated_record_without_losing_origin(self):
+        from memory_runtime.core import digest
+        from memory_runtime.sources import source_add, curation_plan, sync_apply
+        origin = dict(vault_id="colleague-vault", id="R-sync")
+        source = source_add(self.vault, dict(id="colleague", remote="https://github.com/demo/memory",
+                                           includes=[["Demo"]], incorporate=True))
+        remote = dict(self.payload["changes"][0]["value"], id="R-sync", revision=1,
+                      origin=origin, collection="records")
+        write_json(self.vault.local / "sources/colleague/receipt.json", dict(
+            vault_id="colleague-vault", revision="a" * 40, entries=[remote],
+            policy_hash=digest({k: v for k, v in source.items() if k != "publication"})))
+        plan = curation_plan(self.vault)
+        sync_apply(self.vault, dict(base_hash=plan["base_hash"], candidates_hash=plan["candidates_hash"],
+            assessment=self.payload["assessment"], decisions=[dict(candidate=plan["candidates"][0]["candidate"],
+            action="add", reason="Descoberta comprovada aplicável ao projeto.")]), "test-agent")
+        value = {k: v for k, v in self.vault.snapshot()["records"]["R-sync"].items()
+                 if k not in ("id", "revision", "origin")}
+        value["content"] += "; o desenvolvimento local comprovou também a validação do checklist."
+        payload = copy.deepcopy(self.payload)
+        payload["changes"][0]["value"] = value
+        self.assertEqual(self.run_learning(payload)["status"], "memory_updated")
+        self.assertEqual(self.vault.snapshot()["records"]["R-sync"]["origin"], origin)
+        payload["changes"][0]["value"] = dict(value, content="Outro conteúdo", origin=dict(
+            vault_id="unreviewed-vault", id="other-origin"))
+        self.assertEqual(self.run_learning(payload)["status"], "pending_review")
+        payload["changes"][0]["value"]["origin"] = dict(
+            vault_id=self.vault.snapshot()["metadata"]["vault_id"], id="R-sync")
+        self.assertEqual(self.run_learning(payload)["status"], "pending_review")
+
     def test_learn_triggers_enriches_hypothesis_without_review(self):
         from memory_runtime.learning import learn_triggers
         payload = copy.deepcopy(self.payload)

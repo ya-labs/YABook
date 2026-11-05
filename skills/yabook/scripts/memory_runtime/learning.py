@@ -113,7 +113,13 @@ def learn(vault, payload, actor, config_path, workspace, queue=True):
                 reasons.append("Conhecimento fora do projeto configurado exige revisão")
             continue
         origin = value.get("origin", previous.get("origin", {}) if previous else {})
-        if origin.get("vault_id", snapshot["metadata"]["vault_id"]) != snapshot["metadata"]["vault_id"]:
+        if previous and origin != previous.get("origin", {}):
+            reasons.append("Alterar a identidade de origem exige revisão")
+        incorporated = previous is not None and origin == previous.get("origin") and any(
+            item.get("target") == identifier and item.get("collection") == collection
+            and item.get("origin") == origin and item.get("remote_hash")
+            for item in snapshot["metadata"].get("source_sync", {}).get("entries", {}).values())
+        if origin.get("vault_id", snapshot["metadata"]["vault_id"]) != snapshot["metadata"]["vault_id"] and not incorporated:
             reasons.append("Incorporação de fonte externa exige revisão")
         if collection == "records":
             normalized = " ".join(value.get("content", "").casefold().split())
