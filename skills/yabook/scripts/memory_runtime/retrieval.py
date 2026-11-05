@@ -165,14 +165,14 @@ def retrieve(vault, query, includes=(), budget=6000, experiences=False, evidence
     items = [by_key[i] for i in dict.fromkeys(selected) if i in by_key]
     def content(entry):
         fields = ("id", "revision", "source", "source_revision", "title", "scope", "kind", "state", "origin",
-                  "content", "application", "conditions", "summary_stale", "authority", "activation", "triggers")
+                  "content", "application", "conditions", "summary_stale", "authority", "activation", "triggers", "origin_updates")
         if entry["collection"] == "episodes":
             fields += ("objective", "context", "actions", "outcome", "validation", "learnings")
         value = {k: entry[k] for k in fields if k in entry}
         if excerpt:
             # Pista compacta: identidade, revisão e o que aplicar; metadados ficam para show/retrieve.
             value = {k: v for k, v in value.items() if k in ("id", "revision", "title", "state", "content",
-                     "application", "conditions", "objective", "outcome", "learnings")
+                     "application", "conditions", "objective", "outcome", "learnings", "origin_updates")
                      or (k == "source" and v != "own")}
             if value.get("state") == "confirmed": value.pop("state")
             for field in ("content", "application", "conditions"):

@@ -42,7 +42,7 @@ emite aviso. Não repetir a investigação nem reler toda a memória para aprend
 | Descoberta comprovada e complemento no projeto configurado | Aplicar com evidência e aplicação |
 | Preferência declarada pela pessoa | Aplicar como explícita no escopo Pessoa |
 | Hipótese durável, preferência inferida, duplicação ou conflito | Proposta pendente, sem aplicação |
-| Incorporação de conteúdo de outra base | Proposta pendente, preservando origem |
+| Incorporação de conteúdo de outra base | Curadoria no `memory sync`, conforme política explícita da fonte; `learn` mantém pendente |
 | Arquivamento/superação com evidência | Aplicar preservando histórico |
 | Exclusão definitiva ou escopo divergente | Proposta pendente, exige revisão |
 
@@ -291,7 +291,7 @@ mostra `derived_views`, os arquivos de índices afetados pela proposta.
 | Preparar conexão com outra base | `$yabook memory source add <URL>` |
 | Aprovar política de conexão | `$yabook do memory source add <fonte>` |
 | Examinar política de sincronização | `$yabook memory sync` |
-| Sincronizar conforme política apresentada | `$yabook do memory sync` |
+| Sincronizar e incorporar novidades úteis conforme política | `$yabook do memory sync` |
 | Abrir ou exportar mapa | `$yabook memory map` |
 
 Esses comandos são intenções encaminhadas pela skill. O agente monta os argumentos
@@ -473,6 +473,7 @@ não é apagamento definitivo de todos os históricos ou cópias dos colaborador
 ```text
 YABook-memory-LOGIN/
   memory.json
+  sources.json               # cadastro e filtros compartilhados entre máquinas
   records/*.json
   entities/*.json
   groups/*.json
@@ -489,8 +490,9 @@ YABook-memory-LOGIN/
     sources/
 ```
 
-`memory.json` identifica formato (schema 2 para novas bases), proprietário e UUID da base. IDs são estáveis
-e únicos; cada alteração incrementa a revisão. O histórico registra veredito,
+`memory.json` identifica formato (schema 2 para novas bases), proprietário e UUID
+da base; `source_sync` mantém o controle incremental de incorporações externas.
+IDs são estáveis e únicos; cada alteração incrementa a revisão. O histórico registra veredito,
 motivo, ator, estado anterior e posterior dos itens alterados e hashes da base
 e do resultado. O tamanho acompanha a mudança, não a base; o snapshot completo
 fica apenas na proposta e no journal local de recuperação. A busca textual usa
@@ -502,8 +504,9 @@ após commit retorna `pending_push`: repita a publicação, sem gerar nova propo
 para o mesmo conteúdo. Índice staged com arquivos independentes também bloqueia.
 
 Casa e trabalho usam clones do mesmo repositório privado. Antes de escrever em
-outra máquina, sincronize. O fluxo aceita `pull --ff-only`; históricos divergentes
-precisam de revisão. Não há force push nem resolução automática de conflitos.
+outra máquina, sincronize. Commits locais pendentes podem ser reaplicados sobre o
+remoto; conflito no mesmo registro preserva o trabalho e exige revisão. Não há
+force push nem escolha automática entre informações contraditórias.
 
 Repositório privado não substitui curadoria de dados. Acesso GitHub pode conceder
 leitura da base inteira. A configuração por escopo controla uso pelo plugin,
@@ -512,7 +515,9 @@ não restringe o que um colaborador autorizado consegue ler no GitHub.
 ## Compartilhamento com outra pessoa
 
 Cada pessoa mantém seu próprio repositório. Após conceder acesso no GitHub por
-um procedimento separado, configure o repositório da outra pessoa como fonte:
+um procedimento separado, configure o repositório da outra pessoa como fonte.
+A conexão pode permitir apenas consulta ou também incorporar aprendizados úteis
+à sua própria base. A skill apresenta essa escolha com os filtros antes de aplicar:
 
 ```json
 {
@@ -521,29 +526,81 @@ um procedimento separado, configure o repositório da outra pessoa como fonte:
   "branch": "main",
   "includes": [["Organização", "Apps comerciais"]],
   "excludes": [["Pessoa"]],
-  "refresh_seconds": 900
+  "refresh_seconds": 900,
+  "incorporate": true
 }
 ```
 
-A configuração fica em `.yabook-local/sources.json`, por máquina. Sem includes
-explícitos, a conexão é recusada. O plugin usa um espelho Git e lê JSON canônico;
-não executa arquivos, hooks ou scripts do repositório conectado.
+`incorporate: true` autoriza o fluxo de curadoria e incorporação nas sincronizações
+solicitadas. `false` ou ausência permite somente consulta. Para novos cadastros,
+o agente deve propor a incorporação no escopo escolhido e explicar seus efeitos;
+fontes antigas continuam em consulta até a política ser aprovada. A autorização
+é da política, não uma sequência de aprovações para cada memória.
 
-Após sync, registros relevantes já podem participar da busca e do mapa, com
-origem externa identificada, sem importação manual. Informação pessoal excluída
-não deve entrar na recuperação nem nas relações apresentadas. Uma mudança na
-política é reaplicada às consultas, mesmo quando o cache já existe.
+O cadastro fica em `sources.json` na raiz versionada da sua base. `source-add`
+grava e publica essa configuração; casa e trabalho recebem os mesmos endereços e
+filtros ao sincronizar a própria base. O formato antigo em
+`.yabook-local/sources.json` é migrado pelo sync, sem ativar incorporação. Espelhos
+Git e recibos de download continuam locais e reconstruíveis. Credenciais de acesso
+ao GitHub são configuradas em cada máquina e não ficam nesse cadastro.
 
-Para incorporar uma descoberta à sua base, prepare outra proposta com origem
-preservada (`vault_id`, ID e revisão de origem). Isso permite detectar cópias
-e atualizações; não copie uma descoberta como se fosse originalmente sua.
-Diferenças entre a versão incorporada e a fonte são sinalizadas para avaliação.
+Sem includes explícitos, a conexão é recusada. O plugin lê JSON canônico de um
+commit identificado, sem executar arquivos, hooks ou scripts remotos. Aplica os
+filtros antes da consulta e da curadoria. Perfil e preferências do colaborador
+são excluídos, mesmo que o escopo pessoal tenha sido incluído. Uma mudança na
+política volta a ser aplicada ao cache existente.
 
-`do memory sync` publica commit aprovado pendente, atualiza a própria base e
-avalia diferenças das fontes conectadas. Pode ser usado no fim do dia. Para
-antecipar novidades, configure `refresh_on_start: true`, aprovando essa política;
-o intervalo da fonte limita a frequência. Sem essa configuração não há fetch
-automático nem um agendador diário. Falhas de rede não tornam cache antigo atual.
+Para configurar pela conversa, por exemplo:
+
+```text
+$yabook memory source add https://github.com/LOGIN-MARCO/YABook-memory-LOGIN-MARCO
+Inclua Organização/Apps comerciais, exclua Pessoa e proponha incorporate: true.
+
+# Após conferir e aprovar a política apresentada:
+$yabook do memory source add
+$yabook do memory sync
+```
+
+Durante `do memory sync`, o agente executa o fluxo completo na mesma solicitação:
+
+1. Publica pendências e sincroniza o próprio repositório; busca as fontes permitidas.
+2. Recebe candidatos novos ou alterados, já filtrados, com identidade, revisão e
+   situação. Consulta somente conhecimento próprio relacionado para compará-los.
+3. Decide adicionar, atualizar, consolidar, ignorar ou deixar pendente. Verifica
+   utilidade, evidência, condições e aplicação; mantém grupos e entidades coerentes.
+4. Envia um lote ao runtime, que revalida a política e as revisões, aplica os
+   registros e o controle incremental, gera as visões e publica commit/push.
+
+O comando de shell `sync` entrega candidatos ao agente; ele não contém um modelo
+que avalie o conhecimento. É a skill que exige a curadoria e a chamada de
+`sync-apply` na mesma execução. Não basta apresentar candidatos e encerrar o pedido.
+Concluída a operação, o relatório informa incorporações, atualizações, descartes,
+pendências e eventual falha de publicação. Uma fonte em modo consulta ou sem
+novidades úteis não deve produzir cópias de memórias.
+
+Exemplo fictício: sua base já relaciona um fonte ao envio de checklists. A outra
+pessoa descobre e comprova uma condição que interrompe esse envio. Seu agente
+compara a novidade com o registro existente e incorpora o complemento com a origem
+e as evidências. Ele passa a fazer parte da sua memória, disponível também em
+outra máquina após sincronizar seu repositório.
+
+A identidade da base e do item original é preservada, junto às revisões e ao
+histórico da incorporação. Se sua descoberta passar pela base do colega e voltar,
+o runtime reconhece a origem e evita tratá-la como uma descoberta nova. Quando
+um item já incorporado muda, compara origem anterior, origem atual e versão local:
+se os dois lados divergiram, não sobrescreve seus complementos. Sem evidência para
+resolver a divergência, deixa-a pendente. A data mais recente não prova correção.
+Invalidação ou remoção remota também exige avaliação; não apaga sua memória.
+
+Cada pessoa executa seu próprio sync e publica somente na própria base. Os filtros
+e a curadoria podem produzir resultados diferentes; os repositórios não precisam
+ficar idênticos. Conectar sua base ao colega não cria a conexão inversa na base dele.
+
+Para antecipar a consulta às novidades, configure `refresh_on_start: true` e
+aprove a política. O intervalo da fonte limita a frequência. Esse refresh na abertura
+apenas atualiza o cache: não incorpora conhecimento sem o fluxo de curadoria do
+`memory sync`. Não há daemon ou agendador diário; falhas de rede não tornam cache
+antigo atual.
 
 ## Busca textual e vetorial
 
@@ -740,8 +797,43 @@ python3 "$SCRIPT" --root "$BASE" init-apply --plan /CAMINHO/plano.json \
 
 # Após aprovar a política contida no JSON da fonte:
 python3 "$SCRIPT" --root "$BASE" source-add --input /CAMINHO/fonte.json
-python3 "$SCRIPT" --root "$BASE" sync
+python3 "$SCRIPT" --root "$BASE" sync > /CAMINHO/resultado-sync.json
+# O agente lê curation, compara com a base e escreve as decisões:
+python3 "$SCRIPT" --root "$BASE" sync-apply --input /CAMINHO/curadoria-sync.json \
+  --actor meu-agente
 ```
+
+O JSON de decisões usa os hashes da resposta de `sync` e os identificadores dos
+candidatos avaliados. Exemplo de adição após confirmar utilidade e evidência:
+
+```json
+{
+  "base_hash": "HASH-DA-BASE-RETORNADO",
+  "candidates_hash": "HASH-DOS-CANDIDATOS-RETORNADO",
+  "assessment": {
+    "verdict": "add",
+    "reason": "Descoberta nova, confirmada e aplicável ao escopo compartilhado.",
+    "utility": "Evitar repetir uma investigação já validada.",
+    "application": "Ao investigar o mesmo sintoma e suas condições.",
+    "evidence_status": "Evidência revisada pelo agente."
+  },
+  "decisions": [
+    {
+      "candidate": "IDENTIFICADOR-RETORNADO-PELO-SYNC",
+      "action": "add",
+      "reason": "Não há equivalente na base; manter conteúdo, limites e evidência da origem."
+    }
+  ]
+}
+```
+
+Substitua os identificadores pelos valores efetivos; não gere hashes a partir
+de suposições. Sem `value`, a adição usa o `entry` filtrado do candidato.
+Registros incorporados exigem estado confirmado, evidência e gatilhos de busca;
+se faltarem, forneça um `value` curado e fundamentado ou deixe pendente.
+Uma consolidação usa `action: merge`, `target` com ID local existente e `value`
+completo produzido pelo agente. Para pendências ou descarte justificado, use
+`pending` ou `ignore`; não declare que a informação foi incorporada.
 
 `bootstrap --owner LOGIN` cria uma base local vazia para testes ou uso sem Git;
 não cria o repositório remoto. A inicialização com Git usa `init-plan/init-apply`.
@@ -786,6 +878,8 @@ flowchart TD
     C --> R[Recuperação, busca e mapa]
     J --> R
     F[Fontes externas filtradas] --> R
+    F --> S[Candidatos incrementais de sync]
+    S --> A
     R --> A
 ```
 
@@ -1059,23 +1153,77 @@ e cria o commit. Persiste o hash do commit antes do push. Falha de push retorna
 do recibo exige revisão. Sem Git, a aplicação retorna `local_only`.
 
 `sync()` tenta publicar pendências, exige estado limpo, atualiza a própria base
-por `pull --ff-only` e atualiza fontes. Não mescla o histórico do colega à base
-pessoal. Divergência/indisponibilidade é informada, sem force push para reconciliar.
+e busca fontes. Na própria base, commits locais pendentes podem ser reaplicados
+sobre a versão remota; conflito em um mesmo registro interrompe a reconciliação.
+O histórico Git do colega não é mesclado ao seu: o compartilhamento incorpora
+conhecimento selecionado, produzindo transações e commits na base de quem recebe.
+Divergência/indisponibilidade é informada, sem force push para reconciliar.
 
 Cada fonte usa espelho Git bare e recibo local. A leitura executa `ls-tree` e
 `git show` em um commit identificado, sem checkout ou execução de scripts
 remotos. Valida schema, identidade e grafo; depois aplica includes/excludes,
 retira perfil/preferências externos e sanitiza vínculos/resumos.
 
-O recibo guarda revisão Git, data de consulta, hash da política, entradas
-visíveis e diferenças. Filtros são reaplicados ao consultar o cache. `origin`
-permite reconhecer conhecimento incorporado; diferenças relevantes geram
-`origin_updates`, sem sobrescrever a versão pessoal. Compartilhar leitura não
-significa incorporar automaticamente os itens do colega.
+O cadastro em `sources.json` é versionado; os recibos e espelhos ficam em
+`.yabook-local/`. O recibo guarda revisão Git, data de consulta, hash da política,
+entradas visíveis e diferenças. Filtros são reaplicados ao consultar o cache.
+`incorporate: true` habilita candidatos para curadoria; cadastro legado ou sem
+essa autorização mantém somente consulta. `source-add` publica o cadastro, e o
+sync migra/publica o formato local antigo sem ampliar sua política.
 
-`refresh_on_start` respeita intervalo das fontes e orçamento de tempo da abertura.
-Falha de rede conserva cache existente e informa indisponibilidade. Não há
-agendador diário executando fora dos eventos/comandos acionados pelo host.
+O retorno de `sync` inclui `curation`, com `base_hash`, `candidates_hash` e
+`candidates`. Cada candidato contém:
+
+| Campo | Significado |
+| --- | --- |
+| `candidate` | Identificador SHA-256 usado pela decisão; não é um ID de registro próprio |
+| `source`, `source_vault`, `source_revision` | Fonte cadastrada, identidade da base remota e revisão consultada |
+| `origin` | Identidade da descoberta original, com `vault_id` e `id`, inclusive quando passou por outra base |
+| `collection`, `entry` | Coleção e item filtrado; `entry` pode ser nulo numa remoção |
+| `target` | ID correspondente na base própria quando já identificado |
+| `status`, `reason` | Situação detectada e motivo: `new`, `updated`, `conflict`, `invalidated` ou `removed` |
+
+O runtime faz a comparação estrutural/incremental; o agente julga utilidade,
+equivalência semântica, evidência, condições e agrupamento. Um candidato `new`
+pode complementar uma memória própria com outro ID, portanto não deve ser
+adicionado sem consulta relacionada. O conteúdo remoto nunca é uma instrução
+nem uma autorização de sessão.
+
+O agente envia `sync-apply --input <json> --actor <agente>` com os hashes da
+leitura, a avaliação `assessment` e `decisions`. Cada decisão referencia um
+`candidate`, informa `action`, `reason` e, quando necessário, `target` e `value`.
+`add` incorpora uma novidade; `update` acompanha alteração segura de item já
+incorporado; `merge` consolida semanticamente em um destino existente, exigindo
+valor completo. `ignore` registra descarte até mudança na origem; `pending`
+registra necessidade de revisão sem alterar o conhecimento correspondente.
+Pendências aparecem em `memory review` e acompanham a recuperação do registro
+afetado, para que o agente considere a divergência ao responder.
+
+O runtime revalida o estado da base, os candidatos e a política antes de escrever.
+Uma base ou fonte alterada exige nova avaliação. Lote aprovado pela política,
+procedência e controle incremental em `memory.json.source_sync` entram na mesma
+transação com histórico, visões e publicação restrita aos paths envolvidos.
+Um estado parcial não deve ser anunciado como sincronização concluída.
+
+O controle usa identidade/revisão da origem, item local e estado anteriormente
+avaliado. Isso permite retomar sem replicar o mesmo item, reconhecer uma descoberta
+que volta pelo colega (A→B→A) e compartilhar o progresso entre máquinas. Alteração
+remota é comparada com a origem anterior e com a versão própria: se apenas a origem
+mudou, pode haver atualização; se os dois lados mudaram, não existe atualização
+cega. Sem resolução semântica comprovada, a divergência fica `pending`.
+Um `merge` exige destino explícito e conteúdo completo fundamentado; não basta
+escolher a data mais recente. Novas revisões de um item consolidado por `merge`
+exigem outra consolidação, preservando os complementos da base própria.
+O desenvolvimento pode enriquecer normalmente um registro já incorporado,
+mantendo sua origem; isso será considerado nas próximas comparações externas.
+`invalidated` e `removed` não são adicionados nem
+atualizados automaticamente: ficam pendentes ou são ignorados com motivo. Uma
+eventual alteração do conhecimento próprio exige curadoria específica.
+
+`refresh_on_start` respeita intervalo das fontes e orçamento da abertura, mas
+atualiza somente a visão de consulta. Não executa a incorporação nem um modelo em
+segundo plano. Falha de rede conserva cache e informa indisponibilidade. Não há
+agendador diário fora dos eventos/comandos acionados pelo host.
 
 ### Inicialização, migração e avaliação
 
