@@ -57,12 +57,12 @@ def parse_date(text, base=None):
 
 
 class Tasks:
-    def __init__(self, store, cfg=None):
-        self.store, self.cfg = store, cfg or {}
+    def __init__(self, store, cfg=None, origem="agente"):
+        self.store, self.cfg, self.origem = store, cfg or {}, origem
 
     def _event(self, acao, **fields):
-        """Ação do agente: entra no histórico já analisada."""
-        return events.record(self.store.root, self.cfg.get("machine"), "agente", acao, **fields)
+        """Ação do agente entra analisada; a do quadro fica pendente até `analyze`."""
+        return events.record(self.store.root, self.cfg.get("machine"), self.origem, acao, **fields)
 
     # Apoio ----------------------------------------------------------------
     def roles(self):
@@ -229,6 +229,8 @@ class Tasks:
             before = task["data"].get("coluna")
             if before != data["coluna"]:
                 self._event("mover", tarefa=identifier, de=before, para=data["coluna"])
+            elif data.get("ordem") != task["data"].get("ordem"):
+                self._event("reordenar", tarefa=identifier, coluna=data["coluna"], ordem=data.get("ordem"))
             changed = sorted(k for k in set(data) | set(task["data"])
                              if k not in ("coluna", "ordem", "atualizada", "criada") and data.get(k) != task["data"].get(k))
             if changed or append:

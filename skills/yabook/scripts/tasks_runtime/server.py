@@ -253,8 +253,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
             status, result = self.writer(self.board, urlparse(self.path).path, body)
-        except ValueError as error:
-            return self._error(HTTPStatus.BAD_REQUEST, str(error))
+        except (ValueError, KeyError) as error:
+            return self._error(HTTPStatus.BAD_REQUEST, str(error).strip("'\""))
+        except Exception as error:  # nunca derruba a conexão sem resposta
+            return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "%s: %s" % (type(error).__name__, error))
         return self._send(status, result)
 
     def _static(self, path):
@@ -300,7 +302,8 @@ def make_server(store, cfg=None, port=None, poll_seconds=POLL_SECONDS, writer=No
     """Cria o servidor sem iniciá-lo; porta 0 escolhe uma livre (testes)."""
     cfg = cfg or {}
     board = Board(store, cfg)
-    handler = type("BoundHandler", (Handler,), dict(board=board, token=secrets.token_urlsafe(24), writer=writer))
+    handler = type("BoundHandler", (Handler,), dict(board=board, token=secrets.token_urlsafe(24),
+                                                    writer=staticmethod(writer) if writer else None))
     server = ThreadingHTTPServer(("127.0.0.1", DEFAULT_PORT if port is None else port), handler)
     server.daemon_threads = True
     server.poll_seconds = poll_seconds

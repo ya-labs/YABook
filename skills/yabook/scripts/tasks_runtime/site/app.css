@@ -84,3 +84,11 @@ pre.registro { white-space: pre-wrap; background: var(--superficie-2); border-ra
 .historias ul li { display: flex; gap: 6px; align-items: center; }
 .perguntas > li { background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); padding: 10px; }
 tr.atrasada td { color: var(--erro); }
+.edicao { display: flex; gap: 8px; align-items: center; }
+.card.editado { border-color: var(--alerta); box-shadow: inset 3px 0 0 var(--alerta); }
+.card[draggable="true"] { cursor: grab; }
+.formulario { display: grid; gap: 10px; margin-top: 16px; border-top: 1px solid var(--borda); padding-top: 8px; }
+.campo { display: grid; gap: 4px; font-size: 12px; color: var(--texto-2); }
+.campo input, .campo select, .campo textarea, input.horas { background: var(--superficie); border: 1px solid var(--borda); border-radius: 8px; padding: 6px 8px; color: var(--texto); font-size: 14px; }
+.campos-linha { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+input.horas { width: 80px; text-align: right; }

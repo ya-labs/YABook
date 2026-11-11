@@ -223,7 +223,8 @@ def run(args):
             return server.Board(store, cfg).export(args.output)
         if not args.serve:
             raise ValueError("Use --serve para iniciar o site ou --output para a cópia estática")
-        return server.serve(store, cfg, args.port, writer=getattr(server, "WRITER", None))
+        from tasks_runtime import editing
+        return server.serve(store, cfg, args.port, writer=editing.handle)
     if args.command == "capture":
         from tasks_runtime.batch import Capture
         batch = json.loads(Path(args.input).read_text(encoding="utf-8"))
