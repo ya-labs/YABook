@@ -119,7 +119,7 @@ h2 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; } h2:first-child { m
 .coluna.alvo { border-color: var(--primario); }
 .status { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgb(var(--status, var(--c-gray))); flex: none; }
 .papel-entrada { --status: var(--c-blue); } .papel-pronto { --status: var(--c-yellow); } .papel-ativo { --status: var(--c-purple); }
-.papel-validacao { --status: var(--c-orange); } .papel-concluido { --status: var(--c-green); } .papel-arquivado { --status: var(--c-gray); }
+.papel-validacao { --status: var(--c-orange); } .coluna-epicos { --status: var(--c-pink); } .papel-concluido { --status: var(--c-green); } .papel-arquivado { --status: var(--c-gray); }
 
 /* Card */
 .card { display: grid; gap: 6px; width: 100%; padding: 8px 12px 10px; text-align: left; cursor: pointer;

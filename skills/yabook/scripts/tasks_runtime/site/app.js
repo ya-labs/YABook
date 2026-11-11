@@ -133,6 +133,7 @@ const LEVEL = { epico: ["épico", "purple"], historia: ["história", "blue"], ta
 
 function badges(task, options = {}) {
   const items = [];
+  if (options.status) items.push(h("span", { class: "selo neutro forte", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.nivel && !options.semNivel) items.push(pill(LEVEL[task.nivel][0], LEVEL[task.nivel][1]));
   const ref = issueRef(task);
   if (task.codigo && (!ref || task.codigo !== ref.full) && !options.semCodigo) {
@@ -171,7 +172,7 @@ function epicProgress(task) {
   return epic ? segments(epic.concluidas, epic.historias) : null;
 }
 
-function card(task) {
+function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
   return h("div", { class: "card" + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
     draggable: editable ? "true" : null,
@@ -179,7 +180,7 @@ function card(task) {
     onclick: () => openTask(task.id), onkeydown: (e) => { if (e.key === "Enter") openTask(task.id); } },
     h("div", { class: "card-origem" }, stateIcon(task), h("span", {}, origin(task))),
     h("div", { class: "card-titulo" }, task.titulo),
-    h("div", { class: "rotulos" }, badges(task)),
+    h("div", { class: "rotulos" }, badges(task, options)),
     task.nivel === "epico" ? epicProgress(task) : null,
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, task.proximo_passo) : null);
 }
@@ -341,9 +342,16 @@ const VIEWS = {
         (!epicFilter || (epicFilter === "-" ? !epicOf(t, map) : epicOf(t, map) === epicFilter)) &&
         (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
-      app.contagem = visible.filter((t) => columns.some((c) => c.id === t.coluna)).length;
+      const epics = visible.filter((t) => t.nivel === "epico" && columns.some((c) => c.id === t.coluna))
+        .sort((a, b) => CLOSED.includes(a.papel) - CLOSED.includes(b.papel) || byOrder(a, b));
+      const items = visible.filter((t) => t.nivel !== "epico");
+      app.contagem = items.filter((t) => columns.some((c) => c.id === t.coluna)).length + epics.length;
+      const epicColumn = h("div", { class: "coluna coluna-epicos", "data-coluna": "epicos" },
+        h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, "Épicos"), h("span", { class: "contador" }, String(epics.length))),
+        h("div", { class: "itens" }, epics.length ? epics.map((t) => card(t, { status: true, semNivel: true }))
+          : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum épico")));
       return h("div", { class: "quadro" }, columns.map((column) => {
-        const cards = visible.filter((t) => t.coluna === column.id).sort(byOrder);
+        const cards = items.filter((t) => t.coluna === column.id).sort(byOrder);
         return h("div", { class: `coluna papel-${column.papel}`, "data-coluna": column.id,
           ondragover: app.editando ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; e.currentTarget.classList.add("alvo"); } : null,
           ondragleave: app.editando ? (e) => e.currentTarget.classList.remove("alvo") : null,
@@ -352,8 +360,8 @@ const VIEWS = {
             h("span", { class: "acoes" }, app.editando
               ? h("button", { class: "botao-icone discreto", type: "button", title: "Renomear coluna", onclick: () => renameColumn(column) }, icon("mais"))
               : null)),
-          h("div", { class: "itens" }, cards.length ? cards.map(card) : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum item")));
-      }));
+          h("div", { class: "itens" }, cards.length ? cards.map((t) => card(t)) : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum item")));
+      }), epicColumn);
     },
   },
   epicos: {
