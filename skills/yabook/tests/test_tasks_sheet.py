@@ -76,9 +76,47 @@ class SheetTest(unittest.TestCase):
         self.windows("trabalho", "demanda-1001", 4)
         plain = sheet.day_sheet(self.store, DAY)["linhas"][0]
         self.assertNotIn("complemento", plain)
-        self.assertIn("Ajustar limite", plain["observacao"])
+        self.assertEqual(plain["observacao"], "")  # chamado dispensa observação
         local = sheet.day_sheet(self.store, DAY, lambda i: "detalhe local" if i == "demanda-1001" else None)
         self.assertEqual(local["linhas"][0]["complemento"], "detalhe local")
+
+    def test_project_observation_summarizes_the_day(self):
+        self.tasks.edit("projeto-2001", dict(nivel="epico"))
+        self.tasks.add("issue", "Consultar clientes em atraso", projeto="2001", pai="projeto-2001",
+                       ficha="tela de clientes em atraso no Gerencial Online")
+        self.tasks.add("issue", "Exportar positivação mensal", projeto="2001", pai="projeto-2001")
+        self.windows("trabalho", "projeto-2001", 8)                                 # horas no épico
+        self.windows("trabalho", "issue-consultar-clientes-em-atraso", 4, start=10)  # horas na história
+        with patch("tasks_runtime.commands.today", lambda: __import__("datetime").date(2026, 11, 11)):
+            self.tasks.log("issue-consultar-clientes-em-atraso", 1, "ajuste do filtro por vendedor", day=DAY)
+        with patch("tasks_runtime.store.now", lambda: DAY + "T15:00:00-03:00"):
+            self.tasks.edit("issue-exportar-positivacao-mensal", dict(coluna="testes"))  # alterada no dia, sem horas
+            self.tasks.edit("issue-corrigir-sincronizacao", append="Registro interno que não vai para a ficha")
+        row = next(r for r in sheet.day_sheet(self.store, DAY)["linhas"] if r["tipo"] == "projeto")
+        self.assertTrue(row["observacao"].startswith("Desenvolvimento: "), row["observacao"])
+        self.assertIn("tela de clientes em atraso no Gerencial Online", row["observacao"])
+        self.assertIn("exportar positivação mensal", row["observacao"])
+        self.assertIn("ajuste do filtro por vendedor", row["observacao"])
+        self.assertNotIn("Melhorias do aplicativo", row["observacao"])   # épico cede lugar às histórias
+        self.assertNotIn("Registro interno", row["observacao"])
+        self.assertNotIn("2026", row["observacao"])
+        self.assertTrue(row["observacao"].endswith("."))
+        self.assertEqual(row["observacao"].count("; "), row["observacao"].count(";"))
+
+    def test_confirmed_observation_prevails_and_terms_are_checked(self):
+        self.windows("trabalho", "projeto-2001", 4)
+        sheet.confirm(self.store, DAY, [dict(tipo="projeto", codigo="2001", total=8, observacao="Desenvolvimento: tela X; tela Y.")], [])
+        row = sheet.day_sheet(self.store, DAY)["linhas"][0]
+        self.assertEqual(row["observacao"], "Desenvolvimento: tela X; tela Y.")
+        self.assertIn("observacao_sugerida", row)
+        store = TaskStore(self.root, str(self._terms()))
+        with self.assertRaises(ValueError):
+            sheet.confirm(store, DAY, [dict(tipo="projeto", codigo="2001", total=8, observacao="Base do ClienteSecreto")], [])
+
+    def _terms(self):
+        path = Path(self.tmp.name) / "termos.txt"
+        path.write_text("ClienteSecreto\n", encoding="utf-8")
+        return path
 
     def test_empty_day(self):
         result = sheet.day_sheet(self.store, DAY)
