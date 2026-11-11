@@ -28,8 +28,8 @@ def attribution(data, index=None):
     if tree.personal(data, index):
         return None
     demanda, projeto = tree.inherited(data, index, "demanda"), tree.inherited(data, index, "projeto")
-    if data.get("tipo") == "especificacao":
-        return "especificacao", demanda or projeto or data["id"]
+    if data.get("tipo") == "especificacao" and (demanda or projeto):
+        return "especificacao", demanda or projeto
     if demanda:
         return "demanda", demanda
     if projeto:

@@ -23,8 +23,6 @@ def personal(data, index):
     """`pessoal` marcado prevalece; sem marca, é pessoal o que não tem demanda nem projeto na cadeia."""
     if isinstance(data.get("pessoal"), bool):
         return data["pessoal"]
-    if data.get("tipo") == "especificacao":
-        return False
     return not any(d.get("demanda") or d.get("projeto") for d in chain(data, index))
 
 
