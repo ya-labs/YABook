@@ -46,7 +46,9 @@ def build_parser():
     search.add_argument("query", nargs="?", default="")
     search.add_argument("--tipo")
     search.add_argument("--coluna")
-    search.add_argument("--projeto")
+    search.add_argument("--projeto", help="Inclui as tarefas que herdam o projeto pelo pai")
+    search.add_argument("--nivel", choices=["epico", "historia", "tarefa"])
+    search.add_argument("--pai")
     search.add_argument("--limit", type=int, default=20)
     recent = sub.add_parser("recent")
     recent.add_argument("--limit", type=int, default=10)
@@ -71,6 +73,9 @@ def build_parser():
         command.add_argument("--proximo-passo")
         command.add_argument("--sobre")
         command.add_argument("--ordem", type=int)
+        command.add_argument("--nivel", choices=["epico", "historia", "tarefa"])
+        command.add_argument("--pai", help="Id do épico ou da história acima")
+        command.add_argument("--pessoal", choices=["sim", "nao"], help="Sem a opção, vem calculado; --unset pessoal volta ao cálculo")
     add.add_argument("--body", default="")
     forget = sub.add_parser("forget", help="Arquiva sem apagar")
     forget.add_argument("id")
@@ -112,11 +117,13 @@ def build_parser():
     return parser
 
 
-FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem")
+FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai")
 
 
 def fields(args, existing=None):
     result = {k: getattr(args, k) for k in FIELDS if getattr(args, k, None) is not None}
+    if getattr(args, "pessoal", None) is not None:
+        result["pessoal"] = args.pessoal == "sim"
     if getattr(args, "proximo_passo", None) is not None:
         result["proximo_passo"] = args.proximo_passo
     for key, flag in (("issue", "issue"), ("refs", "ref")):
@@ -157,7 +164,7 @@ def run(args):
     if args.command == "show":
         return tasks.show(args.id)
     if args.command == "search":
-        return tasks.search(args.query, args.tipo, args.coluna, args.projeto, args.limit)
+        return tasks.search(args.query, args.tipo, args.coluna, args.projeto, args.limit, args.nivel, args.pai)
     if args.command == "recent":
         return tasks.recent(args.limit)
     if args.command == "review":

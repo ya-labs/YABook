@@ -33,6 +33,13 @@ e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 ficha; `quadro.yml`, colunas com papel `entrada`, `pronto`, `ativo`,
 `validacao`, `concluido` ou `arquivado`.
 
+Hierarquia: `nivel` (`epico`, `historia`, `tarefa`) e `pai` (id acima). Épico não
+tem pai, história fica sob épico e tarefa sob história; o filho sem `nivel`
+assume o nível abaixo do pai. `tipo` segue indicando a origem. `pessoal` vem
+calculado (nenhuma demanda ou projeto na cadeia de `pai`) e só é gravado quando
+a pessoa marca ou desmarca; `--unset pessoal` volta ao cálculo. Iniciativa
+pessoal não usa a numeração da empresa: o código exibido é a issue.
+
 - Grave somente pela biblioteca do runtime, que valida, preserva `criada`,
   atualiza `atualizada` e recusa escrita sobre revisão diferente da lida.
 - Campos versionados usam texto técnico e genérico. Cliente, base, ambiente e
@@ -49,10 +56,10 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | --- | --- |
 | `task` | `summary`: ativas, tarefa ativa, prazos, perguntas e colunas |
 | `task show <id>` | `show`; inclui o complemento confidencial quando existe |
-| `task search <termo>` | `search [--tipo] [--coluna] [--projeto]` |
+| `task search <termo>` | `search [--tipo] [--coluna] [--projeto] [--nivel] [--pai]`; `--projeto` inclui herdados |
 | `task recent` | `recent [--limit]` |
 | `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo e paradas |
-| `task add <texto livre>` | `add --tipo --titulo [--demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
+| `task add <texto livre>` | `add --tipo --titulo [--nivel --pai --pessoal sim\|nao --demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
 | `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
 | `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
@@ -83,7 +90,8 @@ issues ligadas e das tarefas existentes; restrinja ao assunto quando informado.
 Monte o lote JSON no scratchpad:
 
 - `itens`: um por projeto, demanda, especificação ou issue, com `tipo`, `titulo`,
-  códigos, `issue`, `estado` (papel ou coluna conforme a fase), `prazo`,
+  códigos, `issue`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
+  disser, `estado` (papel ou coluna conforme a fase), `prazo`,
   `proximo_passo`, `registro` (o que foi feito), `complemento` (detalhe
   confidencial, só onde há base) e `chave` local.
 - `perguntas` (`texto`, `sobre`), `ativa` (chave) e `horas` (`tarefa`, `data`,
@@ -120,9 +128,10 @@ captura também na configuração global do host, ou ela roda duas vezes.
 
 ## Ficha de horas
 
-- Conta a tarefa com `demanda`, `projeto` ou `tipo: especificacao`; com demanda e
-  projeto, as horas vão para a demanda. O resto é extra: aparece no dia com horas
-  estimadas, fora do total.
+- O código sobe pela cadeia de `pai`: demanda mais próxima, senão projeto;
+  `tipo: especificacao` usa o código da cadeia. Tarefa pessoal é extra: aparece
+  no dia com horas estimadas, fora do total. Trabalho sem código vira linha
+  `trabalho` ("Sem código") para a pessoa ajustar.
 - A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
   janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
   somando exatamente o total.
