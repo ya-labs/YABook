@@ -218,6 +218,8 @@ function sideSection(title, ...content) {
 
 async function openTask(id) {
   const panel = document.getElementById("painel");
+  app.abrindoPainel = true; // o mesmo clique não pode fechar o painel que acabou de abrir
+  setTimeout(() => { app.abrindoPainel = false; }, 0);
   panel.hidden = false;
   fill(panel, h("div", { class: "painel-corpo" }, h("p", { class: "vazio" }, "Carregando…")));
   try {
@@ -700,6 +702,12 @@ function listen() {
 
 window.addEventListener("hashchange", render);
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") closePanel(); });
+// Clique fora do painel fecha; clique que abre outra tarefa apenas troca o conteúdo.
+document.addEventListener("click", (event) => {
+  const panel = document.getElementById("painel");
+  if (app.abrindoPainel) { app.abrindoPainel = false; return; }
+  if (!panel.hidden && !panel.contains(event.target)) closePanel();
+});
 document.addEventListener("DOMContentLoaded", () => {
   renderTheme();
   document.getElementById("tema").addEventListener("click", cycleTheme);
@@ -952,6 +960,8 @@ function moveToComplement(hit) {
 
 function showPanel(...children) {
   const panel = document.getElementById("painel");
+  app.abrindoPainel = true;
+  setTimeout(() => { app.abrindoPainel = false; }, 0);
   panel.hidden = false;
   const [first, ...rest] = children.flat(Infinity).filter(Boolean);
   const title = first && first.tagName === "H2" ? first.textContent : "YABook Tasks";
