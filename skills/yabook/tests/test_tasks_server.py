@@ -78,6 +78,11 @@ class ServerTest(unittest.TestCase):
         self.assertTrue(tasks["issue-v1-pessoal"]["pessoal"])
         self.assertEqual({e["id"] for e in state["epicos"]}, {"projeto-5723", "issue-v1-pessoal"})
         self.assertTrue(state["base_confidencial"])
+        question = next(t for t in state["tarefas"] if t["tipo"] == "pergunta")
+        self.assertEqual((question["sobre"], question["papel"]), ("issue-agenda-script", "entrada"))
+        self.assertEqual(tasks["projeto-5723"]["papel"], "ativo")
+        self.assertEqual([q["id"] for q in state["perguntas"]], [question["id"]])
+        self.assertEqual({e["id"]: e["historias"] for e in state["epicos"]}["projeto-5723"], 1)
 
     def test_task_detail_resolves_refs_only_inside_the_base(self):
         status, detail = self.get_json("/api/tarefa/issue-agenda-script")
