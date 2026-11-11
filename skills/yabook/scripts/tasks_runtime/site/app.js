@@ -176,8 +176,11 @@ function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
   return h("div", { class: "card" + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
     draggable: editable ? "true" : null,
-    ondragstart: editable ? (e) => { e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; } : null,
-    onclick: () => openTask(task.id), onkeydown: (e) => { if (e.key === "Enter") openTask(task.id); } },
+    ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
+    ondragend: editable ? () => { app.dragId = null; clearDrop(); document.querySelectorAll(".arrastando").forEach((n) => n.classList.remove("arrastando")); } : null,
+    onclick: () => openTask(task.id), onkeydown: (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(task.id); }
+    } },
     h("div", { class: "card-origem" }, stateIcon(task), h("span", {}, origin(task))),
     h("div", { class: "card-titulo" }, task.titulo),
     h("div", { class: "rotulos" }, badges(task, options)),
@@ -218,14 +221,20 @@ function sideSection(title, ...content) {
 
 async function openTask(id) {
   const panel = document.getElementById("painel");
-  app.abrindoPainel = true; // o mesmo clique não pode fechar o painel que acabou de abrir
-  setTimeout(() => { app.abrindoPainel = false; }, 0);
-  panel.hidden = false;
-  fill(panel, h("div", { class: "painel-corpo" }, h("p", { class: "vazio" }, "Carregando…")));
+  const request = beginPanel();
+  panel.setAttribute("aria-busy", "true");
+  fill(panel, panelHeader("Carregando tarefa…"), h("div", { class: "painel-corpo" }, loadingState()));
+  focusPanel();
   try {
     const detail = await api("/api/tarefa/" + encodeURIComponent(id));
-    const data = detail.data;
+    if (request !== app.painelRequest) return;
     const task = effectiveState().tarefas.find((t) => t.id === id) || detail.resumo;
+    const data = { ...detail.data, ...task };
+    const draft = app.editando && app.rascunho.tarefas[id];
+    if (draft) {
+      const changed = new Set([...(draft.unset || []), ...Object.keys(draft.campos || {})]);
+      for (const key of changed) if (!(key in task)) delete data[key];
+    }
     const parent = data.pai ? effectiveState().tarefas.find((t) => t.id === data.pai) : null;
     const ref = issueRef(data);
     const parentRef = parent ? issueRef(parent) : null;
@@ -234,8 +243,8 @@ async function openTask(id) {
     const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
     fill(panel,
       h("div", { class: "painel-topo" },
-        h("h2", {}, data.titulo, ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null),
-        h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", onclick: closePanel }, icon("fechar"))),
+        h("h2", { id: "painel-titulo", tabindex: "-1" }, data.titulo, ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null),
+        h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar"))),
       h("div", { class: "faixa-estado" },
         stateLabel(task),
         parent ? h("button", { class: "selo neutro forte grande", type: "button", onclick: () => openTask(parent.id) },
@@ -280,13 +289,54 @@ async function openTask(id) {
             parent ? [h("span", { class: "vazio" }, "Faz parte de"), h("div", { class: "relacao" }, stateIcon(parent), goTo(parent),
               epic && data.nivel !== "epico" ? h("span", { class: "contador" }, `${epic.concluidas} / ${epic.historias}`) : null)] : null,
             (data.issue || []).length ? [h("span", { class: "vazio" }, "Issues"), (data.issue || []).map((i) => h("div", { class: "relacao" }, icon("aberto", "estado-aberto"), i))] : null))));
+    panel.setAttribute("aria-busy", "false");
+    focusPanel();
   } catch (error) {
-    showPanel(h("p", { class: "aviso erro" }, error.message));
+    if (request !== app.painelRequest) return;
+    showPanel(h("h2", {}, "Não foi possível abrir a tarefa"), h("p", { class: "aviso erro", role: "alert" }, error.message),
+      h("button", { class: "botao", type: "button", onclick: () => openTask(id) }, "Tentar novamente"));
   }
 }
 
-function closePanel() {
-  document.getElementById("painel").hidden = true;
+function panelHeader(title) {
+  return h("div", { class: "painel-topo" }, h("h2", { id: "painel-titulo", tabindex: "-1" }, title),
+    h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar")));
+}
+
+function beginPanel() {
+  const panel = document.getElementById("painel");
+  const focused = document.activeElement;
+  if (focused && focused !== document.body && !panel.contains(focused)) app.painelOrigem = focused;
+  app.painelRequest = (app.painelRequest || 0) + 1;
+  clearTimeout(app.painelFechando);
+  app.abrindoPainel = true;
+  setTimeout(() => { app.abrindoPainel = false; }, 0);
+  panel.hidden = false;
+  panel.scrollTop = 0;
+  panel.classList.remove("fechando");
+  requestAnimationFrame(() => { if (!panel.hidden && !panel.classList.contains("fechando")) panel.classList.add("aberto"); });
+  return app.painelRequest;
+}
+
+function focusPanel() {
+  const panel = document.getElementById("painel");
+  const title = panel.querySelector("#painel-titulo");
+  if (title) title.focus({ preventScroll: true });
+}
+
+function closePanel(restoreFocus = true) {
+  const panel = document.getElementById("painel");
+  if (panel.hidden || panel.classList.contains("fechando")) return;
+  app.painelRequest = (app.painelRequest || 0) + 1;
+  panel.setAttribute("aria-busy", "false");
+  panel.classList.remove("aberto");
+  panel.classList.add("fechando");
+  const duration = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 180;
+  app.painelFechando = setTimeout(() => { panel.hidden = true; panel.classList.remove("fechando"); }, duration);
+  if (restoreFocus !== false) {
+    const target = app.painelOrigem && app.painelOrigem.isConnected ? app.painelOrigem : document.getElementById("conteudo");
+    target.focus({ preventScroll: true });
+  }
 }
 
 // Visões ------------------------------------------------------------------------
@@ -378,9 +428,9 @@ const VIEWS = {
             h("div", {}, h("h2", {}, "Épicos em andamento"),
               epics.length ? h("div", { class: "pilha" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : h("p", { class: "vazio" }, "Nenhum outro épico em andamento."))),
           h("div", {},
-            list("Prazos", estado.prazos.map(full), "Nenhum prazo atrasado ou nos próximos 2 dias.",
+            list("Prazos", filtered(estado.prazos.map(full)), "Nenhum prazo atrasado ou nos próximos 2 dias.",
               (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
-            list("Perguntas para você", estado.perguntas.map(full), "Nenhuma pergunta aberta."),
+            list("Perguntas para você", filtered(estado.perguntas.map(full)), "Nenhuma pergunta aberta."),
             list("Em validação", testing, "Nada em validação."))));
     },
   },
@@ -421,8 +471,8 @@ const VIEWS = {
       return h("div", { class: "quadro" }, columns.map((column) => {
         const cards = items.filter((t) => t.coluna === column.id).sort(byOrder);
         return h("div", { class: `coluna papel-${column.papel}`, "data-coluna": column.id,
-          ondragover: app.editando ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; e.currentTarget.classList.add("alvo"); } : null,
-          ondragleave: app.editando ? (e) => e.currentTarget.classList.remove("alvo") : null,
+          ondragover: app.editando ? indicateDrop : null,
+          ondragleave: app.editando ? (e) => { if (!e.currentTarget.contains(e.relatedTarget)) clearDrop(); } : null,
           ondrop: app.editando ? (e) => { e.currentTarget.classList.remove("alvo"); dropCard(e, column.id, cards); } : null },
           h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, column.nome), h("span", { class: "contador" }, String(cards.length)),
             h("span", { class: "acoes" }, app.editando
@@ -434,6 +484,7 @@ const VIEWS = {
   },
   epicos: {
     titulo: "Épicos",
+    descricao: "Acompanhe as histórias e o progresso de cada iniciativa.",
     icone: "epicos",
     render(estado) {
       const tasks = work(estado);
@@ -462,16 +513,18 @@ const VIEWS = {
               epic.proximo_passo ? h("div", { class: "card-passo", style: "margin-top:6px" }, epic.proximo_passo) : null),
             open.map(withTasks),
             closed.length ? h("details", {}, h("summary", {}, `${closed.length} concluída(s) ou arquivada(s)`), closed.map(withTasks)) : null);
-        }) : h("p", { class: "vazio" }, "Nenhum épico. Use --nivel epico ou task capture."),
+        }) : emptyState(app.busca ? "Nenhum épico com esse filtro" : "Nenhum épico", "Os épicos reúnem histórias e mostram o progresso da iniciativa."),
         loose.length ? [h("h2", {}, "Sem épico"), h("div", { class: "cards" }, loose.map(card))] : null);
     },
   },
   prazos: {
     titulo: "Prazos",
+    descricao: "Tarefas abertas, do prazo mais próximo ao mais distante.",
     icone: "prazos",
     render(estado) {
-      const rows = work(estado).filter((t) => t.prazo && !CLOSED.includes(t.papel)).sort((a, b) => a.prazo.localeCompare(b.prazo));
-      if (!rows.length) return h("p", { class: "vazio" }, "Nenhuma tarefa aberta com prazo.");
+      const rows = filtered(work(estado)).filter((t) => t.prazo && !CLOSED.includes(t.papel)).sort((a, b) => a.prazo.localeCompare(b.prazo));
+      app.contagem = rows.length;
+      if (!rows.length) return emptyState(app.busca ? "Nenhum prazo com esse filtro" : "Nenhuma tarefa aberta com prazo", "Os prazos aparecem aqui quando definidos nas tarefas.");
       return h("table", {},
         h("thead", {}, h("tr", {}, h("th", {}, "Prazo"), h("th", { class: "num" }, "Dias"), h("th", {}, "Tarefa"), h("th", {}, "Código"), h("th", {}, "Coluna"))),
         h("tbody", {}, rows.map((t) => {
@@ -485,9 +538,11 @@ const VIEWS = {
   },
   perguntas: {
     titulo: "Perguntas",
+    descricao: "Decisões pendentes e respostas recentes para continuar o trabalho.",
     icone: "pergunta",
     render(estado) {
-      const questions = estado.tarefas.filter((t) => t.tipo === "pergunta");
+      const questions = filtered(estado.tarefas.filter((t) => t.tipo === "pergunta"));
+      app.contagem = questions.length;
       const open = questions.filter((t) => !t.resposta && !CLOSED.includes(t.papel));
       const answered = questions.filter((t) => t.resposta).sort((a, b) => (b.atualizada || "").localeCompare(a.atualizada || "")).slice(0, 10);
       const about = (t) => {
@@ -497,13 +552,14 @@ const VIEWS = {
       return h("section", {},
         h("h2", {}, "Abertas"),
         open.length ? h("ul", { class: "perguntas" }, open.map((t) => h("li", {}, h("strong", {}, t.titulo), " ", about(t),
-          h("div", { class: "passo" }, `Responda com: task answer ${t.id} <resposta>`)))) : h("p", { class: "vazio" }, "Nenhuma pergunta aberta."),
+          h("details", { class: "passo" }, h("summary", {}, "Como responder"), h("code", {}, `task answer ${t.id} <resposta>`))))) : emptyState(app.busca ? "Nenhuma pergunta com esse filtro" : "Nenhuma pergunta aberta", "As decisões pendentes aparecem aqui."),
         answered.length ? [h("h2", {}, "Respondidas recentes"), h("ul", { class: "perguntas" }, answered.map((t) =>
           h("li", {}, h("strong", {}, t.titulo), " ", about(t), h("div", { class: "passo" }, "↳ " + t.resposta))))] : null);
     },
   },
   semana: {
     titulo: "Semana",
+    descricao: "Atividade por dia e totais da ficha. Abra um dia para ver os detalhes.",
     icone: "semana",
     async render(estado) {
       const ref = app.semana || estado.hoje;
@@ -529,6 +585,7 @@ const VIEWS = {
   },
   ficha: {
     titulo: "Ficha",
+    descricao: "Revise as horas do dia e copie a ficha para o seu registro.",
     icone: "ficha",
     async render(estado) {
       const day = app.ficha || estado.hoje;
@@ -548,7 +605,7 @@ const VIEWS = {
           h("tbody", {}, rows.map((r) => h("tr", {},
             h("td", {}, r.rotulo), h("td", {}, r.codigo || "Sem código"), h("td", {}, r.inicio || ""), h("td", {}, r.fim || ""),
             h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, app.editando
-              ? h("input", { class: "horas", type: "number", min: "0", max: "24", step: "0.25", value: sheetValue(day, r),
+              ? h("input", { class: "horas", "aria-label": `Horas de ${r.rotulo} ${r.codigo || "sem código"}`, type: "number", min: "0", max: "24", step: "0.25", value: sheetValue(day, r),
                   onchange: (e) => setSheetRow(sheet, r, e.target.value) }) : hours(r.total)),
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("pre", { class: "registro" }, r.complemento)) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.target) }, "Copiar"))))))
@@ -561,6 +618,7 @@ const VIEWS = {
   },
   historico: {
     titulo: "Histórico",
+    descricao: "Ações do agente e do quadro, com as mudanças que ainda precisam de análise.",
     icone: "historico",
     async render(estado) {
       const limit = app.historicoLimite || 200;
@@ -568,7 +626,10 @@ const VIEWS = {
       const onlyPending = pref("historico.pendentes", "0") === "1";
       const origin = pref("historico.origem", "");
       const titles = Object.fromEntries(estado.tarefas.map((t) => [t.id, t.titulo]));
-      const rows = data.eventos.filter((e) => (!onlyPending || e.pendente) && (!origin || e.origem === origin));
+      const search = (app.busca || "").trim().toLowerCase();
+      const rows = data.eventos.filter((e) => (!onlyPending || e.pendente) && (!origin || e.origem === origin) &&
+        (!search || [when(e.ts), e.origem, e.acao, titles[e.tarefa], eventDetail(e, titles)].join(" ").toLowerCase().includes(search)));
+      app.contagem = rows.length;
       return h("section", {},
         h("div", { class: "filtros" },
           h("span", {}, `${data.total} ações · ${data.pendentes} não analisadas`),
@@ -580,7 +641,7 @@ const VIEWS = {
             h("td", {}, when(e.ts)), h("td", {}, e.origem), h("td", {}, e.acao, e.pendente ? h("span", { class: "selo pergunta" }, "não analisada") : null),
             h("td", {}, e.tarefa ? h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, titles[e.tarefa] || e.tarefa) : (e.coluna || "")),
             h("td", {}, eventDetail(e, titles))))))
-          : h("p", { class: "vazio" }, "Nenhuma ação com esses filtros."),
+          : emptyState("Nenhuma ação com esses filtros", "Tente outra origem ou desmarque o filtro de ações não analisadas."),
         data.total > limit ? h("p", {}, h("button", { class: "botao", type: "button", onclick: () => { app.historicoLimite = limit + 200; render(); } }, "Carregar mais")) : null);
     },
   },
@@ -605,10 +666,10 @@ function shiftDate(iso, days) {
 function dayNav(view, current, step, title) {
   const go = (value) => { app[view] = value; render(); };
   return h("div", { class: "filtros" },
-    h("button", { class: "botao", type: "button", disabled: !!SNAPSHOT, onclick: () => go(shiftDate(current, -step)) }, "←"),
+    h("button", { class: "botao", type: "button", "data-focus": "data-anterior", "aria-label": step === 7 ? "Semana anterior" : "Dia anterior", disabled: !!SNAPSHOT, onclick: () => go(shiftDate(current, -step)) }, "←"),
     h("strong", {}, title),
-    h("button", { class: "botao", type: "button", disabled: !!SNAPSHOT, onclick: () => go(shiftDate(current, step)) }, "→"),
-    h("button", { class: "botao", type: "button", disabled: !!SNAPSHOT, onclick: () => go(app.estado.hoje) }, "Hoje"));
+    h("button", { class: "botao", type: "button", "data-focus": "data-proxima", "aria-label": step === 7 ? "Próxima semana" : "Próximo dia", disabled: !!SNAPSHOT, onclick: () => go(shiftDate(current, step)) }, "→"),
+    h("button", { class: "botao", type: "button", "data-focus": "data-hoje", disabled: !!SNAPSHOT, onclick: () => go(app.estado.hoje) }, "Hoje"));
 }
 
 function when(ts) {
@@ -646,27 +707,149 @@ function renderTabs() {
   const nav = document.getElementById("abas");
   const current = currentView();
   const counts = { perguntas: app.estado.perguntas.length, prazos: app.estado.prazos.length, historico: app.estado.eventos_pendentes };
-  fill(nav, ORDER.map((name) =>
-    h("button", { type: "button", "aria-current": name === current ? "page" : null, onclick: () => { location.hash = name; } },
-      icon(VIEWS[name].icone), VIEWS[name].titulo, counts[name] ? h("span", { class: "contador" }, counts[name]) : null)));
+  if (!nav.children.length) {
+    fill(nav, ORDER.map((name, index) => h("button", {
+      type: "button", "data-view": name, "aria-keyshortcuts": `Alt+${index + 1}`,
+      onclick: () => { location.hash = name; }, onkeydown: (event) => {
+        let target = index;
+        if (event.key === "ArrowRight") target = (index + 1) % ORDER.length;
+        else if (event.key === "ArrowLeft") target = (index - 1 + ORDER.length) % ORDER.length;
+        else if (event.key === "Home") target = 0;
+        else if (event.key === "End") target = ORDER.length - 1;
+        else return;
+        event.preventDefault();
+        nav.children[target].focus();
+        location.hash = ORDER[target];
+      },
+    }, icon(VIEWS[name].icone), VIEWS[name].titulo, h("span", { class: "contador", "data-count": name }))));
+  }
+  for (const button of nav.children) {
+    const name = button.dataset.view;
+    if (name === current) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+    button.tabIndex = name === current ? 0 : -1;
+    const count = button.querySelector(".contador");
+    count.textContent = counts[name] || "";
+    count.hidden = !counts[name];
+  }
+  if (app.tabsView !== current) {
+    nav.querySelector('[aria-current="page"]').scrollIntoView({ block: "nearest", inline: "nearest" });
+    app.tabsView = current;
+  }
+}
+
+function announce(message) {
+  const feedback = document.getElementById("feedback");
+  if (!feedback) return;
+  clearTimeout(app.feedbackTimer);
+  feedback.textContent = message;
+  app.feedbackTimer = setTimeout(() => { feedback.textContent = ""; }, 3500);
+}
+
+function emptyState(title, description, action) {
+  return h("div", { class: "estado-vazio" }, icon("quadro"), h("h3", {}, title),
+    description ? h("p", {}, description) : null, action || null);
+}
+
+function loadingState() {
+  return h("div", { class: "carregando", role: "status" }, h("p", { class: "vazio" }, "Carregando…"),
+    h("div", { class: "esqueleto-pilha", "aria-hidden": "true" }, Array.from({ length: 3 }, () => h("div", { class: "esqueleto" }))));
+}
+
+function rememberControl() {
+  const focused = document.activeElement;
+  for (const group of ["opcoes", "edicao", "conteudo"]) {
+    const container = document.getElementById(group);
+    if (!container.contains(focused)) continue;
+    const controls = [...container.querySelectorAll("button, input, select")];
+    return { node: focused, group, key: focused.dataset.focus, id: focused.id, index: controls.indexOf(focused) };
+  }
+  return null;
+}
+
+function restoreControl(saved) {
+  if (!saved || saved.node.isConnected || document.activeElement !== document.body) return;
+  const container = document.getElementById(saved.group);
+  const controls = [...container.querySelectorAll("button, input, select")];
+  const target = controls.find((node) => (saved.id && node.id === saved.id) || (saved.key && node.dataset.focus === saved.key)) || controls[saved.index];
+  if (target && !target.disabled) target.focus({ preventScroll: true });
+}
+
+function prepareTables(node, name) {
+  const tables = [...(node.tagName === "TABLE" ? [node] : []), ...node.querySelectorAll("table")];
+  for (const table of tables) {
+    const title = "Tabela de " + VIEWS[name].titulo;
+    table.setAttribute("aria-label", title);
+    const wrapper = h("div", { class: "tabela-rolagem", tabindex: "0", role: "region", "aria-label": title });
+    if (table === node) { wrapper.append(table); node = wrapper; }
+    else { table.replaceWith(wrapper); wrapper.append(table); }
+  }
+  return node;
 }
 
 async function render() {
   if (!app.estado) return;
+  const request = app.renderRequest = (app.renderRequest || 0) + 1;
+  const savedFocus = rememberControl();
   renderTabs();
   const name = currentView();
   const main = document.getElementById("conteudo");
+  const changedView = app.view !== name;
+  const oldBoard = !changedView && main.querySelector(".quadro");
+  const scroll = oldBoard ? { x: oldBoard.scrollLeft, mainX: main.scrollLeft, mainY: main.scrollTop,
+    columns: [...oldBoard.querySelectorAll(".coluna")].map((n) => [n.dataset.coluna, n.querySelector(".itens").scrollTop]) } : null;
+  app.view = name;
   main.classList.toggle("quadro-ativo", name === "quadro");
+  main.setAttribute("aria-busy", "true");
+  const filter = document.querySelector(".filtro");
+  filter.hidden = name === "semana" || name === "ficha";
+  document.getElementById("filtro").setAttribute("aria-label", name === "historico" ? "Filtrar histórico" : "Filtrar tarefas");
+  document.getElementById("filtro").placeholder = name === "historico" ? "Filtrar ações carregadas por tarefa, origem ou detalhe" : "Filtrar por título, código ou próximo passo";
   const estado = effectiveState();
   fill(document.getElementById("opcoes"), VIEWS[name].opcoes ? VIEWS[name].opcoes(estado) : []);
   app.contagem = null;
+  let loading;
   try {
     renderToolbar();
-    const node = await VIEWS[name].render(estado);
-    main.replaceChildren(node);
+    restoreControl(savedFocus);
+    const result = VIEWS[name].render(estado);
+    const asynchronous = result && typeof result.then === "function";
+    if (asynchronous) loading = setTimeout(() => {
+      if (request === app.renderRequest) main.replaceChildren(loadingState());
+    }, 120);
+    let node = asynchronous ? await result : result;
+    if (request !== app.renderRequest) return;
+    clearTimeout(loading);
+    node = prepareTables(node, name);
+    const description = VIEWS[name].descricao;
+    const header = description ? h("div", { class: "visao-cabecalho" }, h("h2", {}, VIEWS[name].titulo), h("p", {}, description)) : null;
+    fill(main, header, node);
+    if (scroll) {
+      const board = main.querySelector(".quadro");
+      if (board) {
+        board.scrollLeft = scroll.x;
+        for (const column of board.querySelectorAll(".coluna")) {
+          const saved = scroll.columns.find(([id]) => id === column.dataset.coluna);
+          if (saved) column.querySelector(".itens").scrollTop = saved[1];
+        }
+      }
+      main.scrollLeft = scroll.mainX; main.scrollTop = scroll.mainY;
+    } else if (changedView) { main.scrollTop = 0; main.scrollLeft = 0; }
+    if (changedView) {
+      main.classList.remove("entrando");
+      requestAnimationFrame(() => { if (request === app.renderRequest) main.classList.add("entrando"); });
+      document.getElementById("anuncio").textContent = "Visão " + VIEWS[name].titulo;
+    }
   } catch (error) {
-    main.replaceChildren(h("p", { class: "aviso erro" }, error.message));
+    if (request !== app.renderRequest) return;
+    main.replaceChildren(h("div", { class: "aviso erro", role: "alert" }, h("p", {}, "Não foi possível carregar esta visão: " + error.message),
+      h("button", { class: "botao", type: "button", onclick: render }, "Tentar novamente")));
+  } finally {
+    clearTimeout(loading);
+    if (request === app.renderRequest) main.setAttribute("aria-busy", "false");
   }
+  if (request !== app.renderRequest) return;
+  restoreControl(savedFocus);
   document.getElementById("contagem").textContent = app.contagem === null || app.contagem === undefined ? "" : String(app.contagem);
 }
 
@@ -677,6 +860,7 @@ function renderTheme() {
   const [, title, iconName] = THEMES.find((t) => t[0] === current) || THEMES[0];
   const button = document.getElementById("tema");
   button.title = title + " (clique para trocar)";
+  button.setAttribute("aria-label", button.title);
   fill(button, icon(iconName));
   if (current === "auto") delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = current;
@@ -689,38 +873,82 @@ function cycleTheme() {
 }
 
 async function refresh() {
+  const request = app.refreshRequest = (app.refreshRequest || 0) + 1;
   try {
-    app.estado = await api("/api/estado");
+    const state = await api("/api/estado");
+    if (request !== app.refreshRequest) return;
+    app.estado = state;
     app.cache = {};
     document.getElementById("maquina").textContent = (app.estado.maquina || "local") + (SNAPSHOT ? " · cópia estática" : "");
     const open = app.estado.tarefas.filter((t) => t.tipo !== "pergunta" && !["concluido", "arquivado"].includes(t.papel)).length;
     document.getElementById("resumo").textContent = `${open} itens abertos · ${app.estado.epicos.length} épicos · atualizado ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
     await render();
   } catch (error) {
-    document.getElementById("conteudo").replaceChildren(h("p", { class: "aviso erro" }, "Falha ao ler as tarefas: " + error.message));
+    if (request !== app.refreshRequest) return;
+    const main = document.getElementById("conteudo");
+    main.setAttribute("aria-busy", "false");
+    main.replaceChildren(h("div", { class: "aviso erro", role: "alert" }, h("p", {}, "Falha ao ler as tarefas: " + error.message),
+      h("button", { class: "botao", type: "button", onclick: refresh }, "Tentar novamente")));
   }
 }
 
 function listen() {
   const dot = document.getElementById("conexao");
-  if (SNAPSHOT || !window.EventSource) return;
+  const connection = (className, message) => { dot.className = "ponto " + className; dot.title = message; dot.setAttribute("aria-label", message); };
+  if (SNAPSHOT) { connection("", "Cópia estática: dados do momento da exportação"); return; }
+  if (!window.EventSource) { connection("offline", "Atualização automática indisponível neste navegador"); return; }
   const source = new EventSource("/api/stream");
-  source.addEventListener("pronto", () => { dot.className = "ponto vivo"; dot.title = "Atualização automática ativa"; });
+  source.addEventListener("pronto", () => { connection("vivo", "Atualização automática ativa"); });
   source.addEventListener("mudou", () => { if (!app.editando) refresh(); else { app.pendente = true; renderToolbar(); } });
-  source.onerror = () => { dot.className = "ponto offline"; dot.title = "Servidor indisponível; tentando reconectar"; };
+  source.onerror = () => { connection("offline", "Servidor indisponível; tentando reconectar"); };
 }
 
 window.addEventListener("hashchange", render);
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") closePanel(); });
+function showShortcuts() {
+  showPanel(h("h2", {}, "Atalhos de teclado"), h("p", { class: "vazio" }, "Disponíveis quando você não estiver preenchendo um campo."),
+    h("dl", { class: "atalhos" },
+      h("dt", {}, h("kbd", {}, "/")), h("dd", {}, "Focar o filtro da visão"),
+      h("dt", {}, h("kbd", {}, "Alt"), " + ", h("kbd", {}, "1–8")), h("dd", {}, "Trocar de visão na ordem das abas"),
+      h("dt", {}, h("kbd", {}, "←"), " / ", h("kbd", {}, "→")), h("dd", {}, "Trocar de visão com o foco nas abas"),
+      h("dt", {}, h("kbd", {}, "Home"), " / ", h("kbd", {}, "End")), h("dd", {}, "Ir à primeira ou à última aba"),
+      h("dt", {}, h("kbd", {}, "Enter"), " / ", h("kbd", {}, "Espaço")), h("dd", {}, "Abrir o card em foco"),
+      h("dt", {}, h("kbd", {}, "Esc")), h("dd", {}, "Fechar o painel e voltar ao item de origem"),
+      h("dt", {}, h("kbd", {}, "?")), h("dd", {}, "Mostrar esta ajuda")));
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.defaultPrevented || event.isComposing) return;
+  if (event.key === "Escape" && !document.getElementById("painel").hidden) { event.preventDefault(); closePanel(); return; }
+  const target = event.target instanceof Element ? event.target : null;
+  if (target && target.closest("input, textarea, select, [contenteditable]:not([contenteditable=false])")) return;
+  if (event.ctrlKey || event.metaKey) return;
+  if (event.altKey) {
+    if (!event.shiftKey && /^[1-8]$/.test(event.key)) {
+      event.preventDefault(); closePanel(false); location.hash = ORDER[Number(event.key) - 1];
+    }
+    return;
+  }
+  if (event.key === "/" && !event.shiftKey) {
+    const filter = document.getElementById("filtro");
+    if (!filter.closest(".filtro").hidden) { event.preventDefault(); closePanel(false); filter.focus(); filter.select(); }
+  } else if (event.key === "?") { event.preventDefault(); showShortcuts(); }
+});
 // Clique fora do painel fecha; clique que abre outra tarefa apenas troca o conteúdo.
 document.addEventListener("click", (event) => {
   const panel = document.getElementById("painel");
   if (app.abrindoPainel) { app.abrindoPainel = false; return; }
-  if (!panel.hidden && !panel.contains(event.target)) closePanel();
+  if (!panel.hidden && !panel.contains(event.target)) closePanel(false);
 });
 document.addEventListener("DOMContentLoaded", () => {
   renderTheme();
+  const skip = document.querySelector(".pular-conteudo");
+  if (skip) skip.addEventListener("click", (event) => {
+    event.preventDefault();
+    document.getElementById("conteudo").focus();
+  });
   document.getElementById("tema").addEventListener("click", cycleTheme);
+  const help = document.getElementById("ajuda");
+  if (help) help.addEventListener("click", showShortcuts);
   const filter = document.getElementById("filtro");
   filter.addEventListener("input", () => { app.busca = filter.value; clearTimeout(app.buscaTimer); app.buscaTimer = setTimeout(render, 150); });
   app.rascunho = loadDraft();
@@ -741,6 +969,7 @@ function loadDraft() {
 }
 
 function persistDraft() {
+  app.draftVersion = (app.draftVersion || 0) + 1;
   try { localStorage.setItem("yabook.rascunho", JSON.stringify(app.rascunho)); } catch (error) { /* sem armazenamento: rascunho só na memória */ }
 }
 
@@ -752,6 +981,8 @@ function draftCount() {
 function effectiveState() {
   const estado = app.estado;
   if (!app.editando || !draftCount()) return estado;
+  const cached = app.cache.effective;
+  if (cached && cached.source === estado && cached.version === app.draftVersion) return cached.value;
   const roles = Object.fromEntries(estado.colunas.map((c) => [c.id, c.papel]));
   const tarefas = estado.tarefas.map((t) => {
     const entry = app.rascunho.tarefas[t.id];
@@ -763,10 +994,13 @@ function effectiveState() {
     return merged;
   });
   const colunas = estado.colunas.map((c) => (app.rascunho.colunas[c.id] ? { ...c, nome: app.rascunho.colunas[c.id] } : c));
-  return { ...estado, tarefas, colunas };
+  const value = { ...estado, tarefas, colunas };
+  app.cache.effective = { source: estado, version: app.draftVersion, value };
+  return value;
 }
 
 function draftTask(id, campos, extra = {}) {
+  if (app.salvando) return;
   const original = app.estado.tarefas.find((t) => t.id === id);
   const entry = app.rascunho.tarefas[id] || { revision: original.revision, campos: {}, unset: [] };
   Object.assign(entry.campos, campos);
@@ -775,10 +1009,34 @@ function draftTask(id, campos, extra = {}) {
   persistDraft();
 }
 
+function clearDrop() {
+  document.querySelectorAll(".alvo, .inserir-antes, .inserir-depois").forEach((node) => {
+    node.classList.remove("alvo", "inserir-antes", "inserir-depois");
+  });
+}
+
+function indicateDrop(event) {
+  if (!app.dragId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  const column = event.currentTarget;
+  const nodes = [...column.querySelectorAll(".card")].filter((n) => n.dataset.id !== app.dragId);
+  const before = nodes.find((n) => { const rect = n.getBoundingClientRect(); return event.clientY < rect.top + rect.height / 2; });
+  const marker = before || nodes[nodes.length - 1];
+  const cls = before ? "inserir-antes" : "inserir-depois";
+  if (!column.classList.contains("alvo") || (marker && !marker.classList.contains(cls))) {
+    clearDrop();
+    column.classList.add("alvo");
+    if (marker) marker.classList.add(cls);
+  }
+}
+
 function dropCard(event, columnId, cards) {
   event.preventDefault();
   const id = event.dataTransfer.getData("text/plain");
-  if (!id) return;
+  clearDrop();
+  app.dragId = null;
+  if (!id || !effectiveState().tarefas.some((t) => t.id === id && t.tipo !== "pergunta")) return;
   const target = event.currentTarget;
   const others = cards.filter((t) => t.id !== id);
   let position = others.length;
@@ -795,9 +1053,11 @@ function dropCard(event, columnId, cards) {
     if (Object.keys(campos).length) draftTask(task.id, campos);
   });
   render();
+  announce("Tarefa movida no rascunho. Salve para gravar.");
 }
 
 function renameColumn(column) {
+  if (app.salvando) return;
   const name = window.prompt("Novo nome da coluna (o papel não muda):", column.nome);
   if (!name || !name.trim() || name.trim() === column.nome) return;
   app.rascunho.colunas[column.id] = name.trim();
@@ -813,6 +1073,7 @@ function editForm(id) {
   const field = (name, labelText, input) => h("label", { class: "campo" }, h("span", {}, labelText), input);
   const form = h("form", { class: "formulario", onsubmit: (e) => {
     e.preventDefault();
+    if (app.salvando) return;
     const values = Object.fromEntries(new FormData(e.target).entries());
     const campos = {};
     const compare = (key, value, before) => { if ((value ?? "") !== (before ?? "")) campos[key] = value === "" ? null : value; };
@@ -840,8 +1101,10 @@ function editForm(id) {
     }
     closePanel();
     render();
+    announce("Rascunho atualizado. Use Salvar para gravar as alterações.");
   } },
-    h("h2", { style: "margin:0" }, "Editar"),
+    h("h2", { style: "margin:0" }, "Editar tarefa"),
+    h("p", { class: "vazio", style: "margin:0" }, "Aplique as mudanças ao rascunho e depois use Salvar na barra de filtros."),
     field("titulo", "Título", h("input", { name: "titulo", value: task.titulo, required: true })),
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
@@ -870,6 +1133,7 @@ function sheetValue(day, row) {
 }
 
 function setSheetRow(sheet, row, value) {
+  if (app.salvando) return;
   const draft = app.rascunho.ficha && app.rascunho.ficha.data === sheet.data ? app.rascunho.ficha : {
     data: sheet.data,
     linhas: sheet.linhas.map((r) => ({ tipo: r.tipo, codigo: r.codigo, total: r.total })),
@@ -886,18 +1150,26 @@ function setSheetRow(sheet, row, value) {
 
 function renderToolbar() {
   const bar = document.getElementById("edicao");
+  const filterBar = document.querySelector(".barra-filtro");
+  filterBar.classList.toggle("editando", !!app.editando);
+  let help = filterBar.querySelector(".edicao-ajuda");
+  if (app.editando && !help) {
+    help = h("div", { class: "edicao-ajuda" }, "Rascunho no navegador. Abra um card para editar ou mover pela coluna; Salvar grava as alterações.");
+    filterBar.append(help);
+  } else if (!app.editando && help) help.remove();
   if (SNAPSHOT || !TOKEN) { bar.replaceChildren(); return; }
   const count = draftCount();
   const items = app.editando ? [
-    app.pendente ? h("span", { class: "selo prazo", title: "Salve ou descarte para ver as mudanças" }, "repositório mudou") : null,
-    h("span", { class: "vazio", style: "font-size:12px" }, count ? `${count} alteração(ões)` : "Modo edição"),
-    h("button", { class: "botao", type: "button", onclick: discardDraft }, count ? "Descartar" : "Sair"),
-    h("button", { class: "botao primario", type: "button", disabled: !count, onclick: saveDraft }, "Salvar"),
+    app.pendente ? h("span", { class: "selo cor-orange", title: "Salve ou descarte para ver as mudanças" }, "repositório mudou") : null,
+    h("span", { class: "selo cor-orange" }, count ? `${count} ${count === 1 ? "alteração" : "alterações"} no rascunho` : "Modo Editar"),
+    h("button", { id: "descartar", class: "botao", type: "button", disabled: !!app.salvando, onclick: discardDraft }, count ? "Descartar" : "Sair"),
+    h("button", { id: "salvar", class: "botao primario", type: "button", disabled: !count || !!app.salvando, onclick: saveDraft }, app.salvando ? "Salvando…" : "Salvar"),
   ] : [h("button", { class: "botao", type: "button", onclick: () => { app.editando = true; render(); } }, "Editar")];
   bar.replaceChildren(...items.filter(Boolean));
 }
 
 function discardDraft() {
+  if (app.salvando) return;
   if (draftCount() && !window.confirm("Descartar as alterações não salvas?")) return;
   app.rascunho = emptyDraft();
   persistDraft();
@@ -907,6 +1179,10 @@ function discardDraft() {
 }
 
 async function saveDraft() {
+  if (app.salvando || !draftCount()) return;
+  app.salvando = true;
+  renderToolbar();
+  announce("Salvando alterações…");
   const d = app.rascunho;
   const body = {
     tarefas: Object.entries(d.tarefas).map(([id, e]) => ({ id, revision: e.revision, campos: e.campos, unset: e.unset || [], registro: e.registro })),
@@ -919,14 +1195,20 @@ async function saveDraft() {
     response = await fetch("/api/salvar", { method: "POST", headers: { "Content-Type": "application/json", "X-YABook-Token": TOKEN }, body: JSON.stringify(body) });
     result = await response.json();
   } catch (error) {
+    app.salvando = false;
+    renderToolbar();
+    announce("Falha ao salvar. O rascunho continua guardado.");
     return showPanel(h("p", { class: "aviso erro" }, "Servidor indisponível; o rascunho continua guardado. " + error.message));
   }
+  app.salvando = false;
+  renderToolbar();
   if (response.ok) {
     app.rascunho = emptyDraft();
     persistDraft();
     app.editando = false;
     app.pendente = false;
     await refresh();
+    announce("Alterações salvas.");
     return showPanel(
       h("h2", {}, "Salvo"),
       result.aviso ? h("p", { class: "aviso erro" }, result.aviso) : null,
@@ -934,6 +1216,7 @@ async function saveDraft() {
       h("button", { class: "botao primario", type: "button", onclick: (e) => copy(result.resumo, e.target) }, "Copiar resumo"));
   }
   if (response.status === 409) {
+    announce("Conflito ao salvar. Revise as tarefas alteradas em outro lugar.");
     const lost = (result.conflitos || []).map((id) => [id, d.tarefas[id]]);
     for (const [id] of lost) delete d.tarefas[id];
     persistDraft();
@@ -945,6 +1228,7 @@ async function saveDraft() {
       h("pre", { class: "registro" }, lost.map(([id, e]) => `${id}: ${JSON.stringify(e && e.campos)}${e && e.registro ? " + registro: " + e.registro : ""}`).join("\n")));
   }
   if (response.status === 422) {
+    announce("Nada foi gravado. Revise o termo confidencial indicado.");
     return showPanel(h("h2", {}, "Termo confidencial"),
       h("p", { class: "aviso erro" }, result.error + ". Nada foi gravado."),
       h("ul", { class: "perguntas" }, (result.termos || []).map((hit) => h("li", {},
@@ -970,13 +1254,12 @@ function moveToComplement(hit) {
 
 function showPanel(...children) {
   const panel = document.getElementById("painel");
-  app.abrindoPainel = true;
-  setTimeout(() => { app.abrindoPainel = false; }, 0);
-  panel.hidden = false;
+  beginPanel();
+  panel.setAttribute("aria-busy", "false");
   const [first, ...rest] = children.flat(Infinity).filter(Boolean);
   const title = first && first.tagName === "H2" ? first.textContent : "YABook Tasks";
   fill(panel,
-    h("div", { class: "painel-topo" }, h("h2", {}, title),
-      h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", onclick: closePanel }, icon("fechar"))),
+    panelHeader(title),
     h("div", { class: "painel-corpo" }, first && first.tagName === "H2" ? rest : [first, ...rest]));
+  focusPanel();
 }

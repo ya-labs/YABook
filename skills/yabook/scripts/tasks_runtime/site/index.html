@@ -16,6 +16,7 @@
 <script src="app.js" defer></script>
 </head>
 <body>
+<a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
 <header class="topo">
   <div class="topo-esq">
     <img src="icon.svg" alt="" width="28" height="28">
@@ -23,6 +24,7 @@
   </div>
   <div class="topo-dir">
     <span id="conexao" class="ponto" title="Conexão"></span>
+    <button id="ajuda" class="botao-icone" type="button" title="Atalhos de teclado (?)" aria-label="Atalhos de teclado">?</button>
     <button id="tema" class="botao-icone" type="button" title="Tema"></button>
   </div>
 </header>
@@ -33,13 +35,15 @@
 <div class="barra-filtro">
   <label class="filtro">
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    <input id="filtro" type="search" placeholder="Filtrar por título, código ou próximo passo" autocomplete="off">
+    <input id="filtro" type="search" aria-label="Filtrar esta visão" placeholder="Filtrar por título, código ou próximo passo" autocomplete="off" aria-keyshortcuts="/">
     <span id="contagem" class="contador"></span>
   </label>
   <div id="opcoes" class="opcoes"></div>
   <div id="edicao" class="edicao"></div>
 </div>
-<main id="conteudo" class="conteudo" tabindex="-1"><p class="vazio">Carregando…</p></main>
-<aside id="painel" class="painel" hidden></aside>
+<main id="conteudo" class="conteudo" tabindex="-1" aria-busy="true"><div class="carregando" role="status" aria-label="Carregando tarefas"><span class="esqueleto"></span><span class="esqueleto"></span><span class="esqueleto"></span><span class="sr-only">Carregando tarefas…</span></div></main>
+<aside id="painel" class="painel" role="region" aria-labelledby="painel-titulo" tabindex="-1" hidden></aside>
+<div id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+<div id="anuncio" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
