@@ -272,8 +272,133 @@ const VIEWS = {
           h("li", {}, h("strong", {}, t.titulo), " ", about(t), h("div", { class: "passo" }, "↳ " + t.resposta))))] : null);
     },
   },
+  semana: {
+    titulo: "Semana",
+    async render(estado) {
+      const ref = app.semana || estado.hoje;
+      const [week, sheetWeek] = await Promise.all([api("/api/semana?data=" + ref), api("/api/ficha?semana=1&data=" + ref)]);
+      const confirmed = Object.fromEntries((sheetWeek.dias || []).filter((d) => d.confirmada).map((d) => [d.data, true]));
+      const total = week.dias.reduce((sum, d) => sum + d.horas, 0);
+      return h("section", {},
+        dayNav("semana", ref, 7, `Semana de ${fmtDate(week.inicio)}`),
+        h("div", { class: "numeros" }, h("div", { class: "numero" }, h("b", {}, hours(total)), h("span", {}, "Atividade estimada")),
+          h("div", { class: "numero" }, h("b", {}, Object.keys(confirmed).length), h("span", {}, "Dias confirmados"))),
+        h("h2", {}, "Por dia"),
+        h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Dia"), h("th", { class: "num" }, "Horas"), h("th", {}, "Tarefas"))),
+          h("tbody", {}, week.dias.map((d) => h("tr", {},
+            h("td", {}, h("button", { class: "link", type: "button", onclick: () => { app.ficha = d.data; location.hash = "ficha"; } }, weekday(d.data) + " " + fmtDate(d.data)),
+              confirmed[d.data] ? h("span", { class: "selo" }, "confirmada") : null),
+            h("td", { class: "num" }, d.horas ? hours(d.horas) : "—"),
+            h("td", {}, d.tarefas.slice(0, 6).map((t) => h("span", { class: "selo", title: t.tarefa }, `${t.titulo} · ${hours(t.horas)}`))))))),
+        h("h2", {}, "Totais da ficha na semana"),
+        sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
+          h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, hours(r.total))))))
+          : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana."));
+    },
+  },
+  ficha: {
+    titulo: "Ficha",
+    async render(estado) {
+      const day = app.ficha || estado.hoje;
+      const sheet = await api("/api/ficha?data=" + day);
+      const confirmed = sheet.confirmada;
+      const rows = sheet.linhas;
+      const text = rows.map((r) => [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", hours(r.total), r.observacao].join("\t")).join("\n");
+      return h("section", {},
+        dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
+        confirmed ? h("p", { class: "aviso" }, "Confirmada: ", confirmed.linhas.map((r) => `${label(r.tipo)} ${r.codigo || "sem código"} ${hours(r.total)}`).join(" · ")) : null,
+        h("div", { class: "filtros" },
+          h("span", {}, `Sugestão: ${hours(sheet.total)} de ${hours(sheet.horas_dia)}`),
+          rows.length ? h("button", { class: "botao", type: "button", onclick: (e) => copy(text, e.target) }, "Copiar ficha") : null),
+        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Início", "Fim", "Total", "Observação", ""].map((c, i) => h("th", { class: i === 4 ? "num" : null }, c)))),
+          h("tbody", {}, rows.map((r) => h("tr", {},
+            h("td", {}, r.rotulo), h("td", {}, r.codigo || "Sem código"), h("td", {}, r.inicio || ""), h("td", {}, r.fim || ""),
+            h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, hours(r.total)),
+            h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("pre", { class: "registro" }, r.complemento)) : null),
+            h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.target) }, "Copiar"))))))
+          : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
+        h("h2", {}, "Extras (fora do total)"),
+        sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
+          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
+          : h("p", { class: "vazio" }, "Nenhum extra."));
+    },
+  },
+  historico: {
+    titulo: "Histórico",
+    async render(estado) {
+      const limit = app.historicoLimite || 200;
+      const data = await api("/api/historico?limite=" + limit);
+      const onlyPending = pref("historico.pendentes", "0") === "1";
+      const origin = pref("historico.origem", "");
+      const titles = Object.fromEntries(estado.tarefas.map((t) => [t.id, t.titulo]));
+      const rows = data.eventos.filter((e) => (!onlyPending || e.pendente) && (!origin || e.origem === origin));
+      return h("section", {},
+        h("div", { class: "filtros" },
+          h("span", {}, `${data.total} ações · ${data.pendentes} não analisadas`),
+          h("label", {}, h("input", { type: "checkbox", checked: onlyPending, onchange: (e) => { setPref("historico.pendentes", e.target.checked ? "1" : "0"); render(); } }), " Só não analisadas"),
+          h("label", {}, "Origem ", h("select", { onchange: (e) => { setPref("historico.origem", e.target.value); render(); } },
+            [["", "Todas"], ["agente", "Agente"], ["quadro", "Quadro"]].map(([v, n]) => h("option", { value: v, selected: v === origin }, n))))),
+        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Quando", "Origem", "Ação", "Tarefa", "Detalhe"].map((c) => h("th", {}, c)))),
+          h("tbody", {}, rows.map((e) => h("tr", { class: e.pendente ? "pendente" : null },
+            h("td", {}, when(e.ts)), h("td", {}, e.origem), h("td", {}, e.acao, e.pendente ? h("span", { class: "selo pergunta" }, "não analisada") : null),
+            h("td", {}, e.tarefa ? h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, titles[e.tarefa] || e.tarefa) : (e.coluna || "")),
+            h("td", {}, eventDetail(e, titles))))))
+          : h("p", { class: "vazio" }, "Nenhuma ação com esses filtros."),
+        data.total > limit ? h("p", {}, h("button", { class: "botao", type: "button", onclick: () => { app.historicoLimite = limit + 200; render(); } }, "Carregar mais")) : null);
+    },
+  },
 };
-const ORDER = ["hoje", "quadro", "epicos", "prazos", "perguntas"];
+const ORDER = ["hoje", "quadro", "epicos", "prazos", "perguntas", "semana", "ficha", "historico"];
+
+function hours(value) {
+  const n = Math.round((value || 0) * 100) / 100;
+  return (Number.isInteger(n) ? n : n.toFixed(2).replace(/0$/, "")).toString().replace(".", ",") + "h";
+}
+
+function weekday(iso) {
+  return ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"][new Date(iso + "T12:00:00").getDay()];
+}
+
+function shiftDate(iso, days) {
+  const date = new Date(iso + "T12:00:00");
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function dayNav(view, current, step, title) {
+  const go = (value) => { app[view] = value; render(); };
+  return h("div", { class: "filtros" },
+    h("button", { class: "botao", type: "button", disabled: !!SNAPSHOT, onclick: () => go(shiftDate(current, -step)) }, "←"),
+    h("strong", {}, title),
+    h("button", { class: "botao", type: "button", disabled: !!SNAPSHOT, onclick: () => go(shiftDate(current, step)) }, "→"),
+    h("button", { class: "botao", type: "button", disabled: !!SNAPSHOT, onclick: () => go(app.estado.hoje) }, "Hoje"));
+}
+
+function when(ts) {
+  if (!ts) return "";
+  const [date, time] = ts.split("T");
+  return `${fmtDate(date)} ${time.slice(0, 5)}`;
+}
+
+function eventDetail(e, titles) {
+  if (e.acao === "analise") return `${(e.eventos || []).length} ação(ões): ${e.resultado || ""}`;
+  if (e.de && e.para) return `${columnName(e.de)} → ${columnName(e.para)}`;
+  if (e.campos) return e.campos.join(", ");
+  if (e.acao === "capturar") return `${(e.criadas || []).length} criada(s), ${(e.atualizadas || []).length} atualizada(s)`;
+  if (e.horas) return hours(e.horas);
+  return e.resultado || e.coluna || "";
+}
+
+async function copy(text, button) {
+  try {
+    await navigator.clipboard.writeText(text);
+    const old = button.textContent;
+    button.textContent = "Copiado";
+    setTimeout(() => { button.textContent = old; }, 1500);
+  } catch (error) {
+    window.prompt("Copie o texto:", text);
+  }
+}
 
 function currentView() {
   const name = location.hash.replace("#", "");
