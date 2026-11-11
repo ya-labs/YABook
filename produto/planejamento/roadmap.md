@@ -102,6 +102,37 @@ Status: **Backlog** · Size: **3** · Depende das issues #81, #82 e #83
 - Manter autoatualização, lojas, telemetria e outras plataformas fora desta
   entrega.
 
+## YABook Tasks
+
+O planejamento da V1 foi definido na
+[issue #155](https://github.com/ya-labs/YABook/issues/155) e detalhado em
+[yabook-tasks.md](yabook-tasks.md). Os marcos mantêm ordem de dependência.
+
+### M1. Dados, comandos e captura
+
+- Criar ou conectar o repositório de dados por `task init` e `do task init`.
+- Implementar o formato das tarefas, a família de comandos `task` e a política
+  `automatic|manual`.
+- Capturar atividade e tarefa ativa pelos hooks no Claude Code e no Codex.
+- Registrar o histórico de ações e a análise pelo agente.
+- Gerar a ficha de horas por `task sheet`.
+
+### M2. Site e edição mecânica
+
+- Servir o site local por `task board --serve`, instalável como PWA.
+- Entregar as visões Hoje, Semana, Quadro, Projetos, Prazos, Perguntas, Ficha e
+  Histórico.
+- Aplicar a edição mecânica com commit por salvamento, revisão por arquivo e
+  resumo do salvamento.
+- Medir o consumo de memória na máquina de trabalho.
+
+### M3. Quadro personalizável
+
+- Personalizar colunas por `quadro.yml` com papéis fixos.
+- Analisar e aplicar mudanças estruturais por `task change` e
+  `do task change <id>`.
+- Adicionar o campo `Size` às tarefas e ao card.
+
 ## Eficiência de contexto da YABook Skill
 
 ### 1. Auditar os comandos
