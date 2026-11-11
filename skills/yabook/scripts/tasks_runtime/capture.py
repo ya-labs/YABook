@@ -9,7 +9,9 @@ Nada aqui pode bloquear o prompt: o despachante captura qualquer erro.
 import datetime
 import json
 import os
+import re
 import subprocess
+import unicodedata
 import sys
 import time
 from pathlib import Path
@@ -20,6 +22,13 @@ from .store import TaskStore, atomic_write, now
 WINDOW_MINUTES = 15
 PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
+REASK_AFTER = 8
+RULES = ("Mantenha as tarefas sem pedido, conforme a política: etapa concluída vira registro e próximo passo "
+         "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa e mudança "
+         "de fase move a coluna. Conversa anterior sem registro: task capture.")
+SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
+                    r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
+                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando)\b")
 COMMIT_MESSAGE = "chore: registra atividade do YABook Tasks"
 _GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="true")
 
@@ -50,6 +59,14 @@ def active(store, session):
     """Tarefa ativa da sessão; sem escolha na sessão, a última iniciada na máquina."""
     chosen = _read(_session_file(store, session), {}).get("ativa")
     return chosen or _read(store.root / "local" / "ativa.json", {}).get("id")
+
+
+def recent(stamp, seconds=300):
+    try:
+        moment = datetime.datetime.fromisoformat(stamp)
+    except (TypeError, ValueError):
+        return False
+    return abs((datetime.datetime.now().astimezone() - moment).total_seconds()) <= seconds
 
 
 def set_active(store, session, identifier):
@@ -99,6 +116,7 @@ def session_start(cfg, session, source="startup"):
                      "rode task start com a escolhida." % _label(current))
     else:
         lines.append("Sem tarefa ativa; pergunte uma vez se a sessão pertence a alguma tarefa (task start ou task add).")
+    lines.append(RULES)
     if review["perguntas"]:
         lines.append("Perguntas abertas para a pessoa: " + "; ".join(_label(t) for t in review["perguntas"][:5]))
     due = review["atrasadas"] + review["proximas"]
@@ -119,7 +137,11 @@ def session_start(cfg, session, source="startup"):
     return "\n".join(lines)[:1500]
 
 
-def prompt(cfg, session, when=None):
+def _plain(text):
+    return unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode().lower()
+
+
+def prompt(cfg, session, when=None, text=""):
     store, tasks_cfg = open_store(cfg)
     if store is None:
         return ""
@@ -127,16 +149,33 @@ def prompt(cfg, session, when=None):
     current = active(store, session)
     if current and store.exists(current):
         mark(store, tasks_cfg.get("machine"), current, when)
+    else:
+        current = None
     path = _session_file(store, session)
     state = _read(path, {})
+    changed, lines = False, []
+    if current is None:
+        # Sem escolha na sessão: pergunta de novo uma vez, depois de algumas mensagens.
+        state["sem_ativa"] = state.get("sem_ativa", 0) + 1
+        changed = True
+        if state["sem_ativa"] == REASK_AFTER:
+            lines.append("YABook Tasks: sessão ainda sem tarefa ativa e as horas não estão contando; pergunte de novo "
+                         "a qual tarefa ela pertence (task start, task add ou task capture).")
+    if text and SIGNAL.search(_plain(text)):
+        start = window(when)[1]
+        if state.get("lembrete") != start:
+            state["lembrete"], changed = start, True
+            lines.append("YABook Tasks: a mensagem cita prazo, código ou conclusão; ao responder, atualize a tarefa "
+                         "correspondente (task edit, add ou ask) conforme a política.")
     seen = set(state.get("avisados", []))
     fresh = [e for e in events.pending(store.root, months=1) if e["id"] not in seen]
-    if not fresh:
-        return ""
-    state["avisados"] = sorted(seen | {e["id"] for e in fresh})
-    atomic_write(path, json.dumps(state, ensure_ascii=False) + "\n")
-    return "YABook Tasks: %d nova(s) ação(ões) do quadro não analisada(s): %s." % (
-        len(fresh), "; ".join(_event_line(e) for e in fresh[:3]))
+    if fresh:
+        state["avisados"], changed = sorted(seen | {e["id"] for e in fresh}), True
+        lines.append("YABook Tasks: %d nova(s) ação(ões) do quadro não analisada(s): %s." % (
+            len(fresh), "; ".join(_event_line(e) for e in fresh[:3])))
+    if changed:
+        atomic_write(path, json.dumps(state, ensure_ascii=False) + "\n")
+    return "\n".join(lines)
 
 
 def window(when):

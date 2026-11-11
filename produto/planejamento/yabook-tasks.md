@@ -135,7 +135,7 @@ A família `task` segue a família `memory` quando há equivalente.
 | --- | --- |
 | Configuração | `task init`, `do task init`, `do task policy automatic\|manual` |
 | Consulta | `task`, `task show`, `task search`, `task recent`, `task review` |
-| Escrita | `task add <texto livre>`, `task edit`, `task forget`, `task start <id>`, `task ask <pergunta>`, `task log <id> <horas> [obs]` |
+| Escrita | `task add <texto livre>`, `task edit`, `task forget`, `task start <id>`, `task ask <pergunta>`, `task log <id> <horas> [obs]`, `task capture [assunto]`, `do task capture` |
 | Quadro | `task board [--serve --port\|--output]`, `task change [<texto>]`, `do task change <id>` |
 | Horas | `task sheet [dia\|semana]` |
 | Manutenção | `task sync`, `task clean` |
@@ -155,8 +155,8 @@ os eventos existentes:
 
 | Evento | Ação |
 | --- | --- |
-| `SessionStart` | `pull` rápido sem bloquear; sugestão da tarefa ativa; perguntas abertas, prazos atrasados ou em até 2 dias e eventos não analisados. |
-| `UserPromptSubmit` | Marca a janela de 15 minutos da tarefa ativa em arquivo local, sem rede e de forma idempotente. |
+| `SessionStart` | `pull` rápido sem bloquear; sugestão da tarefa ativa; regras de manutenção das tarefas; perguntas abertas, prazos atrasados ou em até 2 dias e eventos não analisados. |
+| `UserPromptSubmit` | Marca a janela de 15 minutos da tarefa ativa em arquivo local, sem rede e de forma idempotente; lembra de atualizar a tarefa quando a mensagem cita prazo, código ou conclusão e repete uma vez a pergunta da tarefa ativa. |
 | `Stop` | Commit local idempotente quando houver mudança, com proteção contra concorrência. |
 
 - A pessoa confirma ou troca a tarefa ativa no início da sessão.
