@@ -498,6 +498,50 @@ def inspect_call(event, state, root):
     return {}
 
 
+TASK_START = re.compile(r"yabook_tasks\.py\b")
+
+
+def tasks_capture(name, *args):
+    """YABook Tasks degrada em silêncio: captura nunca bloqueia prompt, sessão ou turno."""
+    started = time.monotonic()
+    try:
+        cfg = config()
+        if not cfg.get("tasks"):
+            return ""
+        from tasks_runtime import capture
+        result = getattr(capture, name)(cfg, *args)
+        record_stats("tasks." + name, len(result) if isinstance(result, str) else 0, result="ok",
+                     ms=round((time.monotonic() - started) * 1000, 1))
+        return result
+    except Exception as error:
+        record_stats("tasks." + name, 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+        return ""
+
+
+def tasks_started(command, session):
+    """`task start` pela CLI define a tarefa ativa desta sessão, conferida no estado da máquina."""
+    if not TASK_START.search(command):
+        return
+    try:
+        parts = shlex.split(command)
+    except ValueError:
+        return
+    script = next((i for i, p in enumerate(parts) if Path(p).name == "yabook_tasks.py"), None)
+    if script is None or "start" not in parts[script + 1:]:
+        return
+    index = parts.index("start", script + 1)
+    if index + 1 >= len(parts):
+        return
+    identifier = parts[index + 1]
+    try:
+        from tasks_runtime import capture
+        store, _ = capture.open_store(config())
+        if store and capture._read(store.root / "local" / "ativa.json", {}).get("id") == identifier:
+            capture.set_active(store, session, identifier)
+    except Exception as error:
+        record_stats("tasks.start", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+
+
 def run(event):
     event_name = event["hook_event_name"]
     cwd = event.get("cwd", os.getcwd())
@@ -519,6 +563,9 @@ def run(event):
         cfg = config()
         text = METHOD
         text += "\nPolítica de aprendizado: " + cfg.get("learning", {}).get("mode", "manual") + "."
+        tasks_text = tasks_capture("session_start", path.stem, event.get("source", "startup"))
+        if tasks_text:
+            text += "\n" + tasks_text
         apply_learning_queue()
         try:
             from memory_runtime.queue import pending_notices
@@ -598,6 +645,9 @@ def run(event):
                 # O tipo e a mensagem do erro ficam no log local para diagnóstico.
                 details = dict(result="erro", error=type(error).__name__ + ": " + str(error)[:160])
                 text += "\nBusca de memória indisponível; use fontes atuais do projeto."
+        tasks_text = tasks_capture("prompt", path.stem)
+        if tasks_text:
+            text += "\n" + tasks_text
         return context(event_name, text, **details)
     if event_name == "PreToolUse":
         state["pretool_seen"] = True
@@ -620,6 +670,7 @@ def run(event):
             if head and head != state.pop("pre_commit_head", None):
                 state["committed"] = True
             write_json(path, state)
+        tasks_started(command, path.stem)
         if LEARN.search(command):
             state["learned"] = True
             write_json(path, state)
@@ -628,6 +679,7 @@ def run(event):
     if event_name == "Stop":
         apply_learning_queue()
         publish_automatic(config())
+        tasks_capture("stop", config_path())
     if event_name == "Stop" and state.get("edited") and not event.get("stop_hook_active"):
         cfg = config()
         head = git(root, "rev-parse", "HEAD")

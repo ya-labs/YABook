@@ -60,6 +60,8 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
+| `task events` | `events [--pending] [--limit]`: histórico de ações |
+| `task analyze` | `analyze --id <evento> --resultado <texto>` |
 | `do task policy automatic\|manual` | `policy <modo>` |
 
 - `--prazo` aceita `AAAA-MM-DD`, `DD/MM[/AAAA]`, `hoje`, `amanhã`, `+Nd` e dia da
@@ -70,3 +72,21 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 - Escreva `titulo`, `proximo_passo`, registros e perguntas de forma genérica;
   sem termos da lista local nem dados de cliente.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
+
+## Captura e histórico
+
+O `hooks/hooks.json` do plugin serve Claude Code e Codex; não registre a
+captura também na configuração global do host, ou ela roda duas vezes.
+
+- `SessionStart` faz pull curto e entrega tarefa ativa sugerida, perguntas,
+  prazos e até 10 ações do quadro não analisadas. Confirme a tarefa ativa com a
+  pessoa uma vez por sessão e rode `start` com a escolhida; o hook vincula essa
+  escolha à sessão.
+- `UserPromptSubmit` marca a janela de 15 minutos da tarefa ativa em
+  `horas/AAAA-MM-<maquina>.jsonl`, sem rede, e avisa só ações novas.
+- `Stop` faz commit local quando há mudança; o push vai em lote, em segundo
+  plano, a cada 30 minutos ou por `sync`.
+- Ações do agente entram em `eventos/` já analisadas. Ação do quadro fica
+  pendente até `analyze`: analise no fim da resposta quando o pedido atual não
+  tiver relação, aplique os ajustes decorrentes conforme a política e registre o
+  resultado em texto genérico. `review` também traz as pendentes.

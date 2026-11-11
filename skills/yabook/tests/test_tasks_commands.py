@@ -203,7 +203,13 @@ class CliAndSyncTest(unittest.TestCase):
         self.assertTrue(synced["pulled"] and synced["pushed"])
         self.assertEqual(self.cli(self.home, "show", "demanda-1001")[1]["data"]["demanda"], "1001")
         sync(self.work)
-        self.assertEqual(len(self.cli(self.work, "review")[1]["perguntas"]), 1)
+        review = self.cli(self.work, "review")[1]
+        self.assertEqual((len(review["perguntas"]), review["eventos_pendentes"]), (1, []))
+        from tasks_runtime import events
+        moved = events.record(self.work, "casa", "quadro", "mover", tarefa="demanda-1001")
+        self.assertEqual([e["id"] for e in self.cli(self.work, "events", "--pending")[1]["eventos"]], [moved["id"]])
+        self.assertEqual(self.cli(self.work, "analyze", "--id", moved["id"], "--resultado", "ok")[0], 0)
+        self.assertEqual(self.cli(self.work, "review")[1]["eventos_pendentes"], [])
         self.assertEqual(self.cli(self.work, "validate")[1]["ok"], True)
 
     def test_policy_requires_configuration(self):
