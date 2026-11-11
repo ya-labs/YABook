@@ -185,6 +185,37 @@ function card(task, options = {}) {
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, task.proximo_passo) : null);
 }
 
+// Registro em Markdown simples, montado em nós (sem innerHTML): títulos, listas, parágrafos e `código`.
+function markdown(text) {
+  const nodes = [];
+  let list = null, para = [];
+  const inline = (line) => line.split(/(`[^`]+`)/).map((part) => part.startsWith("`") && part.endsWith("`") && part.length > 1 ? h("code", {}, part.slice(1, -1)) : part);
+  const flush = () => { if (para.length) { nodes.push(h("p", {}, inline(para.join(" ")))); para = []; } };
+  for (const raw of (text || "").split("\n")) {
+    const line = raw.trimEnd();
+    const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    const item = line.match(/^\s*[-*]\s+(.*)$/);
+    if (heading) { flush(); list = null; nodes.push(h("h3", {}, inline(heading[2]))); }
+    else if (item) { flush(); if (!list) { list = h("ul", {}); nodes.push(list); } list.append(h("li", {}, inline(item[1]))); }
+    else if (!line.trim()) { flush(); list = null; }
+    else { list = null; para.push(line.trim()); }
+  }
+  flush();
+  return nodes;
+}
+
+function stateLabel(task) {
+  if (task.tipo === "pergunta") return h("span", { class: "estado-grande aberto" }, icon("pergunta"), task.resposta ? "Respondida" : "Pergunta");
+  if (task.papel === "concluido") return h("span", { class: "estado-grande fechado" }, icon("fechado"), "Concluída");
+  if (task.papel === "arquivado") return h("span", { class: "estado-grande arquivado" }, icon("arquivado"), "Arquivada");
+  return h("span", { class: "estado-grande aberto" }, icon("aberto"), "Aberta");
+}
+
+function sideSection(title, ...content) {
+  const body = content.flat(Infinity).filter(Boolean);
+  return h("section", { class: "lateral-secao" }, h("h4", {}, title), body.length ? body : h("p", { class: "vazio" }, "Nenhum"));
+}
+
 async function openTask(id) {
   const panel = document.getElementById("painel");
   panel.hidden = false;
@@ -193,35 +224,60 @@ async function openTask(id) {
     const detail = await api("/api/tarefa/" + encodeURIComponent(id));
     const data = detail.data;
     const task = effectiveState().tarefas.find((t) => t.id === id) || detail.resumo;
-    const parent = data.pai ? app.estado.tarefas.find((t) => t.id === data.pai) : null;
+    const parent = data.pai ? effectiveState().tarefas.find((t) => t.id === data.pai) : null;
     const ref = issueRef(data);
-    const field = (name, value) => value ? [h("dt", {}, name), h("dd", {}, value)] : null;
+    const parentRef = parent ? issueRef(parent) : null;
+    const epic = (app.estado.epicos || []).find((e) => e.id === (data.nivel === "epico" ? data.id : data.pai));
+    const field = (name, value) => value ? h("div", { class: "campo-lateral" }, h("span", {}, name), h("span", {}, value)) : null;
+    const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
     fill(panel,
       h("div", { class: "painel-topo" },
-        h("h2", {}, data.titulo, ref ? h("span", { class: "vazio" }, ` #${ref.number}`) : null),
+        h("h2", {}, data.titulo, ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null),
         h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", onclick: closePanel }, icon("fechar"))),
-      h("div", { class: "painel-corpo" },
-        h("div", { class: "card-origem" }, stateIcon(task), h("span", {}, `${origin(task)} · ${data.id}`)),
-        h("div", { class: "rotulos" }, badges(task, { semPai: true })),
-        task.nivel === "epico" ? epicProgress(task) : null,
-        h("dl", { class: "campos-lista" },
-          field("Status", h("span", { class: "selo neutro forte" }, h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna))),
-          field("Tipo", label(data.tipo)),
-          field("Faz parte de", parent ? h("button", { class: "link", type: "button", onclick: () => openTask(parent.id) }, parent.titulo) : null),
-          field("Código", task.codigo),
-          field("Prazo", data.prazo ? fmtDate(data.prazo) : null),
-          field("Issues", (data.issue || []).join(", ")),
-          field("Próximo passo", data.proximo_passo)),
-        detail.filhos && detail.filhos.length ? [h("h2", {}, "Itens"), h("div", { class: "caixa" }, detail.filhos.map((child) =>
-          h("div", { class: "linha-caixa" }, stateIcon(child), h("button", { class: "link titulo", type: "button", onclick: () => openTask(child.id) }, child.titulo),
-            h("span", { class: "selo neutro" }, columnName(child.coluna)))))] : null,
-        detail.body ? [h("h2", {}, "Registro"), h("pre", { class: "registro" }, detail.body.trim())] : null,
-        detail.complemento ? [h("h2", {}, "Complemento confidencial (local)"), h("pre", { class: "registro" }, detail.complemento.trim())] : null,
-        Object.entries(detail.referencias || {}).map(([refName, text]) =>
-          [h("h2", {}, refName), text ? h("pre", { class: "registro" }, text.trim()) : h("p", { class: "vazio" }, "Bloqueado: base confidencial ausente nesta máquina.")]),
-        detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
-          ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
-        app.editando && data.tipo !== "pergunta" ? editForm(id) : null));
+      h("div", { class: "faixa-estado" },
+        stateLabel(task),
+        parent ? h("button", { class: "selo neutro forte grande", type: "button", onclick: () => openTask(parent.id) },
+          stateIcon(parent), `Parent: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
+        task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
+        ref ? h("span", { class: "selo neutro forte grande" }, icon("repo"), ref.full.split("#")[0]) : null,
+        task.pessoal ? h("span", { class: "selo cor-pink grande" }, "pessoal") : null),
+      h("div", { class: "painel-colunas" },
+        h("div", { class: "painel-principal" },
+          h("div", { class: "comentario" },
+            h("header", {}, h("strong", {}, label(data.tipo)), h("span", { class: "vazio" }, ` · ${data.id}`),
+              data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null),
+            h("div", { class: "comentario-corpo markdown" },
+              data.proximo_passo ? [h("h3", {}, "Próximo passo"), h("p", {}, data.proximo_passo)] : null,
+              detail.body ? markdown(detail.body) : (!data.proximo_passo ? h("p", { class: "vazio" }, "Sem registro.") : null))),
+          detail.filhos && detail.filhos.length ? h("div", { class: "caixa" },
+            h("header", {}, h("h3", {}, data.nivel === "epico" ? "Histórias" : "Itens"),
+              epic && data.nivel === "epico" ? h("span", { class: "direita" }, segments(epic.concluidas, epic.historias)) : null),
+            detail.filhos.map((child) => h("div", { class: "linha-caixa" }, stateIcon(child), goTo(child),
+              h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(child.coluna)}` }), columnName(child.coluna))))) : null,
+          detail.complemento ? h("div", { class: "comentario" }, h("header", {}, icon("cadeado"), h("strong", {}, "Complemento confidencial"), h("span", { class: "vazio" }, " · só nesta máquina")),
+            h("div", { class: "comentario-corpo markdown" }, markdown(detail.complemento))) : null,
+          Object.entries(detail.referencias || {}).map(([refName, text]) => h("div", { class: "comentario" },
+            h("header", {}, icon("cadeado"), h("strong", {}, refName)),
+            h("div", { class: "comentario-corpo markdown" }, text ? markdown(text) : h("p", { class: "vazio" }, "Bloqueado: base confidencial ausente nesta máquina.")))),
+          detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
+            ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
+          app.editando && data.tipo !== "pergunta" ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
+        h("aside", { class: "painel-lateral" },
+          sideSection("Rótulos", h("div", { class: "rotulos" }, badges(task, { semPai: true, semCodigo: true, semData: true }))),
+          sideSection("Campos",
+            field("Status", h("span", { class: "selo neutro forte" }, h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna))),
+            field("Tipo", label(data.tipo)),
+            field("Nível", data.nivel ? LEVEL[data.nivel][0] : null),
+            field("Código", task.codigo),
+            field("Prazo", data.prazo ? fmtDate(data.prazo) : null),
+            field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null)),
+          sideSection("Projeto", h("div", { class: "projeto-caixa" },
+            h("div", { class: "projeto-caixa-topo" }, icon("quadro"), h("strong", {}, "YABook Tasks")),
+            field("Status", columnName(data.coluna)), field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null)))),
+          sideSection("Relacionamentos",
+            parent ? [h("span", { class: "vazio" }, "Faz parte de"), h("div", { class: "relacao" }, stateIcon(parent), goTo(parent),
+              epic && data.nivel !== "epico" ? h("span", { class: "contador" }, `${epic.concluidas} / ${epic.historias}`) : null)] : null,
+            (data.issue || []).length ? [h("span", { class: "vazio" }, "Issues"), (data.issue || []).map((i) => h("div", { class: "relacao" }, icon("aberto", "estado-aberto"), i))] : null))));
   } catch (error) {
     showPanel(h("p", { class: "aviso erro" }, error.message));
   }
