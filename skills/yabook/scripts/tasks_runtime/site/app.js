@@ -346,12 +346,17 @@ const VIEWS = {
     icone: "hoje",
     render(estado) {
       const tasks = filtered(work(estado));
-      const active = estado.ativa ? tasks.find((t) => t.id === estado.ativa.id) : null;
+      const map = Object.fromEntries(estado.tarefas.map((t) => [t.id, t]));
+      const current = estado.ativa ? tasks.find((t) => t.id === estado.ativa.id) : null;
+      // Tarefa ativa e épico ativo lado a lado: épico ativo é a própria ativa ou o épico dela.
+      const active = current && current.nivel !== "epico" ? current : null;
+      const activeEpicId = current ? (current.nivel === "epico" ? current.id : epicOf(current, map)) : null;
+      const activeEpic = activeEpicId ? tasks.find((t) => t.id === activeEpicId) || map[activeEpicId] : null;
       const doing = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico" && (!active || t.id !== active.id)).sort(byOrder);
-      const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && (!active || t.id !== active.id)).sort(byOrder);
+      const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && t.id !== activeEpicId).sort(byOrder);
       const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byOrder);
       const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
-      app.contagem = doing.length + epics.length + testing.length + (active ? 1 : 0);
+      app.contagem = doing.length + epics.length + testing.length + (active ? 1 : 0) + (activeEpic ? 1 : 0);
       const list = (title, items, empty, render = row) => h("div", { class: "caixa" },
         h("header", {}, h("h3", {}, title), h("span", { class: "contador" }, items.length || "")),
         items.length ? items.map(render) : h("div", { class: "corpo vazio" }, empty));
@@ -363,13 +368,15 @@ const VIEWS = {
            ["Ações não analisadas", estado.eventos_pendentes]]
             .map(([name, total]) => h("div", { class: "numero" }, h("b", {}, total), name))),
         h("div", { class: "painel-dia" },
-          h("div", {},
-            h("h2", {}, "Tarefa ativa"),
-            active ? h("div", { class: "cards" }, card(active)) : h("p", { class: "vazio" }, "Nenhuma tarefa ativa nesta máquina."),
-            h("h2", {}, "Em andamento"),
-            doing.length ? h("div", { class: "cards" }, doing.map((t) => card(t))) : h("p", { class: "vazio" }, "Nenhuma história ou tarefa em andamento."),
-            h("h2", {}, "Épicos em andamento"),
-            epics.length ? h("div", { class: "cards" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : h("p", { class: "vazio" }, "Nenhum épico em andamento.")),
+          h("div", { class: "hoje-grade" },
+            h("div", {}, h("h2", {}, "Tarefa ativa"),
+              active ? card(active) : h("p", { class: "vazio" }, current ? "A sessão está no épico; nenhuma história ou tarefa ativa." : "Nenhuma tarefa ativa nesta máquina.")),
+            h("div", {}, h("h2", {}, "Épico ativo"),
+              activeEpic ? card(activeEpic, { status: true, semNivel: true }) : h("p", { class: "vazio" }, "Nenhum épico ativo.")),
+            h("div", {}, h("h2", {}, "Em andamento"),
+              doing.length ? h("div", { class: "pilha" }, doing.map((t) => card(t))) : h("p", { class: "vazio" }, "Nenhuma história ou tarefa em andamento.")),
+            h("div", {}, h("h2", {}, "Épicos em andamento"),
+              epics.length ? h("div", { class: "pilha" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : h("p", { class: "vazio" }, "Nenhum outro épico em andamento."))),
           h("div", {},
             list("Prazos", estado.prazos.map(full), "Nenhum prazo atrasado ou nos próximos 2 dias.",
               (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),

@@ -169,6 +169,10 @@ h2 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; } h2:first-child { m
 
 /* Painéis do Hoje */
 .painel-dia { display: grid; gap: 16px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+.hoje-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; align-items: start; }
+.hoje-grade h2 { margin-top: 0; }
+.hoje-grade > div { margin-bottom: 20px; min-width: 0; }
+.pilha { display: grid; gap: 8px; }
 .cards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .numeros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .numero { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--borda); border-radius: 6px;
@@ -215,7 +219,7 @@ pre.registro { white-space: pre-wrap; margin: 0; background: var(--bg-subtle); b
 .campos-linha { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 
 @media (max-width: 760px) {
-  .painel-dia { grid-template-columns: 1fr; }
+  .painel-dia, .hoje-grade { grid-template-columns: 1fr; }
   .coluna { flex-basis: 85vw; }
   .projeto-titulo h1 { font-size: 18px; }
 }
