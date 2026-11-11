@@ -170,7 +170,8 @@ class Tasks:
     def add(self, tipo, titulo, coluna=None, prazo=None, body="", **fields):
         if tipo not in TIPOS:
             raise ValueError("Tipo inválido: %r" % (tipo,))
-        code = fields.get("demanda") if tipo == "demanda" else fields.get("projeto") if tipo == "projeto" else None
+        code = (fields.get("demanda") if tipo == "demanda" else fields.get("projeto") if tipo == "projeto"
+                else fields.get("demanda") or fields.get("projeto") if tipo == "especificacao" else None)
         identifier = fields.pop("id", None) or self.store.new_id(tipo, code, titulo)
         column = coluna or self.first_column("entrada")
         data = dict(fields, id=identifier, tipo=tipo, titulo=titulo, coluna=column, ordem=self.next_order(column))

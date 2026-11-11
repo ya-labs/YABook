@@ -60,6 +60,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
+| `task sheet [dia\|semana]` | `sheet [--data] [--semana]`; `--confirm [--input <json>]` grava os totais do dia |
 | `task events` | `events [--pending] [--limit]`: histórico de ações |
 | `task analyze` | `analyze --id <evento> --resultado <texto>` |
 | `do task policy automatic\|manual` | `policy <modo>` |
@@ -90,3 +91,17 @@ captura também na configuração global do host, ou ela roda duas vezes.
   pendente até `analyze`: analise no fim da resposta quando o pedido atual não
   tiver relação, aplique os ajustes decorrentes conforme a política e registre o
   resultado em texto genérico. `review` também traz as pendentes.
+
+## Ficha de horas
+
+- Conta a tarefa com `demanda`, `projeto` ou `tipo: especificacao`; com demanda e
+  projeto, as horas vão para a demanda. O resto é extra: aparece no dia com horas
+  estimadas, fora do total.
+- A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
+  janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
+  somando exatamente o total.
+- A observação junta títulos, registros e notas do dia, mais o complemento
+  confidencial onde existir. Mostre-a para a pessoa copiar; não a grave.
+- Ajustes da pessoa entram por `--confirm --input` com `linhas` (`tipo`,
+  `codigo`, `total`) e `extras`; a confirmação mais recente do dia prevalece e
+  a semana soma as confirmadas no lugar das sugestões.
