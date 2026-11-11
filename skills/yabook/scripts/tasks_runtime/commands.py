@@ -9,7 +9,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-from . import remote
+from . import events, remote
 from .precommit_hook import find_terms
 from .store import TIPOS, atomic_write, now
 
@@ -60,6 +60,10 @@ class Tasks:
     def __init__(self, store, cfg=None):
         self.store, self.cfg = store, cfg or {}
 
+    def _event(self, acao, **fields):
+        """Ação do agente: entra no histórico já analisada."""
+        return events.record(self.store.root, self.cfg.get("machine"), "agente", acao, **fields)
+
     # Apoio ----------------------------------------------------------------
     def roles(self):
         return {c["id"]: c["papel"] for c in self.store.columns()}
@@ -83,6 +87,9 @@ class Tasks:
         base = self.cfg.get("confidential")
         path = Path(base) / "tarefas" / (identifier + ".md") if base else None
         return path.read_text(encoding="utf-8") if path and path.is_file() else None
+
+    def find_terms_in(self, *texts):
+        return find_terms("\n".join(t for t in texts if t), self.store.terms)
 
     def _check_text(self, *texts):
         hits = find_terms("\n".join(t for t in texts if t), self.store.terms)
@@ -170,6 +177,7 @@ class Tasks:
         if prazo:
             data["prazo"] = parse_date(prazo)
         revision = self.store.save(data, body)
+        self._event("criar", tarefa=identifier, tipo=tipo, coluna=column)
         return dict(id=identifier, revision=revision, coluna=column)
 
     def edit(self, identifier, changes=None, unset=(), append=None, expected_revision=None):
@@ -192,6 +200,13 @@ class Tasks:
                 self._check_text(append)
                 body = _append_log(body, append)
             revision = self.store.save(data, body, task["revision"])
+            before = task["data"].get("coluna")
+            if before != data["coluna"]:
+                self._event("mover", tarefa=identifier, de=before, para=data["coluna"])
+            changed = sorted(k for k in set(data) | set(task["data"])
+                             if k not in ("coluna", "ordem", "atualizada", "criada") and data.get(k) != task["data"].get(k))
+            if changed or append:
+                self._event("editar", tarefa=identifier, campos=changed + (["registro"] if append else []))
             return dict(id=identifier, revision=revision, coluna=data["coluna"])
 
     def move(self, identifier, papel, note=None):
@@ -212,6 +227,7 @@ class Tasks:
         elif role in CLOSED:
             raise ValueError("Tarefa fechada não pode ser ativa; reabra movendo de coluna")
         atomic_write(state_path, json.dumps(dict(id=identifier, desde=now()), ensure_ascii=False) + "\n")
+        self._event("iniciar", tarefa=identifier)
         return dict(id=identifier, movida_para=moved)
 
     def ask(self, question, about=None):
@@ -242,6 +258,7 @@ class Tasks:
             path.parent.mkdir(exist_ok=True)
             with path.open("a", encoding="utf-8") as stream:
                 stream.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        self._event("horas", tarefa=identifier, horas=hours)
         return entry
 
     def clean(self, days=30, apply=False):
@@ -275,6 +292,12 @@ def _append_log(body, text):
 
 def sync(root, message="chore: atualiza tarefas"):
     """Commit local, pull com rebase e push; conflito aborta sem descartar nada."""
+    from .store import TaskStore
+    with TaskStore(root).lock():
+        return _sync(root, message)
+
+
+def _sync(root, message):
     git = lambda *a, check=True: remote.git(root, *a, check=check)
     git("add", "-A")
     committed = None

@@ -92,6 +92,12 @@ def build_parser():
     clean = sub.add_parser("clean", help="Faxina: concluídas antigas e duplicatas")
     clean.add_argument("--days", type=int, default=30)
     clean.add_argument("--apply", action="store_true")
+    history = sub.add_parser("events", help="Histórico de ações")
+    history.add_argument("--pending", action="store_true", help="Só ações do quadro não analisadas")
+    history.add_argument("--limit", type=int, default=30)
+    analyze = sub.add_parser("analyze", help="Registra a análise de ações do quadro")
+    analyze.add_argument("--id", action="append", required=True)
+    analyze.add_argument("--resultado", required=True)
     policy = sub.add_parser("policy")
     policy.add_argument("mode", choices=["automatic", "manual"])
     return parser
@@ -146,7 +152,8 @@ def run(args):
     if args.command == "recent":
         return tasks.recent(args.limit)
     if args.command == "review":
-        return tasks.review()
+        from tasks_runtime import events
+        return dict(tasks.review(), eventos_pendentes=events.pending(store.root))
     if args.command == "add":
         return tasks.add(args.tipo, args.titulo, body=args.body, **fields(args))
     if args.command == "edit":
@@ -168,6 +175,15 @@ def run(args):
         return tasks.log(args.id, args.horas, args.obs, args.data)
     if args.command == "sync":
         return sync(store.root)
+    if args.command == "events":
+        from tasks_runtime import events
+        entries = events.pending(store.root) if args.pending else events.read_all(store.root)
+        return dict(total=len(entries), eventos=entries[-args.limit:])
+    if args.command == "analyze":
+        from tasks_runtime import events
+        if tasks.find_terms_in(args.resultado):
+            raise ValueError("Resultado com termo confidencial")
+        return events.analyze(store.root, cfg.get("machine"), args.id, args.resultado)
     if args.command == "clean":
         return tasks.clean(args.days, args.apply)
     raise ValueError("Comando desconhecido: " + args.command)
