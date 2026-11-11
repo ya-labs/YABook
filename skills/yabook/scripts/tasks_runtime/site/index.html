@@ -4,20 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="yabook-token" content="{{TOKEN}}">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#0d1117">
 <title>YABook Tasks</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="app.css">
+<script>
+  // Tema antes da primeira pintura: evita piscar ao abrir no escuro.
+  try { const t = localStorage.getItem("yabook.tema"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <script src="app.js" defer></script>
 </head>
 <body>
 <header class="topo">
-  <div class="marca"><img src="icon.svg" alt="" width="24" height="24"><strong>YABook Tasks</strong></div>
-  <nav id="abas" class="abas" aria-label="Visões"></nav>
-  <div class="situacao"><span id="maquina"></span><span id="conexao" class="ponto" title="Conexão"></span></div>
+  <div class="topo-esq">
+    <img src="icon.svg" alt="" width="28" height="28">
+    <nav class="trilha" aria-label="Local"><span>YABook</span><span class="sep">/</span><span>Tasks</span><span class="sep">/</span><strong id="maquina">…</strong></nav>
+  </div>
+  <div class="topo-dir">
+    <span id="conexao" class="ponto" title="Conexão"></span>
+    <button id="tema" class="botao-icone" type="button" title="Tema"></button>
+  </div>
 </header>
+<section class="projeto">
+  <div class="projeto-titulo"><h1>YABook Tasks</h1><span id="resumo" class="projeto-resumo"></span></div>
+  <nav id="abas" class="abas" aria-label="Visões"></nav>
+</section>
+<div class="barra-filtro">
+  <label class="filtro">
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <input id="filtro" type="search" placeholder="Filtrar por título, código ou próximo passo" autocomplete="off">
+    <span id="contagem" class="contador"></span>
+  </label>
+  <div id="opcoes" class="opcoes"></div>
+  <div id="edicao" class="edicao"></div>
+</div>
 <main id="conteudo" class="conteudo" tabindex="-1"><p class="vazio">Carregando…</p></main>
-<div id="painel" class="painel" hidden></div>
+<aside id="painel" class="painel" hidden></aside>
 </body>
 </html>

@@ -15,7 +15,7 @@ function h(tag, attrs, ...children) {
     else if (key === "class") node.className = value;
     else node.setAttribute(key, value === true ? "" : value);
   }
-  for (const child of children.flat()) {
+  for (const child of children.flat(Infinity)) {
     if (child === null || child === undefined || child === false) continue;
     node.append(child instanceof Node ? child : document.createTextNode(String(child)));
   }
@@ -59,68 +59,170 @@ function snapshotTask(id) {
 }
 
 // Componentes compartilhados --------------------------------------------------
+const ICONS = {
+  aberto: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.75" fill="currentColor"/>',
+  fechado: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m5.25 8.25 1.9 1.9 3.6-3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  arquivado: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m3.6 12.4 8.8-8.8" stroke="currentColor" stroke-width="1.5"/>',
+  pergunta: '<path d="M2.75 3.5h10.5v7.25H8.5L5.5 13.25v-2.5H2.75z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+  hoje: '<circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  quadro: '<rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 2.75v10.5M10 2.75v10.5" stroke="currentColor" stroke-width="1.5"/>',
+  epicos: '<path d="M2.5 3.5h11M5 8h8.5M7.5 12.5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="2.75" cy="8" r=".9" fill="currentColor"/><circle cx="5.25" cy="12.5" r=".9" fill="currentColor"/>',
+  prazos: '<rect x="1.75" y="2.75" width="12.5" height="11.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.75 6.25h12.5M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  semana: '<rect x="1.75" y="1.75" width="12.5" height="12.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.75 6h12.5M6 6v8.25" stroke="currentColor" stroke-width="1.5"/>',
+  ficha: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  historico: '<path d="M2.25 8a5.75 5.75 0 1 0 1.7-4.1M2 2.25v2.5h2.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5v3.25l2 1.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  mais: '<circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/>',
+  fechar: '<path d="m3.5 3.5 9 9m0-9-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  cadeado: '<rect x="3" y="7" width="10" height="7.25" rx="1.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.25 7V5a2.75 2.75 0 0 1 5.5 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+  calendario: '<rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  repo: '<path d="M3 2.75A1.75 1.75 0 0 1 4.75 1h8.5v11.5H4.75A1.75 1.75 0 0 0 3 14.25zM3 14.25A1.75 1.75 0 0 0 4.75 16h8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  sol: '<circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  lua: '<path d="M13.5 9.5A5.75 5.75 0 0 1 6.5 2.5a5.75 5.75 0 1 0 7 7Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+  auto: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.75v12.5A6.25 6.25 0 0 0 8 1.75Z" fill="currentColor"/>',
+};
+
+function icon(name, cls) {
+  const span = document.createElement("span");
+  span.className = "icone" + (cls ? " " + cls : "");
+  span.style.display = "inline-flex";
+  span.innerHTML = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+  return span;
+}
+
 function label(tipo) {
   return (app.estado.rotulos || {})[tipo] || tipo;
 }
 
 function columnName(id) {
-  const column = app.estado.colunas.find((c) => c.id === id);
+  const column = (effectiveState().colunas || []).find((c) => c.id === id);
   return column ? column.nome : id;
 }
 
+function roleOf(id) {
+  const column = app.estado.colunas.find((c) => c.id === id);
+  return column ? column.papel : "";
+}
+
+function pill(text, color, extra = {}) {
+  return h("span", { class: `selo cor-${color || "gray"}`, title: extra.title || null }, extra.icon ? icon(extra.icon) : null, text);
+}
+
+function issueRef(task) {
+  const first = (task.issue || [])[0];
+  if (!first) return null;
+  const [repo, number] = first.split("#");
+  return { repo: repo.split("/").pop(), number, full: first };
+}
+
+function stateIcon(task) {
+  if (task.tipo === "pergunta") return icon("pergunta", "estado-pergunta");
+  if (task.papel === "concluido") return icon("fechado", "estado-fechado");
+  if (task.papel === "arquivado") return icon("arquivado", "estado-arquivado");
+  return icon("aberto", "estado-aberto");
+}
+
+function origin(task) {
+  const ref = issueRef(task);
+  if (ref) return `${ref.repo} #${ref.number}`;
+  const own = task.demanda ? ["demanda", task.demanda] : task.projeto && task.tipo === "projeto" ? ["projeto", task.projeto] : null;
+  if (own) return `${label(own[0])} ${own[1]}`;
+  return label(task.tipo);
+}
+
+const LEVEL = { epico: ["épico", "purple"], historia: ["história", "blue"], tarefa: ["tarefa", "gray"] };
+
 function badges(task, options = {}) {
   const items = [];
-  if (task.nivel && !options.semNivel) items.push(h("span", { class: "selo nivel" }, task.nivel === "epico" ? "épico" : task.nivel === "historia" ? "história" : "tarefa"));
-  if (task.codigo) items.push(h("span", { class: "selo", title: "Código" }, task.codigo));
-  if (task.pessoal && !options.semPessoal) items.push(h("span", { class: "selo pessoal", title: "Sem numeração da empresa" }, "pessoal"));
-  if (task.prazo && !["concluido", "arquivado"].includes(task.papel)) {
-    const days = daysUntil(task.prazo);
-    const cls = days < 0 ? "selo atrasado" : days <= 2 ? "selo prazo" : "selo";
-    items.push(h("span", { class: cls, title: "Prazo" }, "⏱ " + fmtDate(task.prazo)));
+  if (task.nivel && !options.semNivel) items.push(pill(LEVEL[task.nivel][0], LEVEL[task.nivel][1]));
+  const ref = issueRef(task);
+  if (task.codigo && (!ref || task.codigo !== ref.full) && !options.semCodigo) {
+    items.push(pill(task.codigo, "gray", { title: task.pessoal ? "Código" : "Código na ficha", icon: "repo" }));
   }
-  if (task.perguntas_abertas) items.push(h("span", { class: "selo pergunta" }, `? ${task.perguntas_abertas}`));
-  if (task.confidencial === "disponivel") items.push(h("span", { class: "selo", title: "Referência confidencial disponível nesta máquina" }, "🔓 confidencial"));
-  if (task.confidencial === "bloqueado") items.push(h("span", { class: "selo bloqueado", title: "Base confidencial ausente nesta máquina" }, "🔒 confidencial"));
+  if (task.pessoal && !options.semPessoal) items.push(pill("pessoal", "pink", { title: "Sem numeração da empresa" }));
+  if (task.prazo && !CLOSED.includes(task.papel)) {
+    const days = daysUntil(task.prazo);
+    items.push(pill(fmtDate(task.prazo), days < 0 ? "red" : days <= 2 ? "orange" : "gray", { icon: "calendario", title: "Prazo" }));
+  }
+  if (task.perguntas_abertas) items.push(pill(`${task.perguntas_abertas} pergunta${task.perguntas_abertas > 1 ? "s" : ""}`, "blue", { icon: "pergunta" }));
+  if (task.confidencial === "disponivel") items.push(pill("confidencial", "yellow", { icon: "cadeado", title: "Referência confidencial disponível nesta máquina" }));
+  if (task.confidencial === "bloqueado") items.push(pill("confidencial", "gray", { icon: "cadeado", title: "Base confidencial ausente nesta máquina" }));
+  if (!options.semPai && task.pai) {
+    const parent = (effectiveState().tarefas || []).find((t) => t.id === task.pai);
+    if (parent) {
+      const pref = issueRef(parent);
+      items.push(h("span", { class: "selo neutro forte", title: "Faz parte de" }, icon("aberto", "estado-aberto"),
+        parent.titulo + (pref ? ` #${pref.number}` : "")));
+    }
+  }
+  if (task.papel === "concluido" && task.atualizada && !options.semData) items.push(h("span", { class: "selo neutro" }, "Concluída: " + fmtDate(task.atualizada)));
   return items;
+}
+
+function segments(done, total) {
+  const count = Math.min(total, 20);
+  const filled = total ? Math.round((done / total) * count) : 0;
+  return h("div", { class: "progresso", title: `${done} de ${total} histórias concluídas` },
+    h("span", {}, `${done} / ${total}`),
+    total ? h("div", { class: "segmentos" }, Array.from({ length: count }, (_, i) => h("i", { class: i < filled ? "feito" : null }))) : null);
+}
+
+function epicProgress(task) {
+  const epic = (app.estado.epicos || []).find((e) => e.id === task.id);
+  return epic ? segments(epic.concluidas, epic.historias) : null;
 }
 
 function card(task) {
   const editable = app.editando && task.tipo !== "pergunta";
-  return h("button", { class: "card" + (task.editado ? " editado" : ""), type: "button", "data-id": task.id,
-    draggable: editable ? "true" : null, ondragstart: editable ? (e) => { e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; } : null,
-    onclick: () => openTask(task.id) },
-    h("span", { class: "titulo" }, task.titulo),
-    h("span", { class: "linha" }, badges(task)),
-    task.proximo_passo ? h("span", { class: "passo" }, "→ " + task.proximo_passo) : null);
+  return h("div", { class: "card" + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
+    draggable: editable ? "true" : null,
+    ondragstart: editable ? (e) => { e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; } : null,
+    onclick: () => openTask(task.id), onkeydown: (e) => { if (e.key === "Enter") openTask(task.id); } },
+    h("div", { class: "card-origem" }, stateIcon(task), h("span", {}, origin(task))),
+    h("div", { class: "card-titulo" }, task.titulo),
+    h("div", { class: "rotulos" }, badges(task)),
+    task.nivel === "epico" ? epicProgress(task) : null,
+    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, task.proximo_passo) : null);
 }
 
 async function openTask(id) {
   const panel = document.getElementById("painel");
   panel.hidden = false;
-  panel.replaceChildren(h("p", { class: "vazio" }, "Carregando…"));
+  fill(panel, h("div", { class: "painel-corpo" }, h("p", { class: "vazio" }, "Carregando…")));
   try {
     const detail = await api("/api/tarefa/" + encodeURIComponent(id));
     const data = detail.data;
+    const task = effectiveState().tarefas.find((t) => t.id === id) || detail.resumo;
     const parent = data.pai ? app.estado.tarefas.find((t) => t.id === data.pai) : null;
+    const ref = issueRef(data);
+    const field = (name, value) => value ? [h("dt", {}, name), h("dd", {}, value)] : null;
     fill(panel,
-      h("button", { class: "botao fechar", type: "button", onclick: closePanel }, "Fechar"),
-      h("h2", {}, data.titulo),
-      h("div", { class: "linha card", style: "cursor:default" }, h("span", { class: "linha" }, badges(detail.resumo))),
-      h("p", {}, `${label(data.tipo)} · ${columnName(data.coluna)} · ${data.id}`),
-      parent ? h("p", {}, "Faz parte de ", h("a", { href: "#", onclick: (e) => { e.preventDefault(); openTask(parent.id); } }, parent.titulo)) : null,
-      data.proximo_passo ? h("p", {}, h("strong", {}, "Próximo passo: "), data.proximo_passo) : null,
-      (data.issue || []).length ? h("p", {}, "Issues: ", data.issue.join(", ")) : null,
-      detail.filhos && detail.filhos.length ? [h("h2", {}, "Itens"), h("div", { class: "grade" }, detail.filhos.map(card))] : null,
-      detail.body ? [h("h2", {}, "Registro"), h("pre", { class: "registro" }, detail.body.trim())] : null,
-      detail.complemento ? [h("h2", {}, "Complemento confidencial (local)"), h("pre", { class: "registro" }, detail.complemento.trim())] : null,
-      Object.entries(detail.referencias || {}).map(([ref, text]) =>
-        [h("h2", {}, ref), text ? h("pre", { class: "registro" }, text.trim()) : h("p", { class: "vazio" }, "🔒 Bloqueado: base confidencial ausente nesta máquina.")]),
-      detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
-        ? h("p", { class: "vazio" }, "🔒 Complemento confidencial só na máquina que possui a base.") : null,
-      app.editando && data.tipo !== "pergunta" ? editForm(id) : null,
-    );
+      h("div", { class: "painel-topo" },
+        h("h2", {}, data.titulo, ref ? h("span", { class: "vazio" }, ` #${ref.number}`) : null),
+        h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", onclick: closePanel }, icon("fechar"))),
+      h("div", { class: "painel-corpo" },
+        h("div", { class: "card-origem" }, stateIcon(task), h("span", {}, `${origin(task)} · ${data.id}`)),
+        h("div", { class: "rotulos" }, badges(task, { semPai: true })),
+        task.nivel === "epico" ? epicProgress(task) : null,
+        h("dl", { class: "campos-lista" },
+          field("Status", h("span", { class: "selo neutro forte" }, h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna))),
+          field("Tipo", label(data.tipo)),
+          field("Faz parte de", parent ? h("button", { class: "link", type: "button", onclick: () => openTask(parent.id) }, parent.titulo) : null),
+          field("Código", task.codigo),
+          field("Prazo", data.prazo ? fmtDate(data.prazo) : null),
+          field("Issues", (data.issue || []).join(", ")),
+          field("Próximo passo", data.proximo_passo)),
+        detail.filhos && detail.filhos.length ? [h("h2", {}, "Itens"), h("div", { class: "caixa" }, detail.filhos.map((child) =>
+          h("div", { class: "linha-caixa" }, stateIcon(child), h("button", { class: "link titulo", type: "button", onclick: () => openTask(child.id) }, child.titulo),
+            h("span", { class: "selo neutro" }, columnName(child.coluna)))))] : null,
+        detail.body ? [h("h2", {}, "Registro"), h("pre", { class: "registro" }, detail.body.trim())] : null,
+        detail.complemento ? [h("h2", {}, "Complemento confidencial (local)"), h("pre", { class: "registro" }, detail.complemento.trim())] : null,
+        Object.entries(detail.referencias || {}).map(([refName, text]) =>
+          [h("h2", {}, refName), text ? h("pre", { class: "registro" }, text.trim()) : h("p", { class: "vazio" }, "Bloqueado: base confidencial ausente nesta máquina.")]),
+        detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
+          ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
+        app.editando && data.tipo !== "pergunta" ? editForm(id) : null));
   } catch (error) {
-    panel.replaceChildren(h("button", { class: "botao fechar", type: "button", onclick: closePanel }, "Fechar"), h("p", { class: "aviso erro" }, error.message));
+    showPanel(h("p", { class: "aviso erro" }, error.message));
   }
 }
 
@@ -157,8 +259,19 @@ function epicOf(task, map) {
   return null;
 }
 
-function section(title, nodes, empty) {
-  return [h("h2", {}, title), nodes.length ? h("div", { class: "grade" }, nodes) : h("p", { class: "vazio" }, empty)];
+function filtered(tasks) {
+  const text = (app.busca || "").trim().toLowerCase();
+  if (!text) return tasks;
+  return tasks.filter((t) => [t.titulo, t.codigo, t.id, t.proximo_passo, (t.issue || []).join(" ")].join(" ").toLowerCase().includes(text));
+}
+
+function titleLink(task) {
+  return h("button", { class: "link titulo", type: "button", title: task.titulo, onclick: () => openTask(task.id) }, task.titulo);
+}
+
+function row(task) {
+  return h("div", { class: "linha-caixa" }, stateIcon(task), titleLink(task),
+    h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
 }
 
 function progress(epic) {
@@ -171,89 +284,115 @@ function progress(epic) {
 const VIEWS = {
   hoje: {
     titulo: "Hoje",
+    icone: "hoje",
     render(estado) {
-      const tasks = work(estado);
+      const tasks = filtered(work(estado));
       const active = estado.ativa ? tasks.find((t) => t.id === estado.ativa.id) : null;
       const doing = tasks.filter((t) => t.papel === "ativo" && (!active || t.id !== active.id)).sort(byOrder);
       const testing = tasks.filter((t) => t.papel === "validacao").sort(byOrder);
       const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
+      app.contagem = doing.length + testing.length + (active ? 1 : 0);
+      const list = (title, items, empty, render = row) => h("div", { class: "caixa" },
+        h("header", {}, h("h3", {}, title), h("span", { class: "contador" }, items.length || "")),
+        items.length ? items.map(render) : h("div", { class: "corpo vazio" }, empty));
+      const full = (t) => estado.tarefas.find((x) => x.id === t.id) || t;
       return h("section", {},
         h("div", { class: "numeros" },
           [["Em andamento", tasks.filter((t) => t.papel === "ativo").length], ["Em validação", testing.length],
            ["Prazos próximos", estado.prazos.length], ["Atrasadas", late], ["Perguntas", estado.perguntas.length],
            ["Ações não analisadas", estado.eventos_pendentes]]
-            .map(([name, total]) => h("div", { class: "numero" }, h("b", {}, total), h("span", {}, name)))),
-        h("h2", {}, "Tarefa ativa"),
-        active ? h("div", { class: "grade" }, card(active)) : h("p", { class: "vazio" }, "Nenhuma tarefa ativa nesta máquina."),
-        section("Em andamento", doing.map(card), "Nada em andamento."),
-        section("Prazos", estado.prazos.map((t) => card(estado.tarefas.find((x) => x.id === t.id) || t)), "Nenhum prazo atrasado ou nos próximos 2 dias."),
-        section("Perguntas para você", estado.perguntas.map((t) => card(estado.tarefas.find((x) => x.id === t.id) || t)), "Nenhuma pergunta aberta."),
-        section("Em validação", testing.map(card), "Nada em validação."),
-      );
+            .map(([name, total]) => h("div", { class: "numero" }, h("b", {}, total), name))),
+        h("div", { class: "painel-dia" },
+          h("div", {},
+            h("h2", {}, "Tarefa ativa"),
+            active ? h("div", { class: "cards" }, card(active)) : h("p", { class: "vazio" }, "Nenhuma tarefa ativa nesta máquina."),
+            h("h2", {}, "Em andamento"),
+            doing.length ? h("div", { class: "cards" }, doing.map(card)) : h("p", { class: "vazio" }, "Nada em andamento.")),
+          h("div", {},
+            list("Prazos", estado.prazos.map(full), "Nenhum prazo atrasado ou nos próximos 2 dias.",
+              (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
+            list("Perguntas para você", estado.perguntas.map(full), "Nenhuma pergunta aberta."),
+            list("Em validação", testing, "Nada em validação."))));
     },
   },
   quadro: {
     titulo: "Quadro",
+    icone: "quadro",
+    opcoes(estado) {
+      const epicFilter = pref("quadro.epico", "");
+      const levelFilter = pref("quadro.nivel", "");
+      const showArchived = pref("quadro.arquivadas", "0") === "1";
+      return [
+        h("select", { title: "Épico", onchange: (e) => { setPref("quadro.epico", e.target.value); render(); } },
+          h("option", { value: "" }, "Épico: todos"), h("option", { value: "-", selected: epicFilter === "-" }, "Sem épico"),
+          estado.epicos.map((e) => h("option", { value: e.id, selected: e.id === epicFilter }, e.titulo))),
+        h("select", { title: "Nível", onchange: (e) => { setPref("quadro.nivel", e.target.value); render(); } },
+          [["", "Nível: todos"], ["epico", "Épicos"], ["historia", "Histórias"], ["tarefa", "Tarefas"], ["-", "Sem nível"]]
+            .map(([v, n]) => h("option", { value: v, selected: v === levelFilter }, n))),
+        h("label", {}, h("input", { type: "checkbox", checked: showArchived, onchange: (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); } }), "Arquivadas"),
+      ];
+    },
     render(estado) {
       const map = Object.fromEntries(estado.tarefas.map((t) => [t.id, t]));
       const epicFilter = pref("quadro.epico", "");
       const levelFilter = pref("quadro.nivel", "");
       const showArchived = pref("quadro.arquivadas", "0") === "1";
-      const text = (app.busca || "").toLowerCase();
-      const visible = work(estado).filter((t) =>
+      const visible = filtered(work(estado)).filter((t) =>
         (!epicFilter || (epicFilter === "-" ? !epicOf(t, map) : epicOf(t, map) === epicFilter)) &&
-        (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)) &&
-        (!text || [t.titulo, t.codigo, t.id, t.proximo_passo].join(" ").toLowerCase().includes(text)));
+        (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
-      const filters = h("div", { class: "filtros" },
-        h("label", {}, "Épico ", h("select", { onchange: (e) => { setPref("quadro.epico", e.target.value); render(); } },
-          h("option", { value: "" }, "Todos"), h("option", { value: "-", selected: epicFilter === "-" }, "Sem épico"),
-          estado.epicos.map((e) => h("option", { value: e.id, selected: e.id === epicFilter }, e.titulo)))),
-        h("label", {}, "Nível ", h("select", { onchange: (e) => { setPref("quadro.nivel", e.target.value); render(); } },
-          [["", "Todos"], ["epico", "Épicos"], ["historia", "Histórias"], ["tarefa", "Tarefas"], ["-", "Sem nível"]]
-            .map(([v, n]) => h("option", { value: v, selected: v === levelFilter }, n)))),
-        h("input", { type: "search", placeholder: "Buscar", value: app.busca || "", oninput: (e) => { app.busca = e.target.value; clearTimeout(app.buscaTimer); app.buscaTimer = setTimeout(render, 200); } }),
-        h("label", {}, h("input", { type: "checkbox", checked: showArchived, onchange: (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); } }), " Arquivadas"));
-      return h("section", {}, filters,
-        h("div", { class: "quadro" }, columns.map((column) => {
-          const cards = visible.filter((t) => t.coluna === column.id).sort(byOrder);
-          return h("div", { class: "coluna", "data-coluna": column.id,
-            ondragover: app.editando ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; } : null,
-            ondrop: app.editando ? (e) => dropCard(e, column.id, cards) : null },
-            h("header", {}, h("span", {}, column.nome,
-              app.editando ? h("button", { class: "link", type: "button", title: "Renomear coluna", onclick: () => renameColumn(column) }, " ✎") : null),
-              h("span", {}, cards.length)), cards.map(card));
-        })));
+      app.contagem = visible.filter((t) => columns.some((c) => c.id === t.coluna)).length;
+      return h("div", { class: "quadro" }, columns.map((column) => {
+        const cards = visible.filter((t) => t.coluna === column.id).sort(byOrder);
+        return h("div", { class: `coluna papel-${column.papel}`, "data-coluna": column.id,
+          ondragover: app.editando ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; e.currentTarget.classList.add("alvo"); } : null,
+          ondragleave: app.editando ? (e) => e.currentTarget.classList.remove("alvo") : null,
+          ondrop: app.editando ? (e) => { e.currentTarget.classList.remove("alvo"); dropCard(e, column.id, cards); } : null },
+          h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, column.nome), h("span", { class: "contador" }, String(cards.length)),
+            h("span", { class: "acoes" }, app.editando
+              ? h("button", { class: "botao-icone discreto", type: "button", title: "Renomear coluna", onclick: () => renameColumn(column) }, icon("mais"))
+              : null)),
+          h("div", { class: "itens" }, cards.length ? cards.map(card) : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum item")));
+      }));
     },
   },
   epicos: {
     titulo: "Épicos",
+    icone: "epicos",
     render(estado) {
       const tasks = work(estado);
       const children = (id) => tasks.filter((t) => t.pai === id)
         .sort((a, b) => ROLE_ORDER.indexOf(a.papel) - ROLE_ORDER.indexOf(b.papel) || byOrder(a, b));
-      const loose = tasks.filter((t) => !t.pai && t.nivel !== "epico" && !CLOSED.includes(t.papel)).sort(byOrder);
+      const text = (app.busca || "").toLowerCase();
+      const matches = (t) => !text || [t.titulo, t.codigo, t.id].join(" ").toLowerCase().includes(text);
+      const epics = estado.epicos.filter((e) => matches(e) || children(e.id).some(matches));
+      const loose = filtered(tasks.filter((t) => !t.pai && t.nivel !== "epico" && !CLOSED.includes(t.papel))).sort(byOrder);
+      app.contagem = epics.length;
+      const storyRow = (story, sub) => h("div", { class: "linha-caixa" + (sub ? " sub" : "") }, stateIcon(story), titleLink(story),
+        badges(story, { semNivel: true, semPai: true, semPessoal: true, semData: true }),
+        h("span", { class: "selo neutro" }, h("span", { class: `status papel-${story.papel}` }), columnName(story.coluna)));
       return h("section", {},
-        estado.epicos.length ? estado.epicos.map((epic) => {
+        epics.length ? epics.map((epic) => {
           const full = tasks.find((t) => t.id === epic.id) || epic;
-          return h("article", { class: "bloco epico" },
-            h("header", { class: "epico-topo" },
-              h("button", { class: "link", type: "button", onclick: () => openTask(epic.id) }, h("strong", {}, epic.titulo)),
-              h("span", { class: "linha" }, badges(full), h("span", { class: "selo" }, columnName(epic.coluna)))),
-            progress(epic),
-            epic.proximo_passo ? h("p", { class: "passo" }, "→ " + epic.proximo_passo) : null,
-            h("ul", { class: "historias" }, children(epic.id).map((story) => h("li", {},
-              h("button", { class: "link", type: "button", onclick: () => openTask(story.id) }, story.titulo),
-              h("span", { class: "linha" }, h("span", { class: "selo" }, columnName(story.coluna)), badges(story, { semNivel: true, semPessoal: full.pessoal })),
-              children(story.id).length ? h("ul", {}, children(story.id).map((sub) => h("li", {},
-                h("button", { class: "link", type: "button", onclick: () => openTask(sub.id) }, sub.titulo),
-                h("span", { class: "selo" }, columnName(sub.coluna))))) : null))));
+          const stories = children(epic.id);
+          const open = stories.filter((s) => !CLOSED.includes(s.papel));
+          const closed = stories.filter((s) => CLOSED.includes(s.papel));
+          const withTasks = (story) => [storyRow(story), children(story.id).map((sub) => storyRow(sub, true))];
+          return h("div", { class: "caixa" },
+            h("header", {}, stateIcon(full), h("button", { class: "link", type: "button", onclick: () => openTask(epic.id) }, h("h3", {}, epic.titulo)),
+              h("span", { class: "rotulos" }, badges(full, { semNivel: true })),
+              h("span", { class: "direita" }, h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(epic.coluna)}` }), columnName(epic.coluna)))),
+            h("div", { class: "corpo" }, segments(epic.concluidas, epic.historias),
+              epic.proximo_passo ? h("div", { class: "card-passo", style: "margin-top:6px" }, epic.proximo_passo) : null),
+            open.map(withTasks),
+            closed.length ? h("details", {}, h("summary", {}, `${closed.length} concluída(s) ou arquivada(s)`), closed.map(withTasks)) : null);
         }) : h("p", { class: "vazio" }, "Nenhum épico. Use --nivel epico ou task capture."),
-        loose.length ? [h("h2", {}, "Sem épico"), h("div", { class: "grade" }, loose.map(card))] : null);
+        loose.length ? [h("h2", {}, "Sem épico"), h("div", { class: "cards" }, loose.map(card))] : null);
     },
   },
   prazos: {
     titulo: "Prazos",
+    icone: "prazos",
     render(estado) {
       const rows = work(estado).filter((t) => t.prazo && !CLOSED.includes(t.papel)).sort((a, b) => a.prazo.localeCompare(b.prazo));
       if (!rows.length) return h("p", { class: "vazio" }, "Nenhuma tarefa aberta com prazo.");
@@ -270,6 +409,7 @@ const VIEWS = {
   },
   perguntas: {
     titulo: "Perguntas",
+    icone: "pergunta",
     render(estado) {
       const questions = estado.tarefas.filter((t) => t.tipo === "pergunta");
       const open = questions.filter((t) => !t.resposta && !CLOSED.includes(t.papel));
@@ -288,6 +428,7 @@ const VIEWS = {
   },
   semana: {
     titulo: "Semana",
+    icone: "semana",
     async render(estado) {
       const ref = app.semana || estado.hoje;
       const [week, sheetWeek] = await Promise.all([api("/api/semana?data=" + ref), api("/api/ficha?semana=1&data=" + ref)]);
@@ -312,6 +453,7 @@ const VIEWS = {
   },
   ficha: {
     titulo: "Ficha",
+    icone: "ficha",
     async render(estado) {
       const day = app.ficha || estado.hoje;
       const sheet = await api("/api/ficha?data=" + day);
@@ -343,6 +485,7 @@ const VIEWS = {
   },
   historico: {
     titulo: "Histórico",
+    icone: "historico",
     async render(estado) {
       const limit = app.historicoLimite || 200;
       const data = await api("/api/historico?limite=" + limit);
@@ -426,28 +569,56 @@ function currentView() {
 function renderTabs() {
   const nav = document.getElementById("abas");
   const current = currentView();
-  nav.replaceChildren(...ORDER.map((name) =>
-    h("button", { type: "button", "aria-current": name === current ? "page" : null, onclick: () => { location.hash = name; } }, VIEWS[name].titulo)));
+  const counts = { perguntas: app.estado.perguntas.length, prazos: app.estado.prazos.length, historico: app.estado.eventos_pendentes };
+  fill(nav, ORDER.map((name) =>
+    h("button", { type: "button", "aria-current": name === current ? "page" : null, onclick: () => { location.hash = name; } },
+      icon(VIEWS[name].icone), VIEWS[name].titulo, counts[name] ? h("span", { class: "contador" }, counts[name]) : null)));
 }
 
 async function render() {
   if (!app.estado) return;
   renderTabs();
+  const name = currentView();
   const main = document.getElementById("conteudo");
+  main.classList.toggle("quadro-ativo", name === "quadro");
+  const estado = effectiveState();
+  fill(document.getElementById("opcoes"), VIEWS[name].opcoes ? VIEWS[name].opcoes(estado) : []);
+  app.contagem = null;
   try {
     renderToolbar();
-    const node = await VIEWS[currentView()].render(effectiveState());
+    const node = await VIEWS[name].render(estado);
     main.replaceChildren(node);
   } catch (error) {
     main.replaceChildren(h("p", { class: "aviso erro" }, error.message));
   }
+  document.getElementById("contagem").textContent = app.contagem === null || app.contagem === undefined ? "" : String(app.contagem);
+}
+
+const THEMES = [["auto", "Tema: automático", "auto"], ["light", "Tema: claro", "sol"], ["dark", "Tema: escuro", "lua"]];
+
+function renderTheme() {
+  const current = pref("tema", "auto");
+  const [, title, iconName] = THEMES.find((t) => t[0] === current) || THEMES[0];
+  const button = document.getElementById("tema");
+  button.title = title + " (clique para trocar)";
+  fill(button, icon(iconName));
+  if (current === "auto") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = current;
+}
+
+function cycleTheme() {
+  const index = THEMES.findIndex((t) => t[0] === pref("tema", "auto"));
+  setPref("tema", THEMES[(index + 1) % THEMES.length][0]);
+  renderTheme();
 }
 
 async function refresh() {
   try {
     app.estado = await api("/api/estado");
     app.cache = {};
-    document.getElementById("maquina").textContent = (app.estado.maquina || "") + (SNAPSHOT ? " · cópia estática" : "");
+    document.getElementById("maquina").textContent = (app.estado.maquina || "local") + (SNAPSHOT ? " · cópia estática" : "");
+    const open = app.estado.tarefas.filter((t) => t.tipo !== "pergunta" && !["concluido", "arquivado"].includes(t.papel)).length;
+    document.getElementById("resumo").textContent = `${open} itens abertos · ${app.estado.epicos.length} épicos · atualizado ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
     await render();
   } catch (error) {
     document.getElementById("conteudo").replaceChildren(h("p", { class: "aviso erro" }, "Falha ao ler as tarefas: " + error.message));
@@ -466,6 +637,10 @@ function listen() {
 window.addEventListener("hashchange", render);
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") closePanel(); });
 document.addEventListener("DOMContentLoaded", () => {
+  renderTheme();
+  document.getElementById("tema").addEventListener("click", cycleTheme);
+  const filter = document.getElementById("filtro");
+  filter.addEventListener("input", () => { app.busca = filter.value; clearTimeout(app.buscaTimer); app.buscaTimer = setTimeout(render, 150); });
   app.rascunho = loadDraft();
   app.editando = !SNAPSHOT && draftCount() > 0;
   refresh();
@@ -584,7 +759,7 @@ function editForm(id) {
     closePanel();
     render();
   } },
-    h("h2", {}, "Editar"),
+    h("h2", { style: "margin:0" }, "Editar"),
     field("titulo", "Título", h("input", { name: "titulo", value: task.titulo, required: true })),
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
@@ -628,18 +803,14 @@ function setSheetRow(sheet, row, value) {
 }
 
 function renderToolbar() {
-  let bar = document.getElementById("edicao");
-  if (!bar) {
-    bar = h("div", { id: "edicao", class: "edicao" });
-    document.querySelector(".situacao").prepend(bar);
-  }
+  const bar = document.getElementById("edicao");
   if (SNAPSHOT || !TOKEN) { bar.replaceChildren(); return; }
   const count = draftCount();
   const items = app.editando ? [
     app.pendente ? h("span", { class: "selo prazo", title: "Salve ou descarte para ver as mudanças" }, "repositório mudou") : null,
-    h("span", {}, count ? `${count} alteração(ões)` : "Modo edição"),
-    h("button", { class: "botao primario", type: "button", disabled: !count, onclick: saveDraft }, "Salvar"),
+    h("span", { class: "vazio", style: "font-size:12px" }, count ? `${count} alteração(ões)` : "Modo edição"),
     h("button", { class: "botao", type: "button", onclick: discardDraft }, count ? "Descartar" : "Sair"),
+    h("button", { class: "botao primario", type: "button", disabled: !count, onclick: saveDraft }, "Salvar"),
   ] : [h("button", { class: "botao", type: "button", onclick: () => { app.editando = true; render(); } }, "Editar")];
   bar.replaceChildren(...items.filter(Boolean));
 }
@@ -718,5 +889,10 @@ function moveToComplement(hit) {
 function showPanel(...children) {
   const panel = document.getElementById("painel");
   panel.hidden = false;
-  fill(panel, h("button", { class: "botao fechar", type: "button", onclick: closePanel }, "Fechar"), ...children);
+  const [first, ...rest] = children.flat(Infinity).filter(Boolean);
+  const title = first && first.tagName === "H2" ? first.textContent : "YABook Tasks";
+  fill(panel,
+    h("div", { class: "painel-topo" }, h("h2", {}, title),
+      h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", onclick: closePanel }, icon("fechar"))),
+    h("div", { class: "painel-corpo" }, first && first.tagName === "H2" ? rest : [first, ...rest]));
 }
