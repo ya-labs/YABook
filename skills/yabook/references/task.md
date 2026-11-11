@@ -57,6 +57,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
 | `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
 | `task ask <pergunta>` | `ask [--sobre <id>]`; a pessoa responde com `answer <id> <resposta>` |
+| `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
@@ -74,6 +75,27 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
   sem termos da lista local nem dados de cliente.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
 
+## Captura da conversa
+
+`task capture [assunto]` registra o que a conversa tratou, sem a pessoa descrever.
+Levante da conversa (ou do resumo compactado), da base confidencial do código, das
+issues ligadas e das tarefas existentes; restrinja ao assunto quando informado.
+Monte o lote JSON no scratchpad:
+
+- `itens`: um por projeto, demanda, especificação ou issue, com `tipo`, `titulo`,
+  códigos, `issue`, `estado` (papel ou coluna conforme a fase), `prazo`,
+  `proximo_passo`, `registro` (o que foi feito), `complemento` (detalhe
+  confidencial, só onde há base) e `chave` local.
+- `perguntas` (`texto`, `sobre`), `ativa` (chave) e `horas` (`tarefa`, `data`,
+  `horas`, `obs`) só quando a conversa informar dia e quantidade.
+
+Sem `--apply`, o serviço devolve a prévia: criar, atualizar ou sem alteração. Ele
+casa com a tarefa existente por `id`, issue, código ou título; repetir o lote não
+duplica. Termo da lista local recusa o lote inteiro indicando o campo. Política
+`automatic`: aplique com `--apply` e informe o resultado; `manual`: mostre a
+prévia e aplique após `do task capture` com o `approval_hash`. A aplicação grava
+sob uma trava, com um evento, e torna `ativa` a tarefa da sessão.
+
 ## Captura e histórico
 
 O `hooks/hooks.json` do plugin serve Claude Code e Codex; não registre a
@@ -83,8 +105,12 @@ captura também na configuração global do host, ou ela roda duas vezes.
   prazos e até 10 ações do quadro não analisadas. Confirme a tarefa ativa com a
   pessoa uma vez por sessão e rode `start` com a escolhida; o hook vincula essa
   escolha à sessão.
+- `SessionStart` também lembra as regras de manutenção: registro e próximo passo
+  ao concluir etapa, dúvida da pessoa como `ask`, prazo citado e mudança de fase.
 - `UserPromptSubmit` marca a janela de 15 minutos da tarefa ativa em
-  `horas/AAAA-MM-<maquina>.jsonl`, sem rede, e avisa só ações novas.
+  `horas/AAAA-MM-<maquina>.jsonl`, sem rede, e avisa só ações novas. Mensagem com
+  prazo, código ou conclusão gera um lembrete por janela; sem tarefa ativa, a
+  pergunta volta uma vez após algumas mensagens.
 - `Stop` faz commit local quando há mudança; o push vai em lote, em segundo
   plano, a cada 30 minutos ou por `sync`.
 - Ações do agente entram em `eventos/` já analisadas. Ação do quadro fica

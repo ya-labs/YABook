@@ -50,6 +50,7 @@ ROUTES = {
     "dev": ("C3", ["references/dev.md", "references/git/checkpoint.md"], 3700, 2),
     "task": ("C1", ["references/task.md"], 3600, 1),
     "do task init": ("C3", ["references/task.md", "references/git/mutacoes.md"], 4400, 2),
+    "task capture": ("C2", ["references/task.md"], 3600, 1),
     "do plan": ("C3", ["references/planejamento/persistencia.md", "references/git/checkpoint.md"], 3200, 2),
     "do apk": ("C3", ["references/apk.md", "references/git/checkpoint.md", "references/git/mutacoes.md"], 4200, 3),
     "do configure": ("C3", ["references/configure.md", "references/git/checkpoint.md"], 5200, 2),

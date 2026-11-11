@@ -103,6 +103,10 @@ def build_parser():
     analyze = sub.add_parser("analyze", help="Registra a análise de ações do quadro")
     analyze.add_argument("--id", action="append", required=True)
     analyze.add_argument("--resultado", required=True)
+    capture = sub.add_parser("capture", help="Cria ou atualiza em lote as tarefas levantadas de uma conversa")
+    capture.add_argument("--input", required=True, help="JSON com itens, perguntas, ativa e horas")
+    capture.add_argument("--apply", action="store_true", help="Grava; na política manual exige --approval-hash")
+    capture.add_argument("--approval-hash", help="Hash da prévia apresentada")
     policy = sub.add_parser("policy")
     policy.add_argument("mode", choices=["automatic", "manual"])
     return parser
@@ -202,6 +206,15 @@ def run(args):
         if tasks.find_terms_in(args.resultado):
             raise ValueError("Resultado com termo confidencial")
         return events.analyze(store.root, cfg.get("machine"), args.id, args.resultado)
+    if args.command == "capture":
+        from tasks_runtime.batch import Capture
+        batch = json.loads(Path(args.input).read_text(encoding="utf-8"))
+        capture = Capture(store, cfg)
+        if not args.apply:
+            return dict(capture.plan(batch), politica=cfg.get("policy", "automatic"))
+        if cfg.get("policy") == "manual" and not args.approval_hash:
+            raise ValueError("Política manual: apresente a prévia e aplique com --approval-hash após do task capture")
+        return capture.apply(batch, args.approval_hash)
     if args.command == "clean":
         return tasks.clean(args.days, args.apply)
     raise ValueError("Comando desconhecido: " + args.command)

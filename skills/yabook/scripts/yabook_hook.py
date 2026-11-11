@@ -519,7 +519,7 @@ def tasks_capture(name, *args):
 
 
 def tasks_started(command, session):
-    """`task start` pela CLI define a tarefa ativa desta sessão, conferida no estado da máquina."""
+    """`task start` ou `task capture --apply` pela CLI define a tarefa ativa desta sessão, conferida na máquina."""
     if not TASK_START.search(command):
         return
     try:
@@ -527,16 +527,23 @@ def tasks_started(command, session):
     except ValueError:
         return
     script = next((i for i, p in enumerate(parts) if Path(p).name == "yabook_tasks.py"), None)
-    if script is None or "start" not in parts[script + 1:]:
+    rest = parts[script + 1:] if script is not None else []
+    if "start" in rest:
+        index = parts.index("start", script + 1)
+        identifier = parts[index + 1] if index + 1 < len(parts) else None
+    elif "capture" in rest and "--apply" in rest:
+        identifier = ""  # a tarefa ativa do lote fica em local/ativa.json com origem capture
+    else:
         return
-    index = parts.index("start", script + 1)
-    if index + 1 >= len(parts):
+    if identifier is None:
         return
-    identifier = parts[index + 1]
     try:
         from tasks_runtime import capture
         store, _ = capture.open_store(config())
-        if store and capture._read(store.root / "local" / "ativa.json", {}).get("id") == identifier:
+        machine = capture._read(store.root / "local" / "ativa.json", {}) if store else {}
+        if identifier == "" and machine.get("origem") == "capture" and capture.recent(machine.get("desde")):
+            identifier = machine["id"]
+        if store and identifier and machine.get("id") == identifier:
             capture.set_active(store, session, identifier)
     except Exception as error:
         record_stats("tasks.start", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
@@ -645,7 +652,7 @@ def run(event):
                 # O tipo e a mensagem do erro ficam no log local para diagnóstico.
                 details = dict(result="erro", error=type(error).__name__ + ": " + str(error)[:160])
                 text += "\nBusca de memória indisponível; use fontes atuais do projeto."
-        tasks_text = tasks_capture("prompt", path.stem)
+        tasks_text = tasks_capture("prompt", path.stem, None, event.get("prompt", ""))
         if tasks_text:
             text += "\n" + tasks_text
         return context(event_name, text, **details)
