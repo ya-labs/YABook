@@ -15,8 +15,10 @@ from .precommit_hook import find_terms, load_terms
 FORMAT = 1
 TIPOS = ("demanda", "projeto", "especificacao", "issue", "tarefa", "pergunta")
 PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
-ORDER = ("id", "tipo", "titulo", "coluna", "ordem", "projeto", "demanda", "issue", "prazo",
-         "proximo_passo", "sobre", "resposta", "refs", "criada", "atualizada")
+NIVEIS = ("epico", "historia", "tarefa")
+CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
+ORDER = ("id", "tipo", "nivel", "titulo", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "pessoal",
+         "prazo", "proximo_passo", "sobre", "resposta", "refs", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
 _ISSUE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9_.-]+#\d+")
@@ -118,6 +120,44 @@ def scaffold(root, hook_source=None):
         created.append(".githooks/pre-commit")
     hook.chmod(0o755)
     return created
+
+
+def infer_level(data, index):
+    """Sem `nivel` explícito, o filho assume o nível abaixo do pai."""
+    if data.get("pai") and not data.get("nivel"):
+        parent = index.get(data["pai"]) or {}
+        if parent.get("nivel") in CHILD_LEVEL:
+            data["nivel"] = CHILD_LEVEL[parent["nivel"]]
+    return data
+
+
+def check_tree(index, ids=None):
+    """Valida nível e pai dos nós `ids` (todos por padrão) contra o índice id -> dados.
+
+    Épico não tem pai, história fica sob épico e tarefa sob história; como o
+    nível desce a cada passo, não há ciclo possível.
+    """
+    for identifier in (list(index) if ids is None else ids):
+        data = index[identifier]
+        nivel, pai = data.get("nivel"), data.get("pai")
+        if data.get("tipo") == "pergunta" and (nivel or pai):
+            raise ValueError("Pergunta não tem nível nem pai; use `sobre`: " + identifier)
+        if nivel is not None and nivel not in NIVEIS:
+            raise ValueError("Nível inválido em %s: %r; use %s" % (identifier, nivel, ", ".join(NIVEIS)))
+        if not pai:
+            continue
+        if pai == identifier:
+            raise ValueError("Tarefa não pode ser pai de si mesma: " + identifier)
+        if nivel == "epico":
+            raise ValueError("Épico não tem pai: " + identifier)
+        parent = index.get(pai)
+        if parent is None:
+            raise ValueError("Pai inexistente em %s: %s" % (identifier, pai))
+        expected = CHILD_LEVEL.get(parent.get("nivel"))
+        if expected is None:
+            raise ValueError("Pai de %s precisa ser épico ou história: %s" % (identifier, pai))
+        if nivel != expected:
+            raise ValueError("%s precisa ter nível %s sob %s (%s)" % (identifier, expected, pai, parent.get("nivel")))
 
 
 def validate_quadro(quadro):
@@ -241,7 +281,11 @@ class TaskStore:
             raise ValueError("Coluna inexistente no quadro: %r" % (data.get("coluna"),))
         if "ordem" in data and not isinstance(data["ordem"], int):
             raise ValueError("`ordem` precisa ser inteiro")
-        for key in ("projeto", "demanda", "proximo_passo", "sobre", "resposta", "criada", "atualizada"):
+        if "pessoal" in data and not isinstance(data["pessoal"], bool):
+            raise ValueError("`pessoal` precisa ser true ou false")
+        if "nivel" in data and data["nivel"] not in NIVEIS:
+            raise ValueError("Nível inválido: %r; use %s" % (data["nivel"], ", ".join(NIVEIS)))
+        for key in ("projeto", "demanda", "pai", "proximo_passo", "sobre", "resposta", "criada", "atualizada"):
             if key in data and not isinstance(data[key], str):
                 raise ValueError("`%s` precisa ser texto" % key)
         if "prazo" in data:
@@ -278,6 +322,12 @@ class TaskStore:
             else:
                 data["criada"] = fmt.split_frontmatter(current)[0].get("criada", data.get("criada", stamp))
             data["atualizada"] = stamp
+            previous = fmt.split_frontmatter(current)[0] if current else {}
+            if data.get("pai") or data.get("nivel") or previous.get("nivel"):
+                index = {t["data"]["id"]: t["data"] for t in self.list()}
+                index[data["id"]] = data
+                infer_level(data, index)
+                check_tree(index, [data["id"]] + [i for i, d in index.items() if d.get("pai") == data["id"]])
             self.validate(data)
             text = self.render(data, body)
             hits = find_terms(text, self.terms)

@@ -29,9 +29,11 @@ Cada tarefa é um arquivo `tarefas/<id>.md` com frontmatter:
 ```yaml
 id: demanda-1001
 tipo: demanda          # demanda | projeto | especificacao | issue | tarefa | pergunta
+nivel: historia        # epico | historia | tarefa
 titulo: Ajustar limite de desconto do supervisor
 coluna: andamento      # id de coluna definido em quadro.yml
 ordem: 3
+pai: projeto-2001      # épico ou história acima
 projeto: "2001"
 demanda: "1001"
 issue: [org/repositorio#10]
@@ -44,6 +46,11 @@ refs: [confidencial:<pagina>, yabook:<id-da-memoria>]
 - `projeto` e `demanda` são códigos do sistema de trabalho da pessoa. O rótulo
   exibido é configurável; por exemplo, `demanda` pode aparecer como "Chamado".
 - `issue` é referência interna e de visualização; não participa da ficha.
+- `nivel` e `pai` formam a hierarquia épico, história e tarefa. Sem demanda ou
+  projeto próprios, a tarefa herda o código mais próximo da cadeia.
+- `pessoal` vem calculado (nenhuma demanda ou projeto na cadeia) e pode ser
+  marcado ou desmarcado à mão. Tarefa pessoal é extra na ficha e exibe a issue
+  como código, pois não usa a numeração da empresa.
 - Perguntas do agente são tarefas `tipo: pergunta`, com `sobre:` e `resposta:`.
 - O corpo guarda um registro curto e genérico do andamento da tarefa.
 

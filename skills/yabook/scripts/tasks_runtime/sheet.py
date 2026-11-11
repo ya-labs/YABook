@@ -11,21 +11,30 @@ import math
 import re
 from pathlib import Path
 
+from . import tree
 from .store import now
 
 WINDOW_HOURS = 0.25
 _LOG_LINE = re.compile(r"^- (\d{4}-\d{2}-\d{2}) \d{2}:\d{2} — (.+)$", re.MULTILINE)
 
 
-def attribution(data):
-    """(tipo, código) na ficha, ou None quando a tarefa é extra."""
+def attribution(data, index=None):
+    """(tipo, código) na ficha, ou None quando a tarefa é pessoal (extra).
+
+    O código sobe pela cadeia de `pai`: demanda mais próxima, depois projeto.
+    Trabalho sem código entra como linha `trabalho` para a pessoa ajustar.
+    """
+    index = index or {data["id"]: data}
+    if tree.personal(data, index):
+        return None
+    demanda, projeto = tree.inherited(data, index, "demanda"), tree.inherited(data, index, "projeto")
     if data.get("tipo") == "especificacao":
-        return "especificacao", data.get("demanda") or data.get("projeto") or data["id"]
-    if data.get("demanda"):
-        return "demanda", data["demanda"]
-    if data.get("projeto"):
-        return "projeto", data["projeto"]
-    return None
+        return "especificacao", demanda or projeto or data["id"]
+    if demanda:
+        return "demanda", demanda
+    if projeto:
+        return "projeto", projeto
+    return "trabalho", ""
 
 
 def activity(root, day):
@@ -75,10 +84,11 @@ def day_sheet(store, day, complement=None):
     per_day, step = float(ficha.get("horas_dia", 8)), float(ficha.get("arredondamento", 1))
     hours, notes = activity(store.root, day)
     tasks = {t["data"]["id"]: t for t in store.list()}
+    index = {k: t["data"] for k, t in tasks.items()}
     groups, extras = {}, []
     for identifier, value in sorted(hours.items()):
         task = tasks.get(identifier)
-        key = attribution(task["data"]) if task else None
+        key = attribution(task["data"], index) if task else None
         if key is None:
             extras.append(dict(tarefa=identifier, titulo=task["data"]["titulo"] if task else identifier,
                                horas=_round_step(value, step)))
@@ -97,7 +107,8 @@ def day_sheet(store, day, complement=None):
             pieces.append(task["data"]["titulo"])
             pieces += [text for date, text in _LOG_LINE.findall(task["body"]) if date == day]
             pieces += notes.get(identifier, [])
-        row = dict(tipo=key[0], rotulo=labels.get(key[0], key[0]), codigo=key[1], inicio=None, fim=None,
+        label = labels.get(key[0], "Sem código" if key[0] == "trabalho" else key[0])
+        row = dict(tipo=key[0], rotulo=label, codigo=key[1], inicio=None, fim=None,
                    total=totals[key], estimado=round(group["peso"], 2), tarefas=group["tarefas"],
                    observacao="; ".join(dict.fromkeys(p.strip() for p in pieces if p.strip())))
         if complement:
@@ -148,8 +159,10 @@ def confirm(store, day, rows=None, extras=None):
     extras = extras if extras is not None else [dict(tarefa=e["tarefa"], horas=e["horas"]) for e in sheet["extras"]]
     clean_rows = []
     for row in rows:
-        if row.get("tipo") not in ("demanda", "projeto", "especificacao") or not str(row.get("codigo", "")).strip():
-            raise ValueError("Linha da ficha precisa de tipo demanda, projeto ou especificacao e código")
+        coded = row.get("tipo") in ("demanda", "projeto", "especificacao") and str(row.get("codigo", "")).strip()
+        if not coded and row.get("tipo") != "trabalho":
+            raise ValueError("Linha da ficha precisa de tipo demanda, projeto ou especificacao e código, "
+                             "ou tipo trabalho para horas sem código")
         total = float(row["total"])
         if not 0 <= total <= 24:
             raise ValueError("Total fora do intervalo do dia")

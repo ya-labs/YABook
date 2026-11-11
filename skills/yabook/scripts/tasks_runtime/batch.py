@@ -16,14 +16,14 @@ import hashlib
 import json
 from pathlib import Path
 
-from . import events
+from . import events, tree
 from .commands import Tasks, _append_log, _plain, parse_date
 from .precommit_hook import find_terms
-from .store import PAPEIS, TIPOS, Conflict, atomic_write, now
+from .store import PAPEIS, TIPOS, Conflict, atomic_write, check_tree, infer_level, now
 
-FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs")
+FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal")
 CODED = ("demanda", "projeto", "especificacao")
-ITEM_KEYS = FIELDS + ("chave", "id", "tipo", "estado", "registro", "complemento")
+ITEM_KEYS = FIELDS + ("chave", "id", "tipo", "estado", "registro", "complemento", "pai")
 
 
 def _list(value):
@@ -58,6 +58,7 @@ class Capture:
         reserved, keys, matched, ops, orders = set(), {}, {}, [], {}
         for index, item in enumerate(items):
             ops.append(self._plan_item(index, item, existing, roles, reserved, keys, matched, orders))
+        ops = self._plan_tree(items, ops, keys)
         plan_questions = []
         for index, question in enumerate(questions):
             text = _text((question or {}).get("texto"))
@@ -90,6 +91,40 @@ class Capture:
         result["approval_hash"] = self._hash(batch, ops)
         return result
 
+    def _plan_tree(self, items, ops, keys):
+        """Resolve `pai` pelas chaves do lote, valida a árvore final e ordena pais antes dos filhos."""
+        index = {t["data"]["id"]: dict(t["data"]) for t in self.store.list()}
+        current = {k: dict(v) for k, v in index.items()}
+        for position, (item, op) in enumerate(zip(items, ops)):
+            if item.get("pai"):
+                self._set(op, "pai", self._resolve(item["pai"], keys, "itens[%d].pai" % position), current)
+        for op in ops:
+            if op["acao"] == "criar":
+                index[op["id"]] = dict(op["dados"])
+            else:
+                index[op["id"]].update(op["mudancas"])
+        for _ in range(3):  # épico novo > história > tarefa no mesmo lote
+            for op in ops:
+                infer_level(index[op["id"]], index)
+        for op in ops:
+            if index[op["id"]].get("nivel") and (op.get("dados") or current.get(op["id"], {})).get("nivel") != index[op["id"]]["nivel"]:
+                self._set(op, "nivel", index[op["id"]]["nivel"], current)
+        ids = [op["id"] for op in ops]
+        try:
+            check_tree(index, ids + [i for i, d in index.items() if d.get("pai") in ids and i not in ids])
+        except ValueError as error:
+            raise ValueError("Hierarquia: %s" % error)
+        return sorted(ops, key=lambda op: len(tree.chain(index[op["id"]], index)))
+
+    def _set(self, op, key, value, current):
+        if op["acao"] == "criar":
+            op["dados"][key] = value
+            op["campos"] = sorted(set(op["campos"]) | {key})
+        elif value != current[op["id"]].get(key):
+            op["mudancas"][key] = value
+            op["campos"] = sorted(set(op["campos"]) | {key})
+            op["acao"] = "atualizar"
+
     def _plan_item(self, index, item, existing, roles, reserved, keys, matched, orders):
         where = "itens[%d]" % index
         if not isinstance(item, dict):
@@ -109,6 +144,8 @@ class Capture:
                 fields[key] = _list(fields[key])
         if "prazo" in fields:
             fields["prazo"] = parse_date(fields["prazo"])
+        if "pessoal" in fields and not isinstance(fields["pessoal"], bool):
+            raise ValueError(where + ".pessoal: use true ou false")
         column = self._column(item.get("estado"), where) if item.get("estado") else None
         task = self._match(item, tipo, fields, existing, where)
         if task:
@@ -216,7 +253,7 @@ class Capture:
         """Recusa o lote inteiro e diz em que campo versionado o termo apareceu."""
         hits = []
         for index, item in enumerate(batch.get("itens") or []):
-            for key in FIELDS + ("registro",):
+            for key in FIELDS + ("registro", "pai"):
                 value = (item or {}).get(key)
                 for text in _list(value) if key in ("issue", "refs") else [value]:
                     found = find_terms(str(text), self.store.terms) if text not in (None, "") else []

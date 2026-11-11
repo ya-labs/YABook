@@ -9,7 +9,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-from . import events, remote
+from . import events, remote, tree
 from .precommit_hook import find_terms
 from .store import TIPOS, atomic_write, now
 
@@ -78,10 +78,30 @@ class Tasks:
         orders = [t["data"].get("ordem", 0) for t in (tasks or self.store.list()) if t["data"].get("coluna") == column]
         return max(orders, default=0) + 1
 
-    def brief(self, task):
+    def brief(self, task, index=None):
         data = task["data"]
-        keys = ("id", "tipo", "titulo", "coluna", "projeto", "demanda", "issue", "prazo", "proximo_passo")
-        return {k: data[k] for k in keys if k in data}
+        keys = ("id", "tipo", "nivel", "titulo", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo")
+        result = {k: data[k] for k in keys if k in data}
+        if data.get("tipo") != "pergunta":
+            index = index if index is not None else {data["id"]: data}
+            result["codigo"] = tree.code(data, index)
+            if tree.personal(data, index):
+                result["pessoal"] = True  # sem numeração da empresa: o código exibido é a issue
+        return result
+
+    def epics(self, tasks, index=None):
+        """Épicos abertos com o progresso das histórias."""
+        index, roles = index or tree.index_of(tasks), self.roles()
+        result = []
+        for task in tasks:
+            data = task["data"]
+            if data.get("nivel") != "epico" or roles.get(data.get("coluna")) == "arquivado":
+                continue
+            stories = [t["data"] for t in tasks if t["data"].get("pai") == data["id"]
+                       and roles.get(t["data"].get("coluna")) != "arquivado"]
+            done = sum(1 for d in stories if roles.get(d.get("coluna")) == "concluido")
+            result.append(dict(self.brief(task, index), historias=len(stories), concluidas=done))
+        return result
 
     def complement(self, identifier):
         base = self.cfg.get("confidential")
@@ -105,10 +125,10 @@ class Tasks:
         for task in tasks:
             if task["data"].get("coluna") in columns:
                 columns[task["data"]["coluna"]]["total"] += 1
-        review = self.review(tasks)
-        current = [self.brief(t) for t in tasks if roles.get(t["data"].get("coluna")) == "ativo"]
-        result = dict(hoje=day.isoformat(), ativas=current, prazos=review["atrasadas"] + review["proximas"],
-                      perguntas=review["perguntas"], colunas=columns)
+        review, index = self.review(tasks), tree.index_of(tasks)
+        current = [self.brief(t, index) for t in tasks if roles.get(t["data"].get("coluna")) == "ativo"]
+        result = dict(hoje=day.isoformat(), ativas=current, epicos=self.epics(tasks, index),
+                      prazos=review["atrasadas"] + review["proximas"], perguntas=review["perguntas"], colunas=columns)
         if active:
             result["tarefa_ativa"] = active
         return result
@@ -120,48 +140,53 @@ class Tasks:
             result.pop("complemento")
         return result
 
-    def search(self, query="", tipo=None, coluna=None, projeto=None, limit=20):
+    def search(self, query="", tipo=None, coluna=None, projeto=None, limit=20, nivel=None, pai=None):
         needle = _plain(query)
-        found = []
-        for task in self.store.list():
+        found, tasks = [], self.store.list()
+        index = tree.index_of(tasks)
+        for task in tasks:
             data = task["data"]
             if tipo and data.get("tipo") != tipo or coluna and data.get("coluna") != coluna:
                 continue
-            if projeto and data.get("projeto") != str(projeto):
+            if projeto and tree.inherited(data, index, "projeto") != str(projeto):
+                continue
+            if nivel and data.get("nivel") != nivel or pai and data.get("pai") != pai:
                 continue
             haystack = _plain(" ".join(str(v) for v in data.values()) + " " + task["body"])
             if needle in haystack:
-                found.append(self.brief(task))
+                found.append(self.brief(task, index))
         return dict(total=len(found), tarefas=found[:limit])
 
     def recent(self, limit=10):
         tasks = sorted(self.store.list(), key=lambda t: t["data"].get("atualizada", ""), reverse=True)
-        return [dict(self.brief(t), atualizada=t["data"].get("atualizada")) for t in tasks[:limit]]
+        index = tree.index_of(tasks)
+        return [dict(self.brief(t, index), atualizada=t["data"].get("atualizada")) for t in tasks[:limit]]
 
     def review(self, tasks=None, stale_days=7, soon_days=2):
         tasks, roles, day = tasks or self.store.list(), self.roles(), today()
+        index = tree.index_of(tasks)
         result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[])
         for task in tasks:
             data, role = task["data"], roles.get(task["data"].get("coluna"))
             if data.get("tipo") == "pergunta":
                 if not data.get("resposta") and role not in CLOSED:
-                    result["perguntas"].append(self.brief(task))
+                    result["perguntas"].append(self.brief(task, index))
                 continue
             if role in CLOSED:
                 continue
             if data.get("prazo"):
                 due = datetime.date.fromisoformat(data["prazo"])
                 if due < day:
-                    result["atrasadas"].append(self.brief(task))
+                    result["atrasadas"].append(self.brief(task, index))
                 elif (due - day).days <= soon_days:
-                    result["proximas"].append(self.brief(task))
+                    result["proximas"].append(self.brief(task, index))
             else:
-                result["sem_prazo"].append(self.brief(task))
+                result["sem_prazo"].append(self.brief(task, index))
             updated = data.get("atualizada")
             if role in OPEN_WORK and updated:
                 age = day - datetime.datetime.fromisoformat(updated).date()
                 if age.days > stale_days:
-                    result["paradas"].append(dict(self.brief(task), dias=age.days))
+                    result["paradas"].append(dict(self.brief(task, index), dias=age.days))
         for key in ("atrasadas", "proximas"):
             result[key].sort(key=lambda t: t["prazo"])
         return result
