@@ -39,7 +39,76 @@ def build_parser():
     apply.add_argument("--plan", required=True)
     apply.add_argument("--approval-hash", required=True)
     sub.add_parser("validate", help="Valida quadro, configuração e todas as tarefas")
+    sub.add_parser("summary", help="Resumo: ativas, prazos, perguntas e colunas")
+    show = sub.add_parser("show")
+    show.add_argument("id")
+    search = sub.add_parser("search")
+    search.add_argument("query", nargs="?", default="")
+    search.add_argument("--tipo")
+    search.add_argument("--coluna")
+    search.add_argument("--projeto")
+    search.add_argument("--limit", type=int, default=20)
+    recent = sub.add_parser("recent")
+    recent.add_argument("--limit", type=int, default=10)
+    sub.add_parser("review", help="Perguntas abertas, prazos, tarefas sem prazo e paradas")
+    add = sub.add_parser("add", help="Cria tarefa com campos já interpretados pelo agente")
+    add.add_argument("--tipo", required=True)
+    add.add_argument("--titulo", required=True)
+    edit = sub.add_parser("edit")
+    edit.add_argument("id")
+    edit.add_argument("--titulo")
+    edit.add_argument("--tipo")
+    edit.add_argument("--unset", action="append", default=[], help="Remove o campo")
+    edit.add_argument("--append", help="Acrescenta linha ao registro da tarefa")
+    edit.add_argument("--revision", help="Revisão lida; recusa se a tarefa mudou")
+    for command in (add, edit):
+        command.add_argument("--coluna")
+        command.add_argument("--prazo", help="AAAA-MM-DD, DD/MM, hoje, amanhã, +Nd ou dia da semana")
+        command.add_argument("--projeto")
+        command.add_argument("--demanda")
+        command.add_argument("--issue", action="append", help="dono/repo#n, repetível")
+        command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
+        command.add_argument("--proximo-passo")
+        command.add_argument("--sobre")
+        command.add_argument("--ordem", type=int)
+    add.add_argument("--body", default="")
+    forget = sub.add_parser("forget", help="Arquiva sem apagar")
+    forget.add_argument("id")
+    forget.add_argument("--motivo")
+    start = sub.add_parser("start", help="Define a tarefa ativa")
+    start.add_argument("id")
+    ask = sub.add_parser("ask", help="Registra pergunta pendente do agente")
+    ask.add_argument("pergunta")
+    ask.add_argument("--sobre")
+    answer = sub.add_parser("answer")
+    answer.add_argument("id")
+    answer.add_argument("resposta")
+    log = sub.add_parser("log", help="Lança horas manuais")
+    log.add_argument("id")
+    log.add_argument("horas")
+    log.add_argument("obs", nargs="?")
+    log.add_argument("--data")
+    sub.add_parser("sync", help="Commit local, pull com rebase e push")
+    clean = sub.add_parser("clean", help="Faxina: concluídas antigas e duplicatas")
+    clean.add_argument("--days", type=int, default=30)
+    clean.add_argument("--apply", action="store_true")
+    policy = sub.add_parser("policy")
+    policy.add_argument("mode", choices=["automatic", "manual"])
     return parser
+
+
+FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem")
+
+
+def fields(args, existing=None):
+    result = {k: getattr(args, k) for k in FIELDS if getattr(args, k, None) is not None}
+    if getattr(args, "proximo_passo", None) is not None:
+        result["proximo_passo"] = args.proximo_passo
+    for key, flag in (("issue", "issue"), ("refs", "ref")):
+        values = getattr(args, flag, None)
+        if values:
+            result[key] = list(dict.fromkeys((existing or {}).get(key, []) + values))
+    return result
 
 
 def run(args):
@@ -61,6 +130,46 @@ def run(args):
             except ValueError as exc:
                 errors.append(dict(id=task["data"].get("id"), error=str(exc)))
         return dict(ok=not errors, tasks=len(tasks), errors=errors)
+    if args.command == "policy":
+        from tasks_runtime.commands import set_policy
+        return set_policy(args.config, args.mode)
+    from tasks_runtime.commands import Tasks, sync
+    store, cfg = open_store(args.config)
+    tasks = Tasks(store, cfg)
+    state = store.root / "local" / "ativa.json"
+    if args.command == "summary":
+        return tasks.summary(json.loads(state.read_text(encoding="utf-8")) if state.exists() else None)
+    if args.command == "show":
+        return tasks.show(args.id)
+    if args.command == "search":
+        return tasks.search(args.query, args.tipo, args.coluna, args.projeto, args.limit)
+    if args.command == "recent":
+        return tasks.recent(args.limit)
+    if args.command == "review":
+        return tasks.review()
+    if args.command == "add":
+        return tasks.add(args.tipo, args.titulo, body=args.body, **fields(args))
+    if args.command == "edit":
+        current = store.get(args.id)["data"]
+        changes = fields(args, current)
+        for key in ("titulo", "tipo"):
+            if getattr(args, key):
+                changes[key] = getattr(args, key)
+        return tasks.edit(args.id, changes, args.unset, args.append, args.revision)
+    if args.command == "forget":
+        return tasks.forget(args.id, args.motivo)
+    if args.command == "start":
+        return tasks.start(args.id, state)
+    if args.command == "ask":
+        return tasks.ask(args.pergunta, args.sobre)
+    if args.command == "answer":
+        return tasks.answer(args.id, args.resposta)
+    if args.command == "log":
+        return tasks.log(args.id, args.horas, args.obs, args.data)
+    if args.command == "sync":
+        return sync(store.root)
+    if args.command == "clean":
+        return tasks.clean(args.days, args.apply)
     raise ValueError("Comando desconhecido: " + args.command)
 
 

@@ -40,3 +40,33 @@ ficha; `quadro.yml`, colunas com papel `entrada`, `pronto`, `ativo`,
 - A gravação recusa termos da lista local; não contorne movendo o texto para
   outro campo versionado.
 - `validate` confere configuração, quadro e todas as tarefas.
+
+## Comandos
+
+O agente interpreta o texto livre e chama o serviço com campos estruturados.
+
+| Pedido | Serviço |
+| --- | --- |
+| `task` | `summary`: ativas, tarefa ativa, prazos, perguntas e colunas |
+| `task show <id>` | `show`; inclui o complemento confidencial quando existe |
+| `task search <termo>` | `search [--tipo] [--coluna] [--projeto]` |
+| `task recent` | `recent [--limit]` |
+| `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo e paradas |
+| `task add <texto livre>` | `add --tipo --titulo [--demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
+| `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
+| `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
+| `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
+| `task ask <pergunta>` | `ask [--sobre <id>]`; a pessoa responde com `answer <id> <resposta>` |
+| `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
+| `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
+| `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
+| `do task policy automatic\|manual` | `policy <modo>` |
+
+- `--prazo` aceita `AAAA-MM-DD`, `DD/MM[/AAAA]`, `hoje`, `amanhã`, `+Nd` e dia da
+  semana; prefira a data já resolvida quando a conversa for ambígua.
+- Ao ouvir prazo ou entrega na conversa, proponha `task add` ou `task edit`.
+- Política `automatic`: escrita direta, informando o que foi gravado. `manual`:
+  mostre a mudança e aplique só após `do task`. Consulta nunca exige `do`.
+- Escreva `titulo`, `proximo_passo`, registros e perguntas de forma genérica;
+  sem termos da lista local nem dados de cliente.
+- `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
