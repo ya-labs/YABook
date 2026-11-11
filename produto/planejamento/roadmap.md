@@ -106,16 +106,17 @@ Status: **Backlog** · Size: **3** · Depende das issues #81, #82 e #83
 
 O planejamento da V1 foi definido na
 [issue #155](https://github.com/ya-labs/YABook/issues/155) e detalhado em
-[yabook-tasks.md](yabook-tasks.md). Os marcos mantêm ordem de dependência.
+[yabook-tasks.md](yabook-tasks.md). A implementação é agrupada pelo
+[épico #156](https://github.com/ya-labs/YABook/issues/156); os marcos mantêm ordem de dependência e as subissues de
+cada marco são criadas quando o anterior estiver concluído. As evoluções
+posteriores à V1 estão registradas na [issue #161](https://github.com/ya-labs/YABook/issues/161).
 
 ### M1. Dados, comandos e captura
 
-- Criar ou conectar o repositório de dados por `task init` e `do task init`.
-- Implementar o formato das tarefas, a família de comandos `task` e a política
-  `automatic|manual`.
-- Capturar atividade e tarefa ativa pelos hooks no Claude Code e no Codex.
-- Registrar o histórico de ações e a análise pelo agente.
-- Gerar a ficha de horas por `task sheet`.
+1. [Criar o repositório de dados e o task init do YABook Tasks (#157)](https://github.com/ya-labs/YABook/issues/157).
+2. [Implementar os comandos task de consulta e escrita (#158)](https://github.com/ya-labs/YABook/issues/158) · depende da #157.
+3. [Capturar atividade e histórico de ações pelos hooks (#159)](https://github.com/ya-labs/YABook/issues/159) · depende das #157 e #158.
+4. [Gerar a ficha diária de horas por task sheet (#160)](https://github.com/ya-labs/YABook/issues/160) · depende das #157 e #159.
 
 ### M2. Site e edição mecânica
 
