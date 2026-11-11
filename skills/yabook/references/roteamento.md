@@ -11,7 +11,7 @@ explícitos conhecidos seguem direto para sua referência indicada em `SKILL.md`
 - artefatos: `issue`, `branch name`, `commit message`, `pr`, `release`, `docs`;
 - artefatos Android: `apk`, `do apk`;
 - memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review|recent|clean` (faxina), `do memory [id]` (manual/pendências), `do memory policy automatic|manual`;
-- tarefas: `task [init|show|search|recent|review|add|edit|forget|start|ask|answer|log|events|analyze|sync|clean|validate]`, `do task init`, `do task policy automatic|manual` (`task.md`);
+- tarefas: `task [init|show|search|recent|review|add|edit|forget|start|ask|answer|log|sheet|events|analyze|sync|clean|validate]`, `do task init`, `do task policy automatic|manual` (`task.md`);
 - execução: `do <ação>`, `dev [quick|step|full]`, `bypass <ação>`, `continue`,
   `sync`, `configure [commands]`, `guardrails`.
 
