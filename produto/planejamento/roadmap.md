@@ -102,6 +102,38 @@ Status: **Backlog** · Size: **3** · Depende das issues #81, #82 e #83
 - Manter autoatualização, lojas, telemetria e outras plataformas fora desta
   entrega.
 
+## YABook Tasks
+
+O planejamento da V1 foi definido na
+[issue #155](https://github.com/ya-labs/YABook/issues/155) e detalhado em
+[yabook-tasks.md](yabook-tasks.md). A implementação é agrupada pelo
+[épico #156](https://github.com/ya-labs/YABook/issues/156); os marcos mantêm ordem de dependência e as subissues de
+cada marco são criadas quando o anterior estiver concluído. As evoluções
+posteriores à V1 estão registradas na [issue #161](https://github.com/ya-labs/YABook/issues/161).
+
+### M1. Dados, comandos e captura
+
+1. [Criar o repositório de dados e o task init do YABook Tasks (#157)](https://github.com/ya-labs/YABook/issues/157).
+2. [Implementar os comandos task de consulta e escrita (#158)](https://github.com/ya-labs/YABook/issues/158) · depende da #157.
+3. [Capturar atividade e histórico de ações pelos hooks (#159)](https://github.com/ya-labs/YABook/issues/159) · depende das #157 e #158.
+4. [Gerar a ficha diária de horas por task sheet (#160)](https://github.com/ya-labs/YABook/issues/160) · depende das #157 e #159.
+
+### M2. Site e edição mecânica
+
+- Servir o site local por `task board --serve`, instalável como PWA.
+- Entregar as visões Hoje, Semana, Quadro, Projetos, Prazos, Perguntas, Ficha e
+  Histórico.
+- Aplicar a edição mecânica com commit por salvamento, revisão por arquivo e
+  resumo do salvamento.
+- Medir o consumo de memória na máquina de trabalho.
+
+### M3. Quadro personalizável
+
+- Personalizar colunas por `quadro.yml` com papéis fixos.
+- Analisar e aplicar mudanças estruturais por `task change` e
+  `do task change <id>`.
+- Adicionar o campo `Size` às tarefas e ao card.
+
 ## Eficiência de contexto da YABook Skill
 
 ### 1. Auditar os comandos
