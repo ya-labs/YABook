@@ -112,6 +112,10 @@ def build_parser():
     capture.add_argument("--input", required=True, help="JSON com itens, perguntas, ativa e horas")
     capture.add_argument("--apply", action="store_true", help="Grava; na política manual exige --approval-hash")
     capture.add_argument("--approval-hash", help="Hash da prévia apresentada")
+    board = sub.add_parser("board", help="Site local: --serve inicia o servidor; --output gera cópia estática")
+    board.add_argument("--serve", action="store_true", help="Serve em 127.0.0.1 até Ctrl+C")
+    board.add_argument("--port", type=int, help="Porta; padrão `tasks.port` ou 8765")
+    board.add_argument("--output", help="Arquivo ou pasta da cópia estática somente leitura")
     policy = sub.add_parser("policy")
     policy.add_argument("mode", choices=["automatic", "manual"])
     return parser
@@ -213,6 +217,13 @@ def run(args):
         if tasks.find_terms_in(args.resultado):
             raise ValueError("Resultado com termo confidencial")
         return events.analyze(store.root, cfg.get("machine"), args.id, args.resultado)
+    if args.command == "board":
+        from tasks_runtime import server
+        if args.output:
+            return server.Board(store, cfg).export(args.output)
+        if not args.serve:
+            raise ValueError("Use --serve para iniciar o site ou --output para a cópia estática")
+        return server.serve(store, cfg, args.port, writer=getattr(server, "WRITER", None))
     if args.command == "capture":
         from tasks_runtime.batch import Capture
         batch = json.loads(Path(args.input).read_text(encoding="utf-8"))

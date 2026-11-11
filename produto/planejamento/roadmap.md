@@ -117,15 +117,15 @@ posteriores à V1 estão registradas na [issue #161](https://github.com/ya-labs/
 2. [Implementar os comandos task de consulta e escrita (#158)](https://github.com/ya-labs/YABook/issues/158) · depende da #157.
 3. [Capturar atividade e histórico de ações pelos hooks (#159)](https://github.com/ya-labs/YABook/issues/159) · depende das #157 e #158.
 4. [Gerar a ficha diária de horas por task sheet (#160)](https://github.com/ya-labs/YABook/issues/160) · depende das #157 e #159.
+5. [Registrar a conversa nas tarefas com task capture (#167)](https://github.com/ya-labs/YABook/issues/167) · depende da #159.
+6. [Organizar as tarefas em épicos, histórias e tarefas (#169)](https://github.com/ya-labs/YABook/issues/169) · depende da #158.
 
 ### M2. Site e edição mecânica
 
-- Servir o site local por `task board --serve`, instalável como PWA.
-- Entregar as visões Hoje, Semana, Quadro, Projetos, Prazos, Perguntas, Ficha e
-  Histórico.
-- Aplicar a edição mecânica com commit por salvamento, revisão por arquivo e
-  resumo do salvamento.
-- Medir o consumo de memória na máquina de trabalho.
+1. [Servir o site local do YABook Tasks como PWA (#171)](https://github.com/ya-labs/YABook/issues/171).
+2. [Exibir o quadro, os épicos e as visões do dia (#172)](https://github.com/ya-labs/YABook/issues/172) · depende da #171.
+3. [Exibir semana, ficha e histórico no site (#173)](https://github.com/ya-labs/YABook/issues/173) · depende da #172.
+4. [Editar as tarefas pelo site com salvamento explícito (#174)](https://github.com/ya-labs/YABook/issues/174) · depende da #172.
 
 ### M3. Quadro personalizável
 

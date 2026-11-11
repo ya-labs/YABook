@@ -194,9 +194,13 @@ os eventos existentes:
 - Front em HTML, CSS e JavaScript sem etapa de build; atualização por SSE a
   partir da verificação periódica dos arquivos.
 - Instalado como PWA nas duas máquinas.
-- Visões: Hoje, Semana, Quadro, Projetos, Prazos, Perguntas, Ficha e Histórico.
-- O card mostra título, projeto, demanda, issue, prazo, `Size`, próximo passo,
-  indicador de pergunta aberta e indicador de referência confidencial.
+- Visões: Hoje, Semana, Quadro, Épicos, Prazos, Perguntas, Ficha e Histórico.
+- O card mostra título, nível, código (herdado ou a issue), selo pessoal, prazo,
+  `Size`, próximo passo, indicador de pergunta aberta e indicador de referência
+  confidencial.
+- Porta padrão 8765, configurável em `tasks.port`; Host diferente de
+  `127.0.0.1` ou `localhost` é recusado e a escrita exige o token da página.
+- `task board --output` gera uma cópia estática somente leitura.
 - Referência confidencial é resolvida quando a base local existe na máquina;
   caso contrário, aparece bloqueada.
 
