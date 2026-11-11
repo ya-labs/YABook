@@ -1,0 +1,308 @@
+"""Leitura e escrita única das tarefas, usada por comandos, hooks e servidor."""
+import contextlib
+import datetime
+import hashlib
+import os
+import re
+import shutil
+import tempfile
+import threading
+from pathlib import Path
+
+from . import fmt
+from .precommit_hook import find_terms, load_terms
+
+FORMAT = 1
+TIPOS = ("demanda", "projeto", "especificacao", "issue", "tarefa", "pergunta")
+PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
+ORDER = ("id", "tipo", "titulo", "coluna", "ordem", "projeto", "demanda", "issue", "prazo",
+         "proximo_passo", "sobre", "resposta", "refs", "criada", "atualizada")
+REF_PREFIXES = ("confidencial", "yabook", "github")
+_ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
+_ISSUE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9_.-]+#\d+")
+_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+DEFAULT_CONFIG = """formato: 1
+rotulos:
+  demanda: Demanda
+  projeto: Projeto
+  especificacao: Especificação
+  issue: Issue
+ficha:
+  horas_dia: 8
+  arredondamento: 1
+"""
+
+DEFAULT_QUADRO = """colunas:
+  - {id: backlog, nome: Backlog, papel: entrada}
+  - {id: pronto, nome: Pronto pra dev, papel: pronto}
+  - {id: andamento, nome: Em andamento, papel: ativo}
+  - {id: testes, nome: Testes, papel: validacao}
+  - {id: concluido, nome: Concluído, papel: concluido}
+  - {id: arquivado, nome: Arquivado, papel: arquivado}
+"""
+
+README = """# YABook Tasks
+
+Repositório de dados pessoal do YABook Tasks, mantido pelos comandos `task` e
+pelos hooks do plugin YABook.
+
+Os campos versionados usam texto técnico e genérico. Dados sensíveis ficam no
+complemento confidencial local e entram aqui apenas como referência.
+"""
+
+GITIGNORE = """local/
+.writing-*
+"""
+
+DATA_DIRS = ("tarefas", "eventos", "propostas", "horas", "fichas")
+
+
+class Conflict(ValueError):
+    """A tarefa mudou depois da leitura; recarregar antes de gravar."""
+
+
+def now():
+    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def revision(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def slug(text, limit=48):
+    import unicodedata
+    plain = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", plain).strip("-")[:limit].strip("-") or "tarefa"
+
+
+def atomic_write(path, text):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".writing-")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def is_data_repo(root):
+    root = Path(root)
+    return (root / "config.yml").is_file() and (root / "quadro.yml").is_file()
+
+
+def scaffold(root, hook_source=None):
+    """Cria a estrutura inicial sem sobrescrever arquivos existentes."""
+    root = Path(root)
+    created = []
+    for name, content in (("README.md", README), ("config.yml", DEFAULT_CONFIG),
+                          ("quadro.yml", DEFAULT_QUADRO), (".gitignore", GITIGNORE)):
+        if not (root / name).exists():
+            atomic_write(root / name, content)
+            created.append(name)
+    for directory in DATA_DIRS:
+        keep = root / directory / ".gitkeep"
+        if not keep.exists():
+            keep.parent.mkdir(parents=True, exist_ok=True)
+            keep.write_text("", encoding="utf-8")
+            created.append(directory + "/.gitkeep")
+    hook = root / ".githooks" / "pre-commit"
+    if not hook.exists():
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(hook_source or Path(__file__).with_name("precommit_hook.py"), hook)
+        created.append(".githooks/pre-commit")
+    hook.chmod(0o755)
+    return created
+
+
+def validate_quadro(quadro):
+    columns = quadro.get("colunas") if isinstance(quadro, dict) else None
+    if not isinstance(columns, list) or not columns:
+        raise ValueError("quadro.yml precisa de `colunas`")
+    seen = set()
+    for column in columns:
+        if not isinstance(column, dict) or not all(isinstance(column.get(k), str) and column[k] for k in ("id", "nome", "papel")):
+            raise ValueError("Coluna precisa de id, nome e papel")
+        if not _ID.fullmatch(column["id"]) or column["id"] in seen:
+            raise ValueError("Id de coluna inválido ou repetido: " + column["id"])
+        if column["papel"] not in PAPEIS:
+            raise ValueError("Papel inválido: " + column["papel"])
+        seen.add(column["id"])
+    return columns
+
+
+class TaskStore:
+    def __init__(self, root, terms=None):
+        self.root = Path(root).expanduser().resolve()
+        if not is_data_repo(self.root):
+            raise ValueError("Repositório de dados do YABook Tasks não encontrado em " + str(self.root))
+        self.terms = load_terms(terms) if isinstance(terms, (str, Path)) else terms
+        self._mutex = threading.RLock()
+        self._depth = 0
+
+    # Configuração -------------------------------------------------------
+    def config(self):
+        data = fmt.loads((self.root / "config.yml").read_text(encoding="utf-8"))
+        if data.get("formato") != FORMAT:
+            raise ValueError("Formato do repositório de dados não suportado: %r" % data.get("formato"))
+        return data
+
+    def columns(self):
+        return validate_quadro(fmt.loads((self.root / "quadro.yml").read_text(encoding="utf-8")))
+
+    def column_ids(self, papel=None):
+        return [c["id"] for c in self.columns() if papel is None or c["papel"] == papel]
+
+    # Concorrência ------------------------------------------------------
+    @contextlib.contextmanager
+    def lock(self):
+        with self._mutex:
+            if self._depth:
+                self._depth += 1
+                try:
+                    yield
+                finally:
+                    self._depth -= 1
+                return
+            local = self.root / "local"
+            local.mkdir(exist_ok=True)
+            with (local / "lock").open("a+") as stream:
+                _lock_file(stream)
+                self._depth = 1
+                try:
+                    yield
+                finally:
+                    self._depth = 0
+                    _unlock_file(stream)
+
+    # Tarefas -----------------------------------------------------------
+    def path(self, identifier):
+        if not isinstance(identifier, str) or not _ID.fullmatch(identifier):
+            raise ValueError("Id de tarefa inválido: %r" % (identifier,))
+        return self.root / "tarefas" / (identifier + ".md")
+
+    def get(self, identifier):
+        path = self.path(identifier)
+        if not path.is_file():
+            raise KeyError("Tarefa inexistente: " + identifier)
+        text = path.read_text(encoding="utf-8")
+        data, body = fmt.split_frontmatter(text)
+        return dict(data=data, body=body, revision=revision(text))
+
+    def list(self):
+        tasks = []
+        for path in sorted((self.root / "tarefas").glob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            data, body = fmt.split_frontmatter(text)
+            tasks.append(dict(data=data, body=body, revision=revision(text)))
+        return tasks
+
+    def exists(self, identifier):
+        return self.path(identifier).is_file()
+
+    def new_id(self, tipo, code=None, title=None):
+        if tipo not in TIPOS:
+            raise ValueError("Tipo inválido: " + str(tipo))
+        if code is not None and tipo in ("demanda", "projeto", "especificacao"):
+            base = tipo + "-" + slug(str(code), 32)
+        elif tipo == "pergunta":
+            base = "pergunta-" + datetime.datetime.now().strftime("%Y%m%d-%H%M")
+        else:
+            base = tipo + "-" + slug(title or tipo)
+        candidate, counter = base, 2
+        while self.exists(candidate):
+            candidate, counter = "%s-%d" % (base, counter), counter + 1
+        return candidate
+
+    def normalize(self, data):
+        data = {k: v for k, v in data.items() if v is not None and v != [] and v != ""}
+        for key in ("projeto", "demanda"):
+            if isinstance(data.get(key), int):
+                data[key] = str(data[key])
+        for key in ("issue", "refs"):
+            if isinstance(data.get(key), str):
+                data[key] = [data[key]]
+        return data
+
+    def validate(self, data):
+        if not isinstance(data.get("id"), str):
+            raise ValueError("Tarefa sem id")
+        self.path(data["id"])
+        if data.get("tipo") not in TIPOS:
+            raise ValueError("Tipo inválido: %r" % (data.get("tipo"),))
+        if not isinstance(data.get("titulo"), str) or not data["titulo"].strip():
+            raise ValueError("Tarefa sem título")
+        if data.get("coluna") not in self.column_ids():
+            raise ValueError("Coluna inexistente no quadro: %r" % (data.get("coluna"),))
+        if "ordem" in data and not isinstance(data["ordem"], int):
+            raise ValueError("`ordem` precisa ser inteiro")
+        for key in ("projeto", "demanda", "proximo_passo", "sobre", "resposta", "criada", "atualizada"):
+            if key in data and not isinstance(data[key], str):
+                raise ValueError("`%s` precisa ser texto" % key)
+        if "prazo" in data:
+            if not isinstance(data["prazo"], str) or not _DATE.fullmatch(data["prazo"]):
+                raise ValueError("`prazo` precisa estar em AAAA-MM-DD")
+            datetime.date.fromisoformat(data["prazo"])
+        for item in data.get("issue", []):
+            if not isinstance(item, str) or not _ISSUE.fullmatch(item):
+                raise ValueError("Issue inválida, use dono/repositório#numero: %r" % (item,))
+        for item in data.get("refs", []):
+            if not isinstance(item, str) or item.split(":", 1)[0] not in REF_PREFIXES or ":" not in item:
+                raise ValueError("Referência inválida, use %s:<alvo>: %r" % ("|".join(REF_PREFIXES), item))
+        if "sobre" in data:
+            self.path(data["sobre"])
+
+    def render(self, data, body=""):
+        return fmt.join_frontmatter(data, body, ORDER)
+
+    def save(self, data, body="", expected_revision=None):
+        """Grava a tarefa. Sem `expected_revision`, a tarefa precisa ser nova."""
+        data = self.normalize(dict(data))
+        with self.lock():
+            path = self.path(data.get("id"))
+            current = path.read_text(encoding="utf-8") if path.exists() else None
+            if current is None and expected_revision is not None:
+                raise Conflict("Tarefa removida depois da leitura: " + data["id"])
+            if current is not None and expected_revision is None:
+                raise Conflict("Tarefa já existe: " + data["id"])
+            if current is not None and revision(current) != expected_revision:
+                raise Conflict("Tarefa mudou depois da leitura; recarregue antes de gravar: " + data["id"])
+            stamp = now()
+            if current is None:
+                data.setdefault("criada", stamp)
+            else:
+                data["criada"] = fmt.split_frontmatter(current)[0].get("criada", data.get("criada", stamp))
+            data["atualizada"] = stamp
+            self.validate(data)
+            text = self.render(data, body)
+            hits = find_terms(text, self.terms)
+            if hits:
+                raise ValueError("Texto com termo confidencial (%s); mova para o complemento confidencial"
+                                 % ", ".join(hits))
+            atomic_write(path, text)
+            return revision(text)
+
+
+def _lock_file(stream):
+    try:
+        import fcntl
+        fcntl.flock(stream, fcntl.LOCK_EX)
+    except ImportError:  # Windows
+        import msvcrt
+        stream.seek(0)
+        msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+
+
+def _unlock_file(stream):
+    try:
+        import fcntl
+        fcntl.flock(stream, fcntl.LOCK_UN)
+    except ImportError:
+        import msvcrt
+        stream.seek(0)
+        msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)

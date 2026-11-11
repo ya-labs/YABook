@@ -57,7 +57,7 @@ Regras: [contexto.md](references/contexto.md).
   [docs](references/documentacao.md), [configure](references/configure.md),
   [guardrails](references/guardrails.md), [bypass](references/bypass.md).
 - Qualidade: [check/review](references/quality.md).
-- Memória: [consulta e curadoria](references/memory.md).
+- Memória: [memory](references/memory.md); tarefas: [task](references/task.md).
 - Planejamento: [índice](references/planejamento/index.md).
 - Contexto: [workspace](references/workspace.md), [Git](references/git.md),
   [GitHub](references/github.md), [IA](references/ia.md).
@@ -76,8 +76,8 @@ Regras: [contexto.md](references/contexto.md).
   merge commit; squash usa `tipo: descrição (#PR)` e histórico da branch no corpo.
 - Valide contratos de issue, branch, commit e PR, inclusive em `auto`;
   interrompa por campo ausente ou inválido.
-- `apk` mostra prévia de `.yabook/apk.json`; `do apk` copia APK já gerado e remove
-  cópias preparadas antigas.
+- `apk` mostra prévia de `.yabook/apk.json`; `do apk` copia o APK gerado e
+  limpa cópias antigas.
 - `dev`: `Como testar` e relatório `O que foi feito`, `Como foi feito`,
   `Por que foi feito assim` e `Observações para revisão`.
 - Mostre roteamento só se inferido, corrigido ou composto. Sugira commit após
