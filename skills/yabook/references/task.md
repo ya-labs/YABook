@@ -66,7 +66,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task ask <pergunta>` | `ask [--sobre <id>]`; a pessoa responde com `answer <id> <resposta>` |
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
-| `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), instalável como PWA; `--output <arquivo>`: cópia estática |
+| `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), instalável como PWA, com modo Editar; `--output <arquivo>`: cópia estática |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
 | `task sheet [dia\|semana]` | `sheet [--data] [--semana]`; `--confirm [--input <json>]` grava os totais do dia |
@@ -122,6 +122,8 @@ captura também na configuração global do host, ou ela roda duas vezes.
   pergunta volta uma vez após algumas mensagens.
 - `Stop` faz commit local quando há mudança; o push vai em lote, em segundo
   plano, a cada 30 minutos ou por `sync`.
+- Salvar no site grava pela mesma biblioteca, faz um commit e registra ações do
+  quadro; o resumo copiado do site pode ser colado ao agente.
 - Ações do agente entram em `eventos/` já analisadas. Ação do quadro fica
   pendente até `analyze`: analise no fim da resposta quando o pedido atual não
   tiver relação, aplique os ajustes decorrentes conforme a política e registre o
