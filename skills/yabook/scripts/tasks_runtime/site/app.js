@@ -347,17 +347,18 @@ const VIEWS = {
     render(estado) {
       const tasks = filtered(work(estado));
       const active = estado.ativa ? tasks.find((t) => t.id === estado.ativa.id) : null;
-      const doing = tasks.filter((t) => t.papel === "ativo" && (!active || t.id !== active.id)).sort(byOrder);
-      const testing = tasks.filter((t) => t.papel === "validacao").sort(byOrder);
+      const doing = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico" && (!active || t.id !== active.id)).sort(byOrder);
+      const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && (!active || t.id !== active.id)).sort(byOrder);
+      const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byOrder);
       const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
-      app.contagem = doing.length + testing.length + (active ? 1 : 0);
+      app.contagem = doing.length + epics.length + testing.length + (active ? 1 : 0);
       const list = (title, items, empty, render = row) => h("div", { class: "caixa" },
         h("header", {}, h("h3", {}, title), h("span", { class: "contador" }, items.length || "")),
         items.length ? items.map(render) : h("div", { class: "corpo vazio" }, empty));
       const full = (t) => estado.tarefas.find((x) => x.id === t.id) || t;
       return h("section", {},
         h("div", { class: "numeros" },
-          [["Em andamento", tasks.filter((t) => t.papel === "ativo").length], ["Em validação", testing.length],
+          [["Em andamento", tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico").length], ["Épicos ativos", tasks.filter((t) => t.nivel === "epico" && t.papel === "ativo").length], ["Em validação", testing.length],
            ["Prazos próximos", estado.prazos.length], ["Atrasadas", late], ["Perguntas", estado.perguntas.length],
            ["Ações não analisadas", estado.eventos_pendentes]]
             .map(([name, total]) => h("div", { class: "numero" }, h("b", {}, total), name))),
@@ -366,7 +367,9 @@ const VIEWS = {
             h("h2", {}, "Tarefa ativa"),
             active ? h("div", { class: "cards" }, card(active)) : h("p", { class: "vazio" }, "Nenhuma tarefa ativa nesta máquina."),
             h("h2", {}, "Em andamento"),
-            doing.length ? h("div", { class: "cards" }, doing.map(card)) : h("p", { class: "vazio" }, "Nada em andamento.")),
+            doing.length ? h("div", { class: "cards" }, doing.map((t) => card(t))) : h("p", { class: "vazio" }, "Nenhuma história ou tarefa em andamento."),
+            h("h2", {}, "Épicos em andamento"),
+            epics.length ? h("div", { class: "cards" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : h("p", { class: "vazio" }, "Nenhum épico em andamento.")),
           h("div", {},
             list("Prazos", estado.prazos.map(full), "Nenhum prazo atrasado ou nos próximos 2 dias.",
               (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
