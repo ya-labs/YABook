@@ -21,7 +21,7 @@ from .commands import Tasks, _append_log, _plain, parse_date
 from .precommit_hook import find_terms
 from .store import PAPEIS, TIPOS, Conflict, atomic_write, check_tree, infer_level, now
 
-FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha")
+FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha", "aguardando")
 CODED = ("demanda", "projeto", "especificacao")
 ITEM_KEYS = FIELDS + ("chave", "id", "tipo", "estado", "registro", "complemento", "pai")
 

@@ -80,7 +80,8 @@ class Tasks:
 
     def brief(self, task, index=None):
         data = task["data"]
-        keys = ("id", "tipo", "nivel", "titulo", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha")
+        keys = ("id", "tipo", "nivel", "titulo", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha",
+                "aguardando", "aguardando_desde")
         result = {k: data[k] for k in keys if k in data}
         if data.get("tipo") != "pergunta":
             index = index if index is not None else {data["id"]: data}
@@ -165,7 +166,7 @@ class Tasks:
     def review(self, tasks=None, stale_days=7, soon_days=2):
         tasks, roles, day = tasks or self.store.list(), self.roles(), today()
         index = tree.index_of(tasks)
-        result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[])
+        result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[], aguardando=[])
         for task in tasks:
             data, role = task["data"], roles.get(task["data"].get("coluna"))
             if data.get("tipo") == "pergunta":
@@ -174,6 +175,9 @@ class Tasks:
                 continue
             if role in CLOSED:
                 continue
+            if data.get("aguardando"):
+                since = datetime.date.fromisoformat(data.get("aguardando_desde") or day.isoformat())
+                result["aguardando"].append(dict(self.brief(task, index), dias=(day - since).days))
             if data.get("prazo"):
                 due = datetime.date.fromisoformat(data["prazo"])
                 if due < day:
@@ -189,6 +193,7 @@ class Tasks:
                     result["paradas"].append(dict(self.brief(task, index), dias=age.days))
         for key in ("atrasadas", "proximas"):
             result[key].sort(key=lambda t: t["prazo"])
+        result["aguardando"].sort(key=lambda t: -t["dias"])
         return result
 
     # Escrita ----------------------------------------------------------------

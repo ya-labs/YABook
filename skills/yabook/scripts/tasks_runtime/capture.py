@@ -24,11 +24,12 @@ PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
 REASK_AFTER = 8
 RULES = ("Mantenha as tarefas sem pedido, conforme a política: etapa concluída vira registro e próximo passo "
-         "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa e mudança "
-         "de fase move a coluna. Conversa anterior sem registro: task capture.")
+         "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa, espera por "
+         "alguém vira --aguardando (retorno recebido: --unset aguardando) e mudança de fase move a coluna. Conversa "
+         "anterior sem registro: task capture.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
-                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando)\b")
+                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando)\b")
 COMMIT_MESSAGE = "chore: registra atividade do YABook Tasks"
 _GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="true")
 
@@ -122,6 +123,9 @@ def session_start(cfg, session, source="startup"):
     due = review["atrasadas"] + review["proximas"]
     if due:
         lines.append("Prazos: " + "; ".join("%s (%s)" % (_label(t), t["prazo"]) for t in due[:5]))
+    if review["aguardando"]:
+        lines.append("Aguardando terceiros: " + "; ".join("%s (%s, %dd)" % (_label(t), t["aguardando"], t["dias"])
+                                                         for t in review["aguardando"][:5]))
     waiting = events.pending(store.root, months=2)
     if waiting:
         shown = waiting[:MAX_EVENTS]

@@ -46,6 +46,10 @@ refs: [confidencial:<pagina>, yabook:<id-da-memoria>]
 - `projeto` e `demanda` são códigos do sistema de trabalho da pessoa. O rótulo
   exibido é configurável; por exemplo, `demanda` pode aparecer como "Chamado".
 - `issue` é referência interna e de visualização; não participa da ficha.
+- `aguardando` diz de quem ou do quê a tarefa espera, em texto genérico; a
+  gravação registra `aguardando_desde` quando o texto surge ou muda e remove os
+  dois quando a espera termina. A tarefa continua na sua coluna; `review`, o
+  início da sessão e o site mostram as esperas com os dias decorridos.
 - `nivel` e `pai` formam a hierarquia épico, história e tarefa. Sem demanda ou
   projeto próprios, a tarefa herda o código mais próximo da cadeia.
 - `pessoal` vem calculado (nenhuma demanda ou projeto na cadeia) e pode ser

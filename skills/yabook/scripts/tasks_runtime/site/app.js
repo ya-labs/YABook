@@ -167,6 +167,7 @@ function badges(task, options = {}) {
     const days = daysUntil(task.prazo);
     items.push(pill(fmtDate(task.prazo), days < 0 ? "red" : days <= 2 ? "orange" : "gray", { icon: "calendario", title: "Prazo" }));
   }
+  if (task.aguardando && !CLOSED.includes(task.papel)) items.push(waitingPill(task));
   if (task.perguntas_abertas && !options.compacto) items.push(pill(`${task.perguntas_abertas} pergunta${task.perguntas_abertas > 1 ? "s" : ""}`, "blue", { icon: "pergunta" }));
   if (task.confidencial === "disponivel" && (!options.compacto || options.confidencial)) items.push(pill("Confidencial", "red", { icon: "cadeado", title: "Referência confidencial disponível nesta máquina" }));
   if (task.confidencial === "bloqueado" && (!options.compacto || options.confidencial)) items.push(pill("Confidencial", "red", { icon: "cadeado", title: "Base confidencial ausente nesta máquina" }));
@@ -180,6 +181,16 @@ function badges(task, options = {}) {
   }
   if (task.papel === "concluido" && task.atualizada && !options.semData) items.push(h("span", { class: "selo neutro" }, "Concluída: " + fmtDate(task.atualizada)));
   return items;
+}
+
+function waitingDays(task) {
+  return task.aguardando_desde ? Math.max(0, -daysUntil(task.aguardando_desde)) : 0;
+}
+
+function waitingPill(task) {
+  const days = waitingDays(task);
+  return pill(`Aguardando · ${task.aguardando}${days ? ` · ${days}d` : ""}`, days >= 3 ? "orange" : "yellow",
+    { icon: "ficha", title: `Aguardando desde ${fmtDate(task.aguardando_desde || app.estado.hoje)}` });
 }
 
 function segments(done, total) {
@@ -604,6 +615,8 @@ const VIEWS = {
             list("Prazos", "calendario", filtered(estado.prazos.map(full)), "Nenhum prazo próximo.",
               (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
             list("Perguntas", "pergunta", filtered(estado.perguntas.map(full)), "Nenhuma pergunta aberta."),
+            list("Aguardando", "ficha", tasks.filter((t) => t.aguardando && !CLOSED.includes(t.papel)).sort((a, b) => waitingDays(b) - waitingDays(a)),
+              "Nada aguardando terceiros.", (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), waitingPill(t))),
             list("Em validação", "tarefa", testing, "Nada para revisar."))));
     },
   },
@@ -622,6 +635,7 @@ const VIEWS = {
           [["", "Nível: todos"], ["epico", "Épicos"], ["historia", "Histórias"], ["tarefa", "Tarefas"], ["-", "Sem nível"]]
             .map(([v, n]) => h("option", { value: v, selected: v === levelFilter }, n))),
         switchInput("Arquivadas", showArchived, (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); }),
+        switchInput("Só aguardando", pref("quadro.aguardando", "0") === "1", (e) => { setPref("quadro.aguardando", e.target.checked ? "1" : "0"); render(); }),
         h("select", { "aria-label": "Ordenar cards", title: "Em Última alteração, arraste entre colunas. Para reordenar na coluna, use Ordem manual.",
           onchange: (e) => { setPref("quadro.ordem", e.target.value); render(); } },
           [["recentes", "Última alteração"], ["manual", "Ordem manual"]].map(([value, text]) =>
@@ -633,7 +647,8 @@ const VIEWS = {
       const epicFilter = pref("quadro.epico", "");
       const levelFilter = pref("quadro.nivel", "");
       const showArchived = pref("quadro.arquivadas", "0") === "1";
-      const visible = filtered(work(estado)).filter((t) =>
+      const onlyWaiting = pref("quadro.aguardando", "0") === "1";
+      const visible = filtered(work(estado)).filter((t) => (!onlyWaiting || t.aguardando) &&
         (!epicFilter || (epicFilter === "-" ? !epicOf(t, map) : epicOf(t, map) === epicFilter)) &&
         (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
@@ -1484,6 +1499,7 @@ function editForm(id) {
     compare("prazo", values.prazo, original.prazo);
     compare("proximo_passo", values.proximo_passo.trim(), original.proximo_passo);
     compare("ficha", values.ficha.trim(), original.ficha);
+    compare("aguardando", values.aguardando.trim(), original.aguardando);
     compare("projeto", values.projeto.trim(), original.projeto);
     compare("demanda", values.demanda.trim(), original.demanda);
     compare("nivel", values.nivel, original.nivel);
@@ -1513,6 +1529,7 @@ function editForm(id) {
     field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
     field("proximo_passo", "Próximo passo", h("textarea", { name: "proximo_passo", rows: 2 }, task.proximo_passo || "")),
     field("ficha", "Texto na observação da ficha (curto, ex.: tela de clientes em atraso)", h("input", { name: "ficha", value: task.ficha || "" })),
+    field("aguardando", "Aguardando (de quem ou do quê; vazio encerra a espera)", h("input", { name: "aguardando", value: task.aguardando || "", placeholder: "ex.: validação de QA" })),
     h("div", { class: "campos-linha" },
       field("projeto", "Projeto", h("input", { name: "projeto", value: task.projeto || "" })),
       field("demanda", label("demanda"), h("input", { name: "demanda", value: task.demanda || "" }))),

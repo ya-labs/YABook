@@ -28,7 +28,8 @@ A configuração da máquina fica na seção `tasks` de `~/.config/yabook/config
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
 e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
-`prazo` (`AAAA-MM-DD`), `proximo_passo`, `sobre`, `resposta` e `refs`
+`prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a
+gravação mantém `aguardando_desde`), `sobre`, `resposta` e `refs`
 (`confidencial:`, `yabook:` ou `github:`). `config.yml` guarda rótulos e a
 ficha; `quadro.yml`, colunas com papel `entrada`, `pronto`, `ativo`,
 `validacao`, `concluido` ou `arquivado`.
