@@ -100,7 +100,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 :root {
   --bg: #fff; --bg-inset: #c9c9d5; --bg-subtle: #f1f1f6; --bg-hover: #f5f1ff;
   --bg-coluna: #dcdce5; --bg-navegacao: #f7f7fa;
-  --scrollbar-trilho: #dedee8; --scrollbar-thumb: #737387;
+  --scrollbar-trilho: #dedee8; --scrollbar-thumb: #6530c9; --scrollbar-hover: #5021ab;
   --borda: var(--borda-suave); --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #3f3f4b;
   --link: #6530c9; --primario: #6530c9; --primario-hover: #5021ab; --primario-texto: #fff;
   --botao: #fff; --botao-borda: var(--borda); --botao-hover: #f0f0f3;
@@ -113,7 +113,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 :root[data-theme="dark"] {
   --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393344;
   --bg-coluna: #111116; --bg-navegacao: #202027;
-  --scrollbar-trilho: #18181f; --scrollbar-thumb: #a0a0b5;
+  --scrollbar-trilho: #18181f; --scrollbar-thumb: #c4a0ff; --scrollbar-hover: #e0caff;
   --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #d9d9e2;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
   --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
@@ -126,7 +126,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   :root:not([data-theme="light"]) {
   --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393344;
   --bg-coluna: #111116; --bg-navegacao: #202027;
-  --scrollbar-trilho: #18181f; --scrollbar-thumb: #a0a0b5;
+  --scrollbar-trilho: #18181f; --scrollbar-thumb: #c4a0ff; --scrollbar-hover: #e0caff;
   --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #d9d9e2;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
   --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
@@ -140,15 +140,19 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 * { box-sizing: border-box; }
 /* Vale também para painel, colunas, tabelas, código e campos de texto. */
 * { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-trilho); }
-/* Compatibilidade com motores que ainda não implementam scrollbar-color. */
-@supports not (scrollbar-color: auto) {
-  *::-webkit-scrollbar { width: 10px; height: 10px; }
+/* Blink/WebKit: as propriedades padrão não podem suplantar os pseudoelementos. */
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width: auto; scrollbar-color: auto; }
+  *::-webkit-scrollbar { width: 12px; height: 12px; }
   *::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: var(--scrollbar-trilho); }
   *::-webkit-scrollbar-thumb { min-width: 32px; min-height: 32px; border: 2px solid var(--scrollbar-trilho); border-radius: 10px; background: var(--scrollbar-thumb); }
-  *::-webkit-scrollbar-thumb:hover, *::-webkit-scrollbar-thumb:active { background: var(--link); }
+  *::-webkit-scrollbar-thumb:hover, *::-webkit-scrollbar-thumb:active { background: var(--scrollbar-hover); }
+  *::-webkit-scrollbar-button { display: none; }
 }
 @media (forced-colors: active) {
   * { scrollbar-color: auto !important; scrollbar-width: auto !important; }
+  *::-webkit-scrollbar-thumb { background: CanvasText; border-color: Canvas; }
+  *::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: Canvas; }
 }
 html, body { margin: 0; height: 100%; }
 body { height: 100dvh; display: grid; grid-template-columns: 216px minmax(0, 1fr); overflow: hidden;
@@ -184,7 +188,7 @@ kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid 
 .marca-texto { font-size: 20px; font-weight: 800; line-height: 1.25; letter-spacing: -.7px; }
 .marca-texto > span { display: block; color: var(--texto-2); font-size: 12px; font-weight: 500; letter-spacing: .2px; margin-top: 2px; }
 .nav-legenda { padding: 0 12px; margin-bottom: 12px; color: var(--texto-2); font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; }
-.abas { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; min-height: 0; padding: 2px; margin: -2px; scrollbar-width: thin; }
+.abas { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; min-height: 0; padding: 2px; margin: -2px; }
 .abas button { display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-height: 42px; width: 100%; padding: 9px 12px;
   background: none; color: var(--texto-2); border: 1px solid transparent; border-radius: 9px; cursor: pointer; text-align: left; font-size: 13px; font-weight: 600; }
 .abas button:hover { background: var(--bg-subtle); color: var(--texto); }
@@ -241,7 +245,7 @@ kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid 
 .botao-icone.discreto { background: transparent; border-color: transparent; }
 .link { padding: 0; border: 0; background: none; cursor: pointer; text-align: left; font: inherit; }
 .link:hover { text-decoration: underline; text-underline-offset: 3px; }
-.conteudo { flex: 1; min-height: 0; overflow: auto; padding: 0 32px 32px; scrollbar-gutter: stable; scrollbar-width: thin; }
+.conteudo { flex: 1; min-height: 0; overflow: auto; padding: 0 32px 32px; scrollbar-gutter: stable; }
 .conteudo.quadro-ativo { overflow: hidden; padding-bottom: 16px; }
 .conteudo > section { max-width: 1600px; margin: 0 auto; }
 h2 { font-size: 14px; font-weight: 800; line-height: 1.4; margin: 24px 0 12px; letter-spacing: -.15px; }
@@ -346,14 +350,14 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .atencao .linha-caixa > .selo { margin-left: 24px; max-width: calc(100% - 24px); }
 
 /* Quadro: largura estável e espaço para ler cada card. */
-.quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; scrollbar-width: thin; }
+.quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
 .coluna { display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%; border: 1px solid var(--borda);
   border-radius: 14px; background: rgba(var(--c-gray), .035); }
 .coluna > header { display: flex; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
 .coluna > header .nome { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .coluna > header .acoes { margin-left: auto; display: flex; flex: none; }
 .coluna > header .acoes button { width: 30px; height: 30px; color: var(--link); border-color: var(--borda); }
-.coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 80px; padding: 0 10px 12px; overflow-y: auto; scrollbar-width: thin; }
+.coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 80px; padding: 0 10px 12px; overflow-y: auto; }
 .coluna .itens > .vazio { margin: 0; padding: 24px 12px; border: 1px dashed var(--borda); border-radius: 10px; font-size: 11px; }
 .coluna.alvo { border-color: var(--link); background: rgba(var(--c-purple), .05); }
 .card.arrastando { opacity: .4; }
@@ -362,7 +366,7 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .card.inserir-antes::before { top: -8px; } .card.inserir-depois::after { bottom: -8px; }
 
 /* Dados tabulares e navegação de períodos. */
-.tabela-rolagem { overflow-x: auto; max-width: 100%; margin-bottom: 24px; border: 1px solid var(--borda); border-radius: 12px; background: var(--bg); scrollbar-width: thin; }
+.tabela-rolagem { overflow-x: auto; max-width: 100%; margin-bottom: 24px; border: 1px solid var(--borda); border-radius: 12px; background: var(--bg); }
 table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--bg); font-size: 12px; }
 th, td { text-align: left; padding: 13px 16px; vertical-align: top; border-bottom: 1px solid var(--borda-suave); }
 th { background: var(--bg-subtle); color: var(--texto-2); font-weight: 700; font-size: 11px; white-space: nowrap; }
