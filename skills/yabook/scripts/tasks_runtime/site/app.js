@@ -633,8 +633,8 @@ const VIEWS = {
           class: "dia-card" + (day.data === estado.hoje ? " hoje" : "") + (confirmed[day.data] ? " confirmado" : ""),
         },
           h("div", { class: "dia-topo" },
-            h("button", { class: "link", type: "button",
-              title: "Abrir ficha de " + fmtDate(day.data),
+            h("button", { class: "link", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
+              title: SNAPSHOT && day.data !== SNAPSHOT.ficha.data ? "Ficha deste dia disponível no painel local" : "Abrir ficha de " + fmtDate(day.data),
               onclick: () => { app.ficha = day.data; location.hash = "ficha"; } },
               h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10))),
             confirmed[day.data] ? h("span", { role: "img", title: "Ficha confirmada", "aria-label": "Ficha confirmada" }, icon("check")) : null),
@@ -643,7 +643,7 @@ const VIEWS = {
           day.tarefas.length ? h("ul", { class: "dia-tarefas" }, day.tarefas.slice(0, 3).map((task) =>
             h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, hours(task.horas)))))
             : h("p", { class: "dia-vazio" }, "Sem atividade"),
-          day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button",
+          day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
             onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))),
         h("section", { class: "totais-semana" }, h("h2", {}, "Totais da ficha na semana"),
           !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
@@ -657,7 +657,7 @@ const VIEWS = {
     descricao: "Revise as horas do dia e copie a ficha para o seu registro.",
     icone: "ficha",
     async render(estado) {
-      const day = app.ficha || estado.hoje;
+      const day = SNAPSHOT ? SNAPSHOT.ficha.data : app.ficha || estado.hoje;
       const sheet = await api("/api/ficha?data=" + day);
       const confirmed = sheet.confirmada;
       const rows = sheet.linhas;
