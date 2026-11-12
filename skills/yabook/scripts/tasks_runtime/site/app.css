@@ -110,7 +110,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 :root[data-theme="dark"] {
   --bg: #18181d; --bg-inset: #0c0c10; --bg-subtle: #24242c; --bg-hover: #30303a;
-  --borda: var(--borda-suave); --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
+  --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #c5c5d0;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
   --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
@@ -121,7 +121,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
   --bg: #18181d; --bg-inset: #0c0c10; --bg-subtle: #24242c; --bg-hover: #30303a;
-  --borda: var(--borda-suave); --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
+  --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #c5c5d0;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
   --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
@@ -330,7 +330,7 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .atencao .linha-caixa > .selo { margin-left: 24px; max-width: calc(100% - 24px); }
 
 /* Quadro: largura estável e espaço para ler cada card. */
-.quadro { display: flex; align-items: stretch; gap: 16px; height: 100%; padding: 0 0 8px; overflow-x: auto; scrollbar-width: thin; }
+.quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; scrollbar-width: thin; }
 .coluna { display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%; border: 1px solid var(--borda);
   border-radius: 14px; background: rgba(var(--c-gray), .035); }
 .coluna > header { display: flex; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
@@ -563,7 +563,7 @@ button.selo { cursor: pointer; text-align: left; }
   .card-passo, .card-pai { font-size: 11px; }
   .card-origem { font-size: 11px; }
   .coluna { flex-basis: min(320px, calc(100vw - 54px)); }
-  .quadro { gap: 12px; }
+  .quadro { gap: 8px; }
   .semana-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .dia-card { min-height: 180px; padding: 15px; }
   .dia-card:last-child { grid-column: 1 / -1; }
