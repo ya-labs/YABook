@@ -480,12 +480,10 @@ const VIEWS = {
     icone: "hoje",
     render(estado) {
       const tasks = filtered(work(estado));
-      const map = Object.fromEntries(estado.tarefas.map((t) => [t.id, t]));
-      const current = estado.ativa ? tasks.find((t) => t.id === estado.ativa.id) : null;
-      // Tarefa ativa e épico ativo lado a lado: épico ativo é a própria ativa ou o épico dela.
-      const active = current && current.nivel !== "epico" ? current : null;
-      const activeEpicId = current ? (current.nivel === "epico" ? current.id : epicOf(current, map)) : null;
-      const activeEpic = activeEpicId ? tasks.find((t) => t.id === activeEpicId) || map[activeEpicId] : null;
+      // Destaques independentes pela última gravação; a sessão da CLI não muda.
+      const active = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico").sort(byRecent)[0] || null;
+      const activeEpic = tasks.filter((t) => t.nivel === "epico").sort(byRecent)[0] || null;
+      const activeEpicId = activeEpic?.id;
       const doing = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico" && (!active || t.id !== active.id)).sort(byRecent);
       const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && t.id !== activeEpicId).sort(byRecent);
       const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byRecent);
@@ -513,9 +511,9 @@ const VIEWS = {
         h("div", { class: "painel-dia" },
           h("div", { class: "hoje-grade" },
             h("div", {}, heading("Tarefa ativa", "alvo"),
-              active ? card(active, { foco: true }) : blank("alvo", current ? "Sessão no épico; nenhuma tarefa ativa." : "Nenhuma tarefa ativa nesta máquina.")),
+              active ? card(active, { foco: true }) : blank("alvo", "Nenhuma tarefa em andamento.")),
             h("div", {}, heading("Épico ativo", "epicos"),
-              activeEpic ? card(activeEpic, { status: true, semNivel: true }) : blank("epicos", "Nenhum épico ativo.")),
+              activeEpic ? card(activeEpic, { status: true, semNivel: true }) : blank("epicos", "Nenhum épico encontrado.")),
             h("div", {}, heading("Em andamento", "quadro", doing.length),
               doing.length ? h("div", { class: "pilha" }, doing.map((t) => card(t))) : blank("check", "Nenhuma outra tarefa em andamento.")),
             h("div", {}, heading("Épicos em andamento", "camadas", epics.length),
