@@ -175,7 +175,7 @@ os eventos existentes:
 
 ## Ficha de horas
 
-- Conta na ficha a tarefa com `demanda`, `projeto` ou `tipo: especificacao`.
+- Conta na ficha a tarefa com `demanda` ou `projeto` na cadeia, inclusive a `tipo: especificacao`; sem código, a tarefa é pessoal por padrão.
   Com `demanda` e `projeto`, as horas vão para a demanda.
 - A sugestão divide as horas do dia configuradas, 8 por padrão, entre as
   tarefas que contam, na proporção das janelas de atividade e com

@@ -132,7 +132,8 @@ captura também na configuração global do host, ou ela roda duas vezes.
 ## Ficha de horas
 
 - O código sobe pela cadeia de `pai`: demanda mais próxima, senão projeto;
-  `tipo: especificacao` usa o código da cadeia. Tarefa pessoal é extra: aparece
+  `tipo: especificacao` usa o código da cadeia e, sem código, é pessoal como os
+  demais. Iniciativa própria vai como `tarefa` ou `issue`, não `especificacao`. Tarefa pessoal é extra: aparece
   no dia com horas estimadas, fora do total. Trabalho sem código vira linha
   `trabalho` ("Sem código") para a pessoa ajustar.
 - A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das

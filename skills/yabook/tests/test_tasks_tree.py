@@ -90,6 +90,18 @@ class TreeTest(unittest.TestCase):
         self.tasks.edit("tarefa-revisar-layout-recebido-do-trabalho", unset=["pessoal"])
         self.assertNotIn("trabalho", {r["tipo"] for r in sheet.day_sheet(self.store, DAY)["linhas"]})
 
+    def test_specification_without_code_is_personal_by_default(self):
+        self.tasks.add("especificacao", "Cliente leve para mensagens")
+        self.tasks.add("especificacao", "Especificar relatório", demanda="3001")
+        self.windows("especificacao-cliente-leve-para-mensagens", 4)
+        self.windows("especificacao-3001", 4, start=10)
+        result = sheet.day_sheet(self.store, DAY)
+        self.assertEqual([(r["tipo"], r["codigo"]) for r in result["linhas"]], [("especificacao", "3001")])
+        self.assertEqual([e["tarefa"] for e in result["extras"]], ["especificacao-cliente-leve-para-mensagens"])
+        self.tasks.edit("especificacao-cliente-leve-para-mensagens", dict(pessoal=False))
+        rows = {(r["tipo"], r["codigo"]) for r in sheet.day_sheet(self.store, DAY)["linhas"]}
+        self.assertEqual(rows, {("especificacao", "3001"), ("trabalho", "")})
+
     def test_summary_shows_epics_with_progress_and_personal_code(self):
         self.tasks.add("issue", "Implementar a V1 do YABook Tasks", issue=["org/yabook#156"], nivel="epico", coluna="andamento")
         self.tasks.add("issue", "Comandos", issue=["org/yabook#158"], pai="issue-implementar-a-v1-do-yabook-tasks", coluna="concluido")
