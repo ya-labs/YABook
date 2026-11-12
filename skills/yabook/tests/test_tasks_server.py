@@ -155,6 +155,9 @@ class ServerTest(unittest.TestCase):
         html = Path(result["arquivo"]).read_text(encoding="utf-8")
         self.assertIn("window.YABOOK_SNAPSHOT", html)
         self.assertNotIn('rel="manifest"', html)
+        self.assertIn('src="data:image/svg+xml;base64,', html)
+        self.assertIn('href="data:image/svg+xml;base64,', html)
+        self.assertNotIn('src="icon.svg"', html)
         self.assertNotIn("Agenda </script>", html)  # fechamento de script escapado no JSON
         self.assertIn("Agenda <\\/script>", html)
         self.assertEqual(result["tarefas"], 4)

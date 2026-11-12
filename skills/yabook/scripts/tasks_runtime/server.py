@@ -6,6 +6,7 @@ periódica dos arquivos do repositório de dados. Requisições com Host diferen
 de 127.0.0.1/localhost são recusadas (proteção contra DNS rebinding); escrita
 exige o token da página e a mesma origem.
 """
+import base64
 import datetime
 import hashlib
 import json
@@ -181,6 +182,8 @@ class Board:
         html = html.replace('<script src="app.js" defer></script>',
                             "<script>window.YABOOK_SNAPSHOT = %s;</script>\n<script>\n%s\n</script>" % (payload, js))
         html = html.replace("{{TOKEN}}", "")
+        icon = base64.b64encode((SITE / "icon.svg").read_bytes()).decode("ascii")
+        html = html.replace('"icon.svg"', '"data:image/svg+xml;base64,%s"' % icon)
         path = Path(output).expanduser()
         if path.is_dir() or not path.suffix:
             path = path / "yabook-tasks.html"
