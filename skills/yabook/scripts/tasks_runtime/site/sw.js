@@ -1,5 +1,5 @@
 // Cache só da casca do site; dados vêm sempre do servidor local.
-const CACHE = "yabook-tasks-v11";
+const CACHE = "yabook-tasks-v12";
 const SHELL = ["/", "/app.css", "/app.js", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
