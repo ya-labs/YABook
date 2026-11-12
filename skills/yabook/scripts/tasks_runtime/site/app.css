@@ -98,41 +98,41 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 /* Superfícies, tipografia e ritmo do espaço de trabalho. */
 :root {
-  --bg: #fff; --bg-inset: #c9c9d5; --bg-subtle: #f1f1f6; --bg-hover: #f5f1ff;
+  --bg: #fff; --bg-inset: #c9c9d5; --bg-subtle: #f1f1f6; --bg-hover: #ededed;
   --bg-coluna: #dcdce5; --bg-navegacao: #f7f7fa;
-  --scrollbar-trilho: #dedee8; --scrollbar-thumb: #6530c9; --scrollbar-hover: #5021ab;
+  --scrollbar-trilho: #dedee8; --scrollbar-thumb: #616161; --scrollbar-hover: #3f3f3f;
   --borda: var(--borda-suave); --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #3f3f4b;
-  --link: #6530c9; --primario: #6530c9; --primario-hover: #5021ab; --primario-texto: #fff;
+  --link: #242424; --primario: #242424; --primario-hover: #080808; --primario-texto: #fff;
   --botao: #fff; --botao-borda: var(--borda); --botao-hover: #f0f0f3;
-  --acento-suave: #e9ddff; --sombra: 0 2px 5px rgba(29, 35, 64, .035);
+  --acento-suave: #e5e5e5; --sombra: 0 2px 5px rgba(29, 35, 64, .035);
   --sombra-painel: -10px 0 32px rgba(29, 35, 64, .1);
-  --c-gray: 80, 80, 95; --c-blue: 22, 77, 204; --c-green: 22, 77, 204; --c-yellow: 101, 48, 201;
-  --c-orange: 184, 31, 64; --c-red: 184, 31, 64; --c-pink: 125, 35, 183; --c-purple: 101, 48, 201;
+  --c-gray: 80, 80, 95; --c-blue: 22, 77, 204; --c-green: 22, 77, 204; --c-yellow: 76, 76, 76;
+  --c-orange: 184, 31, 64; --c-red: 184, 31, 64; --c-pink: 76, 76, 76; --c-purple: 76, 76, 76;
   --rotulo-fundo: .1; --rotulo-borda: .55; color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393344;
+  --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393939;
   --bg-coluna: #111116; --bg-navegacao: #202027;
-  --scrollbar-trilho: #18181f; --scrollbar-thumb: #c4a0ff; --scrollbar-hover: #e0caff;
+  --scrollbar-trilho: #18181f; --scrollbar-thumb: #bdbdbd; --scrollbar-hover: #eee;
   --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #d9d9e2;
-  --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
-  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
+  --link: #f2f2f2; --primario: #e5e5e5; --primario-hover: #fff; --primario-texto: #141414;
+  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #414141;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
-  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 196, 160, 255;
-  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 222, 158, 255; --c-purple: 196, 160, 255;
+  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 212, 212, 212;
+  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 212, 212, 212; --c-purple: 212, 212, 212;
   --rotulo-fundo: .15; --rotulo-borda: .6; color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393344;
+  --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393939;
   --bg-coluna: #111116; --bg-navegacao: #202027;
-  --scrollbar-trilho: #18181f; --scrollbar-thumb: #c4a0ff; --scrollbar-hover: #e0caff;
+  --scrollbar-trilho: #18181f; --scrollbar-thumb: #bdbdbd; --scrollbar-hover: #eee;
   --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #d9d9e2;
-  --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
-  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
+  --link: #f2f2f2; --primario: #e5e5e5; --primario-hover: #fff; --primario-texto: #141414;
+  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #414141;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
-  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 196, 160, 255;
-  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 222, 158, 255; --c-purple: 196, 160, 255;
+  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 212, 212, 212;
+  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 212, 212, 212; --c-purple: 212, 212, 212;
   --rotulo-fundo: .15; --rotulo-borda: .6; color-scheme: dark;
   }
 }
@@ -731,7 +731,7 @@ button.selo { cursor: pointer; text-align: left; }
 .switch-trilho { display: inline-flex; align-items: center; flex: none; width: 32px; height: 19px; padding: 2px; border: 1px solid var(--botao-borda); border-radius: 12px; background: var(--bg-hover); }
 .switch-trilho::after { content: ""; width: 13px; height: 13px; border-radius: 50%; background: var(--texto-2); transition: transform 180ms ease; }
 .switch input:checked + .switch-trilho { background: var(--primario); border-color: var(--primario); }
-.switch input:checked + .switch-trilho::after { transform: translateX(13px); background: #fff; }
+.switch input:checked + .switch-trilho::after { transform: translateX(13px); background: var(--primario-texto); }
 .switch input:focus-visible + .switch-trilho { outline: 2px solid var(--link); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .switch-trilho::after { transition: none; } }
 
