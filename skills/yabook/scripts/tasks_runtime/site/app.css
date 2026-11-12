@@ -241,14 +241,13 @@ h2:first-child { margin-top: 0; }
 .estado-vazio p { max-width: 42ch; margin: 0; font-size: 11px; }
 
 /* Cards: origem discreta, título dominante, detalhes sem competir entre si. */
-.card { --card-cor: var(--status, var(--c-blue)); position: relative; display: grid; gap: 11px; width: 100%; min-width: 0; padding: 15px; border: 1px solid var(--borda); border-radius: 12px;
+.card { position: relative; display: grid; gap: 11px; width: 100%; min-width: 0; padding: 15px; border: 1px solid var(--borda); border-radius: 12px;
   background: var(--bg); box-shadow: var(--sombra); text-align: left; cursor: pointer; }
-.card { border-left: 3px solid rgba(var(--card-cor), .75); padding-left: 13px; }
-.card-epico { --card-cor: var(--c-purple); }
-.card.prazo-vencido { --card-cor: var(--c-red); }
-.card:hover { border-color: rgba(var(--card-cor), .65); }
+.card-epico { border: 1px solid rgba(var(--c-purple), .35); border-left: 3px solid rgb(var(--c-purple)); padding-left: 13px; }
+.card:hover { background: var(--bg-subtle); }
+.card-epico:hover { border-color: rgba(var(--c-purple), .7); }
 .card:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-.card.editado { border-left: 3px solid rgb(var(--c-red)); padding-left: 13px; }
+.card.editado { background: rgba(var(--c-blue), .07); }
 .card[draggable="true"] { cursor: grab; }
 .card-origem { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--texto-2); font-size: 11px; font-weight: 600; }
 .card-origem > .origem-texto { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -267,8 +266,6 @@ h2:first-child { margin-top: 0; }
 .card-pai > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-pai, .card-pai .icone { color: var(--link); }
 .card-pai .icone svg { width: 13px; height: 13px; }
-.card-em-foco { border-color: rgba(var(--c-purple), .38); border-top: 3px solid var(--primario); padding-top: 13px; }
-.card-em-foco .card-titulo { font-size: 16px; letter-spacing: -.3px; }
 .rotulos { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-width: 0; }
 .selo { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 2px 7px; border-radius: 6px;
   font-size: 11px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere;
@@ -301,14 +298,13 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .numero .numero-nome { font-size: 11px; font-weight: 600; margin-top: 4px; }
 .numero small { grid-column: 1 / -1; margin-top: 8px; font-size: 11px; color: var(--texto-2); }
 .painel-dia { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 24px; align-items: start; }
-.hoje-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; align-items: start; }
-.hoje-grade > div { min-width: 0; }
+.andamento-hoje { min-width: 0; }
 .foco-vazio { display: grid; align-content: center; justify-items: center; gap: 9px; min-height: 154px; padding: 24px 18px; border: 1px dashed var(--borda);
   border-radius: 12px; color: var(--texto-2); text-align: center; font-size: 11px; }
 .foco-vazio > .icone { color: rgba(var(--c-gray), .7); }
 .foco-vazio > .icone svg { width: 24px; height: 24px; }
 .pilha { display: grid; gap: 12px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; align-items: start; }
 .atencao { display: grid; gap: 14px; }
 .atencao > h2 { margin-bottom: 0; }
 .caixa { border: 1px solid var(--borda); background: var(--bg); border-radius: 12px; overflow: hidden; margin-bottom: 18px; }
@@ -559,13 +555,11 @@ button.selo { cursor: pointer; text-align: left; }
   .numero { padding: 15px; }
   .numero b { font-size: 26px; }
   .numero small { font-size: 10px; }
-  .hoje-grade { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .atencao { grid-template-columns: minmax(0, 1fr); }
   .atencao .linha-caixa > .selo { display: inline-flex; }
   .cards { grid-template-columns: minmax(0, 1fr); }
   .card { padding: 17px; }
   .card-titulo { font-size: 14px; }
-  .card-em-foco .card-titulo { font-size: 16px; }
   .card-passo, .card-pai { font-size: 11px; }
   .card-origem { font-size: 11px; }
   .coluna { flex-basis: min(320px, calc(100vw - 54px)); }

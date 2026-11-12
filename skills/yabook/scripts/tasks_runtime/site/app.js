@@ -244,7 +244,7 @@ function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
   const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
   const parent = task.pai ? effectiveState().tarefas.find((t) => t.id === task.pai) : null;
-  return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : "") + (options.foco ? " card-em-foco" : ""), role: "button", tabindex: "0", "data-id": task.id,
+  return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
     draggable: editable ? "true" : null,
     ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
     ondragend: editable ? () => { app.dragId = null; clearDrop(); document.querySelectorAll(".arrastando").forEach((n) => n.classList.remove("arrastando")); } : null,
@@ -480,15 +480,10 @@ const VIEWS = {
     icone: "hoje",
     render(estado) {
       const tasks = filtered(work(estado));
-      // Destaques independentes pela última gravação; a sessão da CLI não muda.
-      const active = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico").sort(byRecent)[0] || null;
-      const activeEpic = tasks.filter((t) => t.nivel === "epico").sort(byRecent)[0] || null;
-      const activeEpicId = activeEpic?.id;
-      const doing = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico" && (!active || t.id !== active.id)).sort(byRecent);
-      const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && t.id !== activeEpicId).sort(byRecent);
-      const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byRecent);
+      const doing = tasks.filter((t) => t.papel === "ativo").sort(byRecent);
+      const testing = tasks.filter((t) => t.papel === "validacao").sort(byRecent);
       const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
-      app.contagem = doing.length + epics.length + testing.length + (active ? 1 : 0) + (activeEpic ? 1 : 0);
+      app.contagem = doing.length + testing.length;
       const list = (title, symbol, items, empty, render = row) => h("div", { class: "caixa" },
         h("header", {}, icon(symbol), h("h3", {}, title), h("span", { class: "contador" }, String(items.length))),
         items.length ? items.map(render) : h("div", { class: "corpo vazio" }, icon("check"), empty));
@@ -496,9 +491,10 @@ const VIEWS = {
       const heading = (title, symbol, count) => h("h2", { class: "titulo-secao" }, icon(symbol), title,
         count === undefined ? null : h("span", { class: "contador" }, String(count)));
       const blank = (symbol, text) => h("div", { class: "foco-vazio" }, icon(symbol), h("span", {}, text));
-      const activeEpics = tasks.filter((t) => t.nivel === "epico" && t.papel === "ativo").length;
+      const activeEpics = doing.filter((t) => t.nivel === "epico").length;
+      const activeTasks = doing.length - activeEpics;
       const metrics = [
-        ["Em andamento", tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico").length, "alvo", "purple", "quadro", `${activeEpics} épicos ativos`],
+        ["Em andamento", doing.length, "alvo", "purple", "quadro", `${activeTasks} ${activeTasks === 1 ? "tarefa" : "tarefas"} · ${activeEpics} ${activeEpics === 1 ? "épico" : "épicos"}`],
         ["Em validação", testing.length, "tarefa", "green", "quadro", ""],
         ["Prazos próximos", estado.prazos.length, "calendario", late ? "red" : "orange", "prazos", late ? `${late} em atraso` : ""],
         ["Perguntas", estado.perguntas.length, "pergunta", "blue", "perguntas", ""],
@@ -509,15 +505,9 @@ const VIEWS = {
             h("b", {}, total), h("span", { class: "numero-icone" }, icon(symbol)), h("span", { class: "numero-nome" }, name),
             detail ? h("small", {}, detail) : null))),
         h("div", { class: "painel-dia" },
-          h("div", { class: "hoje-grade" },
-            h("div", {}, heading("Tarefa ativa", "alvo"),
-              active ? card(active, { foco: true }) : blank("alvo", "Nenhuma tarefa em andamento.")),
-            h("div", {}, heading("Épico ativo", "epicos"),
-              activeEpic ? card(activeEpic, { status: true, semNivel: true }) : blank("epicos", "Nenhum épico encontrado.")),
-            h("div", {}, heading("Em andamento", "quadro", doing.length),
-              doing.length ? h("div", { class: "pilha" }, doing.map((t) => card(t))) : blank("check", "Nenhuma outra tarefa em andamento.")),
-            h("div", {}, heading("Épicos em andamento", "camadas", epics.length),
-              epics.length ? h("div", { class: "pilha" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : blank("check", "Nenhum outro épico em andamento."))),
+          h("div", { class: "andamento-hoje" }, heading("Em andamento", "quadro", doing.length),
+            doing.length ? h("div", { class: "cards" }, doing.map((t) => card(t, { status: t.nivel === "epico", semNivel: true })))
+              : blank("check", "Nenhuma tarefa ou épico em andamento.")),
           h("div", { class: "atencao" }, heading("Sua atenção", "alerta"),
             list("Prazos", "calendario", filtered(estado.prazos.map(full)), "Nenhum prazo próximo.",
               (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
