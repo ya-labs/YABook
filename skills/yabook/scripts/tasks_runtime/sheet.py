@@ -2,20 +2,21 @@
 
 As horas configuradas do dia são divididas entre as tarefas que contam na
 ficha, na proporção da atividade; o resto é extra, registrado fora do total.
-A observação é montada com texto genérico e, onde existir, o complemento
-confidencial local; ela nunca é versionada.
+Demanda (chamado) dispensa observação. Nas demais linhas a observação resume o
+que foi feito no dia para colar no sistema de horas: `Desenvolvimento: item;
+item.`, com o texto curto `ficha` de cada tarefa (ou o título), sem registro,
+datas nem números de demanda ou issue.
 """
 import datetime
 import json
 import math
-import re
 from pathlib import Path
 
 from . import tree
+from .precommit_hook import find_terms
 from .store import now
 
 WINDOW_HOURS = 0.25
-_LOG_LINE = re.compile(r"^- (\d{4}-\d{2}-\d{2}) \d{2}:\d{2} — (.+)$", re.MULTILINE)
 
 
 def attribution(data, index=None):
@@ -73,6 +74,20 @@ def distribute(weights, total, step):
     return {k: round(v * step, 2) for k, v in result.items() if v}
 
 
+def _item_text(data):
+    text = (data.get("ficha") or data.get("titulo") or "").strip().rstrip(".")
+    if len(text) > 1 and text[0].isupper() and not text[1].isupper():
+        text = text[0].lower() + text[1:]
+    return text
+
+
+def observation(items, notes):
+    """`Atividade: item; item.` — Especificação só quando todos os itens são especificações."""
+    verb = "Especificação" if items and all(d.get("tipo") == "especificacao" for d in items) else "Desenvolvimento"
+    parts = list(dict.fromkeys(p for p in [_item_text(d) for d in items] + [n.strip().rstrip(".") for n in notes] if p))
+    return "%s: %s." % (verb, "; ".join(parts)) if parts else verb + "."
+
+
 def _round_step(value, step):
     return round(max(step, round(value / step) * step), 2) if value > 0 else 0
 
@@ -86,6 +101,8 @@ def day_sheet(store, day, complement=None):
     tasks = {t["data"]["id"]: t for t in store.list()}
     index = {k: t["data"] for k, t in tasks.items()}
     groups, extras = {}, []
+    touched = [d for d in index.values() if (d.get("atualizada") or "")[:10] == day and d.get("tipo") != "pergunta"
+               and d["id"] not in hours]
     for identifier, value in sorted(hours.items()):
         task = tasks.get(identifier)
         key = attribution(task["data"], index) if task else None
@@ -96,21 +113,26 @@ def day_sheet(store, day, complement=None):
         group = groups.setdefault(key, dict(peso=0.0, tarefas=[]))
         group["peso"] += value
         group["tarefas"].append(identifier)
+    for data in touched:  # alterada no dia sem horas marcadas: entra na observação, não no peso
+        key = attribution(data, index)
+        if key in groups:
+            groups[key].setdefault("tocadas", []).append(data["id"])
     totals = distribute({k: g["peso"] for k, g in groups.items()}, per_day, step)
     rows = []
     for key, group in groups.items():
         if key not in totals:
             continue
-        pieces = []
-        for identifier in group["tarefas"]:
-            task = tasks[identifier]
-            pieces.append(task["data"]["titulo"])
-            pieces += [text for date, text in _LOG_LINE.findall(task["body"]) if date == day]
-            pieces += notes.get(identifier, [])
+        observacao = ""
+        if key[0] != "demanda":  # chamado dispensa observação
+            worked = group["tarefas"] + group.get("tocadas", [])
+            covered = set().union(*(set(d["id"] for d in tree.chain(index[i], index)[1:]) for i in worked))
+            items = [index[i] for i in worked if i not in covered]  # épico cede lugar às histórias do dia
+            items.sort(key=lambda d: (d.get("nivel") != "historia", d.get("ordem", 0), d["titulo"]))
+            observacao = observation(items, [n for i in group["tarefas"] for n in notes.get(i, [])])
         label = labels.get(key[0], "Sem código" if key[0] == "trabalho" else key[0])
         row = dict(tipo=key[0], rotulo=label, codigo=key[1], inicio=None, fim=None,
                    total=totals[key], estimado=round(group["peso"], 2), tarefas=group["tarefas"],
-                   observacao="; ".join(dict.fromkeys(p.strip() for p in pieces if p.strip())))
+                   observacao=observacao)
         if complement:
             extra = [c for c in (complement(i) for i in group["tarefas"]) if c]
             if extra:
@@ -118,6 +140,11 @@ def day_sheet(store, day, complement=None):
         rows.append(row)
     rows.sort(key=lambda r: (-r["total"], r["tipo"], str(r["codigo"])))
     confirmed = confirmed_day(store.root, day)
+    if confirmed:  # observação ajustada na confirmação prevalece
+        chosen = {(r["tipo"], str(r["codigo"])): r.get("observacao") for r in confirmed.get("linhas", [])}
+        for row in rows:
+            if chosen.get((row["tipo"], str(row["codigo"]))):
+                row["observacao_sugerida"], row["observacao"] = row["observacao"], chosen[(row["tipo"], str(row["codigo"]))]
     return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 2), linhas=rows,
                 extras=extras, confirmada=confirmed)
 
@@ -155,7 +182,8 @@ def confirmed_day(root, day):
 def confirm(store, day, rows=None, extras=None):
     """Grava os totais confirmados do dia; a confirmação mais recente prevalece."""
     sheet = day_sheet(store, day)
-    rows = rows if rows is not None else [dict(tipo=r["tipo"], codigo=r["codigo"], total=r["total"]) for r in sheet["linhas"]]
+    rows = rows if rows is not None else [dict(tipo=r["tipo"], codigo=r["codigo"], total=r["total"], observacao=r["observacao"])
+                                          for r in sheet["linhas"]]
     extras = extras if extras is not None else [dict(tarefa=e["tarefa"], horas=e["horas"]) for e in sheet["extras"]]
     clean_rows = []
     for row in rows:
@@ -166,7 +194,13 @@ def confirm(store, day, rows=None, extras=None):
         total = float(row["total"])
         if not 0 <= total <= 24:
             raise ValueError("Total fora do intervalo do dia")
-        clean_rows.append(dict(tipo=row["tipo"], codigo=str(row["codigo"]), total=total))
+        clean = dict(tipo=row["tipo"], codigo=str(row["codigo"]), total=total)
+        if str(row.get("observacao") or "").strip():
+            clean["observacao"] = str(row["observacao"]).strip()
+            hits = find_terms(clean["observacao"], store.terms)
+            if hits:
+                raise ValueError("Observação com termo confidencial (%s); reescreva sem o termo" % ", ".join(hits))
+        clean_rows.append(clean)
     clean_extras = [dict(tarefa=e["tarefa"], horas=float(e["horas"])) for e in extras]
     entry = dict(data=day, linhas=clean_rows, extras=clean_extras, ts=now())
     path = store.root / "fichas" / (day[:7] + ".jsonl")

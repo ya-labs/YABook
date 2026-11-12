@@ -332,7 +332,9 @@ const VIEWS = {
             h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, app.editando
               ? h("input", { class: "horas", type: "number", min: "0", max: "24", step: "0.25", value: sheetValue(day, r),
                   onchange: (e) => setSheetRow(sheet, r, e.target.value) }) : hours(r.total)),
-            h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("pre", { class: "registro" }, r.complemento)) : null),
+            h("td", {}, app.editando && r.tipo !== "demanda"
+              ? h("textarea", { class: "observacao", rows: 2, onchange: (e) => setSheetRow(sheet, r, null, e.target.value) }, sheetText(day, r))
+              : r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("pre", { class: "registro" }, r.complemento)) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.target) }, "Copiar"))))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
         h("h2", {}, "Extras (fora do total)"),
@@ -563,6 +565,7 @@ function editForm(id) {
     compare("coluna", values.coluna, original.coluna);
     compare("prazo", values.prazo, original.prazo);
     compare("proximo_passo", values.proximo_passo.trim(), original.proximo_passo);
+    compare("ficha", values.ficha.trim(), original.ficha);
     compare("projeto", values.projeto.trim(), original.projeto);
     compare("demanda", values.demanda.trim(), original.demanda);
     compare("nivel", values.nivel, original.nivel);
@@ -589,6 +592,7 @@ function editForm(id) {
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
     field("proximo_passo", "Próximo passo", h("textarea", { name: "proximo_passo", rows: 2 }, task.proximo_passo || "")),
+    field("ficha", "Texto na observação da ficha (curto, ex.: tela de clientes em atraso)", h("input", { name: "ficha", value: task.ficha || "" })),
     h("div", { class: "campos-linha" },
       field("projeto", "Projeto", h("input", { name: "projeto", value: task.projeto || "" })),
       field("demanda", label("demanda"), h("input", { name: "demanda", value: task.demanda || "" }))),
@@ -612,15 +616,22 @@ function sheetValue(day, row) {
   return found ? found.total : row.total;
 }
 
-function setSheetRow(sheet, row, value) {
+function sheetText(day, row) {
+  const draft = app.rascunho.ficha;
+  const found = draft && draft.data === day && draft.linhas.find((r) => r.tipo === row.tipo && String(r.codigo) === String(row.codigo));
+  return found && found.observacao !== undefined ? found.observacao : row.observacao;
+}
+
+function setSheetRow(sheet, row, value, text) {
   const draft = app.rascunho.ficha && app.rascunho.ficha.data === sheet.data ? app.rascunho.ficha : {
     data: sheet.data,
-    linhas: sheet.linhas.map((r) => ({ tipo: r.tipo, codigo: r.codigo, total: r.total })),
+    linhas: sheet.linhas.map((r) => ({ tipo: r.tipo, codigo: r.codigo, total: r.total, observacao: r.observacao })),
     extras: sheet.extras.map((e) => ({ tarefa: e.tarefa, horas: e.horas })),
   };
   if (row) {
     const target = draft.linhas.find((r) => r.tipo === row.tipo && String(r.codigo) === String(row.codigo));
-    target.total = Math.max(0, Math.min(24, Number(String(value).replace(",", ".")) || 0));
+    if (value !== null && value !== undefined) target.total = Math.max(0, Math.min(24, Number(String(value).replace(",", ".")) || 0));
+    if (text !== undefined) target.observacao = text;
   }
   app.rascunho.ficha = draft;
   persistDraft();

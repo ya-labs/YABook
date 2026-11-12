@@ -182,9 +182,12 @@ os eventos existentes:
   arredondamento configurado, 1 hora por padrão.
 - As demais tarefas são extras: ficam registradas no dia com horas estimadas,
   fora do total.
-- A ficha apresenta tipo, código, início e fim opcionais, total e observação. A
-  observação é gerada na máquina que possui a base confidencial e não é
-  versionada.
+- A ficha apresenta tipo, código, início e fim opcionais, total e observação.
+  Demanda dispensa observação; nas demais linhas ela resume o que foi feito no
+  dia (`Desenvolvimento: item; item.`), com o texto curto `ficha` de cada
+  tarefa, sem registro, datas nem números. A observação ajustada na confirmação
+  prevalece; o complemento confidencial aparece à parte, só na máquina que
+  possui a base.
 - Lançamentos manuais (`task log`) cobrem trabalho fora do agente.
 
 ## Site

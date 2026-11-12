@@ -139,8 +139,10 @@ captura também na configuração global do host, ou ela roda duas vezes.
 - A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
   janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
   somando exatamente o total.
-- A observação junta títulos, registros e notas do dia, mais o complemento
-  confidencial onde existir. Mostre-a para a pessoa copiar; não a grave.
+- Demanda dispensa observação. Nas demais linhas ela resume o dia para colar no
+  sistema de horas: `Desenvolvimento: item; item.` com o campo curto `ficha` de
+  cada tarefa trabalhada ou alterada no dia (ou o título) e as notas de `log`;
+  sem registro, datas nem números. Preencha `ficha` ao criar histórias.
 - Ajustes da pessoa entram por `--confirm --input` com `linhas` (`tipo`,
-  `codigo`, `total`) e `extras`; a confirmação mais recente do dia prevalece e
+  `codigo`, `total`, `observacao`) e `extras`; a confirmação mais recente do dia prevalece e
   a semana soma as confirmadas no lugar das sugestões.
