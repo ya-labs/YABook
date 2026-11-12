@@ -218,7 +218,6 @@ kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid 
 .visao-icone { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 13px; background: var(--bg); border: 1px solid var(--borda); color: var(--link); }
 .visao-icone .icone svg { width: 23px; height: 23px; }
 .projeto h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.95px; line-height: 1.3; }
-#visao-descricao { color: var(--texto-2); font-size: 12px; margin: 5px 0 0; }
 .data-atual { display: inline-flex; align-items: center; gap: 8px; flex: none; color: var(--texto-2); font-size: 11px; font-weight: 600; }
 .barra-filtro { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 32px 24px; min-height: 38px; }
 .filtro { display: flex; align-items: center; gap: 9px; flex: 1 1 220px; min-width: 0; max-width: 480px; min-height: 38px;
@@ -604,7 +603,6 @@ button.selo { cursor: pointer; text-align: left; }
   .projeto-titulo { gap: 0; }
   .visao-icone { display: none; }
   .projeto h1 { font-size: 26px; letter-spacing: -.8px; }
-  #visao-descricao { font-size: 11px; max-width: 35ch; line-height: 1.7; }
   .data-atual { font-size: 11px; gap: 5px; padding-top: 7px; }
   .data-atual .icone svg { width: 13px; height: 13px; }
   .barra-filtro { margin: 0 18px 22px; gap: 9px; }

@@ -1010,8 +1010,6 @@ function currentView() {
 function renderViewHeader(name) {
   if (app.headerView !== name) {
     document.getElementById("visao-titulo").textContent = VIEWS[name].titulo;
-    document.getElementById("visao-descricao").textContent = VIEWS[name].descricao ||
-      (name === "hoje" ? "Prioridades e próximos passos, em um só lugar." : "Do próximo passo à entrega. Um card por vez.");
     fill(document.getElementById("visao-icone"), icon(VIEWS[name].icone));
     document.title = VIEWS[name].titulo + " · YABook Tasks";
     app.headerView = name;
