@@ -100,33 +100,33 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 :root {
   --bg: #fff; --bg-inset: #f4f4f5; --bg-subtle: #f8f8f9; --bg-hover: #ededf0;
   --borda: var(--borda-suave); --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #484855;
-  --link: #b81f40; --primario: #b81f40; --primario-hover: #98172f; --primario-texto: #fff;
+  --link: #6530c9; --primario: #6530c9; --primario-hover: #5021ab; --primario-texto: #fff;
   --botao: #fff; --botao-borda: var(--borda); --botao-hover: #f0f0f3;
-  --acento-suave: #ffe2e8; --sombra: 0 2px 5px rgba(29, 35, 64, .035);
+  --acento-suave: #e9ddff; --sombra: 0 2px 5px rgba(29, 35, 64, .035);
   --sombra-painel: -10px 0 32px rgba(29, 35, 64, .1);
-  --c-gray: 80, 80, 95; --c-blue: 22, 77, 204; --c-green: 22, 77, 204; --c-yellow: var(--c-red);
-  --c-orange: 184, 31, 64; --c-red: 184, 31, 64; --c-pink: var(--c-red); --c-purple: var(--c-red);
+  --c-gray: 80, 80, 95; --c-blue: 22, 77, 204; --c-green: 22, 77, 204; --c-yellow: 101, 48, 201;
+  --c-orange: 184, 31, 64; --c-red: 184, 31, 64; --c-pink: 125, 35, 183; --c-purple: 101, 48, 201;
   --rotulo-fundo: .1; --rotulo-borda: .55; color-scheme: light;
 }
 :root[data-theme="dark"] {
   --bg: #18181d; --bg-inset: #0c0c10; --bg-subtle: #24242c; --bg-hover: #30303a;
   --borda: var(--borda-suave); --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
-  --link: #ff8294; --primario: #b52c48; --primario-hover: #c73552; --primario-texto: #fff;
-  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #49212c;
+  --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
+  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
-  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: var(--c-red);
-  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: var(--c-red); --c-purple: var(--c-red);
+  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 196, 160, 255;
+  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 222, 158, 255; --c-purple: 196, 160, 255;
   --rotulo-fundo: .15; --rotulo-borda: .6; color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
   --bg: #18181d; --bg-inset: #0c0c10; --bg-subtle: #24242c; --bg-hover: #30303a;
   --borda: var(--borda-suave); --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
-  --link: #ff8294; --primario: #b52c48; --primario-hover: #c73552; --primario-texto: #fff;
-  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #49212c;
+  --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
+  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
-  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: var(--c-red);
-  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: var(--c-red); --c-purple: var(--c-red);
+  --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 196, 160, 255;
+  --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 222, 158, 255; --c-purple: 196, 160, 255;
   --rotulo-fundo: .15; --rotulo-borda: .6; color-scheme: dark;
   }
 }
