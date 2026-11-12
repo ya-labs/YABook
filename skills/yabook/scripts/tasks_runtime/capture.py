@@ -24,8 +24,8 @@ PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
 REASK_AFTER = 8
 RULES = ("Mantenha as tarefas sem pedido, conforme a política: etapa concluída vira registro e próximo passo "
-         "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa, espera por "
-         "alguém vira --aguardando (retorno recebido: --unset aguardando) e mudança de fase move a coluna. Conversa "
+         "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa, espera que a "
+         "coluna não mostra vira --aguardando (QA já é a coluna de validação; retorno: --unset aguardando) e mudança de fase move a coluna. Conversa "
          "anterior sem registro: task capture.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"

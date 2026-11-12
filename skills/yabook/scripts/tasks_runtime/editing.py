@@ -23,8 +23,8 @@ from .precommit_hook import find_terms
 from .store import NIVEIS, Conflict, atomic_write, validate_quadro
 
 EDITABLE = ("titulo", "coluna", "ordem", "prazo", "proximo_passo", "projeto", "demanda", "issue", "nivel", "pai", "pessoal", "ficha",
-            "aguardando")
-TEXT_FIELDS = ("titulo", "proximo_passo", "ficha", "aguardando", "projeto", "demanda", "issue")
+            "aguardando", "descricao")
+TEXT_FIELDS = ("titulo", "descricao", "proximo_passo", "ficha", "aguardando", "projeto", "demanda", "issue")
 COMMIT_MESSAGE = "chore: salva alterações do quadro"
 
 

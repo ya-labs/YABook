@@ -71,6 +71,7 @@ def build_parser():
         command.add_argument("--issue", action="append", help="dono/repo#n, repetível")
         command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
         command.add_argument("--proximo-passo")
+        command.add_argument("--descricao", help="O que é a tarefa: objetivo e escopo em 1 a 3 linhas")
         command.add_argument("--ficha", help="Texto curto do item na observação da ficha de horas")
         command.add_argument("--aguardando", help="De quem ou do quê a tarefa espera; --unset aguardando encerra")
         command.add_argument("--sobre")
@@ -131,7 +132,7 @@ def build_parser():
     return parser
 
 
-FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai", "ficha", "aguardando")
+FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai", "ficha", "aguardando", "descricao")
 
 
 def fields(args, existing=None):
