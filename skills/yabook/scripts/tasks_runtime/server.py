@@ -6,6 +6,7 @@ periódica dos arquivos do repositório de dados. Requisições com Host diferen
 de 127.0.0.1/localhost são recusadas (proteção contra DNS rebinding); escrita
 exige o token da página e a mesma origem.
 """
+import base64
 import datetime
 import hashlib
 import json
@@ -66,12 +67,19 @@ class Board:
         base = self.base()
         if base is None:
             return None
-        candidate = (base / target).resolve()
-        if base.resolve() not in candidate.parents and candidate != base.resolve():
-            return None  # referência não sai da base confidencial
-        for path in (candidate, candidate.with_name(candidate.name + ".md")):
-            if path.is_file():
-                return path
+        base = base.resolve()
+        targets = [Path(target)]
+        # Algumas referências incluem o nome da própria pasta da base.
+        if targets[0].parts and targets[0].parts[0] == base.name:
+            targets.append(Path(*targets[0].parts[1:]))
+        for relative in targets:
+            candidate = base / relative
+            for path in (candidate, candidate.with_name(candidate.name + ".md")):
+                resolved = path.resolve()
+                if base not in resolved.parents:
+                    continue  # inclusive links simbólicos e o fallback com .md
+                if resolved.is_file():
+                    return resolved
         return None
 
     def confidential_state(self, data):
@@ -174,6 +182,8 @@ class Board:
         html = html.replace('<script src="app.js" defer></script>',
                             "<script>window.YABOOK_SNAPSHOT = %s;</script>\n<script>\n%s\n</script>" % (payload, js))
         html = html.replace("{{TOKEN}}", "")
+        icon = base64.b64encode((SITE / "icon.svg").read_bytes()).decode("ascii")
+        html = html.replace('"icon.svg"', '"data:image/svg+xml;base64,%s"' % icon)
         path = Path(output).expanduser()
         if path.is_dir() or not path.suffix:
             path = path / "yabook-tasks.html"

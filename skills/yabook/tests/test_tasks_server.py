@@ -100,6 +100,18 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(tasks["issue-agenda-script"]["confidencial"], "bloqueado")
         self.assertNotIn("complemento", board.task("projeto-5723"))
 
+    def test_reference_base_prefix_and_path_boundaries(self):
+        board = server.Board(self.store, self.cfg)
+        expected = self.confidential / "paginas" / "cliente.md"
+        self.assertEqual(board._ref_path("confidencial/paginas/cliente.md"), expected)
+        self.assertEqual(board._ref_path("confidencial/paginas/cliente"), expected)
+        self.assertEqual(board._ref_path("paginas/cliente"), expected)
+        self.assertIsNone(board._ref_path("confidencial/../../fora.md"))
+        self.assertIsNone(board._ref_path(str(self.base / "fora.md")))
+        (self.confidential / "atalho.md").symlink_to(self.base / "fora.md")
+        self.assertIsNone(board._ref_path("atalho"))
+        self.assertIsNone(board._ref_path("confidencial/atalho.md"))
+
     def test_read_routes(self):
         for path in ("/api/ficha", "/api/ficha?semana=1", "/api/semana", "/api/historico?limite=5"):
             with self.subTest(path=path):
@@ -143,6 +155,9 @@ class ServerTest(unittest.TestCase):
         html = Path(result["arquivo"]).read_text(encoding="utf-8")
         self.assertIn("window.YABOOK_SNAPSHOT", html)
         self.assertNotIn('rel="manifest"', html)
+        self.assertIn('src="data:image/svg+xml;base64,', html)
+        self.assertIn('href="data:image/svg+xml;base64,', html)
+        self.assertNotIn('src="icon.svg"', html)
         self.assertNotIn("Agenda </script>", html)  # fechamento de script escapado no JSON
         self.assertIn("Agenda <\\/script>", html)
         self.assertEqual(result["tarefas"], 4)
