@@ -22,8 +22,8 @@ from .commands import Tasks, _append_log, parse_date
 from .precommit_hook import find_terms
 from .store import NIVEIS, Conflict, atomic_write, validate_quadro
 
-EDITABLE = ("titulo", "coluna", "ordem", "prazo", "proximo_passo", "projeto", "demanda", "issue", "nivel", "pai", "pessoal")
-TEXT_FIELDS = ("titulo", "proximo_passo", "projeto", "demanda", "issue")
+EDITABLE = ("titulo", "coluna", "ordem", "prazo", "proximo_passo", "projeto", "demanda", "issue", "nivel", "pai", "pessoal", "ficha")
+TEXT_FIELDS = ("titulo", "proximo_passo", "ficha", "projeto", "demanda", "issue")
 COMMIT_MESSAGE = "chore: salva alterações do quadro"
 
 

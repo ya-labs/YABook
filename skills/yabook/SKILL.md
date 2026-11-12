@@ -26,10 +26,10 @@ Regras: [contexto.md](references/contexto.md).
 
 ## Segurança
 
-- Infira rota e autorização pelo contexto: pedido claro autoriza o objetivo;
-  na dúvida, pergunte.
-- `dev` implementa e valida a issue; fora de `auto`, termina antes de commit/PR.
-  Não é gate exclusivo para editar nem autoriza merge/release.
+- Comandos de prévia sem `do`: só leitura, inclusive em `auto`. Pedido natural
+  explícito autoriza seu objetivo; contexto não promove prévia a execução.
+- `dev` cria a issue necessária, prepara branch, implementa e valida;
+  fora de `auto`, termina antes de commit/PR/merge/release.
 - `bypass` dispensa issue/branch só para a ação anexada; não autoriza Git.
 - `auto` explícito dispensa `do`, `bypass` e aprovação de checkpoints no objetivo.
   Vale na conversa do projeto atual até outro modo; sem persistir ou transferir.

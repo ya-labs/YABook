@@ -110,7 +110,8 @@ def main():
     contract.add_argument("--base", help="Referência anterior à mudança, ex.: main ou o commit de base do PR")
     contract.add_argument("--head", default="HEAD")
     contract.add_argument("--term", action="append", default=[], help="Termo extra, repetível")
-    sub.add_parser("clean-check", help="Diagnóstico da faxina e se ela é recomendada (somente leitura)")
+    clean = sub.add_parser("clean-check", help="Diagnóstico da faxina (somente leitura por padrão)")
+    clean.add_argument("--save-before", action="store_true", help="Salva o diagnóstico anterior na execução autorizada")
     done = sub.add_parser("clean-done", help="Registra a faxina concluída na base")
     done.add_argument("--batches", type=int, required=True, help="Lotes aplicados na faxina")
     done.add_argument("--note", default="")
@@ -139,7 +140,7 @@ def main():
         config = Path(os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json")))
         cfg = read_json(config) if config.exists() else {}
         if args.command == "clean-check":
-            result = maintenance.check(vault, cfg)
+            result = maintenance.check(vault, cfg, save_before=args.save_before)
         else:
             assessment = dict(verdict="update", reason="Faxina da memória concluída", utility="Base a recomendar a próxima faxina",
                               application="Manutenção periódica", evidence_status="Lotes aplicados: %d" % args.batches)

@@ -228,7 +228,7 @@ class HooksTest(unittest.TestCase):
             self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash",
             tool_input={"command": "python3 yabook_memory.py --root " + self.tmp.name + " sync"}))
-        self.assertNotIn("permissionDecision", result.get("hookSpecificOutput", {}))  # manutenção do objetivo de memória
+        self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")  # outro objetivo
         result = hook.run(dict(self.event, hook_event_name="PreToolUse", tool_name="Bash",
             tool_input={"command": "python3 yabook_memory.py --root /outra/base sync"}))
         self.assertEqual(result["hookSpecificOutput"]["permissionDecision"], "deny")  # base errada continua barrada
@@ -304,7 +304,7 @@ class HooksTest(unittest.TestCase):
                                  tool_input={"command": "python3 yabook_memory.py --root " + self.tmp.name + " " + command}))
         self.assertNotIn("permissionDecision", inspect("learn --input data.json --actor demo").get("hookSpecificOutput", {}))
         self.assertEqual(inspect("apply P-example --approval-hash hash")["hookSpecificOutput"]["permissionDecision"], "deny")
-        self.assertNotIn("permissionDecision", inspect("learning-policy --mode automatic").get("hookSpecificOutput", {}))
+        self.assertEqual(inspect("learning-policy --mode automatic")["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertEqual(inspect("learn --config /other/config.json --input data.json --actor demo")["hookSpecificOutput"]["permissionDecision"], "deny")
         hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="$yabook do memory policy manual"))
         self.assertNotIn("permissionDecision", inspect("learning-policy --mode manual").get("hookSpecificOutput", {}))

@@ -2,12 +2,11 @@
 
 ## Objetivo
 
-Desenvolver a demanda atual de ponta a ponta até a validação, sem exigir que a
-pessoa solicite separadamente cada pré-requisito operacional.
+Desenvolver até a validação, incluindo os pré-requisitos operacionais.
 
-`dev` é o atalho operacional para a implementação da issue atual. Ele não é um
-gate exclusivo para editar arquivos e termina antes de commit, Pull Request e
-merge, salvo quando outro comando encadeado autorizar essas entregas.
+`dev` é executivo, exceção explícita às prévias sem `do`: cria a issue necessária,
+prepara sua branch e implementa até a validação. Termina antes de commit, PR e
+merge, salvo autorização encadeada; não é gate exclusivo para editar.
 
 Em `auto`, implemente, valide e organize commits sem `do` ou checkpoint aprovado.
 Escolha issue, pacote ou ajuste pontual documentado; este dispensa issue/branch.
@@ -29,8 +28,8 @@ Use para tarefa pequena, clara e de baixo risco. É uma rota `C3`.
 
 ### `$yabook dev`
 
-É o fluxo balanceado `C3`: inspecione o necessário, implemente com segurança,
-valide o escopo e apresente `Como testar` com o relatório técnico obrigatório.
+Fluxo balanceado `C3`: inspecione, implemente, valide e apresente `Como testar`
+com o relatório técnico obrigatório.
 
 ### `$yabook dev step`
 
@@ -57,9 +56,8 @@ resultado contextual para parecer antes do avanço.
 
 Use para demanda complexa sob pedido explícito. É uma rota `C4`.
 
-Pode investigar documentação relacionada, arquitetura e impactos maiores.
-Informe o motivo da profundidade, leia em lotes filtrados e resuma cada lote
-antes de ampliar novamente. `full` não amplia escopo nem permissões.
+Investigue documentação, arquitetura e impactos; justifique a profundidade e
+leia em lotes filtrados. `full` não amplia escopo nem permissões.
 
 ## Descoberta da demanda
 
@@ -72,11 +70,11 @@ antes de ampliar novamente. `full` não amplia escopo nem permissões.
 7. Consulte GitHub somente quando faltar informação da issue, vínculo, status
    ou preparação da branch.
 8. Se mais de uma issue for plausível, peça a escolha.
-9. Fora de `auto` ou ajuste autorizado via `bypass`, se não houver issue, pare
-   e indique `$yabook do: issue`.
-
-Não crie uma issue silenciosamente.
-Em `auto`, crie a issue necessária e informe; ajuste pontual elegível dispensa issue.
+9. Sem issue adequada e com demanda delimitada, crie-a conforme o contrato:
+   título, corpo, labels oficiais e Size no Project. Informe a criação,
+   sem exigir `do issue` separado.
+10. Reutilize issue existente; ambiguidade material exige esclarecimento.
+Ajuste pontual autorizado por `bypass` ou elegível em `auto` pode dispensar issue.
 Se workspace, branch e issue apontarem para repositórios incompatíveis,
 interrompa antes de qualquer escrita.
 
@@ -92,7 +90,7 @@ Quando workspace, issue, branch e demanda já estiverem inequívocos:
 
 ## Preparação automática
 
-Quando houver issue inequívoca, `dev` aciona:
+Com issue existente ou criada, `dev` aciona sem pedir `do branch` separado:
 
 - avaliar checkpoints pendentes;
 - atualizar a base necessária;

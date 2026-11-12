@@ -18,7 +18,7 @@ PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
 NIVEIS = ("epico", "historia", "tarefa")
 CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
 ORDER = ("id", "tipo", "nivel", "titulo", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "pessoal",
-         "prazo", "proximo_passo", "sobre", "resposta", "refs", "criada", "atualizada")
+         "prazo", "proximo_passo", "ficha", "sobre", "resposta", "refs", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
 _ISSUE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9_.-]+#\d+")
@@ -285,7 +285,7 @@ class TaskStore:
             raise ValueError("`pessoal` precisa ser true ou false")
         if "nivel" in data and data["nivel"] not in NIVEIS:
             raise ValueError("Nível inválido: %r; use %s" % (data["nivel"], ", ".join(NIVEIS)))
-        for key in ("projeto", "demanda", "pai", "proximo_passo", "sobre", "resposta", "criada", "atualizada"):
+        for key in ("projeto", "demanda", "pai", "proximo_passo", "ficha", "sobre", "resposta", "criada", "atualizada"):
             if key in data and not isinstance(data[key], str):
                 raise ValueError("`%s` precisa ser texto" % key)
         if "prazo" in data:

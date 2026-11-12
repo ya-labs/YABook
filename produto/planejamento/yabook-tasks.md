@@ -175,16 +175,19 @@ os eventos existentes:
 
 ## Ficha de horas
 
-- Conta na ficha a tarefa com `demanda`, `projeto` ou `tipo: especificacao`.
+- Conta na ficha a tarefa com `demanda` ou `projeto` na cadeia, inclusive a `tipo: especificacao`; sem código, a tarefa é pessoal por padrão.
   Com `demanda` e `projeto`, as horas vão para a demanda.
 - A sugestão divide as horas do dia configuradas, 8 por padrão, entre as
   tarefas que contam, na proporção das janelas de atividade e com
   arredondamento configurado, 1 hora por padrão.
 - As demais tarefas são extras: ficam registradas no dia com horas estimadas,
   fora do total.
-- A ficha apresenta tipo, código, início e fim opcionais, total e observação. A
-  observação é gerada na máquina que possui a base confidencial e não é
-  versionada.
+- A ficha apresenta tipo, código, início e fim opcionais, total e observação.
+  Demanda dispensa observação; nas demais linhas ela resume o que foi feito no
+  dia (`Desenvolvimento: item; item.`), com o texto curto `ficha` de cada
+  tarefa, sem registro, datas nem números. A observação ajustada na confirmação
+  prevalece; o complemento confidencial aparece à parte, só na máquina que
+  possui a base.
 - Lançamentos manuais (`task log`) cobrem trabalho fora do agente.
 
 ## Site
