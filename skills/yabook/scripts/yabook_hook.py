@@ -19,6 +19,8 @@ from memory_runtime.core import Vault, digest, read_json, write_json
 METHOD = """YABook ativo. Aplique o método YA LABS no projeto conforme AGENTS.md local.
 Antes de editar confira branch, worktree, staged/unstaged e último commit.
 Git e SVN seguem o pedido da pessoa e o roteamento, inferidos pelo contexto; na dúvida, pergunte.
+Comandos de prévia sem do são somente leitura, inclusive em auto; linguagem natural pode autorizar execução.
+dev é executivo: pode criar a issue necessária e preparar sua branch; termina antes de commit/PR.
 Fora de auto, edição e push em main/dev/release exigem exceção pedida e o hook barra force
 push, merge sem pedido, descarte de trabalho e troca de branch com worktree sujo.
 Auto libera essas travas no objetivo, só nesta sessão/projeto. Preserve trabalho alheio.
@@ -148,7 +150,7 @@ def deny(reason):
 
 YABOOK_INVOCATION = r"(?:[$/]?yabook(?::yabook)?)"
 YABOOK_PREFIX = re.compile(
-    r"^(?:" + YABOOK_INVOCATION + r"|\[" + YABOOK_INVOCATION + r"\]\([^\n)]+\))[:,]?\s+", re.I
+    r"^(?:" + YABOOK_INVOCATION + r"|\[" + YABOOK_INVOCATION + r"\]\([^\n)]+\))[:,]?(?:\s+|$)", re.I
 )
 INLINE_INVOCATION = re.compile(r"(?:^|(?<=\s))[$/]yabook(?::yabook)?[:,]?\s+", re.I)
 MODES = ("auto", "study", "work", "prod")
@@ -221,14 +223,27 @@ def prompt_grant(text, state, root):
         if match:
             for part in command_chain(line[match.end():]):
                 commands.append(YABOOK_PREFIX.sub("", part, count=1))
+    if commands:
+        # Um novo comando não herda autorização de outro objetivo.
+        state.update(grant=None, merge_requested=False, read_only=True, previews=[])
+    else:
+        request = re.sub(r"`[^`]*`|\"[^\"]*\"|'[^']*'", "", clean).strip()
+        if re.match(r"(?:como|qual|quais|por que|porque|o que|será que)\b", request, re.I):
+            state.update(grant=None, merge_requested=False, read_only=True, previews=[])
+        elif execution_request(request):
+            state.update(grant={"kind": "context", "root": root, "request": request},
+                         read_only=False, previews=[], merge_requested=False)
+    executions = set()
     for command in commands:
         command = command.strip()
         mode = intended_mode(command)
         if mode and mode[0] == "auto":
-            state.update(auto=True, project=root, goal=mode[1], grant=None)
+            state.update(auto=True, project=root, goal=mode[1], grant=None, read_only=False)
         elif mode:
-            state.update(auto=False, grant=None)
+            state.update(auto=False, grant=None, read_only=False)
         elif re.match(r"do\W+memory\b", command, re.I):
+            state["read_only"] = False
+            executions.add("memory")
             cfg = config()
             # Pontuação final e caixa não mudam a operação pedida.
             operation = re.sub(r"[.!;,]+$", "", re.sub(r"^do\W+memory\b", "", command, flags=re.I).strip())
@@ -255,18 +270,41 @@ def prompt_grant(text, state, root):
                     except (OSError, ValueError, KeyError):
                         pass
         elif re.match(r"do\b\W", command, re.I):
+            state["read_only"] = False
             action = re.sub(r"\W+$", "", re.sub(r"^do\W+", "", command, flags=re.I).split(maxsplit=1)[0]).casefold()
             # Ação com erro de digitação ("do comit") vale pela ação conhecida mais próxima.
             close = difflib.get_close_matches(action, ACTIONS, n=1, cutoff=0.75)
             state["grant"] = {"kind": close[0] if close else action, "root": root}
+            executions.add(close[0] if close else action)
         elif re.match(r"dev\b", command, re.I):
+            state["read_only"] = False
             state["grant"] = {"kind": "dev", "root": root}
+            executions.update(("issue", "branch"))
         elif re.match(r"bypass\b", command, re.I):
+            state["read_only"] = False
             state["grant"] = {"kind": "bypass", "root": root, "request": command[7:]}
+        elif execution_request(command):
+            state.update(grant={"kind": "context", "root": root, "request": command}, read_only=False)
+        else:
+            state["previews"].append((command.split(maxsplit=1) or ["help"])[0].rstrip(".!:,;").casefold())
+    if commands:
+        state["previews"] = sorted(set(state["previews"]) - executions)
     # Pedido de merge em qualquer forma ("faça o merge", "pode mergear") vale para a sessão.
-    if re.search(r"\bmerg", clean, re.I) and not re.search(r"\b(?:não|nao|sem)\s+(?:\w+\s+){0,2}merg", clean, re.I):
+    merge_text = re.sub(r"`[^`]*`|\"[^\"]*\"|'[^']*'", "", clean).strip()
+    merge_request = re.match(r"(?:(?:por favor|você pode|pode|faça|faca|fazer|faz|o)\W+)*(?:merge|mergear)\b", merge_text, re.I)
+    if not state.get("read_only") and merge_request:
         state["merge_requested"] = True
     return state
+
+
+def execution_request(text):
+    """Pedidos diretos usuais; a skill continua responsável pela intenção e pelo escopo."""
+    return bool(re.match(
+        r"(?:por favor[,\s]+)?(?:(?:você\s+)?pode\s+)?"
+        r"(?:cri(?:e|a|ar)|abr(?:a|e|ir)|implement(?:e|a|ar)|desenvolv(?:a|e|er)|corr(?:ija|igir)|"
+        r"apli(?:que|ca|car)|execut(?:e|a|ar)|faça|fazer|faz|publi(?:que|ca|car)|envi(?:e|a|ar)|"
+        r"commit(?:ar|a)?|alter(?:e|a|ar)|atualiz(?:e|a|ar)|revert(?:a|er)|"
+        r"limp(?:e|a|ar)|organiz(?:e|a|ar)|sincroniz(?:e|a|ar)|merg(?:e|ear))\b", text, re.I))
 
 
 def command_parts(command):
@@ -336,7 +374,7 @@ def dangerous_git(segment, target, state, grant, auto):
     if "-C" in words:
         words = words[:words.index("-C")] + words[words.index("-C") + 2:]
     sub = next((w for w in words if not w.startswith("-")), None)
-    explicit = grant.get("root") == target and grant.get("kind") not in (None, "dev")
+    explicit = grant.get("root") == target and grant.get("kind") not in (None, "dev", "context")
     if sub == "push":
         if any(w in ("-f", "--force") or w.startswith("--force=") or w.startswith("+") for w in words):
             return "push --force reescreve histórico remoto; use --force-with-lease com pedido explícito."
@@ -417,14 +455,102 @@ def inside(path, root):
     return path == root or root in path.parents
 
 
+MEMORY_WRITES = {"bootstrap", "prepare", "discard", "apply", "publish", "recover", "init-apply", "sync",
+                 "sync-apply", "source-add", "learn", "learn-triggers", "learning-policy", "clean-done", "migration-start",
+                 "migration-checkpoint", "vectors-import"}
+TASK_WRITES = {"add", "edit", "forget", "start", "ask", "answer", "log", "sync", "policy", "analyze", "init-apply"}
+
+
+def service_call(parts, filename):
+    """Só um script invocado por Python, não um nome citado em rg/cat ou num argumento."""
+    for index, token in enumerate(parts[:-1]):
+        if not re.fullmatch(r"python(?:\d+(?:\.\d+)*)?", Path(token).name):
+            continue
+        # Não interprete argumentos de rg/cat como execução de Python.
+        start = max((i + 1 for i, p in enumerate(parts[:index]) if p in ("&&", "||", ";", "|")), default=0)
+        prefix = parts[start:index]
+        if prefix[:1] == ["rtk"]:
+            prefix = prefix[1:]
+            if prefix[:1] == ["proxy"]:
+                prefix = prefix[1:]
+        if prefix:
+            continue
+        index += 1
+        while index < len(parts) and parts[index] in ("-B", "-u", "-I", "-S"):
+            index += 1
+        if index < len(parts) and Path(parts[index]).name == filename:
+            return parts[index + 1:]
+    return []
+
+
+def cli_service(arguments):
+    """Primeiro subcomando, sem confundir consulta/valor de opção com uma mutação."""
+    if "--help" in arguments or "-h" in arguments:
+        return ""
+    index = 0
+    while index < len(arguments):
+        token = arguments[index]
+        if token in ("--root", "--config"):
+            index += 2
+        elif token.startswith("-"):
+            index += 1
+        else:
+            return token
+    return ""
+
+
+def preview_write(name, parts, command):
+    """Mutações conhecidas: complementa a skill, sem interpretar shell arbitrário."""
+    if name in ("apply_patch", "Edit", "Write", "MultiEdit", "NotebookEdit"):
+        return True
+    if re.search(r"(?:^|_)(?:create|update|delete|remove|add|write|edit|send|publish|apply|set)(?:_|$)", name):
+        return True
+    memory = service_call(parts, "yabook_memory.py")
+    if memory:
+        return bool(cli_service(memory) in MEMORY_WRITES or
+                    cli_service(memory) and set(memory) & {"--save-before", "--output", "--serve"})
+    tasks = service_call(parts, "yabook_tasks.py")
+    if tasks:
+        return bool(cli_service(tasks) in TASK_WRITES or
+                    cli_service(tasks) and set(tasks) & {"--apply", "--confirm", "--serve", "--output"})
+    if svn_mutation(parts):
+        return True
+    for index, token in enumerate(parts):
+        if Path(token).name == "git":
+            rest = parts[index + 1:]
+            if "-C" in rest:
+                offset = rest.index("-C"); rest = rest[:offset] + rest[offset + 2:]
+            sub = next((p for p in rest if not p.startswith("-")), "")
+            if sub == "branch" and any(flag in rest for flag in ("--show-current", "--list")) and not set(rest) & {"-d", "-D", "-m", "-M", "-c", "-C"}:
+                continue
+            if sub not in ("status", "diff", "log", "show", "rev-parse", "ls-files", "ls-tree", "show-ref", "cat-file", "check-ref-format"):
+                return True
+        if Path(token).name == "gh":
+            rest = parts[index + 1:]
+            if set(rest) & {"create", "edit", "delete", "close", "reopen", "merge", "item-add", "item-edit"}:
+                return True
+            if "api" in rest and (re.search(r"\bmutation\b", command) or
+                                  set(rest) & {"-f", "-F", "--field", "--raw-field", "--method", "-X"}):
+                return not ("graphql" in rest and not re.search(r"\bmutation\b", command))
+    return False
+
+
 def inspect_call(event, state, root):
-    name = event.get("tool_name", "")
+    name = event.get("tool_name", "").split(".")[-1]
     args = event.get("tool_input", {})
     command = args.get("command", args.get("cmd", "")) if isinstance(args, dict) else ""
     parts = command_parts(command)
     grant = state.get("grant") or {}
     authorized = grant.get("root") == root
-    auto = bool(state.get("auto") and state.get("project") == root)
+    auto = bool(state.get("auto") and state.get("project") == root and not state.get("read_only"))
+    domain = ("memory" if service_call(parts, "yabook_memory.py") else
+              "task" if service_call(parts, "yabook_tasks.py") else
+              next((p for p in ("issue", "branch", "commit", "pr", "release", "push")
+                    if p in name.split("_") or p in parts), ""))
+    if "pull_request" in name:
+        domain = "pr"
+    if (state.get("read_only") or domain in state.get("previews", [])) and preview_write(name, parts, command):
+        return deny("YABook: comando de prévia é somente leitura; use do ou um pedido explícito de execução.")
     edit = name in ("apply_patch", "Edit", "Write", "MultiEdit")
     branch = git(root, "branch", "--show-current")
     protected = branch in ("main", "dev") or branch.startswith("release")
@@ -450,14 +576,30 @@ def inspect_call(event, state, root):
     # Reverter descarta trabalho local sem volta; o resto do SVN segue o julgamento do agente.
     if svn_mutation(spaced) == "revert" and not (auto or authorized and grant.get("kind") in ("revert", "bypass")):
         return deny("YABook: svn revert descarta alterações locais; confirme com a pessoa antes.")
-    if any(Path(p).name == "yabook_memory.py" for p in parts):
-        services = ("apply", "publish", "recover", "init-apply", "sync", "source-add", "learn", "learn-triggers", "learning-policy")
-        service = next((p for p in parts if p in services), None)
+    memory = service_call(parts, "yabook_memory.py")
+    if memory:
+        service = cli_service(memory)
+        service = service if service in MEMORY_WRITES else None
+        if "clean-check" in memory and "--save-before" in memory:
+            service = "clean-check"
         if service:
             cfg = config()
             target = parts[parts.index("--root") + 1] if "--root" in parts else ""
             if not target:
                 return deny("YABook: destino de memória ausente.")
+            allowed = {"memory": {"prepare", "discard", "apply", "publish", "clean-check", "clean-done"},
+                       "memory_policy": {"learning-policy"}, "memory_source": {"source-add"},
+                       "memory_init": {"init-apply"}, "memory_publish": {"publish"},
+                       "memory_recover": {"recover", "publish"},
+                       "memory_sync": {"sync", "sync-apply", "publish"}}
+            maintenance = (service in allowed.get(grant.get("kind"), set()) and
+                           (grant.get("root") == str(Path(target).expanduser().resolve()) or
+                            service == "init-apply" and grant.get("kind") == "memory_init"))
+            natural = authorized and grant.get("kind") == "context"
+            # O runtime da política decide entre aprendizado e proposta; prévias já foram barradas.
+            learning = service in ("learn", "learn-triggers")
+            if not (auto or maintenance or natural or learning):
+                return deny("YABook: escrita de memória exige do memory ou pedido explícito correspondente.")
             # ~ não é expandido pelo shlex: comparar caminhos já expandidos.
             if service != "init-apply" and (not cfg.get("memory_root") or Path(target).expanduser().resolve() != Path(cfg["memory_root"]).expanduser().resolve()):
                 return deny("YABook: destino de memória não configurado.")
@@ -624,6 +766,8 @@ def run(event):
         state["learned"] = False  # learn dispensa o pedido do Stop só no próprio turno
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."
+        if state.get("read_only"):
+            text += " Comando de prévia: somente leitura, sem persistir propostas, tarefas ou memória; não execute nem publique."
         cfg = config()
         details = dict(result="sem_busca")
         if cfg.get("memory_root") and event.get("prompt", "").strip() and needs_memory(event["prompt"]):
@@ -652,7 +796,7 @@ def run(event):
                 # O tipo e a mensagem do erro ficam no log local para diagnóstico.
                 details = dict(result="erro", error=type(error).__name__ + ": " + str(error)[:160])
                 text += "\nBusca de memória indisponível; use fontes atuais do projeto."
-        tasks_text = tasks_capture("prompt", path.stem, None, event.get("prompt", ""))
+        tasks_text = "" if state.get("read_only") else tasks_capture("prompt", path.stem, None, event.get("prompt", ""))
         if tasks_text:
             text += "\n" + tasks_text
         return context(event_name, text, **details)
@@ -684,6 +828,8 @@ def run(event):
             apply_learning_queue()
         return {}
     if event_name == "Stop":
+        if state.get("read_only"):
+            return {}
         apply_learning_queue()
         publish_automatic(config())
         tasks_capture("stop", config_path())

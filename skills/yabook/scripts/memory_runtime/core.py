@@ -167,7 +167,31 @@ class Vault:
                     self._lock_depth -= 1
                     fcntl.flock(stream, fcntl.LOCK_UN)
 
-    def snapshot(self):
+    def snapshot(self, read_only=False):
+        if read_only:
+            # Leitura compartilha a trava existente, sem criar diretório/arquivo.
+            import fcntl
+            lock = self.local / "lock"
+            try:
+                stream = lock.open("r")
+            except FileNotFoundError:
+                try:
+                    data = self._snapshot()
+                except (OSError, ValueError):
+                    if lock.exists():
+                        return self.snapshot(read_only=True)
+                    raise
+                # Um escritor pode ter começado durante a primeira leitura.
+                if lock.exists():
+                    return self.snapshot(read_only=True)
+                if (self.local / "transaction.json").exists():
+                    raise ValueError("Transação interrompida; recuperar antes de consultar")
+                return data
+            with stream:
+                fcntl.flock(stream, fcntl.LOCK_SH)
+                if (self.local / "transaction.json").exists():
+                    raise ValueError("Transação interrompida; recuperar antes de consultar")
+                return self._snapshot()
         try:
             with self.lock():
                 if (self.local / "transaction.json").exists():

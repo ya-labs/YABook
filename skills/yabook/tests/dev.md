@@ -8,6 +8,11 @@ commits documentados e sem publicação além do pedido; veja `workflow.md`.
 
 Confirme que:
 
+- `dev` cria a issue necessária quando a demanda estiver delimitada, com labels
+  e Size, prepara a branch vinculada e informa os artefatos sem pedir `do issue`
+  ou `do branch` separadamente; reutiliza os existentes e esclarece ambiguidade;
+- `issue` e `memory clean` sem `do` só consultam, inclusive em `auto`; pedidos
+  naturais explícitos podem autorizar execução dentro do objetivo;
 - `dev quick` começa com no máximo 3 arquivos, evita GitHub já resolvido e usa
   validação focal;
 - `dev` mantém descoberta e validação balanceadas;

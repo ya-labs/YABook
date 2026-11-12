@@ -79,7 +79,7 @@ def status(vault, cfg, snapshot=None):
 
 def diagnose(vault, cfg):
     """Diagnóstico somente leitura para `memory clean`: o que é mecânico e o que exige julgamento."""
-    snapshot = vault.snapshot()
+    snapshot = vault.snapshot(read_only=True)
     limits = settings(cfg)
     entries = list(snapshot_entries(snapshot))
     found = problems(snapshot)
@@ -118,10 +118,11 @@ def portable(item):
     return bool(item.get("summary")) or not LOCAL_REPORT.search(item.get("ref", ""))
 
 
-def check(vault, cfg):
-    """Diagnóstico que também fica salvo localmente como o "antes" da próxima conclusão."""
+def check(vault, cfg, save_before=False):
+    """Consulta não persiste; a execução salva explicitamente o diagnóstico anterior."""
     report = diagnose(vault, cfg)
-    write_json(vault.local / "clean-check.json", dict(at=now().isoformat(), totals=report["totals"]))
+    if save_before:
+        write_json(vault.local / "clean-check.json", dict(at=now().isoformat(), totals=report["totals"]))
     return report
 
 

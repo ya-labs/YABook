@@ -87,6 +87,11 @@ Quando alterar arquivos neste repositório, termine a resposta com uma sugestão
 
 ### Trava obrigatória de Git
 
+Comandos de prévia sem `do` são somente leitura, inclusive em `auto`. Pedidos
+explícitos em linguagem natural autorizam seu objetivo; contexto não promove uma
+prévia à execução. `dev` é executivo: pode criar a issue e preparar a branch
+necessárias, terminando antes de commit, PR e merge fora de `auto`.
+
 Mutações Git e SVN seguem o pedido da pessoa, interpretado pelo contexto como no
 roteamento: “pode commitar”, “publica e abre o PR” ou `$yabook do <ação>` autorizam
 o objetivo inteiro, com os passos necessários. Na dúvida sobre o que foi pedido,

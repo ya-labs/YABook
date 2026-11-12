@@ -19,7 +19,8 @@ em arquivo, definição por área, memória ou repasse para outra sessão.
   separado; o hook libera todas as travas. Release só quando fizer parte do pedido.
   Recusas explícitas da pessoa (ex.: não reescrever histórico) continuam valendo.
 - Comandos informativos, discussões e pedidos de prévia continuam sem escrita.
-  Ativar `auto` não converte uma pergunta em autorização de implementação.
+  Comandos de prévia sem `do` permanecem somente leitura; o contexto não os
+  promove a execução. Ativar `auto` não autoriza implementar uma pergunta.
 
 ## Organização e limites
 

@@ -122,6 +122,12 @@ autorização; não persista a ativação. Veja [Skill YABook](../guias/skill-ya
 
 ## GitHub Projects
 
+Na IA, comandos de prévia sem `do`, como `$yabook issue`, só apresentam o
+artefato, mesmo em `auto`. `$yabook do issue` e pedidos explícitos em linguagem
+natural ("crie uma issue") autorizam a criação. `dev` é executivo: inclui criar
+a issue necessária e preparar sua branch antes de desenvolver; reutiliza as
+existentes e pede esclarecimento diante de ambiguidade material.
+
 O GitHub Project é o quadro oficial de acompanhamento do projeto.
 
 Em projetos da YA LABS, toda issue relevante deve ser vinculada ao Project aplicável. Quando ainda não houver Project definido, a IA deve perguntar ou registrar a exceção.
