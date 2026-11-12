@@ -143,8 +143,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 /* Blink/WebKit: as propriedades padrão não podem suplantar os pseudoelementos. */
 @supports selector(::-webkit-scrollbar) {
   * { scrollbar-width: auto; scrollbar-color: auto; }
-  *::-webkit-scrollbar { width: 12px; height: 12px; }
-  *::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: var(--scrollbar-trilho); }
+  *::-webkit-scrollbar { width: 8px; height: 8px; background: transparent; }
+  *::-webkit-scrollbar-track { border-radius: 999px; background: var(--scrollbar-trilho); }
+  *::-webkit-scrollbar-corner { background: transparent; }
   *::-webkit-scrollbar-thumb { min-width: 32px; min-height: 32px; border: 2px solid var(--scrollbar-trilho); border-radius: 10px; background: var(--scrollbar-thumb); }
   *::-webkit-scrollbar-thumb:hover, *::-webkit-scrollbar-thumb:active { background: var(--scrollbar-hover); }
   *::-webkit-scrollbar-button { display: none; }
