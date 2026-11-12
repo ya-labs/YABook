@@ -266,22 +266,113 @@ function card(task, options = {}) {
 }
 
 // Registro em Markdown simples, montado em nós (sem innerHTML): títulos, listas, parágrafos e `código`.
-function markdown(text) {
-  const nodes = [];
-  let list = null, para = [];
-  const inline = (line) => line.split(/(`[^`]+`)/).map((part) => part.startsWith("`") && part.endsWith("`") && part.length > 1 ? h("code", {}, part.slice(1, -1)) : part);
-  const flush = () => { if (para.length) { nodes.push(h("p", {}, inline(para.join(" ")))); para = []; } };
-  for (const raw of (text || "").split("\n")) {
-    const line = raw.trimEnd();
-    const heading = line.match(/^(#{1,4})\s+(.*)$/);
-    const item = line.match(/^\s*[-*]\s+(.*)$/);
-    if (heading) { flush(); list = null; nodes.push(h("h3", {}, inline(heading[2]))); }
-    else if (item) { flush(); if (!list) { list = h("ul", {}); nodes.push(list); } list.append(h("li", {}, inline(item[1]))); }
-    else if (!line.trim()) { flush(); list = null; }
-    else { list = null; para.push(line.trim()); }
+// Texto sempre vira nós DOM; HTML e protocolos de links não confiáveis não são executados.
+function markdownInline(text, depth = 0) {
+  if (depth > 4) return [text];
+  const tokens = /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|\[[^\]\n]+\]\([^\s)]+\)|\*[^*\n]+\*)/g;
+  return text.split(tokens).filter(Boolean).map((part) => {
+    if (part.startsWith("`") && part.endsWith("`")) return h("code", {}, part.slice(1, -1));
+    if (/^(\*\*[^*]+\*\*|__[^_]+__)$/.test(part)) return h("strong", {}, markdownInline(part.slice(2, -2), depth + 1));
+    if (part.startsWith("*") && part.endsWith("*")) return h("em", {}, markdownInline(part.slice(1, -1), depth + 1));
+    const link = part.match(/^\[([^\]]+)\]\(([^\s)]+)\)$/);
+    if (link && /^https?:\/\//i.test(link[2])) return h("a", { href: link[2], target: "_blank", rel: "noopener noreferrer" }, link[1]);
+    return part;
+  });
+}
+
+function markdown(text, depth = 0) {
+  const nodes = [], lines = (text || "").replace(/\r\n?/g, "\n").split("\n");
+  let i = 0, para = [], lists = [];
+  const flush = () => { if (para.length) { nodes.push(h("p", {}, markdownInline(para.join(" ")))); para = []; } };
+  const cells = (line) => line.trim().replace(/^\|/, "").replace(/\|$/, "").split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, "|"));
+  const separator = (line) => line && line.includes("|") && cells(line).every((cell) => /^:?-{3,}:?$/.test(cell));
+  // Front matter é informação de origem, recolhida sem descartar campos ou linhas.
+  if (lines[0]?.trim() === "---") {
+    const end = lines.findIndex((line, index) => index > 0 && /^(---|\.\.\.)\s*$/.test(line));
+    if (end > 0) {
+      const fields = [];
+      for (const line of lines.slice(1, end)) {
+        const field = line.match(/^([\w-]+):\s*(.*)$/);
+        if (field) fields.push({ name: field[1], value: field[2] });
+        else if (fields.length) fields[fields.length - 1].value += "\n" + line;
+        else fields.push({ name: "Metadados", value: line });
+      }
+      nodes.push(h("details", { class: "documento-metadados" }, h("summary", {}, icon("campos"), "Metadados do arquivo"),
+        h("dl", {}, fields.map((field) => [h("dt", {}, field.name), h("dd", {}, field.value)]))));
+      i = end + 1;
+    }
+  }
+  for (; i < lines.length; i++) {
+    const line = lines[i].trimEnd();
+    const heading = line.match(/^(#{1,6})\s+(.*)$/);
+    const item = line.match(/^(\s*)([-*+] |\d+[.)] )(.*)$/);
+    const fence = line.match(/^\s*(`{3,}|~{3,})(.*)$/);
+    if (fence) {
+      flush(); lists = [];
+      const code = [], marker = fence[1][0], length = fence[1].length;
+      while (++i < lines.length) {
+        if (new RegExp("^\\s*" + marker + "{" + length + ",}\\s*$").test(lines[i])) break;
+        code.push(lines[i]);
+      }
+      nodes.push(h("pre", { class: "documento-codigo", tabindex: "0", role: "region", "aria-label": "Trecho de código" }, h("code", {}, code.join("\n"))));
+    } else if (line.includes("|") && separator(lines[i + 1])) {
+      flush(); lists = [];
+      const headers = cells(line), align = cells(lines[++i]), rows = [];
+      while (i + 1 < lines.length && lines[i + 1].trim() && lines[i + 1].includes("|")) rows.push(cells(lines[++i]));
+      const attrs = (index) => ({ style: "text-align:" + (align[index]?.endsWith(":") ? align[index].startsWith(":") ? "center" : "right" : "left") });
+      nodes.push(h("div", { class: "tabela-rolagem documento-tabela", role: "region", tabindex: "0", "aria-label": "Tabela: " + headers.join(", ") },
+        h("table", {}, h("thead", {}, h("tr", {}, headers.map((title, index) => h("th", { ...attrs(index), scope: "col" }, markdownInline(title))))),
+          h("tbody", {}, rows.map((row) => h("tr", {}, headers.map((_, index) => h("td", attrs(index), markdownInline(row[index] || "")))))))));
+    } else if (heading) {
+      flush(); lists = [];
+      nodes.push(h("h" + Math.min(heading[1].length + 2, 6), {}, markdownInline(heading[2])));
+    } else if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
+      flush(); lists = []; nodes.push(h("hr", {}));
+    } else if (/^\s*>/.test(line)) {
+      flush(); lists = [];
+      const quote = [line.replace(/^\s*>\s?/, "")];
+      while (i + 1 < lines.length && /^\s*>/.test(lines[i + 1])) quote.push(lines[++i].replace(/^\s*>\s?/, ""));
+      nodes.push(h("blockquote", {}, depth < 4 ? markdown(quote.join("\n"), depth + 1) : h("p", {}, quote.join("\n"))));
+    } else if (item) {
+      flush();
+      const indent = item[1].replace(/\t/g, "    ").length, tag = /^\d/.test(item[2]) ? "ol" : "ul";
+      while (lists.length && (lists.at(-1).indent > indent || (lists.at(-1).indent === indent && lists.at(-1).tag !== tag))) lists.pop();
+      if (!lists.length || lists.at(-1).indent < indent) {
+        const list = h(tag, tag === "ol" ? { start: parseInt(item[2], 10) } : {});
+        if (lists.length) lists.at(-1).last.append(list); else nodes.push(list);
+        lists.push({ indent, tag, list, last: null });
+      }
+      const check = item[3].match(/^\[([ xX])\]\s+(.*)$/);
+      const li = h("li", {}, check ? [h("span", { class: "documento-check", "aria-label": check[1] === " " ? "Pendente: " : "Concluído: " }, check[1] === " " ? "○" : "✓"), markdownInline(check[2])] : markdownInline(item[3]));
+      lists.at(-1).list.append(li); lists.at(-1).last = li;
+    } else if (!line.trim()) { flush(); lists = []; }
+    else if (/^\s+/.test(line) && lists.length) lists.at(-1).last.append(" ", ...markdownInline(line.trim()));
+    else { lists = []; para.push(line.trim()); }
   }
   flush();
   return nodes;
+}
+
+function taskDocument(text) {
+  const match = /^## Registro\s*$/m.exec(text);
+  if (!match) return markdown(text);
+  const after = text.slice(match.index + match[0].length), next = /^#{1,2}\s+/m.exec(after);
+  const log = next ? after.slice(0, next.index) : after;
+  const entries = [], remainder = [];
+  for (const line of log.split("\n")) {
+    const entry = line.match(/^\s*[-*]\s+(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})\s+[—–-]\s*(.*)$/);
+    if (entry) entries.push({ date: entry[1], time: entry[2], text: entry[3] });
+    else if (entries.length) entries.at(-1).text += "\n" + line;
+    else remainder.push(line);
+  }
+  if (!entries.length) return markdown(text);
+  entries.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  return [...markdown(text.slice(0, match.index)), h("section", { class: "registros", "aria-label": "Registro da tarefa" },
+    h("div", { class: "registros-topo" }, h("h3", {}, icon("historico"), "Registro"), h("span", { class: "contador" }, entries.length)),
+    h("p", { class: "registros-legenda" }, "Mais recentes primeiro"), markdown(remainder.join("\n")),
+    h("ol", { class: "registros-lista" }, entries.map((entry) => h("li", { class: "registro-entrada" },
+      h("header", {}, h("time", { datetime: entry.date + "T" + entry.time }, icon("calendario"), fmtDate(entry.date), h("span", {}, entry.time))),
+      h("div", { class: "registro-texto" }, markdown(entry.text)))))), ...markdown(next ? after.slice(next.index) : "")];
 }
 
 function stateLabel(task) {
@@ -337,16 +428,17 @@ async function openTask(id) {
               data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null),
             h("div", { class: "comentario-corpo markdown" },
               data.proximo_passo ? h("div", { class: "proximo-destaque" }, h("h3", {}, icon("seta"), "Próximo passo"), h("p", {}, data.proximo_passo)) : null,
-              detail.body ? markdown(detail.body) : (!data.proximo_passo ? h("p", { class: "vazio" }, "Sem registro.") : null))),
+              detail.body ? taskDocument(detail.body) : (!data.proximo_passo ? h("p", { class: "vazio" }, "Sem registro.") : null))),
           detail.filhos && detail.filhos.length ? h("div", { class: "caixa" },
             h("header", {}, h("h3", {}, data.nivel === "epico" ? "Histórias" : "Itens"),
               epic && data.nivel === "epico" ? h("span", { class: "direita" }, segments(epic.concluidas, epic.historias)) : null),
             detail.filhos.map((child) => h("div", { class: "linha-caixa" }, stateIcon(child), goTo(child),
               h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(child.coluna)}` }), columnName(child.coluna))))) : null,
-          detail.complemento ? h("div", { class: "comentario" }, h("header", {}, icon("cadeado"), h("strong", {}, "Complemento confidencial"), h("span", { class: "vazio" }, " · só nesta máquina")),
+          detail.complemento ? h("section", { class: "comentario documento-confidencial" }, h("header", {}, icon("cadeado"), h("strong", {}, "Complemento confidencial"), h("span", { class: "vazio" }, " · só nesta máquina")),
             h("div", { class: "comentario-corpo markdown" }, markdown(detail.complemento))) : null,
-          Object.entries(detail.referencias || {}).map(([refName, text]) => h("div", { class: "comentario" },
-            h("header", {}, icon("cadeado"), h("strong", {}, refName)),
+          Object.entries(detail.referencias || {}).map(([refName, text]) => h("section", { class: "comentario documento-confidencial" },
+            h("header", {}, icon("cadeado"), h("strong", {}, "Referência confidencial"), h("span", { class: "vazio" }, "Só nesta máquina")),
+            h("p", { class: "documento-origem" }, refName),
             h("div", { class: "comentario-corpo markdown" }, text ? markdown(text) : h("p", { class: "vazio" }, "Bloqueado: base confidencial ausente nesta máquina.")))),
           detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
             ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
@@ -731,7 +823,7 @@ const VIEWS = {
             h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, app.editando
               ? h("input", { class: "horas", "aria-label": `Horas de ${r.rotulo} ${r.codigo || "sem código"}`, type: "number", min: "0", max: "24", step: "0.25", value: sheetValue(day, r),
                   onchange: (e) => setSheetRow(sheet, r, e.target.value) }) : hours(r.total)),
-            h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("pre", { class: "registro" }, r.complemento)) : null),
+            h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
         h("h2", {}, "Extras (fora do total)"),
@@ -1006,6 +1098,7 @@ function restoreControl(saved) {
 function prepareTables(node, name) {
   const tables = [...(node.tagName === "TABLE" ? [node] : []), ...node.querySelectorAll("table")];
   for (const table of tables) {
+    if (table.parentElement?.classList.contains("tabela-rolagem")) continue;
     const title = "Tabela de " + VIEWS[name].titulo;
     table.setAttribute("aria-label", title);
     const wrapper = h("div", { class: "tabela-rolagem", tabindex: "0", role: "region", "aria-label": title });
