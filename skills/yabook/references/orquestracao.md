@@ -21,9 +21,9 @@ Ao receber `$yabook <intenção>`:
 3. considere conversa, workspace resolvido e regras locais;
 4. selecione o menor conjunto de comandos que atende à intenção;
 5. execute automaticamente comandos seguros de leitura no `workdir` resolvido;
-6. avance até encontrar uma decisão necessária ou uma escrita;
+6. execute o objetivo expressamente pedido, até uma decisão material necessária;
 7. peça somente informações que mudem materialmente o caminho;
-8. nunca adicione `do` implicitamente.
+8. não adicione `do` implicitamente a um comando de prévia.
 
 Em `mode: auto` explicitamente ativo, pedidos de execução inequívocos autorizam
 o objetivo e seus pré-requisitos sem `do`, `bypass` ou checkpoints aprovados.
@@ -53,6 +53,8 @@ versão atual ou discutir uma capacidade.
 ## Comandos explícitos
 
 - Execute um comando válido quando ele atender à intenção.
+- Comando de prévia sem `do` é somente leitura, mesmo em `auto`; linguagem
+  natural explícita pode autorizar execução. `dev` é uma exceção executiva.
 - Se outro comando parecer melhor, execute o pedido e apresente uma sugestão
   curta com o motivo.
 - Se o comando for incompatível com a intenção inequívoca, corrija o roteamento
@@ -96,8 +98,7 @@ composição. Não trate comandos inferidos como se tivessem sido digitados.
 - Autorização é inferida como a rota: pedido claro de execução (`do`, “pode
   commitar”, “publica e abre o PR”, “implementa”) autoriza o objetivo e seus
   passos, inclusive Git. Pergunta, discussão ou prévia (`$yabook issue`) não.
-- Comando errado ou incompleto é corrigido pela intenção, sem pedir que a pessoa
-  repita a sintaxe.
+- Corrija a sintaxe pela intenção, sem promover comando de prévia a escrita.
 - Não amplie o objetivo. Fora de `auto`, merge e push em branch protegida exigem
   pedido; em `auto`, entram no objetivo delegado.
 - Diante de dúvida material, pare e peça a decisão da pessoa usuária.

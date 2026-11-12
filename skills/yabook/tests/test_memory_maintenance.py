@@ -45,7 +45,7 @@ class MaintenanceTest(unittest.TestCase):
         status = maintenance.status(self.vault, self.cfg)
         self.assertTrue(status["due"]); self.assertEqual(status["orphans"], 1)
         self.assertIn("lotes", status["reasons"][0])
-        before = maintenance.check(self.vault, self.cfg)["totals"]
+        before = maintenance.check(self.vault, self.cfg, save_before=True)["totals"]
         for invalid in (-1, 3):  # negativo ou mais lotes que os aplicados (2) desde a criação
             with self.assertRaisesRegex(ValueError, "não batem"):
                 maintenance.done_change(self.vault, invalid)

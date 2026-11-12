@@ -304,12 +304,14 @@ origem identificada; confirme fontes atuais antes de decisões críticas.
 
 ## Faxina periódica
 
-`memory clean` ("faxina", "limpa a memória") roda `clean-check`: diagnóstico com
+`memory clean` roda `clean-check` somente leitura: diagnóstico com
 `mechanical` (resumos desatualizados, registros sem grupo) e `judgment` (propostas
 antigas, hipóteses paradas, gatilhos de uma palavra, evidência em relato de
 sessão ou caminho local sem `summary`), mais `contract-review` desde a última
-faxina. Sem pedido de execução, mostre o diagnóstico e o plano por tema.
-Executada, rode `clean-check` antes (fica salvo como "antes"), aplique um lote por
+faxina. Esse comando sem `do` só apresenta diagnóstico/plano, mesmo em `auto`;
+não persista propostas, aprenda ou publique por causa da prévia. `do memory clean`
+ou pedido natural explícito ("faça a faxina") autoriza a aplicação no escopo.
+Executada, rode `clean-check --save-before` antes, aplique um lote por
 tema (`prepare` e `apply` com hash literal, grupos por último) e termine com
 `clean-done --batches <n> --actor <agente>`. Ele recusa lotes negativos, acima
 dos aplicados desde a última faxina, ou zero com pendência mecânica, e grava na

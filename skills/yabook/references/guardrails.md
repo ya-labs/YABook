@@ -41,6 +41,9 @@ ambíguo, pare sem escrever e informe a correção necessária.
 
 - Aplique o fluxo YABook em repositórios YA LABS mesmo quando `$yabook` não for
   invocado explicitamente.
+- Comandos de prévia sem `do` são somente leitura, inclusive em `auto`.
+  Pedidos explícitos em linguagem natural autorizam seu objetivo. `dev` é
+  executivo: inclui criar a issue necessária e preparar a branch vinculada.
 - Antes de editar, valide branch, status, diffs staged/unstaged e último commit.
   Fora de `auto`, se houver trabalho independente concluído, proponha checkpoint;
   em `auto`, preserve e separe responsabilidades sem pedir aprovação do próprio trabalho.

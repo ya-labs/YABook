@@ -52,7 +52,9 @@ que prepara múltiplas issues. `issue desc` de pacote usa seu contrato próprio.
 ## Linguagem natural
 
 Leia `orquestracao.md`, selecione o menor fluxo suficiente e mostre o roteamento
-inferido. Nunca infira `do` ou `dev`.
+inferido. Pedido natural explícito autoriza o objetivo; não finja que a pessoa
+digitou `do` ou `dev`. Comando de prévia sem `do` continua somente leitura,
+inclusive em `auto`; `dev` é executivo e inclui issue e branch necessárias.
 Em `auto` explicitamente ativo, pedidos naturais inequívocos autorizam o objetivo
 sem exigir `do`; perguntas e prévias continuam informativas. Não infira o modo.
 
