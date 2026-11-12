@@ -139,9 +139,14 @@ function issueRef(task) {
 
 function stateIcon(task) {
   if (task.tipo === "pergunta") return icon("pergunta", "estado-pergunta");
-  if (task.papel === "concluido") return icon("fechado", "estado-fechado");
-  if (task.papel === "arquivado") return icon("arquivado", "estado-arquivado");
-  return icon("aberto", "estado-aberto");
+  const [name, , symbol] = LEVEL[task.nivel] || LEVEL.tarefa;
+  const state = task.papel === "concluido" ? "fechado" : task.papel === "arquivado" ? "arquivado" : "aberto";
+  const title = name[0].toUpperCase() + name.slice(1) + " · " + columnName(task.coluna);
+  const node = icon(symbol, "estado-" + state);
+  node.setAttribute("role", "img");
+  node.setAttribute("aria-label", title);
+  node.setAttribute("title", title);
+  return node;
 }
 
 function origin(task) {
@@ -157,7 +162,7 @@ function originText(task) {
   return label(task.tipo);
 }
 
-const LEVEL = { epico: ["épico", "purple"], historia: ["história", "blue"], tarefa: ["tarefa", "gray"] };
+const LEVEL = { epico: ["épico", "purple", "epicos"], historia: ["história", "blue", "livro"], tarefa: ["tarefa", "gray", "tarefa"] };
 
 function badges(task, options = {}) {
   const items = [];
@@ -180,7 +185,7 @@ function badges(task, options = {}) {
     const parent = (effectiveState().tarefas || []).find((t) => t.id === task.pai);
     if (parent) {
       const pref = issueRef(parent);
-      items.push(h("span", { class: "selo neutro forte", title: "Faz parte de" }, icon("aberto", "estado-aberto"),
+      items.push(h("span", { class: "selo neutro forte", title: "Faz parte de" }, stateIcon(parent),
         parent.titulo + (pref ? ` #${pref.number}` : "")));
     }
   }
@@ -270,7 +275,7 @@ function card(task, options = {}) {
     } },
     h("div", { class: "card-origem" }, stateIcon(task), h("span", { class: "origem-texto" }, origin(task)),
       h("span", { class: "card-sinais" },
-        task.nivel ? signal(task.nivel === "epico" ? "epicos" : task.nivel === "historia" ? "camadas" : "tarefa", LEVEL[task.nivel][0], task.nivel === "epico" ? "Épico" : null) : null,
+        task.nivel === "epico" ? signal("epicos", "Épico", "Épico") : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
@@ -541,6 +546,25 @@ function work(estado) {
   return estado.tarefas.filter((t) => t.tipo !== "pergunta");
 }
 
+// Consolida só os itens presentes na visão, preservando o filho quando o pai
+// estiver fechado ou fora do filtro. Sem prazo intermediário, compara com o
+// ancestral mais próximo que tenha data; datas diferentes continuam separadas.
+function deadlineTasks(tasks) {
+  const index = new Map(tasks.map((task) => [task.id, task]));
+  return tasks.filter((task) => {
+    if (!task.prazo || CLOSED.includes(task.papel)) return false;
+    const seen = new Set([task.id]);
+    let parent = index.get(task.pai);
+    while (parent && !seen.has(parent.id)) {
+      if (CLOSED.includes(parent.papel)) return true;
+      if (parent.prazo) return parent.prazo !== task.prazo;
+      seen.add(parent.id);
+      parent = index.get(parent.pai);
+    }
+    return true;
+  }).sort((a, b) => a.prazo.localeCompare(b.prazo));
+}
+
 function byOrder(a, b) {
   return (a.ordem || 0) - (b.ordem || 0) || a.titulo.localeCompare(b.titulo);
 }
@@ -732,7 +756,7 @@ const VIEWS = {
     descricao: "Calendário e agenda das tarefas com prazo.",
     icone: "prazos",
     render(estado) {
-      const rows = filtered(work(estado)).filter((t) => t.prazo && !CLOSED.includes(t.papel)).sort((a, b) => a.prazo.localeCompare(b.prazo));
+      const rows = deadlineTasks(filtered(work(estado)));
       app.contagem = rows.length;
       const agenda = app.prazoDia ? rows.filter((t) => t.prazo === app.prazoDia) : rows;
       const groups = [
@@ -758,8 +782,9 @@ const VIEWS = {
                 return h("article", { class: "prazo-item " + group.class },
                   h("time", { class: "prazo-data", datetime: task.prazo, "aria-label": fmtDate(task.prazo) },
                     h("strong", {}, task.prazo.slice(8, 10)), h("span", {}, month + (task.prazo.slice(0, 4) !== estado.hoje.slice(0, 4) ? " " + task.prazo.slice(0, 4) : ""))),
-                  h("div", { class: "prazo-conteudo" }, titleLink(task),
+                  h("div", { class: "prazo-conteudo" }, h("div", { class: "prazo-titulo" }, stateIcon(task), titleLink(task)),
                     h("div", { class: "prazo-meta" },
+                      pill((LEVEL[task.nivel] || LEVEL.tarefa)[0], (LEVEL[task.nivel] || LEVEL.tarefa)[1]),
                       task.codigo ? pill(task.codigo, "gray", { icon: "repo", title: "Código" }) : null,
                       h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)))),
                   h("span", { class: "prazo-indicador" }, days < 0 ? icon("alerta") : icon("calendario"), distance));
@@ -983,7 +1008,7 @@ function deadlineCalendar(tasks, today) {
           "aria-current": day === today ? "date" : null, "aria-pressed": String(app.prazoDia === day),
           onclick: () => selectDay(day), onkeydown: (event) => navigateDay(event, day) },
           h("span", { class: "calendario-dia-topo" }, h("time", { datetime: day }, number), due.length ? h("span", { class: "contador" }, due.length) : null),
-          h("span", { class: "calendario-tarefas", "aria-hidden": "true" }, due.slice(0, 2).map((task) => h("span", {}, task.titulo)), due.length > 2 ? h("small", {}, `+${due.length - 2}`) : null));
+          h("span", { class: "calendario-tarefas", "aria-hidden": "true" }, due.slice(0, 2).map((task) => h("span", {}, stateIcon(task), h("span", {}, task.titulo))), due.length > 2 ? h("small", {}, `+${due.length - 2}`) : null));
       })));
 }
 

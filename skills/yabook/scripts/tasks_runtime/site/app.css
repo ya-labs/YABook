@@ -407,6 +407,8 @@ input.horas { width: 70px; padding: 5px 8px; text-align: right; border: 1px soli
 .prazo-data strong { font-size: 25px; color: var(--texto); line-height: 1.2; letter-spacing: -1px; }
 .prazo-data span { font-size: 11px; text-transform: uppercase; margin-top: 3px; }
 .prazo-conteudo { flex: 1; min-width: 0; }
+.prazo-titulo { display: flex; align-items: flex-start; gap: 6px; }
+.prazo-titulo > .icone { flex: none; }
 .prazo-conteudo .titulo { color: var(--texto); font-size: 12px; font-weight: 700; }
 .prazo-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 7px; }
 .prazo-indicador { color: var(--texto-2); font-size: 11px; flex: none; }
@@ -703,7 +705,10 @@ button.selo { cursor: pointer; text-align: left; }
 .calendario-dia .contador { padding: 0 4px; min-width: 18px; font-size: 10px; color: rgb(var(--c-blue)); background: rgba(var(--c-blue), .1); }
 .calendario-dia.atrasado .contador { color: rgb(var(--c-red)); background: rgba(var(--c-red), .1); }
 .calendario-tarefas { display: grid; gap: 5px; font-size: 10px; color: var(--texto-2); }
-.calendario-tarefas > span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.calendario-tarefas > span { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.calendario-tarefas > span > .icone { flex: none; }
+.calendario-tarefas > span > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.calendario-tarefas .icone svg { width: 12px; height: 12px; }
 @media (max-width: 1190px) { .prazos-visao { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 760px) {
   .calendario > .calendario-topo { padding: 12px; gap: 10px; }
