@@ -24,7 +24,7 @@ A configuração da máquina fica na seção `tasks` de `~/.config/yabook/config
 ## Formato
 
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (código `@n`,
-dado na criação; comandos aceitam `@n`; `numerar [--corrigir]`), `tipo` (`demanda`,
+dado na criação; comandos aceitam `@n`; `numerar [--corrigir]`), `descricao` (o que é, 1–3 linhas), `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
 e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 `prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a

@@ -773,3 +773,27 @@ button.selo { cursor: pointer; text-align: left; }
 
 /* Épicos se identificam pelo selo, sem faixa lateral ou fundo no progresso. */
 .card-epico .card-sinais > .sinal:first-child { gap: 5px; padding: 3px 6px; border-radius: 6px; background: var(--acento-suave); color: var(--link); font-weight: 800; white-space: nowrap; }
+
+/* Hoje compacta */
+.visao-hoje.compacta { display: grid; gap: 12px; }
+.numeros.compactos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.numeros.compactos .numero { display: flex; align-items: center; gap: 8px; min-height: 0; padding: 8px 12px; text-align: left; }
+.numeros.compactos .numero b { font-size: 20px; line-height: 1; }
+.numeros.compactos .numero small { margin-left: auto; color: var(--texto-2); font-size: 11px; }
+.hoje-tranquilo { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--texto-2); font-size: 12px; }
+.hoje-alertas { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.hoje-colunas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.hoje-coluna { margin: 0; display: flex; flex-direction: column; min-width: 0; }
+.hoje-itens { max-height: calc(100vh - 330px); min-height: 60px; overflow-y: auto; }
+.hoje-coluna .linha-caixa { padding-top: 6px; padding-bottom: 6px; }
+.linha-dupla { border-top: 1px solid var(--borda-suave); }
+.linha-dupla:first-child, .hoje-itens > .linha-caixa:first-child { border-top: 0; }
+.linha-dupla > .linha-caixa { border-top: 0; }
+.linha-passo { display: flex; gap: 6px; align-items: flex-start; padding: 0 16px 8px 40px; color: var(--texto-2); font-size: 12px; }
+.linha-passo .icone { flex: none; margin-top: 1px; }
+.linha-epico .progresso { margin-left: auto; min-width: 120px; flex: 0 1 160px; }
+.numero-tarefa { color: var(--texto-2); font-size: 12px; font-variant-numeric: tabular-nums; flex: none; }
+.descricao-tarefa { font-size: 14px; margin: 0 0 12px; }
+.historico-agente { margin-top: 12px; border-top: 1px solid var(--borda-suave); padding-top: 8px; }
+.historico-agente > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--texto-2); font-size: 12px; font-weight: 600; }
+@media (max-width: 1000px) { .hoje-colunas, .numeros.compactos { grid-template-columns: 1fr; } .hoje-itens { max-height: none; } }

@@ -80,7 +80,7 @@ class Tasks:
 
     def brief(self, task, index=None):
         data = task["data"]
-        keys = ("id", "numero", "tipo", "nivel", "titulo", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha",
+        keys = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha",
                 "aguardando", "aguardando_desde")
         result = {k: data[k] for k in keys if k in data}
         if data.get("tipo") != "pergunta":
@@ -222,6 +222,11 @@ class Tasks:
                 if key in ("id", "criada", "atualizada"):
                     raise ValueError("Campo não editável: " + key)
                 data[key] = parse_date(value) if key == "prazo" and value else value
+            roles = self.roles()
+            if (changes and roles.get(data.get("coluna")) == "validacao" and roles.get(task["data"].get("coluna")) != "validacao"
+                    and re.search(r"\b(qa|valida\w*|tester|testes?)\b", _plain(data.get("aguardando") or ""))):
+                data.pop("aguardando", None)
+                data.pop("aguardando_desde", None)
             if changes and "coluna" in changes and "ordem" not in changes and changes["coluna"] != task["data"].get("coluna"):
                 data["ordem"] = self.next_order(changes["coluna"])
             for key in unset:

@@ -261,6 +261,7 @@ function card(task, options = {}) {
   const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
   const parent = task.pai ? effectiveState().tarefas.find((t) => t.id === task.pai) : null;
   return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
+    title: task.descricao ? task.titulo + "\n\n" + task.descricao : null,
     draggable: editable ? "true" : null,
     ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
     ondragend: editable ? () => { app.dragId = null; clearDrop(); document.querySelectorAll(".arrastando").forEach((n) => n.classList.remove("arrastando")); } : null,
@@ -443,8 +444,9 @@ async function openTask(id) {
             h("header", {}, h("strong", {}, label(data.tipo)), h("span", { class: "vazio" }, ` · ${data.id}`),
               data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null),
             h("div", { class: "comentario-corpo markdown" },
+              data.descricao ? h("p", { class: "descricao-tarefa" }, data.descricao) : h("p", { class: "vazio" }, "Sem descrição."),
               data.proximo_passo ? h("div", { class: "proximo-destaque" }, h("h3", {}, icon("seta"), "Próximo passo"), h("p", {}, data.proximo_passo)) : null,
-              detail.body ? taskDocument(detail.body) : (!data.proximo_passo ? h("p", { class: "vazio" }, "Sem registro.") : null))),
+              detail.body ? h("details", { class: "historico-agente" }, h("summary", {}, icon("historico"), "Histórico do agente"), taskDocument(detail.body)) : null)),
           detail.filhos && detail.filhos.length ? h("div", { class: "caixa" },
             h("header", {}, h("h3", {}, data.nivel === "epico" ? "Histórias" : "Itens"),
               epic && data.nivel === "epico" ? h("span", { class: "direita" }, segments(epic.concluidas, epic.historias)) : null),
@@ -607,22 +609,33 @@ const VIEWS = {
         ["Prazos próximos", estado.prazos.length, "calendario", late ? "red" : "orange", "prazos", late ? `${late} em atraso` : ""],
         ["Perguntas", estado.perguntas.length, "pergunta", "blue", "perguntas", ""],
       ];
-      return h("section", { class: "visao-hoje" },
-        h("div", { class: "numeros" }, metrics.map(([name, total, symbol, color, target, detail]) =>
+      // Hoje compacta: tudo numa tela; prazos e perguntas só ganham caixa quando há itens.
+      const waiting = tasks.filter((t) => t.aguardando && !CLOSED.includes(t.papel)).sort((a, b) => waitingDays(b) - waitingDays(a));
+      const deadlines = filtered(estado.prazos.map(full)), questions = filtered(estado.perguntas.map(full));
+      const tag = (t) => t.numero ? h("span", { class: "numero-tarefa" }, "@" + t.numero) : null;
+      const line = (t, ...extra) => h("div", { class: "linha-caixa", title: t.descricao || null }, stateIcon(t), tag(t), titleLink(t), ...extra);
+      const epicLine = (t) => h("div", { class: "linha-caixa linha-epico", title: t.descricao || null }, stateIcon(t), tag(t), titleLink(t), epicProgress(t));
+      const taskLine = (t) => h("div", { class: "linha-dupla", title: t.descricao || null },
+        h("div", { class: "linha-caixa" }, stateIcon(t), tag(t), titleLink(t)),
+        t.proximo_passo ? h("div", { class: "linha-passo" }, icon("seta"), t.proximo_passo) : null);
+      const column = (title, symbol, items, empty, render) => h("section", { class: "caixa hoje-coluna" },
+        h("header", {}, icon(symbol), h("h3", {}, title), h("span", { class: "contador" }, String(items.length))),
+        h("div", { class: "hoje-itens" }, items.length ? items.map(render) : h("div", { class: "corpo vazio" }, icon("check"), empty)));
+      const stories = doing.filter((t) => t.nivel !== "epico"), epics = doing.filter((t) => t.nivel === "epico");
+      return h("section", { class: "visao-hoje compacta" },
+        h("div", { class: "numeros compactos" }, metrics.map(([name, total, symbol, color, target, detail]) =>
           h("button", { class: `numero cor-${color}`, type: "button", title: `Abrir ${VIEWS[target].titulo}`, onclick: () => { location.hash = target; } },
-            h("b", {}, total), h("span", { class: "numero-icone" }, icon(symbol)), h("span", { class: "numero-nome" }, name),
+            h("span", { class: "numero-icone" }, icon(symbol)), h("b", {}, total), h("span", { class: "numero-nome" }, name),
             detail ? h("small", {}, detail) : null))),
-        h("div", { class: "painel-dia" },
-          h("div", { class: "andamento-hoje" }, heading("Em andamento", "quadro", doing.length),
-            doing.length ? h("div", { class: "cards" }, doing.map((t) => card(t, { status: t.nivel === "epico", semNivel: true })))
-              : blank("check", "Nenhuma tarefa ou épico em andamento.")),
-          h("div", { class: "atencao" }, heading("Sua atenção", "alerta"),
-            list("Prazos", "calendario", filtered(estado.prazos.map(full)), "Nenhum prazo próximo.",
-              (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
-            list("Perguntas", "pergunta", filtered(estado.perguntas.map(full)), "Nenhuma pergunta aberta."),
-            list("Aguardando", "ficha", tasks.filter((t) => t.aguardando && !CLOSED.includes(t.papel)).sort((a, b) => waitingDays(b) - waitingDays(a)),
-              "Nada aguardando terceiros.", (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), waitingPill(t))),
-            list("Em validação", "tarefa", testing, "Nada para revisar."))));
+        deadlines.length || questions.length ? h("div", { class: "hoje-alertas" },
+          deadlines.length ? column("Prazos", "calendario", deadlines, "", (t) => line(t, badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))) : null,
+          questions.length ? column("Perguntas para você", "pergunta", questions, "", (t) => line(t)) : null)
+          : h("p", { class: "hoje-tranquilo" }, icon("check"), "Sem prazos próximos · Sem perguntas abertas"),
+        h("div", { class: "hoje-colunas" },
+          column("Em andamento", "quadro", [...stories, ...epics], "Nada em andamento.", (t) => t.nivel === "epico" ? epicLine(t) : taskLine(t)),
+          column("Em validação", "tarefa", testing, "Nada em validação.", (t) => line(t, h("span", { class: "selo neutro" }, h("span", { class: `status papel-${t.papel}` }), columnName(t.coluna)))),
+          column("Aguardando", "ficha", waiting, "Nada aguardando terceiros.", (t) => h("div", { class: "linha-dupla", title: t.descricao || null },
+            h("div", { class: "linha-caixa" }, stateIcon(t), tag(t), titleLink(t)), h("div", { class: "linha-passo" }, waitingPill(t))))));
     },
   },
   quadro: {
@@ -1500,6 +1513,7 @@ function editForm(id) {
     const campos = {};
     const compare = (key, value, before) => { if ((value ?? "") !== (before ?? "")) campos[key] = value === "" ? null : value; };
     compare("titulo", values.titulo.trim(), original.titulo);
+    compare("descricao", values.descricao.trim(), original.descricao);
     compare("coluna", values.coluna, original.coluna);
     compare("prazo", values.prazo, original.prazo);
     compare("proximo_passo", values.proximo_passo.trim(), original.proximo_passo);
@@ -1530,6 +1544,7 @@ function editForm(id) {
     h("h2", { style: "margin:0" }, "Editar tarefa"),
     h("p", { class: "vazio", style: "margin:0" }, "Aplique as mudanças ao rascunho e depois use Salvar na barra de filtros."),
     field("titulo", "Título", h("input", { name: "titulo", value: task.titulo, required: true })),
+    field("descricao", "Descrição (o que é a tarefa, 1 a 3 linhas)", h("textarea", { name: "descricao", rows: 2 }, task.descricao || "")),
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
     field("proximo_passo", "Próximo passo", h("textarea", { name: "proximo_passo", rows: 2 }, task.proximo_passo || "")),
