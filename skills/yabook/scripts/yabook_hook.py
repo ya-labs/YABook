@@ -660,6 +660,54 @@ def tasks_capture(name, *args):
         return ""
 
 
+GIT_BRANCH = re.compile(r"\bgit\b[^;&|]*\b(switch|checkout)\b")
+PR_CREATE = re.compile(r"\bgh\s+pr\s+create\b")
+PR_MERGE = re.compile(r"\bgh\s+pr\s+merge\s+(?:\S*/pull/)?(\d+)")
+
+
+def spawn_background(args):
+    subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+
+
+def tasks_issue_flow(event, session):
+    """Branch da issue, PR aberto e PR integrado avançam a tarefa da issue sem depender do agente."""
+    command = shell_command(event)
+    if not (GIT_BRANCH.search(command) or PR_CREATE.search(command) or PR_MERGE.search(command)):
+        return
+    started = time.monotonic()
+    try:
+        cfg = config()
+        if not cfg.get("tasks"):
+            return
+        from tasks_runtime import capture, issueflow
+        store, tasks_cfg = capture.open_store(cfg)
+        if store is None:
+            return
+        cwd = event.get("cwd") or os.getcwd()
+        moved = re.search(r"\bcd\s+([^\s;&|]+)\s*&&", command)
+        if moved and Path(os.path.expanduser(moved.group(1))).is_dir():
+            cwd = os.path.expanduser(moved.group(1))
+        merge = PR_MERGE.search(command)
+        if merge:  # consulta o GitHub em segundo plano: o turno não espera a rede
+            script = Path(__file__).with_name("yabook_tasks.py")
+            spawn_background([sys.executable, str(script), "--config", str(config_path()), "issue", "--pr", merge.group(1),
+                              "--repo-dir", cwd])
+        if PR_CREATE.search(command):
+            output = str((event.get("tool_response") or {}).get("stdout", "")) if isinstance(event.get("tool_response"), dict) else ""
+            url = re.search(r"https://github\.com/\S+/pull/\d+", output)
+            ref = issueflow.ref_from_branch(cwd)
+            if ref and url:
+                issueflow.advance(store, tasks_cfg, ref, "revisao", pr=url.group(0))
+        elif GIT_BRANCH.search(command):
+            branch = issueflow._git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
+            ref = issueflow.ref_from_branch(cwd, branch)
+            if ref:
+                issueflow.advance(store, tasks_cfg, ref, "inicio", branch=branch, session=session)
+        record_stats("tasks.issue", 0, result="ok", ms=round((time.monotonic() - started) * 1000, 1))
+    except Exception as error:
+        record_stats("tasks.issue", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+
+
 def tasks_started(command, session):
     """`task start` ou `task capture --apply` pela CLI define a tarefa ativa desta sessão, conferida na máquina."""
     if not TASK_START.search(command):
@@ -822,6 +870,7 @@ def run(event):
                 state["committed"] = True
             write_json(path, state)
         tasks_started(command, path.stem)
+        tasks_issue_flow(event, path.stem)
         if LEARN.search(command):
             state["learned"] = True
             write_json(path, state)
