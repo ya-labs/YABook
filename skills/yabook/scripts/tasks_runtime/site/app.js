@@ -604,37 +604,42 @@ const VIEWS = {
   },
   prazos: {
     titulo: "Prazos",
-    descricao: "Tarefas abertas, do prazo mais próximo ao mais distante.",
+    descricao: "Calendário e agenda das tarefas com prazo.",
     icone: "prazos",
     render(estado) {
       const rows = filtered(work(estado)).filter((t) => t.prazo && !CLOSED.includes(t.papel)).sort((a, b) => a.prazo.localeCompare(b.prazo));
       app.contagem = rows.length;
-      if (!rows.length) return emptyState(app.busca ? "Nenhum prazo com esse filtro" : "Nenhuma tarefa aberta com prazo", "Os prazos aparecem aqui quando definidos nas tarefas.");
+      const agenda = app.prazoDia ? rows.filter((t) => t.prazo === app.prazoDia) : rows;
       const groups = [
         { title: "Atrasados", icon: "alerta", class: "atrasada", test: (days) => days < 0 },
         { title: "Próximos 2 dias", icon: "calendario", class: "proximo", test: (days) => days >= 0 && days <= 2 },
         { title: "Mais adiante", icon: "prazos", class: "", test: (days) => days > 2 },
       ];
-      return h("section", { class: "prazos-lista" }, groups.map((group) => {
-        const items = rows.filter((task) => group.test(daysUntil(task.prazo)));
-        if (!items.length) return null;
-        return h("section", { class: "prazo-grupo " + group.class },
-          h("header", {}, h("h2", {}, icon(group.icon), group.title), h("span", { class: "contador" }, items.length)),
-          items.map((task) => {
-            const days = daysUntil(task.prazo);
-            const date = new Date(task.prazo + "T12:00:00");
-            const month = date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
-            const distance = days < 0 ? `${-days} dia${days === -1 ? "" : "s"} de atraso` : days === 0 ? "Hoje" : days === 1 ? "Amanhã" : `Em ${days} dias`;
-            return h("article", { class: "prazo-item " + group.class },
-              h("time", { class: "prazo-data", datetime: task.prazo, "aria-label": fmtDate(task.prazo) },
-                h("strong", {}, task.prazo.slice(8, 10)), h("span", {}, month + (task.prazo.slice(0, 4) !== estado.hoje.slice(0, 4) ? " " + task.prazo.slice(0, 4) : ""))),
-              h("div", { class: "prazo-conteudo" }, titleLink(task),
-                h("div", { class: "prazo-meta" },
-                  task.codigo ? pill(task.codigo, "gray", { icon: "repo", title: "Código" }) : null,
-                  h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)))),
-              h("span", { class: "prazo-indicador" }, days < 0 ? icon("alerta") : icon("calendario"), distance));
-          }));
-      }));
+      return h("section", { class: "prazos-visao" }, deadlineCalendar(rows, estado.hoje),
+        h("section", { class: "prazos-lista", "aria-label": "Agenda de prazos" },
+          h("div", { class: "prazos-agenda-topo" },
+            h("h2", { id: "prazos-agenda-titulo", tabindex: "-1" }, app.prazoDia ? "Prazos de " + fmtDate(app.prazoDia) : "Todos os prazos"),
+            app.prazoDia ? h("button", { class: "botao pequeno", type: "button", onclick: () => { app.prazoDia = null; render(); } }, "Ver todos") : null),
+          !agenda.length ? emptyState(app.prazoDia ? "Nenhum prazo neste dia" : app.busca ? "Nenhum prazo com esse filtro" : "Nenhuma tarefa aberta com prazo", "Os prazos aparecem aqui quando definidos nas tarefas.") : groups.map((group) => {
+            const items = agenda.filter((task) => group.test(daysUntil(task.prazo)));
+            if (!items.length) return null;
+            return h("section", { class: "prazo-grupo " + group.class },
+              h("header", {}, h("h3", {}, icon(group.icon), group.title), h("span", { class: "contador" }, items.length)),
+              items.map((task) => {
+                const days = daysUntil(task.prazo);
+                const date = new Date(task.prazo + "T12:00:00");
+                const month = date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+                const distance = days < 0 ? `${-days} dia${days === -1 ? "" : "s"} de atraso` : days === 0 ? "Hoje" : days === 1 ? "Amanhã" : `Em ${days} dias`;
+                return h("article", { class: "prazo-item " + group.class },
+                  h("time", { class: "prazo-data", datetime: task.prazo, "aria-label": fmtDate(task.prazo) },
+                    h("strong", {}, task.prazo.slice(8, 10)), h("span", {}, month + (task.prazo.slice(0, 4) !== estado.hoje.slice(0, 4) ? " " + task.prazo.slice(0, 4) : ""))),
+                  h("div", { class: "prazo-conteudo" }, titleLink(task),
+                    h("div", { class: "prazo-meta" },
+                      task.codigo ? pill(task.codigo, "gray", { icon: "repo", title: "Código" }) : null,
+                      h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)))),
+                  h("span", { class: "prazo-indicador" }, days < 0 ? icon("alerta") : icon("calendario"), distance));
+              }));
+          })));
     },
   },
   perguntas: {
@@ -784,6 +789,76 @@ const VIEWS = {
   },
 };
 const ORDER = ["hoje", "quadro", "epicos", "prazos", "perguntas", "semana", "ficha", "historico"];
+
+function deadlineMonth(iso, delta = 0) {
+  const date = new Date(iso.slice(0, 7) + "-01T12:00:00Z");
+  date.setUTCMonth(date.getUTCMonth() + delta);
+  return date.toISOString().slice(0, 10);
+}
+
+function deadlineCalendar(tasks, today) {
+  const month = app.prazoMes || deadlineMonth(today);
+  const start = new Date(month + "T12:00:00Z");
+  const offset = (start.getUTCDay() + 6) % 7;
+  const count = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+  const groups = new Map();
+  for (const task of tasks) {
+    if (!groups.has(task.prazo)) groups.set(task.prazo, []);
+    groups.get(task.prazo).push(task);
+  }
+  const showMonth = (value, control) => {
+    app.prazoMes = value;
+    app.prazoDia = null;
+    render().then(() => document.querySelector(`[data-calendar-nav="${control}"]`)?.focus({ preventScroll: true }));
+  };
+  const selectDay = (day) => {
+    app.prazoDia = app.prazoDia === day ? null : day;
+    render().then(() => {
+      const agenda = document.getElementById("prazos-agenda-titulo");
+      agenda?.focus({ preventScroll: true });
+      agenda?.scrollIntoView({ block: "nearest" });
+    });
+  };
+  const navigateDay = (event, iso) => {
+    const steps = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    if (!(event.key in steps)) return;
+    event.preventDefault();
+    const next = new Date(iso + "T12:00:00Z");
+    next.setUTCDate(next.getUTCDate() + steps[event.key]);
+    const day = next.toISOString().slice(0, 10);
+    const focus = () => document.querySelector(`[data-calendar-day="${day}"]`)?.focus({ preventScroll: true });
+    if (day.slice(0, 7) !== month.slice(0, 7)) {
+      app.prazoMes = deadlineMonth(day);
+      app.prazoDia = null;
+      render().then(focus);
+    } else focus();
+  };
+  const title = start.toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
+  const monthTasks = tasks.filter((t) => t.prazo.slice(0, 7) === month.slice(0, 7)).length;
+  return h("section", { class: "calendario caixa", "aria-labelledby": "calendario-mes" },
+    h("header", { class: "calendario-topo" },
+      h("div", {}, h("h2", { id: "calendario-mes" }, title[0].toUpperCase() + title.slice(1)),
+        h("span", { class: "vazio" }, `${monthTasks} prazo${monthTasks === 1 ? "" : "s"} neste mês`)),
+      h("div", { class: "calendario-nav" },
+        h("button", { class: "botao-icone", type: "button", "aria-label": "Mês anterior", "data-calendar-nav": "anterior", onclick: () => showMonth(deadlineMonth(month, -1), "anterior") }, "‹"),
+        h("button", { class: "botao", type: "button", "data-calendar-nav": "hoje", onclick: () => showMonth(deadlineMonth(today), "hoje") }, "Hoje"),
+        h("button", { class: "botao-icone", type: "button", "aria-label": "Próximo mês", "data-calendar-nav": "proximo", onclick: () => showMonth(deadlineMonth(month, 1), "proximo") }, "›"))),
+    h("div", { class: "calendario-semana", "aria-hidden": "true" }, ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => h("span", {}, day))),
+    h("div", { class: "calendario-grade", role: "group", "aria-label": "Dias de " + title },
+      Array.from({ length: Math.ceil((offset + count) / 7) * 7 }, (_, index) => {
+        const number = index - offset + 1;
+        if (number < 1 || number > count) return h("div", { class: "calendario-vazio", "aria-hidden": "true" });
+        const day = month.slice(0, 7) + "-" + String(number).padStart(2, "0");
+        const due = groups.get(day) || [];
+        const label = new Date(day + "T12:00:00Z").toLocaleDateString("pt-BR", { dateStyle: "full", timeZone: "UTC" });
+        return h("button", { class: "calendario-dia" + (day === today ? " hoje" : "") + (due.length && day < today ? " atrasado" : ""),
+          type: "button", "data-calendar-day": day, "aria-label": `${label}: ${due.length} prazo${due.length === 1 ? "" : "s"}`,
+          "aria-current": day === today ? "date" : null, "aria-pressed": String(app.prazoDia === day),
+          onclick: () => selectDay(day), onkeydown: (event) => navigateDay(event, day) },
+          h("span", { class: "calendario-dia-topo" }, h("time", { datetime: day }, number), due.length ? h("span", { class: "contador" }, due.length) : null),
+          h("span", { class: "calendario-tarefas", "aria-hidden": "true" }, due.slice(0, 2).map((task) => h("span", {}, task.titulo)), due.length > 2 ? h("small", {}, `+${due.length - 2}`) : null));
+      })));
+}
 
 function hours(value) {
   const n = Math.round((value || 0) * 100) / 100;

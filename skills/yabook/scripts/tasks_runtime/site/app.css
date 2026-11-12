@@ -379,7 +379,7 @@ input.horas { width: 70px; padding: 5px 8px; text-align: right; border: 1px soli
 .dia-vazio { margin: auto 0 0; padding-top: 16px; }
 .prazo-grupo { margin-bottom: 24px; }
 .prazo-grupo > header { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
-.prazo-grupo > header h2 { margin: 0; }
+.prazo-grupo > header h3 { margin: 0; font-size: 13px; }
 .prazo-grupo.atrasada > header { color: rgb(var(--c-red)); }
 .prazo-grupo.proximo > header { color: rgb(var(--c-orange)); }
 .prazo-item { display: flex; align-items: center; gap: 18px; padding: 16px 18px; border: 1px solid var(--borda); background: var(--bg); border-radius: 11px; margin-bottom: 10px; }
@@ -607,8 +607,51 @@ button.selo { cursor: pointer; text-align: left; }
 .dia-horas strong { display: block; font: inherit; }
 .dia-horas > span { display: block; margin-top: 5px; font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--texto-2); }
 .conteudo[data-view="semana"] .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 500px; }
-.prazo-grupo > header h2 { display: flex; align-items: center; gap: 8px; }
+.prazo-grupo > header h3 { display: flex; align-items: center; gap: 8px; }
 .prazo-indicador { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Calendário local: os mesmos dados de prazo, sem novas consultas ao servidor. */
+.prazos-visao { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.prazos-lista { min-width: 0; }
+.prazos-agenda-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 18px; }
+.prazos-agenda-topo h2 { margin: 0; }
+.prazos-visao .prazo-item { flex-wrap: wrap; gap: 10px 14px; padding: 15px; }
+.prazos-visao .prazo-conteudo { flex: 1 1 calc(100% - 80px); }
+.prazos-visao .prazo-indicador { margin-left: 60px; }
+.calendario { min-width: 0; margin: 0; }
+.calendario-topo { justify-content: space-between; }
+.calendario-topo h2 { margin: 0 0 3px; font-size: 15px; }
+.calendario-topo .vazio { font-size: 11px; font-weight: 500; }
+.calendario-nav { display: flex; align-items: center; gap: 6px; }
+.calendario-nav .botao-icone { font-size: 22px; }
+.calendario-semana, .calendario-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.calendario-semana { padding: 10px 0; background: var(--bg-subtle); color: var(--texto-2); text-align: center; font-size: 11px; }
+.calendario-grade { gap: 1px; background: var(--borda-suave); border-top: 1px solid var(--borda-suave); }
+.calendario-dia, .calendario-vazio { min-width: 0; min-height: 108px; background: var(--bg); }
+.calendario-vazio { background: var(--bg-subtle); }
+.calendario-dia { display: flex; flex-direction: column; gap: 7px; padding: 8px; border: 0; cursor: pointer; text-align: left; }
+.calendario-dia:hover { background: var(--bg-hover); }
+.calendario-dia[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--link); background: var(--acento-suave); }
+.calendario-dia:focus-visible { outline-offset: -3px; position: relative; z-index: 1; }
+.calendario-dia-topo { display: flex; align-items: center; justify-content: space-between; gap: 2px; font-size: 12px; }
+.calendario-dia-topo time { display: inline-grid; place-items: center; min-width: 24px; height: 24px; border-radius: 6px; }
+.calendario-dia.hoje time { background: var(--primario); color: var(--primario-texto); font-weight: 800; }
+.calendario-dia .contador { padding: 0 4px; min-width: 18px; font-size: 10px; color: rgb(var(--c-blue)); background: rgba(var(--c-blue), .1); }
+.calendario-dia.atrasado .contador { color: rgb(var(--c-red)); background: rgba(var(--c-red), .1); }
+.calendario-tarefas { display: grid; gap: 5px; font-size: 10px; color: var(--texto-2); }
+.calendario-tarefas > span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@media (max-width: 1190px) { .prazos-visao { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .calendario > .calendario-topo { padding: 12px; gap: 10px; }
+  .calendario-topo h2 { font-size: 13px; }
+  .calendario-nav { gap: 4px; }
+  .calendario-nav .botao-icone { width: 30px; }
+  .calendario-nav .botao { padding: 7px; }
+  .calendario-dia, .calendario-vazio { min-height: 64px; }
+  .calendario-dia { padding: 5px 3px; }
+  .calendario-dia-topo { flex-direction: column; font-size: 11px; }
+  .calendario-tarefas { display: none; }
+}
 @media (max-width: 760px) {
   .filtro { flex: 1 1 180px; order: 0; }
   .edicao { order: 1; }
