@@ -511,7 +511,7 @@ const VIEWS = {
           ondrop: app.editando ? (e) => { e.currentTarget.classList.remove("alvo"); dropCard(e, column.id, cards); } : null },
           h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, column.nome), h("span", { class: "contador" }, String(cards.length)),
             h("span", { class: "acoes" }, app.editando
-              ? h("button", { class: "botao-icone discreto", type: "button", title: "Renomear coluna", onclick: () => renameColumn(column) }, icon("mais"))
+              ? h("button", { class: "botao-icone discreto", type: "button", title: "Renomear coluna", "aria-label": "Renomear coluna " + column.nome, onclick: () => renameColumn(column) }, icon("editar"))
               : null)),
           h("div", { class: "itens" }, cards.length ? cards.map((t) => card(t)) : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum item")));
       }), epicColumn);
@@ -1141,6 +1141,7 @@ function indicateDrop(event) {
 }
 
 function dropCard(event, columnId, cards) {
+  if (app.salvando) return;
   event.preventDefault();
   const id = event.dataTransfer.getData("text/plain");
   clearDrop();
@@ -1154,12 +1155,37 @@ function dropCard(event, columnId, cards) {
     if (position === others.length && event.clientY < box.top + box.height / 2) position = index;
   });
   const ordered = [...others.slice(0, position), { id }, ...others.slice(position)];
-  ordered.forEach((task, index) => {
-    const current = effectiveState().tarefas.find((t) => t.id === task.id);
+  const state = effectiveState();
+  const moving = state.tarefas.find((t) => t.id === id);
+  if (moving.nivel === "epico") {
+    if (moving.coluna === columnId) return;
+    draftTask(id, { coluna: columnId });
+    render();
+    announce("Épico movido no rascunho. Salve para gravar.");
+    return;
+  }
+  // Não normalizar a numeração quando a sequência visível não mudou.
+  if (moving.coluna === columnId && ordered.every((t, i) => t.id === cards[i]?.id)) return;
+  const all = state.tarefas.filter((t) => t.coluna === columnId && t.tipo !== "pergunta" && t.nivel !== "epico").sort(byOrder);
+  const destination = all.filter((t) => t.id !== id);
+  const anchor = others[position];
+  const previous = others[position - 1];
+  const insertAt = anchor ? destination.findIndex((t) => t.id === anchor.id)
+    : previous ? destination.findIndex((t) => t.id === previous.id) + 1 : destination.length;
+  destination.splice(insertAt, 0, moving);
+  if (moving.coluna === columnId && destination.every((t, i) => t.id === all[i]?.id)) return;
+  const before = destination[insertAt - 1], after = destination[insertAt + 1];
+  const low = before ? (before.ordem || 0) : null;
+  const high = after ? (after.ordem || 0) : null;
+  const order = low === null ? (high === null ? 1 : high - 1)
+    : high === null ? low + 1 : high - low > 1 ? low + 1 : null;
+  // Aproveitar espaços entre ordinais; renumerar só se não houver inteiro livre.
+  const changes = order === null ? destination.map((t, i) => [t, i + 1]) : [[moving, order]];
+  changes.forEach(([current, ordinal]) => {
     const campos = {};
     if (current.coluna !== columnId) campos.coluna = columnId;
-    if ((current.ordem || 0) !== index + 1) campos.ordem = index + 1;
-    if (Object.keys(campos).length) draftTask(task.id, campos);
+    if ((current.ordem || 0) !== ordinal) campos.ordem = ordinal;
+    if (Object.keys(campos).length) draftTask(current.id, campos);
   });
   render();
   announce("Tarefa movida no rascunho. Salve para gravar.");
@@ -1167,11 +1193,27 @@ function dropCard(event, columnId, cards) {
 
 function renameColumn(column) {
   if (app.salvando) return;
-  const name = window.prompt("Novo nome da coluna (o papel não muda):", column.nome);
-  if (!name || !name.trim() || name.trim() === column.nome) return;
-  app.rascunho.colunas[column.id] = name.trim();
-  persistDraft();
-  render();
+  const input = h("input", { name: "nome-coluna", value: column.nome, required: true, autocomplete: "off" });
+  const form = h("form", { class: "formulario", onsubmit: async (event) => {
+    event.preventDefault();
+    if (app.salvando) return;
+    const name = input.value.trim();
+    if (!name) { input.setCustomValidity("Informe um nome para a coluna."); input.reportValidity(); return; }
+    const original = app.estado.colunas.find((c) => c.id === column.id);
+    if (name === original.nome) delete app.rascunho.colunas[column.id];
+    else app.rascunho.colunas[column.id] = name;
+    persistDraft();
+    closePanel(false);
+    await render();
+    announce("Nome da coluna atualizado no rascunho. Salve para gravar.");
+  } },
+    h("label", { class: "campo" }, h("span", {}, "Nome da coluna"), input),
+    h("p", { class: "vazio" }, "O papel da coluna permanece o mesmo. A mudança será gravada ao salvar o rascunho."),
+    h("button", { class: "botao primario", type: "submit" }, icon("check"), "Aplicar ao rascunho"));
+  input.addEventListener("input", () => input.setCustomValidity(""));
+  showPanel(h("h2", {}, "Renomear coluna"), form);
+  input.focus({ preventScroll: true });
+  input.select();
 }
 
 function editForm(id) {

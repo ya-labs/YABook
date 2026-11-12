@@ -145,7 +145,7 @@ svg { flex: none; vertical-align: middle; }
 a, .link { color: var(--link); }
 [hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
-.conteudo:focus-visible { outline-offset: -3px; }
+.conteudo:focus, .quadro:focus { outline: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pular-conteudo { position: fixed; top: 12px; left: 12px; z-index: 50; padding: 10px 16px; border: 1px solid var(--link);
   border-radius: 8px; background: var(--bg); transform: translateY(-160%); }
@@ -334,8 +334,8 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .coluna { display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%; border: 1px solid var(--borda-suave);
   border-radius: 14px; background: rgba(var(--c-gray), .035); }
 .coluna > header { display: flex; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
-.coluna > header .nome { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.coluna > header .acoes { margin-left: auto; display: flex; }
+.coluna > header .nome { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.coluna > header .acoes { margin-left: auto; display: flex; flex: none; }
 .coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 80px; padding: 0 10px 12px; overflow-y: auto; scrollbar-width: thin; }
 .coluna .itens > .vazio { margin: 0; padding: 24px 12px; border: 1px dashed var(--borda); border-radius: 10px; font-size: 11px; }
 .coluna.alvo { border-color: var(--link); background: rgba(var(--c-purple), .05); }
@@ -609,3 +609,7 @@ button.selo { cursor: pointer; text-align: left; }
   .numero small { display: none; }
   .numero b { font-size: 24px; }
 }
+
+.coluna > header .acoes button { width: 30px; height: 30px; color: var(--link); border-color: var(--borda); }
+
+.conteudo[data-view="ficha"] td:first-child { white-space: nowrap; overflow-wrap: normal; }
