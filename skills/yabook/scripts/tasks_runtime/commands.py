@@ -80,7 +80,7 @@ class Tasks:
 
     def brief(self, task, index=None):
         data = task["data"]
-        keys = ("id", "tipo", "nivel", "titulo", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha",
+        keys = ("id", "numero", "tipo", "nivel", "titulo", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha",
                 "aguardando", "aguardando_desde")
         result = {k: data[k] for k in keys if k in data}
         if data.get("tipo") != "pergunta":

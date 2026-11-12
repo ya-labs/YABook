@@ -145,6 +145,11 @@ function stateIcon(task) {
 }
 
 function origin(task) {
+  const tag = task.numero ? `@${task.numero} · ` : "";
+  return tag + originText(task);
+}
+
+function originText(task) {
   const ref = issueRef(task);
   if (ref) return `${ref.repo} #${ref.number}`;
   const own = task.demanda ? ["demanda", task.demanda] : task.projeto && task.tipo === "projeto" ? ["projeto", task.projeto] : null;
@@ -423,7 +428,7 @@ async function openTask(id) {
     const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
     fill(panel,
       h("div", { class: "painel-topo" },
-        h("h2", { id: "painel-titulo", tabindex: "-1" }, data.titulo, ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null),
+        h("h2", { id: "painel-titulo", tabindex: "-1" }, data.numero ? h("span", { class: "numero-issue" }, `@${data.numero} `) : null, data.titulo, ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null),
         h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar"))),
       h("div", { class: "faixa-estado" },
         stateLabel(task),
@@ -558,7 +563,7 @@ function epicOf(task, map) {
 function filtered(tasks) {
   const text = (app.busca || "").trim().toLowerCase();
   if (!text) return tasks;
-  return tasks.filter((t) => [t.titulo, t.codigo, t.id, t.proximo_passo, (t.issue || []).join(" ")].join(" ").toLowerCase().includes(text));
+  return tasks.filter((t) => [t.numero ? "@" + t.numero : "", t.titulo, t.codigo, t.id, t.proximo_passo, (t.issue || []).join(" ")].join(" ").toLowerCase().includes(text));
 }
 
 function titleLink(task) {
