@@ -16,16 +16,15 @@ A configuração da máquina fica na seção `tasks` de `~/.config/yabook/config
   <arquivo>`.
 - `do task init` roda `init-apply --plan <arquivo> --approval-hash <hash>` com o
   plano apresentado; plano, conta, remoto ou pasta alterados exigem novo plano.
-- Sem indicação, o repositório é `YABook-task-<loginGitHub>` da conta
-  autenticada. Use o mesmo repositório nas duas máquinas: na segunda, o plano
-  conecta o existente. Repositório de outra conta precisa existir e ser privado;
-  nunca crie uma segunda base por inferir o login de outra máquina.
+- Padrão: `YABook-task-<loginGitHub>`, o mesmo nas duas máquinas (a segunda
+  conecta o existente); outra conta exige repositório privado existente.
 - A aplicação define `core.hooksPath` para `.githooks` e, com `--terms`, grava
   `yabook.terms` no Git local. Sem lista, o `pre-commit` apenas avisa.
 
 ## Formato
 
-Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `tipo` (`demanda`,
+Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (código `@n`,
+dado na criação; comandos aceitam `@n`; `numerar [--corrigir]`), `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
 e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 `prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a

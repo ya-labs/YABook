@@ -124,6 +124,8 @@ def build_parser():
     flow.add_argument("--registro", help="Texto do registro; padrão conforme a fase")
     flow.add_argument("--pr", help="Número ou URL do PR")
     flow.add_argument("--repo-dir", default=os.getcwd(), help="Checkout usado para branch, remoto e gh")
+    number = sub.add_parser("numerar", help="Numera (@n) as tarefas sem número pela ordem de criação")
+    number.add_argument("--corrigir", action="store_true", help="Renumera também os números repetidos")
     policy = sub.add_parser("policy")
     policy.add_argument("mode", choices=["automatic", "manual"])
     return parser
@@ -163,13 +165,18 @@ def run(args):
                 store.validate(store.normalize(task["data"]))
             except ValueError as exc:
                 errors.append(dict(id=task["data"].get("id"), error=str(exc)))
-        return dict(ok=not errors, tasks=len(tasks), errors=errors)
+        return dict(ok=not errors, tasks=len(tasks), errors=errors, numeros_repetidos=store.duplicate_numbers())
     if args.command == "policy":
         from tasks_runtime.commands import set_policy
         return set_policy(args.config, args.mode)
     from tasks_runtime.commands import Tasks, sync
     store, cfg = open_store(args.config)
     tasks = Tasks(store, cfg)
+    for key in ("id", "sobre", "pai"):  # `@n` vira o id da tarefa antes de qualquer serviço
+        if isinstance(getattr(args, key, None), str):
+            setattr(args, key, store.resolve(getattr(args, key)))
+    if args.command == "numerar":
+        return dict(numeradas=store.number_all(args.corrigir))
     state = store.root / "local" / "ativa.json"
     if args.command == "summary":
         return tasks.summary(json.loads(state.read_text(encoding="utf-8")) if state.exists() else None)

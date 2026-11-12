@@ -17,7 +17,7 @@ TIPOS = ("demanda", "projeto", "especificacao", "issue", "tarefa", "pergunta")
 PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
 NIVEIS = ("epico", "historia", "tarefa")
 CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
-ORDER = ("id", "tipo", "nivel", "titulo", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "pessoal",
+ORDER = ("id", "numero", "tipo", "nivel", "titulo", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "pessoal",
          "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
@@ -221,7 +221,46 @@ class TaskStore:
                     _unlock_file(stream)
 
     # Tarefas -----------------------------------------------------------
+    def resolve(self, identifier):
+        """`@n` vira o id da tarefa de número n; ids seguem como estão."""
+        if isinstance(identifier, str) and identifier.startswith("@") and identifier[1:].isdigit():
+            number = int(identifier[1:])
+            found = next((t["data"]["id"] for t in self.list() if t["data"].get("numero") == number), None)
+            if found is None:
+                raise KeyError("Tarefa inexistente: " + identifier)
+            return found
+        return identifier
+
+    def next_number(self):
+        return max((t["data"].get("numero") or 0 for t in self.list()), default=0) + 1
+
+    def number_all(self, fix_duplicates=False):
+        """Numera as tarefas sem número pela ordem de criação; com `fix_duplicates`, renumera as repetidas
+        (a mais antiga mantém o número)."""
+        with self.lock():
+            tasks = sorted(self.list(), key=lambda t: (t["data"].get("criada") or "", t["data"]["id"]))
+            top = max((t["data"].get("numero") or 0 for t in tasks), default=0)
+            seen, changed = set(), []
+            for task in tasks:
+                number = task["data"].get("numero")
+                if number and (number not in seen or not fix_duplicates):
+                    seen.add(number)
+                    continue
+                top += 1
+                self.save(dict(task["data"], numero=top), task["body"], task["revision"])
+                changed.append(dict(id=task["data"]["id"], numero=top))
+            return changed
+
+    def duplicate_numbers(self):
+        counts = {}
+        for task in self.list():
+            number = task["data"].get("numero")
+            if number:
+                counts.setdefault(number, []).append(task["data"]["id"])
+        return {n: ids for n, ids in counts.items() if len(ids) > 1}
+
     def path(self, identifier):
+        identifier = self.resolve(identifier)
         if not isinstance(identifier, str) or not _ID.fullmatch(identifier):
             raise ValueError("Id de tarefa inválido: %r" % (identifier,))
         return self.root / "tarefas" / (identifier + ".md")
@@ -279,6 +318,8 @@ class TaskStore:
             raise ValueError("Tarefa sem título")
         if data.get("coluna") not in self.column_ids():
             raise ValueError("Coluna inexistente no quadro: %r" % (data.get("coluna"),))
+        if "numero" in data and (not isinstance(data["numero"], int) or data["numero"] < 1):
+            raise ValueError("`numero` precisa ser inteiro positivo")
         if "ordem" in data and not isinstance(data["ordem"], int):
             raise ValueError("`ordem` precisa ser inteiro")
         if "pessoal" in data and not isinstance(data["pessoal"], bool):
@@ -320,6 +361,7 @@ class TaskStore:
             stamp = now()
             if current is None:
                 data.setdefault("criada", stamp)
+                data.setdefault("numero", self.next_number())
             else:
                 data["criada"] = fmt.split_frontmatter(current)[0].get("criada", data.get("criada", stamp))
             data["atualizada"] = stamp
