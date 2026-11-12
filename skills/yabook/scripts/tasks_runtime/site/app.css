@@ -257,6 +257,8 @@ h2:first-child { margin-top: 0; }
 .card-sinais .sinal { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; }
 .card-titulo { color: var(--texto); font-size: 14px; font-weight: 750; line-height: 1.6; letter-spacing: -.15px; overflow-wrap: anywhere; }
 .card .rotulos:empty { display: none; }
+.card-atualizada { display: flex; align-items: center; gap: 6px; color: var(--texto-2); font-size: 11px; line-height: 1.6; }
+.card-atualizada .icone svg { width: 12px; height: 12px; }
 .card-passo { display: flex; align-items: flex-start; gap: 7px; padding-top: 10px; border-top: 1px solid var(--borda-suave); font-size: 12px; line-height: 1.7; color: var(--texto-2); }
 .passo-texto { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-width: 0; }
 .card-passo > .icone { margin-top: 2px; color: rgb(var(--c-blue)); }
@@ -548,8 +550,9 @@ button.selo { cursor: pointer; text-align: left; }
   .filtro input { font-size: 12px; }
   .opcoes { flex: 1; min-width: 0; gap: 6px; }
   .opcoes:empty { display: none; }
-  .opcoes select { flex: 1; min-width: 0; max-width: 140px; font-size: 11px; }
+  .opcoes select { flex: 1 0 calc(50% - 6px); min-width: 0; max-width: none; font-size: 11px; }
   .opcoes label { flex-basis: 100%; }
+  .opcoes .switch { flex-basis: auto; }
   .botao, .botao-icone { min-height: 38px; }
   .conteudo { padding: 0 18px 24px; }
   .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 26px; }

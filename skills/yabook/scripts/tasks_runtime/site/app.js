@@ -195,6 +195,51 @@ function epicProgress(task) {
   return epic ? segments(epic.concluidas, epic.historias) : null;
 }
 
+const CHANGE_DATE = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo" });
+const CHANGE_FULL = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+
+function changeStamp(task) {
+  const value = Date.parse(task.atualizada || task.criada || "");
+  return Number.isFinite(value) ? value : null;
+}
+
+function changeText(stamp, now = Date.now()) {
+  if (stamp === null) return "Última alteração: sem registro";
+  const age = now - stamp;
+  let text;
+  if (age >= 0 && age < 60000) text = "agora";
+  else if (age >= 60000 && age < 3600000) {
+    const minutes = Math.floor(age / 60000);
+    text = `há ${minutes} minuto${minutes === 1 ? "" : "s"}`;
+  } else if (age >= 3600000 && age < 86400000) {
+    const hours = Math.floor(age / 3600000);
+    text = `há ${hours} hora${hours === 1 ? "" : "s"}`;
+  } else {
+    const full = CHANGE_DATE.format(stamp);
+    text = full.slice(-4) === CHANGE_DATE.format(now).slice(-4) ? full.slice(0, 5) : full;
+  }
+  return "Última alteração: " + text;
+}
+
+function lastChange(task) {
+  const stamp = changeStamp(task);
+  return h(stamp === null ? "span" : "time", { class: "card-atualizada",
+    datetime: stamp === null ? null : new Date(stamp).toISOString(),
+    "data-updated": stamp,
+    title: stamp === null ? "Data de alteração não registrada" : "Última alteração: " + CHANGE_FULL.format(stamp),
+  }, icon("historico"), h("span", { class: "card-atualizada-texto" }, changeText(stamp)));
+}
+
+function refreshChangeTimes() {
+  if (document.hidden) return;
+  const now = Date.now();
+  document.querySelectorAll("time.card-atualizada[data-updated]").forEach((node) => {
+    const text = changeText(Number(node.dataset.updated), now);
+    const label = node.querySelector(".card-atualizada-texto");
+    if (label.textContent !== text) label.textContent = text;
+  });
+}
+
 function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
   const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
@@ -216,7 +261,8 @@ function card(task, options = {}) {
     h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: currentView() === "quadro", compacto: true, semNivel: true, semPai: true, semPessoal: true })),
     parent && !options.semPai ? h("div", { class: "card-pai", title: "Faz parte de: " + parent.titulo }, icon("relacoes"), h("span", {}, parent.titulo)) : null,
     task.nivel === "epico" ? epicProgress(task) : null,
-    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null);
+    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null,
+    lastChange(task));
 }
 
 // Registro em Markdown simples, montado em nós (sem innerHTML): títulos, listas, parágrafos e `código`.
@@ -389,6 +435,14 @@ function byOrder(a, b) {
   return (a.ordem || 0) - (b.ordem || 0) || a.titulo.localeCompare(b.titulo);
 }
 
+function byRecent(a, b) {
+  return ((changeStamp(b) ?? -Infinity) - (changeStamp(a) ?? -Infinity)) || byOrder(a, b);
+}
+
+function boardOrder(a, b) {
+  return pref("quadro.ordem", "recentes") === "manual" ? byOrder(a, b) : byRecent(a, b);
+}
+
 function epicOf(task, map) {
   let current = task, guard = 0;
   while (current && guard++ < 5) {
@@ -432,9 +486,9 @@ const VIEWS = {
       const active = current && current.nivel !== "epico" ? current : null;
       const activeEpicId = current ? (current.nivel === "epico" ? current.id : epicOf(current, map)) : null;
       const activeEpic = activeEpicId ? tasks.find((t) => t.id === activeEpicId) || map[activeEpicId] : null;
-      const doing = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico" && (!active || t.id !== active.id)).sort(byOrder);
-      const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && t.id !== activeEpicId).sort(byOrder);
-      const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byOrder);
+      const doing = tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico" && (!active || t.id !== active.id)).sort(byRecent);
+      const epics = tasks.filter((t) => t.nivel === "epico" && ["ativo", "validacao"].includes(t.papel) && t.id !== activeEpicId).sort(byRecent);
+      const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byRecent);
       const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
       app.contagem = doing.length + epics.length + testing.length + (active ? 1 : 0) + (activeEpic ? 1 : 0);
       const list = (title, symbol, items, empty, render = row) => h("div", { class: "caixa" },
@@ -488,6 +542,10 @@ const VIEWS = {
           [["", "Nível: todos"], ["epico", "Épicos"], ["historia", "Histórias"], ["tarefa", "Tarefas"], ["-", "Sem nível"]]
             .map(([v, n]) => h("option", { value: v, selected: v === levelFilter }, n))),
         switchInput("Arquivadas", showArchived, (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); }),
+        h("select", { "aria-label": "Ordenar cards", title: "Em Última alteração, arraste entre colunas. Para reordenar na coluna, use Ordem manual.",
+          onchange: (e) => { setPref("quadro.ordem", e.target.value); render(); } },
+          [["recentes", "Última alteração"], ["manual", "Ordem manual"]].map(([value, text]) =>
+            h("option", { value, selected: pref("quadro.ordem", "recentes") === value }, text))),
       ];
     },
     render(estado) {
@@ -500,7 +558,7 @@ const VIEWS = {
         (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
       const epics = visible.filter((t) => t.nivel === "epico" && columns.some((c) => c.id === t.coluna))
-        .sort((a, b) => CLOSED.includes(a.papel) - CLOSED.includes(b.papel) || byOrder(a, b));
+        .sort((a, b) => CLOSED.includes(a.papel) - CLOSED.includes(b.papel) || boardOrder(a, b));
       const items = visible.filter((t) => t.nivel !== "epico");
       app.contagem = items.filter((t) => columns.some((c) => c.id === t.coluna)).length + epics.length;
       const epicColumn = h("div", { class: "coluna coluna-epicos", "data-coluna": "epicos" },
@@ -508,7 +566,7 @@ const VIEWS = {
         h("div", { class: "itens" }, epics.length ? epics.map((t) => card(t, { status: true, semNivel: true }))
           : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum épico")));
       return h("div", { class: "quadro" }, columns.map((column) => {
-        const cards = items.filter((t) => t.coluna === column.id).sort(byOrder);
+        const cards = items.filter((t) => t.coluna === column.id).sort(boardOrder);
         return h("div", { class: `coluna papel-${column.papel}`, "data-coluna": column.id,
           ondragover: app.editando ? indicateDrop : null,
           ondragleave: app.editando ? (e) => { if (!e.currentTarget.contains(e.relatedTarget)) clearDrop(); } : null,
@@ -528,11 +586,11 @@ const VIEWS = {
     render(estado) {
       const tasks = work(estado);
       const children = (id) => tasks.filter((t) => t.pai === id)
-        .sort((a, b) => ROLE_ORDER.indexOf(a.papel) - ROLE_ORDER.indexOf(b.papel) || byOrder(a, b));
+        .sort((a, b) => ROLE_ORDER.indexOf(a.papel) - ROLE_ORDER.indexOf(b.papel) || byRecent(a, b));
       const text = (app.busca || "").toLowerCase();
       const matches = (t) => !text || [t.titulo, t.codigo, t.id].join(" ").toLowerCase().includes(text);
       const epics = estado.epicos.filter((e) => matches(e) || children(e.id).some(matches));
-      const loose = filtered(tasks.filter((t) => !t.pai && t.nivel !== "epico" && !CLOSED.includes(t.papel))).sort(byOrder);
+      const loose = filtered(tasks.filter((t) => !t.pai && t.nivel !== "epico" && !CLOSED.includes(t.papel))).sort(byRecent);
       app.contagem = epics.length;
       const storyRow = (story, sub) => h("div", { class: "linha-caixa" + (sub ? " sub" : "") }, stateIcon(story), titleLink(story),
         badges(story, { semNivel: true, semPai: true, semPessoal: true, semData: true }),
@@ -1087,6 +1145,8 @@ document.addEventListener("DOMContentLoaded", () => {
   filter.addEventListener("input", () => { app.busca = filter.value; clearTimeout(app.buscaTimer); app.buscaTimer = setTimeout(render, 150); });
   app.rascunho = loadDraft();
   app.editando = !SNAPSHOT && draftCount() > 0;
+  setInterval(refreshChangeTimes, 60000);
+  document.addEventListener("visibilitychange", refreshChangeTimes);
   refresh();
   listen();
   if (!SNAPSHOT && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
@@ -1182,6 +1242,16 @@ function dropCard(event, columnId, cards) {
   const ordered = [...others.slice(0, position), { id }, ...others.slice(position)];
   const state = effectiveState();
   const moving = state.tarefas.find((t) => t.id === id);
+  if (pref("quadro.ordem", "recentes") !== "manual") {
+    if (moving.coluna === columnId) {
+      if (!ordered.every((t, i) => t.id === cards[i]?.id)) announce("Para reordenar na coluna, selecione Ordem manual.");
+      return;
+    }
+    draftTask(id, { coluna: columnId });
+    render();
+    announce("Tarefa movida no rascunho. Salve para gravar.");
+    return;
+  }
   if (moving.nivel === "epico") {
     if (moving.coluna === columnId) return;
     draftTask(id, { coluna: columnId });
