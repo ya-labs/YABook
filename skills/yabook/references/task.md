@@ -132,7 +132,8 @@ captura também na configuração global do host, ou ela roda duas vezes.
 
 ## Ficha de horas
 
-- O código sobe pela cadeia de `pai`: demanda mais próxima, senão projeto;
+- O código é o do próprio tipo (`projeto` em `tipo: projeto`, `demanda` em
+  `tipo: demanda`); sem ele, o do ancestral mais próximo na cadeia de `pai`;
   `tipo: especificacao` usa o código da cadeia e, sem código, é pessoal como os
   demais. Iniciativa própria vai como `tarefa` ou `issue`, não `especificacao`. Tarefa pessoal é extra: aparece
   no dia com horas estimadas, fora do total. Trabalho sem código vira linha

@@ -22,20 +22,17 @@ WINDOW_HOURS = 0.25
 def attribution(data, index=None):
     """(tipo, código) na ficha, ou None quando a tarefa é pessoal (extra).
 
-    O código sobe pela cadeia de `pai`: demanda mais próxima, depois projeto.
-    Trabalho sem código entra como linha `trabalho` para a pessoa ajustar.
+    O código é o do próprio tipo da tarefa; sem ele, o do ancestral mais próximo
+    na cadeia de `pai` (o do tipo dele, senão demanda ou projeto). Trabalho sem
+    código entra como linha `trabalho` para a pessoa ajustar.
     """
     index = index or {data["id"]: data}
     if tree.personal(data, index):
         return None
-    demanda, projeto = tree.inherited(data, index, "demanda"), tree.inherited(data, index, "projeto")
-    if data.get("tipo") == "especificacao" and (demanda or projeto):
-        return "especificacao", demanda or projeto
-    if demanda:
-        return "demanda", demanda
-    if projeto:
-        return "projeto", projeto
-    return "trabalho", ""
+    found = tree.nearest_code(data, index)
+    if data.get("tipo") == "especificacao" and found:
+        return "especificacao", found[1]
+    return found or ("trabalho", "")
 
 
 def activity(root, day):
