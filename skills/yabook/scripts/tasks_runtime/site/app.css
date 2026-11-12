@@ -98,9 +98,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 /* Superfícies, tipografia e ritmo do espaço de trabalho. */
 :root {
-  --bg: #fff; --bg-inset: #e9e9ef; --bg-subtle: #f1f1f6; --bg-hover: #f5f1ff;
+  --bg: #fff; --bg-inset: #c9c9d5; --bg-subtle: #f1f1f6; --bg-hover: #f5f1ff;
   --bg-coluna: #dcdce5; --bg-navegacao: #f7f7fa;
-  --borda: var(--borda-suave); --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #484855;
+  --borda: var(--borda-suave); --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #3f3f4b;
   --link: #6530c9; --primario: #6530c9; --primario-hover: #5021ab; --primario-texto: #fff;
   --botao: #fff; --botao-borda: var(--borda); --botao-hover: #f0f0f3;
   --acento-suave: #e9ddff; --sombra: 0 2px 5px rgba(29, 35, 64, .035);
@@ -110,9 +110,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --rotulo-fundo: .1; --rotulo-borda: .55; color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #2b2b33; --bg-inset: #19191f; --bg-subtle: #23232b; --bg-hover: #393344;
+  --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393344;
   --bg-coluna: #111116; --bg-navegacao: #202027;
-  --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #c5c5d0;
+  --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #d9d9e2;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
   --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
@@ -122,9 +122,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --bg: #2b2b33; --bg-inset: #19191f; --bg-subtle: #23232b; --bg-hover: #393344;
+  --bg: #2b2b33; --bg-inset: #3d3d48; --bg-subtle: #23232b; --bg-hover: #393344;
   --bg-coluna: #111116; --bg-navegacao: #202027;
-  --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #c5c5d0;
+  --borda: var(--borda-suave); --borda-suave: #45454e; --texto: #fafaff; --texto-2: #d9d9e2;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
   --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
