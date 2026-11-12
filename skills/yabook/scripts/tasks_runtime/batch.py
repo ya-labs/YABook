@@ -87,7 +87,10 @@ class Capture:
             hours.append(dict(tarefa=target, data=parse_date(entry["data"]), horas=value, obs=_text(entry.get("obs"))))
         if any(o.get("complemento") for o in ops) and not self.cfg.get("confidential"):
             raise ValueError("Complemento sem base confidencial nesta máquina; omita `complemento` ou configure a base")
-        result = dict(operacoes=ops, perguntas=plan_questions, ativa=active, horas=hours)
+        current = {t["data"]["id"]: t["data"] for t in self.store.list()}
+        finals = [o["dados"] if o["acao"] == "criar" else dict(current.get(o["id"], {}), **o.get("mudancas", {})) for o in ops]
+        warnings = [w for w in (tree.mixed_code_warning(d) for d in finals) if w]
+        result = dict(operacoes=ops, avisos=warnings, perguntas=plan_questions, ativa=active, horas=hours)
         result["approval_hash"] = self._hash(batch, ops)
         return result
 

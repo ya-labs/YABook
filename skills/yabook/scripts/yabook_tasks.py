@@ -177,7 +177,10 @@ def run(args):
         from tasks_runtime import events
         return dict(tasks.review(), eventos_pendentes=events.pending(store.root))
     if args.command == "add":
-        return tasks.add(args.tipo, args.titulo, body=args.body, **fields(args))
+        added = tasks.add(args.tipo, args.titulo, body=args.body, **fields(args))
+        from tasks_runtime import tree
+        warning = tree.mixed_code_warning(store.get(added["id"])["data"])
+        return dict(added, aviso=warning) if warning else added
     if args.command == "edit":
         current = store.get(args.id)["data"]
         changes = fields(args, current)

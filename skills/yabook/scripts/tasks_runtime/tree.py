@@ -26,10 +26,38 @@ def personal(data, index):
     return not any(d.get("demanda") or d.get("projeto") for d in chain(data, index))
 
 
+def own_code(data):
+    """(tipo, código) do próprio nó: o do tipo dele; nos demais tipos, demanda e depois projeto."""
+    if data.get("tipo") == "projeto" and data.get("projeto"):
+        return "projeto", data["projeto"]
+    if data.get("tipo") == "demanda" and data.get("demanda"):
+        return "demanda", data["demanda"]
+    if data.get("demanda"):
+        return "demanda", data["demanda"]
+    if data.get("projeto"):
+        return "projeto", data["projeto"]
+    return None
+
+
+def mixed_code_warning(data):
+    """Aviso (sem recusar) quando o tipo traz o código do outro tipo junto."""
+    tipo, other = data.get("tipo"), {"projeto": "demanda", "demanda": "projeto"}.get(data.get("tipo"))
+    if other and data.get(tipo) and data.get(other):
+        return "%s: tipo %s com %s %s; o código exibido e da ficha será o %s %s" % (
+            data.get("id") or data.get("titulo"), tipo, other, data[other], tipo, data[tipo])
+    return None
+
+
+def nearest_code(data, index):
+    """(tipo, código) do nó mais próximo da cadeia que tem código: a própria tarefa, depois os ancestrais."""
+    return next((c for c in (own_code(d) for d in chain(data, index)) if c), None)
+
+
 def code(data, index):
-    """Código exibido: demanda ou projeto da cadeia; sem eles, a issue (projeto pessoal não usa a numeração da empresa)."""
-    value = inherited(data, index, "demanda") or inherited(data, index, "projeto")
-    if value:
-        return value
+    """Código exibido: o do próprio tipo, senão o do ancestral mais próximo; sem eles, a issue
+    (projeto pessoal não usa a numeração da empresa)."""
+    found = nearest_code(data, index)
+    if found:
+        return found[1]
     issues = inherited(data, index, "issue")
     return issues[0] if issues else None
