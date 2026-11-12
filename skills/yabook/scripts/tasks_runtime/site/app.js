@@ -60,6 +60,7 @@ function snapshotTask(id) {
 
 // Componentes compartilhados --------------------------------------------------
 const ICONS = {
+  painel: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 2.5v10.5M3.5 5v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
   usuario: '<circle cx="8" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 14v-1a5 5 0 0 1 10 0v1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   camadas: '<path d="m8 1.5 6.5 3.8L8 9 1.5 5.3zM2 8.5 8 12l6-3.5M2 11.5 8 15l6-3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>',
   tarefa: '<rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="m5 8 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -124,6 +125,11 @@ function pill(text, color, extra = {}) {
   return h("span", { class: `selo cor-${color || "gray"}`, title: extra.title || null }, extra.icon ? icon(extra.icon) : null, text);
 }
 
+function switchInput(text, checked, onchange) {
+  return h("label", { class: "switch" }, h("input", { type: "checkbox", role: "switch", checked, onchange }),
+    h("span", { class: "switch-trilho", "aria-hidden": "true" }), h("span", {}, text));
+}
+
 function issueRef(task) {
   const first = (task.issue || [])[0];
   if (!first) return null;
@@ -154,7 +160,7 @@ function badges(task, options = {}) {
   if (task.nivel && !options.semNivel) items.push(pill(LEVEL[task.nivel][0], LEVEL[task.nivel][1]));
   const ref = issueRef(task);
   if (task.codigo && (!ref || task.codigo !== ref.full) && !options.semCodigo) {
-    items.push(pill(task.codigo, "gray", { title: task.pessoal ? "Código" : "Código na ficha", icon: "repo" }));
+    items.push(pill(task.codigo, "blue", { title: task.pessoal ? "Código" : "Código na ficha", icon: "repo" }));
   }
   if (task.pessoal && !options.semPessoal) items.push(pill("pessoal", "pink", { title: "Sem numeração da empresa" }));
   if (task.prazo && !CLOSED.includes(task.papel)) {
@@ -162,8 +168,8 @@ function badges(task, options = {}) {
     items.push(pill(fmtDate(task.prazo), days < 0 ? "red" : days <= 2 ? "orange" : "gray", { icon: "calendario", title: "Prazo" }));
   }
   if (task.perguntas_abertas && !options.compacto) items.push(pill(`${task.perguntas_abertas} pergunta${task.perguntas_abertas > 1 ? "s" : ""}`, "blue", { icon: "pergunta" }));
-  if (task.confidencial === "disponivel" && !options.compacto) items.push(pill("confidencial", "yellow", { icon: "cadeado", title: "Referência confidencial disponível nesta máquina" }));
-  if (task.confidencial === "bloqueado" && !options.compacto) items.push(pill("confidencial", "gray", { icon: "cadeado", title: "Base confidencial ausente nesta máquina" }));
+  if (task.confidencial === "disponivel" && (!options.compacto || options.confidencial)) items.push(pill("Confidencial", "red", { icon: "cadeado", title: "Referência confidencial disponível nesta máquina" }));
+  if (task.confidencial === "bloqueado" && (!options.compacto || options.confidencial)) items.push(pill("Confidencial", "red", { icon: "cadeado", title: "Base confidencial ausente nesta máquina" }));
   if (!options.semPai && task.pai) {
     const parent = (effectiveState().tarefas || []).find((t) => t.id === task.pai);
     if (parent) {
@@ -193,7 +199,7 @@ function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
   const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
   const parent = task.pai ? effectiveState().tarefas.find((t) => t.id === task.pai) : null;
-  return h("div", { class: "card" + (task.editado ? " editado" : "") + (options.foco ? " card-em-foco" : ""), role: "button", tabindex: "0", "data-id": task.id,
+  return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : "") + (options.foco ? " card-em-foco" : ""), role: "button", tabindex: "0", "data-id": task.id,
     draggable: editable ? "true" : null,
     ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
     ondragend: editable ? () => { app.dragId = null; clearDrop(); document.querySelectorAll(".arrastando").forEach((n) => n.classList.remove("arrastando")); } : null,
@@ -207,7 +213,7 @@ function card(task, options = {}) {
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
     h("div", { class: "card-titulo" }, task.titulo),
-    h("div", { class: "rotulos" }, badges(task, { ...options, compacto: true, semNivel: true, semPai: true, semPessoal: true })),
+    h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: currentView() === "quadro", compacto: true, semNivel: true, semPai: true, semPessoal: true })),
     parent && !options.semPai ? h("div", { class: "card-pai", title: "Faz parte de: " + parent.titulo }, icon("relacoes"), h("span", {}, parent.titulo)) : null,
     task.nivel === "epico" ? epicProgress(task) : null,
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null);
@@ -307,10 +313,8 @@ async function openTask(id) {
             field("Nível", data.nivel ? LEVEL[data.nivel][0] : null),
             field("Código", task.codigo),
             field("Prazo", data.prazo ? fmtDate(data.prazo) : null),
-            field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null)),
-          sideSection("Projeto", h("div", { class: "projeto-caixa" },
-            h("div", { class: "projeto-caixa-topo" }, icon("quadro"), h("strong", {}, "YABook Tasks")),
-            field("Status", columnName(data.coluna)), field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null)))),
+            field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null),
+            field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null))),
           sideSection("Relacionamentos",
             parent ? [h("span", { class: "vazio" }, "Faz parte de"), h("div", { class: "relacao" }, stateIcon(parent), goTo(parent),
               epic && data.nivel !== "epico" ? h("span", { class: "contador" }, `${epic.concluidas} / ${epic.historias}`) : null)] : null,
@@ -483,7 +487,7 @@ const VIEWS = {
         h("select", { title: "Nível", onchange: (e) => { setPref("quadro.nivel", e.target.value); render(); } },
           [["", "Nível: todos"], ["epico", "Épicos"], ["historia", "Histórias"], ["tarefa", "Tarefas"], ["-", "Sem nível"]]
             .map(([v, n]) => h("option", { value: v, selected: v === levelFilter }, n))),
-        h("label", {}, h("input", { type: "checkbox", checked: showArchived, onchange: (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); } }), "Arquivadas"),
+        switchInput("Arquivadas", showArchived, (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); }),
       ];
     },
     render(estado) {
@@ -711,7 +715,7 @@ const VIEWS = {
       return h("section", {},
         h("div", { class: "filtros" },
           h("span", {}, icon("historico"), ` ${data.total} ações · ${data.pendentes} não analisadas`),
-          h("label", {}, h("input", { type: "checkbox", checked: onlyPending, onchange: (e) => { setPref("historico.pendentes", e.target.checked ? "1" : "0"); render(); } }), " Só não analisadas"),
+          switchInput("Só não analisadas", onlyPending, (e) => { setPref("historico.pendentes", e.target.checked ? "1" : "0"); render(); }),
           h("label", {}, "Origem ", h("select", { onchange: (e) => { setPref("historico.origem", e.target.value); render(); } },
             [["", "Todas"], ["agente", "Agente"], ["quadro", "Quadro"]].map(([v, n]) => h("option", { value: v, selected: v === origin }, n))))),
         rows.length ? h("ol", { class: "historico-lista", "aria-label": "Ações registradas" }, rows.map((event) => {
@@ -958,6 +962,18 @@ async function render() {
 
 const THEMES = [["auto", "Tema: automático", "auto"], ["light", "Tema: claro", "sol"], ["dark", "Tema: escuro", "lua"]];
 
+function renderNavigation() {
+  let saved = app.navPreference;
+  try { saved = localStorage.getItem("yabook.navegacao") || saved; } catch (error) { /* preferência só nesta página */ }
+  const compact = saved ? saved === "compacta" : matchMedia("(max-width: 1190px)").matches;
+  document.documentElement.dataset.nav = compact ? "compacta" : "expandida";
+  const button = document.getElementById("compactar");
+  button.setAttribute("aria-expanded", String(!compact));
+  button.title = compact ? "Expandir navegação" : "Compactar navegação";
+  button.setAttribute("aria-label", button.title);
+  fill(button, icon("painel"));
+}
+
 function renderTheme() {
   const current = pref("tema", "auto");
   const [, title, iconName] = THEMES.find((t) => t[0] === current) || THEMES[0];
@@ -1050,6 +1066,15 @@ document.addEventListener("click", (event) => {
 });
 document.addEventListener("DOMContentLoaded", () => {
   renderTheme();
+  renderNavigation();
+  document.getElementById("compactar").addEventListener("click", () => {
+    const next = document.documentElement.dataset.nav === "compacta" ? "expandida" : "compacta";
+    app.navPreference = next;
+    try { localStorage.setItem("yabook.navegacao", next); } catch (error) { /* sem armazenamento persistente */ }
+    document.documentElement.dataset.nav = next;
+    renderNavigation();
+  });
+  matchMedia("(max-width: 1190px)").addEventListener("change", renderNavigation);
   const skip = document.querySelector(".pular-conteudo");
   if (skip) skip.addEventListener("click", (event) => {
     event.preventDefault();
