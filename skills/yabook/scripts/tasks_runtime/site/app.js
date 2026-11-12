@@ -60,6 +60,23 @@ function snapshotTask(id) {
 
 // Componentes compartilhados --------------------------------------------------
 const ICONS = {
+  usuario: '<circle cx="8" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 14v-1a5 5 0 0 1 10 0v1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+  camadas: '<path d="m8 1.5 6.5 3.8L8 9 1.5 5.3zM2 8.5 8 12l6-3.5M2 11.5 8 15l6-3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>',
+  tarefa: '<rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="m5 8 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  seta: '<path d="M2.5 8h10M9 4.5 12.5 8 9 11.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  editar: '<path d="m10.5 2.5 3 3M3 10l8.5-8.5 3 3L6 13l-4 1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  copiar: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 3V2H2v8.5h1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  check: '<path d="m3 8 3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  alerta: '<path d="m8 1.8 6.4 11.4H1.6zM8 6v3M8 11v.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>',
+  alvo: '<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2.8" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+  laptop: '<rect x="3" y="2.5" width="10" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1 13h14M5 10.5 4 13m7-2.5 1 2.5" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+  livro: '<path d="M8 3.2C5 1.5 2 2.5 2 2.5v11s3-1 6 .7c3-1.7 6-.7 6-.7v-11s-3-1-6 .7zm0 0v11" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
+  filtro: '<path d="M2 3h12L9.5 8.5V13l-3-1.5v-3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
+  salvar: '<path d="M2 2h10l2 2v10H2zM5 2v4h6V2M5 14V9h6v5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
+  desfazer: '<path d="M5.5 3 2 6.5 5.5 10M2 6.5h7a4 4 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  etiqueta: '<path d="M2 2h5l7 7-5 5-7-7z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="5" r="1" fill="currentColor"/>',
+  campos: '<path d="M2 4h12M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="5" y="2" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="10" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/>',
+  relacoes: '<path d="M8 5v3M3 11V8h10v3" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="6" y="1" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>',
   aberto: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.75" fill="currentColor"/>',
   fechado: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m5.25 8.25 1.9 1.9 3.6-3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
   arquivado: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m3.6 12.4 8.8-8.8" stroke="currentColor" stroke-width="1.5"/>',
@@ -144,9 +161,9 @@ function badges(task, options = {}) {
     const days = daysUntil(task.prazo);
     items.push(pill(fmtDate(task.prazo), days < 0 ? "red" : days <= 2 ? "orange" : "gray", { icon: "calendario", title: "Prazo" }));
   }
-  if (task.perguntas_abertas) items.push(pill(`${task.perguntas_abertas} pergunta${task.perguntas_abertas > 1 ? "s" : ""}`, "blue", { icon: "pergunta" }));
-  if (task.confidencial === "disponivel") items.push(pill("confidencial", "yellow", { icon: "cadeado", title: "Referência confidencial disponível nesta máquina" }));
-  if (task.confidencial === "bloqueado") items.push(pill("confidencial", "gray", { icon: "cadeado", title: "Base confidencial ausente nesta máquina" }));
+  if (task.perguntas_abertas && !options.compacto) items.push(pill(`${task.perguntas_abertas} pergunta${task.perguntas_abertas > 1 ? "s" : ""}`, "blue", { icon: "pergunta" }));
+  if (task.confidencial === "disponivel" && !options.compacto) items.push(pill("confidencial", "yellow", { icon: "cadeado", title: "Referência confidencial disponível nesta máquina" }));
+  if (task.confidencial === "bloqueado" && !options.compacto) items.push(pill("confidencial", "gray", { icon: "cadeado", title: "Base confidencial ausente nesta máquina" }));
   if (!options.semPai && task.pai) {
     const parent = (effectiveState().tarefas || []).find((t) => t.id === task.pai);
     if (parent) {
@@ -174,18 +191,26 @@ function epicProgress(task) {
 
 function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
-  return h("div", { class: "card" + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
+  const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
+  const parent = task.pai ? effectiveState().tarefas.find((t) => t.id === task.pai) : null;
+  return h("div", { class: "card" + (task.editado ? " editado" : "") + (options.foco ? " card-em-foco" : ""), role: "button", tabindex: "0", "data-id": task.id,
     draggable: editable ? "true" : null,
     ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
     ondragend: editable ? () => { app.dragId = null; clearDrop(); document.querySelectorAll(".arrastando").forEach((n) => n.classList.remove("arrastando")); } : null,
     onclick: () => openTask(task.id), onkeydown: (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(task.id); }
     } },
-    h("div", { class: "card-origem" }, stateIcon(task), h("span", {}, origin(task))),
+    h("div", { class: "card-origem" }, stateIcon(task), h("span", { class: "origem-texto" }, origin(task)),
+      h("span", { class: "card-sinais" },
+        task.nivel ? signal(task.nivel === "epico" ? "epicos" : task.nivel === "historia" ? "camadas" : "tarefa", LEVEL[task.nivel][0]) : null,
+        task.pessoal ? signal("usuario", "Pessoal") : null,
+        task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
+        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
     h("div", { class: "card-titulo" }, task.titulo),
-    h("div", { class: "rotulos" }, badges(task, options)),
+    h("div", { class: "rotulos" }, badges(task, { ...options, compacto: true, semNivel: true, semPai: true, semPessoal: true })),
+    parent && !options.semPai ? h("div", { class: "card-pai", title: "Faz parte de: " + parent.titulo }, icon("relacoes"), h("span", {}, parent.titulo)) : null,
     task.nivel === "epico" ? epicProgress(task) : null,
-    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, task.proximo_passo) : null);
+    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null);
 }
 
 // Registro em Markdown simples, montado em nós (sem innerHTML): títulos, listas, parágrafos e `código`.
@@ -216,7 +241,8 @@ function stateLabel(task) {
 
 function sideSection(title, ...content) {
   const body = content.flat(Infinity).filter(Boolean);
-  return h("section", { class: "lateral-secao" }, h("h4", {}, title), body.length ? body : h("p", { class: "vazio" }, "Nenhum"));
+  const symbols = { "Rótulos": "etiqueta", "Campos": "campos", "Projeto": "quadro", "Relacionamentos": "relacoes" };
+  return h("section", { class: "lateral-secao" }, h("h4", {}, icon(symbols[title] || "mais"), title), body.length ? body : h("p", { class: "vazio" }, "Nenhum"));
 }
 
 async function openTask(id) {
@@ -258,7 +284,7 @@ async function openTask(id) {
             h("header", {}, h("strong", {}, label(data.tipo)), h("span", { class: "vazio" }, ` · ${data.id}`),
               data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null),
             h("div", { class: "comentario-corpo markdown" },
-              data.proximo_passo ? [h("h3", {}, "Próximo passo"), h("p", {}, data.proximo_passo)] : null,
+              data.proximo_passo ? h("div", { class: "proximo-destaque" }, h("h3", {}, icon("seta"), "Próximo passo"), h("p", {}, data.proximo_passo)) : null,
               detail.body ? markdown(detail.body) : (!data.proximo_passo ? h("p", { class: "vazio" }, "Sem registro.") : null))),
           detail.filhos && detail.filhos.length ? h("div", { class: "caixa" },
             h("header", {}, h("h3", {}, data.nivel === "epico" ? "Histórias" : "Itens"),
@@ -407,31 +433,40 @@ const VIEWS = {
       const testing = tasks.filter((t) => t.papel === "validacao" && t.nivel !== "epico").sort(byOrder);
       const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
       app.contagem = doing.length + epics.length + testing.length + (active ? 1 : 0) + (activeEpic ? 1 : 0);
-      const list = (title, items, empty, render = row) => h("div", { class: "caixa" },
-        h("header", {}, h("h3", {}, title), h("span", { class: "contador" }, items.length || "")),
-        items.length ? items.map(render) : h("div", { class: "corpo vazio" }, empty));
+      const list = (title, symbol, items, empty, render = row) => h("div", { class: "caixa" },
+        h("header", {}, icon(symbol), h("h3", {}, title), h("span", { class: "contador" }, String(items.length))),
+        items.length ? items.map(render) : h("div", { class: "corpo vazio" }, icon("check"), empty));
       const full = (t) => estado.tarefas.find((x) => x.id === t.id) || t;
-      return h("section", {},
-        h("div", { class: "numeros" },
-          [["Em andamento", tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico").length], ["Épicos ativos", tasks.filter((t) => t.nivel === "epico" && t.papel === "ativo").length], ["Em validação", testing.length],
-           ["Prazos próximos", estado.prazos.length], ["Atrasadas", late], ["Perguntas", estado.perguntas.length],
-           ["Ações não analisadas", estado.eventos_pendentes]]
-            .map(([name, total]) => h("div", { class: "numero" }, h("b", {}, total), name))),
+      const heading = (title, symbol, count) => h("h2", { class: "titulo-secao" }, icon(symbol), title,
+        count === undefined ? null : h("span", { class: "contador" }, String(count)));
+      const blank = (symbol, text) => h("div", { class: "foco-vazio" }, icon(symbol), h("span", {}, text));
+      const activeEpics = tasks.filter((t) => t.nivel === "epico" && t.papel === "ativo").length;
+      const metrics = [
+        ["Em andamento", tasks.filter((t) => t.papel === "ativo" && t.nivel !== "epico").length, "alvo", "purple", "quadro", `${activeEpics} épicos ativos`],
+        ["Em validação", testing.length, "tarefa", "green", "quadro", ""],
+        ["Prazos próximos", estado.prazos.length, "calendario", late ? "red" : "orange", "prazos", late ? `${late} em atraso` : ""],
+        ["Perguntas", estado.perguntas.length, "pergunta", "blue", "perguntas", ""],
+      ];
+      return h("section", { class: "visao-hoje" },
+        h("div", { class: "numeros" }, metrics.map(([name, total, symbol, color, target, detail]) =>
+          h("button", { class: `numero cor-${color}`, type: "button", title: `Abrir ${VIEWS[target].titulo}`, onclick: () => { location.hash = target; } },
+            h("b", {}, total), h("span", { class: "numero-icone" }, icon(symbol)), h("span", { class: "numero-nome" }, name),
+            detail ? h("small", {}, detail) : null))),
         h("div", { class: "painel-dia" },
           h("div", { class: "hoje-grade" },
-            h("div", {}, h("h2", {}, "Tarefa ativa"),
-              active ? card(active) : h("p", { class: "vazio" }, current ? "A sessão está no épico; nenhuma história ou tarefa ativa." : "Nenhuma tarefa ativa nesta máquina.")),
-            h("div", {}, h("h2", {}, "Épico ativo"),
-              activeEpic ? card(activeEpic, { status: true, semNivel: true }) : h("p", { class: "vazio" }, "Nenhum épico ativo.")),
-            h("div", {}, h("h2", {}, "Em andamento"),
-              doing.length ? h("div", { class: "pilha" }, doing.map((t) => card(t))) : h("p", { class: "vazio" }, "Nenhuma história ou tarefa em andamento.")),
-            h("div", {}, h("h2", {}, "Épicos em andamento"),
-              epics.length ? h("div", { class: "pilha" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : h("p", { class: "vazio" }, "Nenhum outro épico em andamento."))),
-          h("div", {},
-            list("Prazos", filtered(estado.prazos.map(full)), "Nenhum prazo atrasado ou nos próximos 2 dias.",
+            h("div", {}, heading("Tarefa ativa", "alvo"),
+              active ? card(active, { foco: true }) : blank("alvo", current ? "Sessão no épico; nenhuma tarefa ativa." : "Nenhuma tarefa ativa nesta máquina.")),
+            h("div", {}, heading("Épico ativo", "epicos"),
+              activeEpic ? card(activeEpic, { status: true, semNivel: true }) : blank("epicos", "Nenhum épico ativo.")),
+            h("div", {}, heading("Em andamento", "quadro", doing.length),
+              doing.length ? h("div", { class: "pilha" }, doing.map((t) => card(t))) : blank("check", "Nenhuma outra tarefa em andamento.")),
+            h("div", {}, heading("Épicos em andamento", "camadas", epics.length),
+              epics.length ? h("div", { class: "pilha" }, epics.map((t) => card(t, { status: true, semNivel: true }))) : blank("check", "Nenhum outro épico em andamento."))),
+          h("div", { class: "atencao" }, heading("Sua atenção", "alerta"),
+            list("Prazos", "calendario", filtered(estado.prazos.map(full)), "Nenhum prazo próximo.",
               (t) => h("div", { class: "linha-caixa" }, stateIcon(t), titleLink(t), badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))),
-            list("Perguntas para você", filtered(estado.perguntas.map(full)), "Nenhuma pergunta aberta."),
-            list("Em validação", testing, "Nada em validação."))));
+            list("Perguntas", "pergunta", filtered(estado.perguntas.map(full)), "Nenhuma pergunta aberta."),
+            list("Em validação", "tarefa", testing, "Nada para revisar."))));
     },
   },
   quadro: {
@@ -598,7 +633,7 @@ const VIEWS = {
         confirmed ? h("p", { class: "aviso" }, "Confirmada: ", confirmed.linhas.map((r) => `${label(r.tipo)} ${r.codigo || "sem código"} ${hours(r.total)}`).join(" · ")) : null,
         h("div", { class: "filtros" },
           h("span", {}, `Sugestão: ${hours(sheet.total)} de ${hours(sheet.horas_dia)}`),
-          rows.length ? h("button", { class: "botao", type: "button", onclick: (e) => copy(text, e.target) }, "Copiar ficha") : null,
+          rows.length ? h("button", { class: "botao", type: "button", onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null,
           app.editando && rows.length ? h("button", { class: "botao", type: "button", onclick: () => setSheetRow(sheet) },
             app.rascunho.ficha && app.rascunho.ficha.data === day ? "Confirmação no rascunho" : "Confirmar no salvamento") : null),
         rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Início", "Fim", "Total", "Observação", ""].map((c, i) => h("th", { class: i === 4 ? "num" : null }, c)))),
@@ -608,7 +643,7 @@ const VIEWS = {
               ? h("input", { class: "horas", "aria-label": `Horas de ${r.rotulo} ${r.codigo || "sem código"}`, type: "number", min: "0", max: "24", step: "0.25", value: sheetValue(day, r),
                   onchange: (e) => setSheetRow(sheet, r, e.target.value) }) : hours(r.total)),
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("pre", { class: "registro" }, r.complemento)) : null),
-            h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.target) }, "Copiar"))))))
+            h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
         h("h2", {}, "Extras (fora do total)"),
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
@@ -690,9 +725,9 @@ function eventDetail(e, titles) {
 async function copy(text, button) {
   try {
     await navigator.clipboard.writeText(text);
-    const old = button.textContent;
-    button.textContent = "Copiado";
-    setTimeout(() => { button.textContent = old; }, 1500);
+    const old = [...button.childNodes];
+    fill(button, icon("check"), "Copiado");
+    setTimeout(() => { fill(button, old); }, 1500);
   } catch (error) {
     window.prompt("Copie o texto:", text);
   }
@@ -703,17 +738,33 @@ function currentView() {
   return VIEWS[name] ? name : ORDER[0];
 }
 
+function renderViewHeader(name) {
+  if (app.headerView !== name) {
+    document.getElementById("visao-titulo").textContent = VIEWS[name].titulo;
+    document.getElementById("visao-descricao").textContent = VIEWS[name].descricao ||
+      (name === "hoje" ? "Prioridades e próximos passos, em um só lugar." : "Do próximo passo à entrega. Um card por vez.");
+    fill(document.getElementById("visao-icone"), icon(VIEWS[name].icone));
+    document.title = VIEWS[name].titulo + " · YABook Tasks";
+    app.headerView = name;
+  }
+  const date = document.getElementById("hoje-data");
+  if (date.dateTime !== app.estado.hoje) {
+    date.dateTime = app.estado.hoje;
+    fill(date, icon("calendario"), new Date(app.estado.hoje + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short", timeZone: "America/Sao_Paulo" }));
+  }
+}
+
 function renderTabs() {
   const nav = document.getElementById("abas");
   const current = currentView();
   const counts = { perguntas: app.estado.perguntas.length, prazos: app.estado.prazos.length, historico: app.estado.eventos_pendentes };
   if (!nav.children.length) {
     fill(nav, ORDER.map((name, index) => h("button", {
-      type: "button", "data-view": name, "aria-keyshortcuts": `Alt+${index + 1}`,
+      type: "button", class: "nav-item", title: `${VIEWS[name].titulo} (Alt+${index + 1})`, "data-view": name, "aria-keyshortcuts": `Alt+${index + 1}`,
       onclick: () => { location.hash = name; }, onkeydown: (event) => {
         let target = index;
-        if (event.key === "ArrowRight") target = (index + 1) % ORDER.length;
-        else if (event.key === "ArrowLeft") target = (index - 1 + ORDER.length) % ORDER.length;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") target = (index + 1) % ORDER.length;
+        else if (event.key === "ArrowLeft" || event.key === "ArrowUp") target = (index - 1 + ORDER.length) % ORDER.length;
         else if (event.key === "Home") target = 0;
         else if (event.key === "End") target = ORDER.length - 1;
         else return;
@@ -721,7 +772,7 @@ function renderTabs() {
         nav.children[target].focus();
         location.hash = ORDER[target];
       },
-    }, icon(VIEWS[name].icone), VIEWS[name].titulo, h("span", { class: "contador", "data-count": name }))));
+    }, icon(VIEWS[name].icone), h("span", { class: "nav-texto" }, VIEWS[name].titulo), h("span", { class: "contador", "data-count": name }))));
   }
   for (const button of nav.children) {
     const name = button.dataset.view;
@@ -793,7 +844,9 @@ async function render() {
   const savedFocus = rememberControl();
   renderTabs();
   const name = currentView();
+  renderViewHeader(name);
   const main = document.getElementById("conteudo");
+  main.dataset.view = name;
   const changedView = app.view !== name;
   const oldBoard = !changedView && main.querySelector(".quadro");
   const scroll = oldBoard ? { x: oldBoard.scrollLeft, mainX: main.scrollLeft, mainY: main.scrollTop,
@@ -804,7 +857,7 @@ async function render() {
   const filter = document.querySelector(".filtro");
   filter.hidden = name === "semana" || name === "ficha";
   document.getElementById("filtro").setAttribute("aria-label", name === "historico" ? "Filtrar histórico" : "Filtrar tarefas");
-  document.getElementById("filtro").placeholder = name === "historico" ? "Filtrar ações carregadas por tarefa, origem ou detalhe" : "Filtrar por título, código ou próximo passo";
+  document.getElementById("filtro").placeholder = name === "historico" ? "Buscar nas ações carregadas…" : "Buscar nesta visão…";
   const estado = effectiveState();
   fill(document.getElementById("opcoes"), VIEWS[name].opcoes ? VIEWS[name].opcoes(estado) : []);
   app.contagem = null;
@@ -821,9 +874,7 @@ async function render() {
     if (request !== app.renderRequest) return;
     clearTimeout(loading);
     node = prepareTables(node, name);
-    const description = VIEWS[name].descricao;
-    const header = description ? h("div", { class: "visao-cabecalho" }, h("h2", {}, VIEWS[name].titulo), h("p", {}, description)) : null;
-    fill(main, header, node);
+    fill(main, node);
     if (scroll) {
       const board = main.querySelector(".quadro");
       if (board) {
@@ -879,9 +930,10 @@ async function refresh() {
     if (request !== app.refreshRequest) return;
     app.estado = state;
     app.cache = {};
-    document.getElementById("maquina").textContent = (app.estado.maquina || "local") + (SNAPSHOT ? " · cópia estática" : "");
+    document.getElementById("maquina").textContent = app.estado.maquina || "local";
     const open = app.estado.tarefas.filter((t) => t.tipo !== "pergunta" && !["concluido", "arquivado"].includes(t.papel)).length;
-    document.getElementById("resumo").textContent = `${open} itens abertos · ${app.estado.epicos.length} épicos · atualizado ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+    document.getElementById("resumo").textContent = `${open} abertas · ${app.estado.epicos.length} épicos`;
+    document.getElementById("resumo").title = "Atualizado às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
     await render();
   } catch (error) {
     if (request !== app.refreshRequest) return;
@@ -894,7 +946,12 @@ async function refresh() {
 
 function listen() {
   const dot = document.getElementById("conexao");
-  const connection = (className, message) => { dot.className = "ponto " + className; dot.title = message; dot.setAttribute("aria-label", message); };
+  const connection = (className, message) => {
+    dot.className = "ponto " + className; dot.title = message; dot.setAttribute("aria-label", message);
+    const status = document.getElementById("conexao-texto");
+    status.textContent = SNAPSHOT ? "Cópia estática" : className === "vivo" ? "Ao vivo" : "Reconectando";
+    status.title = message;
+  };
   if (SNAPSHOT) { connection("", "Cópia estática: dados do momento da exportação"); return; }
   if (!window.EventSource) { connection("offline", "Atualização automática indisponível neste navegador"); return; }
   const source = new EventSource("/api/stream");
@@ -909,7 +966,7 @@ function showShortcuts() {
     h("dl", { class: "atalhos" },
       h("dt", {}, h("kbd", {}, "/")), h("dd", {}, "Focar o filtro da visão"),
       h("dt", {}, h("kbd", {}, "Alt"), " + ", h("kbd", {}, "1–8")), h("dd", {}, "Trocar de visão na ordem das abas"),
-      h("dt", {}, h("kbd", {}, "←"), " / ", h("kbd", {}, "→")), h("dd", {}, "Trocar de visão com o foco nas abas"),
+      h("dt", {}, h("kbd", {}, "←"), " / ", h("kbd", {}, "→"), " / ", h("kbd", {}, "↑"), " / ", h("kbd", {}, "↓")), h("dd", {}, "Trocar de visão com o foco na navegação"),
       h("dt", {}, h("kbd", {}, "Home"), " / ", h("kbd", {}, "End")), h("dd", {}, "Ir à primeira ou à última aba"),
       h("dt", {}, h("kbd", {}, "Enter"), " / ", h("kbd", {}, "Espaço")), h("dd", {}, "Abrir o card em foco"),
       h("dt", {}, h("kbd", {}, "Esc")), h("dd", {}, "Fechar o painel e voltar ao item de origem"),
@@ -1162,9 +1219,9 @@ function renderToolbar() {
   const items = app.editando ? [
     app.pendente ? h("span", { class: "selo cor-orange", title: "Salve ou descarte para ver as mudanças" }, "repositório mudou") : null,
     h("span", { class: "selo cor-orange" }, count ? `${count} ${count === 1 ? "alteração" : "alterações"} no rascunho` : "Modo Editar"),
-    h("button", { id: "descartar", class: "botao", type: "button", disabled: !!app.salvando, onclick: discardDraft }, count ? "Descartar" : "Sair"),
-    h("button", { id: "salvar", class: "botao primario", type: "button", disabled: !count || !!app.salvando, onclick: saveDraft }, app.salvando ? "Salvando…" : "Salvar"),
-  ] : [h("button", { class: "botao", type: "button", onclick: () => { app.editando = true; render(); } }, "Editar")];
+    h("button", { id: "descartar", class: "botao", type: "button", disabled: !!app.salvando, onclick: discardDraft }, icon("desfazer"), count ? "Descartar" : "Sair"),
+    h("button", { id: "salvar", class: "botao primario", type: "button", disabled: !count || !!app.salvando, onclick: saveDraft }, icon("salvar"), app.salvando ? "Salvando…" : "Salvar"),
+  ] : [h("button", { class: "botao", type: "button", onclick: () => { app.editando = true; render(); } }, icon("editar"), "Editar")];
   bar.replaceChildren(...items.filter(Boolean));
 }
 
@@ -1213,7 +1270,7 @@ async function saveDraft() {
       h("h2", {}, "Salvo"),
       result.aviso ? h("p", { class: "aviso erro" }, result.aviso) : null,
       h("pre", { class: "registro" }, result.resumo),
-      h("button", { class: "botao primario", type: "button", onclick: (e) => copy(result.resumo, e.target) }, "Copiar resumo"));
+      h("button", { class: "botao primario", type: "button", onclick: (e) => copy(result.resumo, e.currentTarget) }, icon("copiar"), "Copiar resumo"));
   }
   if (response.status === 409) {
     announce("Conflito ao salvar. Revise as tarefas alteradas em outro lugar.");
