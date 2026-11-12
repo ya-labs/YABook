@@ -247,7 +247,7 @@ class TaskStore:
                     seen.add(number)
                     continue
                 top += 1
-                self.save(dict(task["data"], numero=top), task["body"], task["revision"])
+                self.save(dict(task["data"], numero=top), task["body"], task["revision"], touch=False)
                 changed.append(dict(id=task["data"]["id"], numero=top))
             return changed
 
@@ -346,8 +346,11 @@ class TaskStore:
     def render(self, data, body=""):
         return fmt.join_frontmatter(data, body, ORDER)
 
-    def save(self, data, body="", expected_revision=None):
-        """Grava a tarefa. Sem `expected_revision`, a tarefa precisa ser nova."""
+    def save(self, data, body="", expected_revision=None, touch=True):
+        """Grava a tarefa. Sem `expected_revision`, a tarefa precisa ser nova.
+
+        `touch=False` preserva `atualizada`: para ajustes que não são alteração do conteúdo, como a numeração.
+        """
         data = self.normalize(dict(data))
         with self.lock():
             path = self.path(data.get("id"))
@@ -364,8 +367,8 @@ class TaskStore:
                 data.setdefault("numero", self.next_number())
             else:
                 data["criada"] = fmt.split_frontmatter(current)[0].get("criada", data.get("criada", stamp))
-            data["atualizada"] = stamp
             previous = fmt.split_frontmatter(current)[0] if current else {}
+            data["atualizada"] = stamp if touch or not previous.get("atualizada") else previous["atualizada"]
             # Espera: a data nasce quando o texto aparece ou muda e some junto com ele.
             if not data.get("aguardando"):
                 data.pop("aguardando", None)
