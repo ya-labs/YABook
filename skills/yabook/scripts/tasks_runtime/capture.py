@@ -118,6 +118,12 @@ def session_start(cfg, session, source="startup"):
     else:
         lines.append("Sem tarefa ativa; pergunte uma vez se a sessão pertence a alguma tarefa (task start ou task add).")
     lines.append(RULES)
+    index = {t["data"]["id"]: t["data"] for t in store.list()}
+    roles = {c["id"]: c["papel"] for c in store.columns()}
+    if current and current.get("nivel") == "epico" and any(
+            d.get("pai") == current["id"] and roles.get(d.get("coluna")) not in ("concluido", "arquivado") for d in index.values()):
+        lines.append("A tarefa ativa é um épico com histórias abertas: pergunte em qual história a pessoa vai trabalhar e rode "
+                     "task start nela, para as horas irem ao chamado certo.")
     if review["perguntas"]:
         lines.append("Perguntas abertas para a pessoa: " + "; ".join(_label(t) for t in review["perguntas"][:5]))
     due = review["atrasadas"] + review["proximas"]
