@@ -66,12 +66,19 @@ class Board:
         base = self.base()
         if base is None:
             return None
-        candidate = (base / target).resolve()
-        if base.resolve() not in candidate.parents and candidate != base.resolve():
-            return None  # referência não sai da base confidencial
-        for path in (candidate, candidate.with_name(candidate.name + ".md")):
-            if path.is_file():
-                return path
+        base = base.resolve()
+        targets = [Path(target)]
+        # Algumas referências incluem o nome da própria pasta da base.
+        if targets[0].parts and targets[0].parts[0] == base.name:
+            targets.append(Path(*targets[0].parts[1:]))
+        for relative in targets:
+            candidate = base / relative
+            for path in (candidate, candidate.with_name(candidate.name + ".md")):
+                resolved = path.resolve()
+                if base not in resolved.parents:
+                    continue  # inclusive links simbólicos e o fallback com .md
+                if resolved.is_file():
+                    return resolved
         return None
 
     def confidential_state(self, data):

@@ -439,7 +439,7 @@ async function openTask(id) {
           Object.entries(detail.referencias || {}).map(([refName, text]) => h("section", { class: "comentario documento-confidencial" },
             h("header", {}, icon("cadeado"), h("strong", {}, "Referência confidencial"), h("span", { class: "vazio" }, "Só nesta máquina")),
             h("p", { class: "documento-origem" }, refName),
-            h("div", { class: "comentario-corpo markdown" }, text ? markdown(text) : h("p", { class: "vazio" }, "Bloqueado: base confidencial ausente nesta máquina.")))),
+            h("div", { class: "comentario-corpo markdown" }, text ? markdown(text) : h("p", { class: "vazio" }, "Referência indisponível: arquivo não encontrado na base confidencial ou acesso fora da base.")))),
           detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
             ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
           app.editando && data.tipo !== "pergunta" ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
