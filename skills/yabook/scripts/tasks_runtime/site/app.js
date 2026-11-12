@@ -560,15 +560,31 @@ const VIEWS = {
       const rows = filtered(work(estado)).filter((t) => t.prazo && !CLOSED.includes(t.papel)).sort((a, b) => a.prazo.localeCompare(b.prazo));
       app.contagem = rows.length;
       if (!rows.length) return emptyState(app.busca ? "Nenhum prazo com esse filtro" : "Nenhuma tarefa aberta com prazo", "Os prazos aparecem aqui quando definidos nas tarefas.");
-      return h("table", {},
-        h("thead", {}, h("tr", {}, h("th", {}, "Prazo"), h("th", { class: "num" }, "Dias"), h("th", {}, "Tarefa"), h("th", {}, "Código"), h("th", {}, "Coluna"))),
-        h("tbody", {}, rows.map((t) => {
-          const days = daysUntil(t.prazo);
-          return h("tr", { class: days < 0 ? "atrasada" : "" },
-            h("td", {}, fmtDate(t.prazo)), h("td", { class: "num" }, days < 0 ? `${-days} atrasada` : days),
-            h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(t.id) }, t.titulo)),
-            h("td", {}, t.codigo || ""), h("td", {}, columnName(t.coluna)));
-        })));
+      const groups = [
+        { title: "Atrasados", icon: "alerta", class: "atrasada", test: (days) => days < 0 },
+        { title: "Próximos 2 dias", icon: "calendario", class: "proximo", test: (days) => days >= 0 && days <= 2 },
+        { title: "Mais adiante", icon: "prazos", class: "", test: (days) => days > 2 },
+      ];
+      return h("section", { class: "prazos-lista" }, groups.map((group) => {
+        const items = rows.filter((task) => group.test(daysUntil(task.prazo)));
+        if (!items.length) return null;
+        return h("section", { class: "prazo-grupo " + group.class },
+          h("header", {}, h("h2", {}, icon(group.icon), group.title), h("span", { class: "contador" }, items.length)),
+          items.map((task) => {
+            const days = daysUntil(task.prazo);
+            const date = new Date(task.prazo + "T12:00:00");
+            const month = date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+            const distance = days < 0 ? `${-days} dia${days === -1 ? "" : "s"} de atraso` : days === 0 ? "Hoje" : days === 1 ? "Amanhã" : `Em ${days} dias`;
+            return h("article", { class: "prazo-item " + group.class },
+              h("time", { class: "prazo-data", datetime: task.prazo, "aria-label": fmtDate(task.prazo) },
+                h("strong", {}, task.prazo.slice(8, 10)), h("span", {}, month + (task.prazo.slice(0, 4) !== estado.hoje.slice(0, 4) ? " " + task.prazo.slice(0, 4) : ""))),
+              h("div", { class: "prazo-conteudo" }, titleLink(task),
+                h("div", { class: "prazo-meta" },
+                  task.codigo ? pill(task.codigo, "gray", { icon: "repo", title: "Código" }) : null,
+                  h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)))),
+              h("span", { class: "prazo-indicador" }, days < 0 ? icon("alerta") : icon("calendario"), distance));
+          }));
+      }));
     },
   },
   perguntas: {
@@ -582,14 +598,20 @@ const VIEWS = {
       const answered = questions.filter((t) => t.resposta).sort((a, b) => (b.atualizada || "").localeCompare(a.atualizada || "")).slice(0, 10);
       const about = (t) => {
         const target = t.sobre && estado.tarefas.find((x) => x.id === t.sobre);
-        return target ? h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, target.titulo) : null;
+        return target ? h("button", { class: "link pergunta-vinculo", type: "button", title: "Abrir tarefa relacionada", onclick: () => openTask(target.id) }, icon("camadas"), target.titulo) : null;
       };
+      const questionCard = (task, answered) => h("li", { class: "pergunta-card" + (answered ? " respondida" : "") },
+        h("div", { class: "pergunta-topo" }, icon(answered ? "check" : "pergunta", answered ? "estado-aberto" : "estado-pergunta"),
+          h("h3", {}, task.titulo), answered ? pill("Respondida", "green") : null),
+        about(task),
+        answered ? h("div", { class: "pergunta-resposta" }, icon("seta"), h("p", {}, task.resposta))
+          : h("details", { class: "passo" }, h("summary", {}, "Como responder"), h("code", {}, `task answer ${task.id} <resposta>`)));
       return h("section", {},
-        h("h2", {}, "Abertas"),
-        open.length ? h("ul", { class: "perguntas" }, open.map((t) => h("li", {}, h("strong", {}, t.titulo), " ", about(t),
-          h("details", { class: "passo" }, h("summary", {}, "Como responder"), h("code", {}, `task answer ${t.id} <resposta>`))))) : emptyState(app.busca ? "Nenhuma pergunta com esse filtro" : "Nenhuma pergunta aberta", "As decisões pendentes aparecem aqui."),
-        answered.length ? [h("h2", {}, "Respondidas recentes"), h("ul", { class: "perguntas" }, answered.map((t) =>
-          h("li", {}, h("strong", {}, t.titulo), " ", about(t), h("div", { class: "passo" }, "↳ " + t.resposta))))] : null);
+        h("h2", {}, "Aguardando você", h("span", { class: "contador" }, open.length)),
+        open.length ? h("ul", { class: "perguntas" }, open.map((t) => questionCard(t, false)))
+          : emptyState(app.busca ? "Nenhuma pergunta com esse filtro" : "Tudo respondido por aqui", "As decisões pendentes aparecem aqui."),
+        answered.length ? [h("h2", {}, "Respondidas recentes", h("span", { class: "contador" }, answered.length)),
+          h("ul", { class: "perguntas" }, answered.map((t) => questionCard(t, true)))] : null);
     },
   },
   semana: {
@@ -601,21 +623,33 @@ const VIEWS = {
       const [week, sheetWeek] = await Promise.all([api("/api/semana?data=" + ref), api("/api/ficha?semana=1&data=" + ref)]);
       const confirmed = Object.fromEntries((sheetWeek.dias || []).filter((d) => d.confirmada).map((d) => [d.data, true]));
       const total = week.dias.reduce((sum, d) => sum + d.horas, 0);
+      const peak = Math.max(1, ...week.dias.map((d) => d.horas));
       return h("section", {},
         dayNav("semana", ref, 7, `Semana de ${fmtDate(week.inicio)}`),
-        h("div", { class: "numeros" }, h("div", { class: "numero" }, h("b", {}, hours(total)), h("span", {}, "Atividade estimada")),
-          h("div", { class: "numero" }, h("b", {}, Object.keys(confirmed).length), h("span", {}, "Dias confirmados"))),
+        h("div", { class: "numeros" }, h("div", { class: "numero" }, h("b", {}, hours(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Atividade estimada")),
+          h("div", { class: "numero" }, h("b", {}, Array.isArray(sheetWeek.dias) ? Object.keys(confirmed).length : "—"), h("span", { class: "numero-icone" }, icon("check")), h("span", { class: "numero-nome" }, "Dias confirmados"))),
         h("h2", {}, "Por dia"),
-        h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Dia"), h("th", { class: "num" }, "Horas"), h("th", {}, "Tarefas"))),
-          h("tbody", {}, week.dias.map((d) => h("tr", {},
-            h("td", {}, h("button", { class: "link", type: "button", onclick: () => { app.ficha = d.data; location.hash = "ficha"; } }, weekday(d.data) + " " + fmtDate(d.data)),
-              confirmed[d.data] ? h("span", { class: "selo" }, "confirmada") : null),
-            h("td", { class: "num" }, d.horas ? hours(d.horas) : "—"),
-            h("td", {}, d.tarefas.slice(0, 6).map((t) => h("span", { class: "selo", title: t.tarefa }, `${t.titulo} · ${hours(t.horas)}`))))))),
-        h("h2", {}, "Totais da ficha na semana"),
-        sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
-          h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, hours(r.total))))))
-          : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana."));
+        h("div", { class: "semana-grade" }, week.dias.map((day) => h("article", {
+          class: "dia-card" + (day.data === estado.hoje ? " hoje" : "") + (confirmed[day.data] ? " confirmado" : ""),
+        },
+          h("div", { class: "dia-topo" },
+            h("button", { class: "link", type: "button",
+              title: "Abrir ficha de " + fmtDate(day.data),
+              onclick: () => { app.ficha = day.data; location.hash = "ficha"; } },
+              h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10))),
+            confirmed[day.data] ? h("span", { role: "img", title: "Ficha confirmada", "aria-label": "Ficha confirmada" }, icon("check")) : null),
+          h("div", { class: "dia-horas" }, h("strong", {}, hours(day.horas)), h("span", {}, "estimadas")),
+          h("div", { class: "dia-barra", "aria-hidden": "true", title: "Atividade em relação ao dia mais ativo da semana" }, h("i", { style: `width:${Math.round(day.horas / peak * 100)}%` })),
+          day.tarefas.length ? h("ul", { class: "dia-tarefas" }, day.tarefas.slice(0, 3).map((task) =>
+            h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, hours(task.horas)))))
+            : h("p", { class: "dia-vazio" }, "Sem atividade"),
+          day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button",
+            onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))),
+        h("section", { class: "totais-semana" }, h("h2", {}, "Totais da ficha na semana"),
+          !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
+            : sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
+            h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, hours(r.total))))))
+            : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana.")));
     },
   },
   ficha: {
@@ -664,18 +698,36 @@ const VIEWS = {
       const search = (app.busca || "").trim().toLowerCase();
       const rows = data.eventos.filter((e) => (!onlyPending || e.pendente) && (!origin || e.origem === origin) &&
         (!search || [when(e.ts), e.origem, e.acao, titles[e.tarefa], eventDetail(e, titles)].join(" ").toLowerCase().includes(search)));
+      const actions = {
+        criar: ["tarefa", "Tarefa criada"], editar: ["editar", "Tarefa atualizada"],
+        mover: ["seta", "Card movido"], reordenar: ["camadas", "Ordem ajustada"],
+        iniciar: ["alvo", "Tarefa iniciada"], horas: ["ficha", "Horas registradas"],
+        analise: ["check", "Ações analisadas"], capturar: ["camadas", "Tarefas capturadas"],
+        responder: ["pergunta", "Pergunta respondida"], arquivar: ["arquivado", "Tarefa arquivada"],
+        coluna: ["quadro", "Coluna atualizada"], ficha: ["ficha", "Ficha atualizada"],
+        complemento: ["cadeado", "Complemento atualizado"],
+      };
       app.contagem = rows.length;
       return h("section", {},
         h("div", { class: "filtros" },
-          h("span", {}, `${data.total} ações · ${data.pendentes} não analisadas`),
+          h("span", {}, icon("historico"), ` ${data.total} ações · ${data.pendentes} não analisadas`),
           h("label", {}, h("input", { type: "checkbox", checked: onlyPending, onchange: (e) => { setPref("historico.pendentes", e.target.checked ? "1" : "0"); render(); } }), " Só não analisadas"),
           h("label", {}, "Origem ", h("select", { onchange: (e) => { setPref("historico.origem", e.target.value); render(); } },
             [["", "Todas"], ["agente", "Agente"], ["quadro", "Quadro"]].map(([v, n]) => h("option", { value: v, selected: v === origin }, n))))),
-        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Quando", "Origem", "Ação", "Tarefa", "Detalhe"].map((c) => h("th", {}, c)))),
-          h("tbody", {}, rows.map((e) => h("tr", { class: e.pendente ? "pendente" : null },
-            h("td", {}, when(e.ts)), h("td", {}, e.origem), h("td", {}, e.acao, e.pendente ? h("span", { class: "selo pergunta" }, "não analisada") : null),
-            h("td", {}, e.tarefa ? h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, titles[e.tarefa] || e.tarefa) : (e.coluna || "")),
-            h("td", {}, eventDetail(e, titles))))))
+        rows.length ? h("ol", { class: "historico-lista", "aria-label": "Ações registradas" }, rows.map((event) => {
+          const action = actions[event.acao] || ["historico", event.acao];
+          const detail = eventDetail(event, titles);
+          const source = event.origem === "agente" ? "Agente" : event.origem === "quadro" ? "Quadro" : event.origem;
+          return h("li", { class: "evento" + (event.pendente ? " pendente" : "") },
+            h("div", { class: "evento-icone", title: action[1] }, icon(action[0])),
+            h("div", { class: "evento-corpo" },
+              h("div", { class: "evento-topo" }, h("strong", { title: event.acao }, action[1]),
+                event.pendente ? pill("Não analisada", "orange", { icon: "alerta" }) : null,
+                h("time", { class: "evento-hora", datetime: event.ts }, when(event.ts))),
+              event.tarefa ? h("button", { class: "link titulo", type: "button", onclick: () => openTask(event.tarefa) }, titles[event.tarefa] || event.tarefa)
+                : event.coluna ? h("span", {}, columnName(event.coluna)) : null,
+              h("div", { class: "evento-detalhe" }, source, detail ? " · " + detail : "")));
+        }))
           : emptyState("Nenhuma ação com esses filtros", "Tente outra origem ou desmarque o filtro de ações não analisadas."),
         data.total > limit ? h("p", {}, h("button", { class: "botao", type: "button", onclick: () => { app.historicoLimite = limit + 200; render(); } }, "Carregar mais")) : null);
     },
