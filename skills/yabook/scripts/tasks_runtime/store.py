@@ -18,7 +18,7 @@ PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
 NIVEIS = ("epico", "historia", "tarefa")
 CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
 ORDER = ("id", "tipo", "nivel", "titulo", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "pessoal",
-         "prazo", "proximo_passo", "ficha", "sobre", "resposta", "refs", "criada", "atualizada")
+         "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
 _ISSUE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9_.-]+#\d+")
@@ -285,13 +285,14 @@ class TaskStore:
             raise ValueError("`pessoal` precisa ser true ou false")
         if "nivel" in data and data["nivel"] not in NIVEIS:
             raise ValueError("Nível inválido: %r; use %s" % (data["nivel"], ", ".join(NIVEIS)))
-        for key in ("projeto", "demanda", "pai", "proximo_passo", "ficha", "sobre", "resposta", "criada", "atualizada"):
+        for key in ("projeto", "demanda", "pai", "proximo_passo", "ficha", "aguardando", "sobre", "resposta", "criada", "atualizada"):
             if key in data and not isinstance(data[key], str):
                 raise ValueError("`%s` precisa ser texto" % key)
-        if "prazo" in data:
-            if not isinstance(data["prazo"], str) or not _DATE.fullmatch(data["prazo"]):
-                raise ValueError("`prazo` precisa estar em AAAA-MM-DD")
-            datetime.date.fromisoformat(data["prazo"])
+        for key in ("prazo", "aguardando_desde"):
+            if key in data:
+                if not isinstance(data[key], str) or not _DATE.fullmatch(data[key]):
+                    raise ValueError("`%s` precisa estar em AAAA-MM-DD" % key)
+                datetime.date.fromisoformat(data[key])
         for item in data.get("issue", []):
             if not isinstance(item, str) or not _ISSUE.fullmatch(item):
                 raise ValueError("Issue inválida, use dono/repositório#numero: %r" % (item,))
@@ -323,6 +324,12 @@ class TaskStore:
                 data["criada"] = fmt.split_frontmatter(current)[0].get("criada", data.get("criada", stamp))
             data["atualizada"] = stamp
             previous = fmt.split_frontmatter(current)[0] if current else {}
+            # Espera: a data nasce quando o texto aparece ou muda e some junto com ele.
+            if not data.get("aguardando"):
+                data.pop("aguardando", None)
+                data.pop("aguardando_desde", None)
+            elif data["aguardando"] != previous.get("aguardando") or not data.get("aguardando_desde"):
+                data["aguardando_desde"] = stamp[:10]
             if data.get("pai") or data.get("nivel") or previous.get("nivel"):
                 index = {t["data"]["id"]: t["data"] for t in self.list()}
                 index[data["id"]] = data
