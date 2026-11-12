@@ -68,6 +68,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), instalável como PWA, com modo Editar; `--output <arquivo>`: cópia estática |
+| `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch, no PR e no merge |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
 | `task sheet [dia\|semana]` | `sheet [--data] [--semana]`; `--confirm [--input <json>]` grava os totais do dia |

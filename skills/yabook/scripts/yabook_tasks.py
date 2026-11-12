@@ -118,6 +118,12 @@ def build_parser():
     board.add_argument("--serve", action="store_true", help="Serve em 127.0.0.1 até Ctrl+C")
     board.add_argument("--port", type=int, help="Porta; padrão `tasks.port` ou 8765")
     board.add_argument("--output", help="Arquivo ou pasta da cópia estática somente leitura")
+    flow = sub.add_parser("issue", help="Avança a tarefa da issue: inicio, revisao ou integrado")
+    flow.add_argument("--ref", help="dono/repo#n; padrão: branch atual e remoto origin")
+    flow.add_argument("--fase", choices=["inicio", "revisao", "integrado"])
+    flow.add_argument("--registro", help="Texto do registro; padrão conforme a fase")
+    flow.add_argument("--pr", help="Número ou URL do PR")
+    flow.add_argument("--repo-dir", default=os.getcwd(), help="Checkout usado para branch, remoto e gh")
     policy = sub.add_parser("policy")
     policy.add_argument("mode", choices=["automatic", "manual"])
     return parser
@@ -230,6 +236,17 @@ def run(args):
             raise ValueError("Use --serve para iniciar o site ou --output para a cópia estática")
         from tasks_runtime import editing
         return server.serve(store, cfg, args.port, writer=editing.handle)
+    if args.command == "issue":
+        from tasks_runtime import issueflow
+        if args.pr and not args.fase:  # PR integrado: confere no GitHub antes de concluir
+            merged = issueflow.merged_pr(args.repo_dir, args.pr)
+            if not merged:
+                return dict(id=None, motivo="PR não integrado ou sem issue na branch")
+            return issueflow.advance(store, cfg, merged[0], "integrado", args.registro, "#%s" % args.pr) or dict(id=None, ref=merged[0])
+        ref = args.ref or issueflow.ref_from_branch(args.repo_dir)
+        if not ref or not args.fase:
+            raise ValueError("Informe --fase e --ref (ou rode na branch n-descricao de um repositório do GitHub)")
+        return issueflow.advance(store, cfg, ref, args.fase, args.registro, args.pr) or dict(id=None, ref=ref, motivo="Sem tarefa para a issue")
     if args.command == "capture":
         from tasks_runtime.batch import Capture
         batch = json.loads(Path(args.input).read_text(encoding="utf-8"))

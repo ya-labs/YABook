@@ -7,6 +7,8 @@ Desenvolver até a validação, incluindo os pré-requisitos operacionais.
 `dev` é executivo, exceção explícita às prévias sem `do`: cria a issue necessária,
 prepara sua branch e implementa até a validação. Termina antes de commit, PR e
 merge, salvo autorização encadeada; não é gate exclusivo para editar.
+Com YABook Tasks, branch, PR e merge avançam a tarefa da issue pelo hook; ao
+encerrar sem PR, rode `task issue --fase revisao --registro <resumo>`.
 
 Em `auto`, implemente, valide e organize commits sem `do` ou checkpoint aprovado.
 Escolha issue, pacote ou ajuste pontual documentado; este dispensa issue/branch.
@@ -40,17 +42,14 @@ etapa atual. É uma rota `C3`.
 - se não houver etapa atual inequívoca, pare e peça definição;
 - não avance para etapas seguintes sem confirmação;
 - execute conforme o contexto do checklist, definido em `steps.md`;
-- no contexto `desenvolvimento`, não transforme validação geral, preparação,
-  commit ou PR em etapa própria, valide o necessário e mantenha exigência de
-  issue e branch compatíveis;
+- em `desenvolvimento`, validação, preparação, commit e PR não viram etapa
+  própria; exija issue e branch compatíveis;
 - nos contextos `init`, `planejamento` e `discussão`, não exija issue ou branch
   e não implemente nem crie arquivos sem a autorização aplicável;
-- só avance por confirmação explícita ou por nova ação inequívoca da pessoa
-  usuária que confirme a etapa anterior.
+- avance só por confirmação explícita ou ação inequívoca da pessoa.
 
-Em `desenvolvimento`, use o relatório
-técnico obrigatório e `Como testar`; nos demais contextos, registre somente o
-resultado contextual para parecer antes do avanço.
+Em `desenvolvimento`, entregue relatório técnico e `Como testar`; nos demais
+contextos, só o resultado para parecer antes de avançar.
 
 ### `$yabook dev full`
 
