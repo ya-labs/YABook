@@ -138,7 +138,8 @@ captura também na configuração global do host, ou ela roda duas vezes.
   `tipo: especificacao` usa o código da cadeia e, sem código, é pessoal como os
   demais. Iniciativa própria vai como `tarefa` ou `issue`, não `especificacao`. Tarefa pessoal é extra: aparece
   no dia com horas estimadas, fora do total. Trabalho sem código vira linha
-  `trabalho` ("Sem código") para a pessoa ajustar.
+  `trabalho` ("Sem código") para ajustar. Horas do épico vão às histórias com
+  demanda tocadas no dia.
 - A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
   janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
   somando exatamente o total.

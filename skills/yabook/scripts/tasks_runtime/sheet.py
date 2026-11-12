@@ -89,6 +89,44 @@ def _round_step(value, step):
     return round(max(step, round(value / step) * step), 2) if value > 0 else 0
 
 
+TOUCH_ACTIONS = ("criar", "mover", "editar", "reordenar", "horas", "iniciar")
+
+
+def touches(root, day, index):
+    """Quantos toques cada tarefa recebeu no dia: eventos dela e alteração do arquivo na data."""
+    from . import events
+    count = {}
+    for entry in events.read_all(root, months=2):
+        if (entry.get("ts") or "")[:10] == day and entry.get("acao") in TOUCH_ACTIONS and entry.get("tarefa") in index:
+            count[entry["tarefa"]] = count.get(entry["tarefa"], 0) + 1
+    for data in index.values():
+        if (data.get("atualizada") or "")[:10] == day:
+            count[data["id"]] = max(count.get(data["id"], 0), 1)
+    return count
+
+
+def spread_epic_hours(hours, index, day_touches):
+    """Horas marcadas num épico vão para as descendentes com demanda tocadas no dia, na proporção dos toques.
+
+    Devolve o novo mapa de horas e, por épico, as tarefas que receberam a divisão.
+    """
+    result, spread = dict(hours), {}
+    for identifier, value in hours.items():
+        data = index.get(identifier)
+        if not data or data.get("nivel") != "epico" or tree.personal(data, index):
+            continue
+        kids = [d["id"] for d in index.values() if d["id"] != identifier and identifier in {a["id"] for a in tree.chain(d, index)[1:]}
+                and day_touches.get(d["id"]) and (tree.own_code(d) or (None,))[0] == "demanda" and not tree.personal(d, index)]
+        if not kids:
+            continue
+        total = sum(day_touches[k] for k in kids)
+        del result[identifier]
+        for kid in kids:
+            result[kid] = result.get(kid, 0) + value * day_touches[kid] / total
+        spread[identifier] = sorted(kids)
+    return result, spread
+
+
 def day_sheet(store, day, complement=None):
     cfg = store.config()
     ficha = cfg.get("ficha", {})
@@ -97,6 +135,7 @@ def day_sheet(store, day, complement=None):
     hours, notes = activity(store.root, day)
     tasks = {t["data"]["id"]: t for t in store.list()}
     index = {k: t["data"] for k, t in tasks.items()}
+    hours, spread = spread_epic_hours(hours, index, touches(store.root, day, index))
     groups, extras = {}, []
     touched = [d for d in index.values() if (d.get("atualizada") or "")[:10] == day and d.get("tipo") != "pergunta"
                and d["id"] not in hours]
@@ -142,7 +181,7 @@ def day_sheet(store, day, complement=None):
         for row in rows:
             if chosen.get((row["tipo"], str(row["codigo"]))):
                 row["observacao_sugerida"], row["observacao"] = row["observacao"], chosen[(row["tipo"], str(row["codigo"]))]
-    return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 2), linhas=rows,
+    return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 2), linhas=rows, divididas=spread,
                 extras=extras, confirmada=confirmed)
 
 
