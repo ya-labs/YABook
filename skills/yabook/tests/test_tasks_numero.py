@@ -52,13 +52,17 @@ class NumberTest(unittest.TestCase):
         for task in self.store.list():  # simula tarefas anteriores ao campo
             data = dict(task["data"]); data.pop("numero")
             (self.root / "tarefas" / (data["id"] + ".md")).write_text(self.store.render(data, task["body"]), encoding="utf-8")
+        before = {t["data"]["id"]: t["data"]["atualizada"] for t in self.store.list()}
         code, result = self.cli("numerar")
+        self.assertEqual({t["data"]["id"]: t["data"]["atualizada"] for t in self.store.list()}, before)  # numerar não altera a data
         self.assertEqual([r["id"] for r in result["numeradas"]], ["tarefa-antiga", "tarefa-meio", "tarefa-nova"])
         self.assertEqual(self.cli("numerar")[1]["numeradas"], [])  # idempotente
         nova = self.store.get("tarefa-nova")
         self.store.save(dict(nova["data"], numero=1), nova["body"], nova["revision"])  # repetido vindo de outra máquina
         self.assertEqual(self.cli("validate")[1]["numeros_repetidos"], {"1": ["tarefa-antiga", "tarefa-nova"]})
+        stamp = self.store.get("tarefa-nova")["data"]["atualizada"]
         fixed = self.cli("numerar", "--corrigir")[1]["numeradas"]
+        self.assertEqual(self.store.get("tarefa-nova")["data"]["atualizada"], stamp)
         self.assertEqual(fixed, [dict(id="tarefa-nova", numero=3)])
         self.assertEqual(self.store.duplicate_numbers(), {})
         self.assertEqual(self.store.get("tarefa-antiga")["data"]["numero"], 1)
