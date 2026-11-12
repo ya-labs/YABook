@@ -99,9 +99,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 /* Superfícies, tipografia e ritmo do espaço de trabalho. */
 :root {
   --bg: #fff; --bg-inset: #f4f4f5; --bg-subtle: #f8f8f9; --bg-hover: #ededf0;
-  --borda: #858594; --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #484855;
+  --borda: var(--borda-suave); --borda-suave: #b1b1bd; --texto: #141418; --texto-2: #484855;
   --link: #6530c9; --primario: #6530c9; --primario-hover: #5021ab; --primario-texto: #fff;
-  --botao: #fff; --botao-borda: #858594; --botao-hover: #f0f0f3;
+  --botao: #fff; --botao-borda: var(--borda); --botao-hover: #f0f0f3;
   --acento-suave: #e9ddff; --sombra: 0 2px 5px rgba(29, 35, 64, .035);
   --sombra-painel: -10px 0 32px rgba(29, 35, 64, .1);
   --c-gray: 80, 80, 95; --c-blue: 22, 77, 204; --c-green: 22, 77, 204; --c-yellow: 101, 48, 201;
@@ -110,9 +110,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 :root[data-theme="dark"] {
   --bg: #18181d; --bg-inset: #0c0c10; --bg-subtle: #24242c; --bg-hover: #30303a;
-  --borda: #828291; --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
+  --borda: var(--borda-suave); --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
-  --botao: #24242c; --botao-borda: #828291; --botao-hover: #30303a; --acento-suave: #382453;
+  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
   --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 196, 160, 255;
   --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 222, 158, 255; --c-purple: 196, 160, 255;
@@ -121,9 +121,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
   --bg: #18181d; --bg-inset: #0c0c10; --bg-subtle: #24242c; --bg-hover: #30303a;
-  --borda: #828291; --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
+  --borda: var(--borda-suave); --borda-suave: #5f5f6e; --texto: #fafaff; --texto-2: #c5c5d0;
   --link: #c4a0ff; --primario: #7945df; --primario-hover: #8955ed; --primario-texto: #fff;
-  --botao: #24242c; --botao-borda: #828291; --botao-hover: #30303a; --acento-suave: #382453;
+  --botao: #24242c; --botao-borda: var(--borda); --botao-hover: #30303a; --acento-suave: #382453;
   --sombra: none; --sombra-painel: -12px 0 36px rgba(0, 0, 0, .3);
   --c-gray: 197, 197, 208; --c-blue: 121, 180, 255; --c-green: 121, 180, 255; --c-yellow: 196, 160, 255;
   --c-orange: 255, 130, 148; --c-red: 255, 130, 148; --c-pink: 222, 158, 255; --c-purple: 196, 160, 255;
