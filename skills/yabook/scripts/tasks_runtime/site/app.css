@@ -753,6 +753,5 @@ button.selo { cursor: pointer; text-align: left; }
 .calendario-dia, .calendario-vazio { border-radius: 6px; }
 .calendario-vazio { background: transparent; }
 
-/* Épicos se identificam pelo selo e pelo bloco de progresso, sem faixa lateral. */
+/* Épicos se identificam pelo selo, sem faixa lateral ou fundo no progresso. */
 .card-epico .card-sinais > .sinal:first-child { gap: 5px; padding: 3px 6px; border-radius: 6px; background: var(--acento-suave); color: var(--link); font-weight: 800; white-space: nowrap; }
-.card-epico > .progresso { padding: 10px; border-radius: 8px; background: var(--acento-suave); color: var(--link); font-weight: 800; }
