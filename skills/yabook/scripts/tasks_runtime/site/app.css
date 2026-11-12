@@ -246,9 +246,7 @@ h2:first-child { margin-top: 0; }
 /* Cards: origem discreta, título dominante, detalhes sem competir entre si. */
 .card { position: relative; display: grid; gap: 11px; width: 100%; min-width: 0; padding: 15px; border: 1px solid var(--borda); border-radius: 12px;
   background: var(--bg); box-shadow: var(--sombra); text-align: left; cursor: pointer; }
-.card-epico { border: 1px solid rgb(var(--c-purple)); border-left: 3px solid rgb(var(--c-purple)); padding-left: 13px; }
 .card:hover { background: var(--bg-subtle); border-color: var(--link); }
-.card-epico:hover { border-color: rgb(var(--c-purple)); }
 .card:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .card.editado { background: rgba(var(--c-blue), .07); }
 .card[draggable="true"] { cursor: grab; }
@@ -729,7 +727,6 @@ button.selo { cursor: pointer; text-align: left; }
 .documento-confidencial, .registros .registro-entrada, .registro, .feedback,
 .esqueleto, .estado-vazio, .foco-vazio, .markdown .documento-codigo { border-color: transparent; }
 .card:hover, button.numero:hover { border-color: transparent; background: var(--bg-hover); }
-.card-epico, .card-epico:hover { border-color: transparent; border-left-color: rgb(var(--c-purple)); }
 .card.editado { background: var(--acento-suave); }
 .estado-vazio, .foco-vazio { background: var(--bg); }
 .coluna .itens > .vazio { border-color: transparent; background: var(--bg-subtle); }
@@ -755,3 +752,7 @@ button.selo { cursor: pointer; text-align: left; }
 .calendario-grade { gap: 4px; padding: 4px; background: var(--bg-coluna); border: 0; }
 .calendario-dia, .calendario-vazio { border-radius: 6px; }
 .calendario-vazio { background: transparent; }
+
+/* Épicos se identificam pelo selo e pelo bloco de progresso, sem faixa lateral. */
+.card-epico .card-sinais > .sinal:first-child { gap: 5px; padding: 3px 6px; border-radius: 6px; background: var(--acento-suave); color: var(--link); font-weight: 800; white-space: nowrap; }
+.card-epico > .progresso { padding: 10px; border-radius: 8px; background: var(--acento-suave); color: var(--link); font-weight: 800; }

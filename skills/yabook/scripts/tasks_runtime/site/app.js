@@ -253,7 +253,7 @@ function card(task, options = {}) {
     } },
     h("div", { class: "card-origem" }, stateIcon(task), h("span", { class: "origem-texto" }, origin(task)),
       h("span", { class: "card-sinais" },
-        task.nivel ? signal(task.nivel === "epico" ? "epicos" : task.nivel === "historia" ? "camadas" : "tarefa", LEVEL[task.nivel][0]) : null,
+        task.nivel ? signal(task.nivel === "epico" ? "epicos" : task.nivel === "historia" ? "camadas" : "tarefa", LEVEL[task.nivel][0], task.nivel === "epico" ? "Épico" : null) : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
