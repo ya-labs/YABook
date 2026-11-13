@@ -258,7 +258,13 @@ def stop(cfg, config_path=None, spawn=True):
         command = [sys.executable, str(script)] + (["--config", str(config_path)] if config_path else []) + ["sync"]
         subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True, env=_GIT_ENV)
-    return dict(commit=commit, push=bool(due and spawn))
+    mirrored = bool(commit and spawn and (cfg.get("tasks") or {}).get("espelho", {}) is not False)
+    if mirrored:  # Status e Size no GitHub Project, sem o turno esperar a rede
+        script = Path(__file__).resolve().parents[1] / "yabook_tasks.py"
+        command = [sys.executable, str(script)] + (["--config", str(config_path)] if config_path else []) + ["espelhar"]
+        subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True, env=_GIT_ENV)
+    return dict(commit=commit, push=bool(due and spawn), espelho=mirrored)
 
 
 def _pull(store):

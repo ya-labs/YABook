@@ -71,6 +71,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), com modo Editar; `--output <arquivo>`: cópia estática |
 | `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch (e copia o `Size` por `--size-da-issue`), no PR e no merge |
+| `task espelhar` | `espelhar [--simular]`: papel e `size` no Status/Size do Project da issue; só avança, mapa em `tasks.espelho.status`; o Stop dispara |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
 | `task sheet [dia\|semana]` | `sheet [--data] [--semana]`: sugestão diária ou semanal |

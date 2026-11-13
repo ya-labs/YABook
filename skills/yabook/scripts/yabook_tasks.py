@@ -126,6 +126,8 @@ def build_parser():
     flow.add_argument("--pr", help="Número ou URL do PR")
     flow.add_argument("--repo-dir", default=os.getcwd(), help="Checkout usado para branch, remoto e gh")
     flow.add_argument("--size-da-issue", action="store_true", help="Copia o Size da issue no Project para a tarefa")
+    mirror = sub.add_parser("espelhar", help="Publica papel e size das tarefas no GitHub Project da issue")
+    mirror.add_argument("--simular", action="store_true", help="Mostra o que mudaria, sem gravar no Project")
     number = sub.add_parser("numerar", help="Numera (@n) as tarefas sem número pela ordem de criação")
     number.add_argument("--corrigir", action="store_true", help="Renumera também os números repetidos")
     policy = sub.add_parser("policy")
@@ -251,6 +253,9 @@ def run(args):
         if not ref or not args.fase:
             raise ValueError("Informe --fase e --ref (ou rode na branch n-descricao de um repositório do GitHub)")
         return issueflow.advance(store, cfg, ref, args.fase, args.registro, args.pr) or dict(id=None, ref=ref, motivo="Sem tarefa para a issue")
+    if args.command == "espelhar":
+        from tasks_runtime import mirror
+        return mirror.run(store, cfg, args.simular)
     if args.command == "capture":
         from tasks_runtime.batch import Capture
         batch = json.loads(Path(args.input).read_text(encoding="utf-8"))
