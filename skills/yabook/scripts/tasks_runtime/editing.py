@@ -9,7 +9,6 @@ Corpo de POST /api/salvar:
   tarefas: [{id, revision, campos?: {...}, unset?: [...], registro?}]
   colunas: [{id, nome}]
   complementos: [{id, texto}]   # texto que vai para a base confidencial local
-  ficha: {data, linhas, extras}
 """
 import datetime
 import json
@@ -53,13 +52,14 @@ def save(store, cfg, body):
     changes = body.get("tarefas") or []
     columns = body.get("colunas") or []
     complements = body.get("complementos") or []
-    day_sheet = body.get("ficha")
+    if body.get("ficha"):
+        raise ValueError("Confirmação de ficha não é mais suportada")
     corrections = body.get("correcoes") or []
-    if not (changes or columns or complements or day_sheet or corrections):
+    if not (changes or columns or complements or corrections):
         raise ValueError("Nada para salvar")
     tasks = Tasks(store, cfg, origem="quadro")
     with store.lock():
-        plan = _validate(store, cfg, tasks, changes, columns, complements, day_sheet)
+        plan = _validate(store, cfg, tasks, changes, columns, complements)
         by_day = {}
         for item in corrections:
             day = parse_date(item["data"])
@@ -92,10 +92,6 @@ def save(store, cfg, body):
             sheet.correct_windows(store, cfg.get("machine"), day, items)
             tasks._event("corrigir-janelas", data=day, quantidade=len(items))
             applied.append(dict(acao="correcao", data=day, quantidade=len(items)))
-        if plan["ficha"]:
-            entry = sheet.confirm(store, plan["ficha"]["data"], plan["ficha"]["linhas"], plan["ficha"]["extras"])
-            tasks._event("confirmar-ficha", data=entry["data"], total=sum(r["total"] for r in entry["linhas"]))
-            applied.append(dict(acao="ficha", data=entry["data"], linhas=entry["linhas"], extras=entry["extras"]))
         event_ids = [e["id"] for e in events.read_all(store.root, months=1)
                      if e["id"] not in seen and e.get("origem") == "quadro"]
         commit, warning = _commit(store.root)
@@ -106,7 +102,7 @@ def save(store, cfg, body):
     return result
 
 
-def _validate(store, cfg, tasks, changes, columns, complements, day_sheet):
+def _validate(store, cfg, tasks, changes, columns, complements):
     conflicts, hits, plan_tasks = [], [], []
     known_columns = {c["id"]: c for c in store.columns()}
     for index, change in enumerate(changes):
@@ -177,11 +173,8 @@ def _validate(store, cfg, tasks, changes, columns, complements, day_sheet):
             raise ValueError("Base confidencial ausente nesta máquina; reescreva o texto sem o termo")
         task = store.get(entry["id"])
         plan_complements.append(dict(id=entry["id"], texto=str(entry["texto"]).strip(), titulo=task["data"]["titulo"]))
-    plan_sheet = None
-    if day_sheet:
-        plan_sheet = dict(data=parse_date(day_sheet["data"]), linhas=day_sheet.get("linhas"), extras=day_sheet.get("extras"))
     _simulate_tree(store, plan_tasks)
-    return dict(tarefas=plan_tasks, colunas=renames, complementos=plan_complements, ficha=plan_sheet)
+    return dict(tarefas=plan_tasks, colunas=renames, complementos=plan_complements)
 
 
 def _simulate_tree(store, plan_tasks):
@@ -243,10 +236,6 @@ def summary(store, applied, commit, event_ids):
             lines.append("- `%s` %s: texto movido para o complemento confidencial local" % (item["id"], item["titulo"]))
         elif item["acao"] == "correcao":
             lines.append("- Janelas de %s corrigidas: %d" % (item["data"], item["quantidade"]))
-        elif item["acao"] == "ficha":
-            totals = ", ".join("%s %s %sh" % (r["tipo"], r["codigo"] or "sem código", ("%g" % r["total"]).replace(".", ","))
-                               for r in item["linhas"])
-            lines.append("- Ficha de %s confirmada: %s" % (item["data"], totals or "sem linhas"))
     lines += ["", "Commit: %s" % (commit or "sem commit"),
               "Ações para o agente analisar: %s" % (", ".join(event_ids) or "nenhuma"),
               "", "Peça ao agente: `task review` para analisar as ações do quadro."]

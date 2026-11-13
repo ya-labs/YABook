@@ -70,7 +70,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch, no PR e no merge |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
-| `task sheet [dia\|semana]` | `sheet [--data] [--semana]`; `--confirm [--input <json>]` grava os totais do dia |
+| `task sheet [dia\|semana]` | `sheet [--data] [--semana]`: sugestão diária ou semanal |
 | `task events` | `events [--pending] [--limit]`: histórico de ações |
 | `task analyze` | `analyze --id <evento> --resultado <texto>` |
 | `do task policy automatic\|manual` | `policy <modo>` |
@@ -147,5 +147,5 @@ captura também na configuração global do host, ou ela roda duas vezes.
   sistema de horas: `Desenvolvimento: item; item.` com o campo curto `ficha` de
   cada tarefa trabalhada ou alterada no dia (ou o título) e as notas de `log`;
   sem registro, datas nem números. Preencha `ficha` ao criar histórias.
-- Ajustes entram por `--confirm --input` com `linhas` (`tipo`, `codigo`,
-  `total`, `observacao`) e `extras`. A última confirmação prevalece na semana.
+- A semana soma as sugestões diárias atuais. Arquivos de confirmações antigas
+  permanecem preservados e não participam dos cálculos.

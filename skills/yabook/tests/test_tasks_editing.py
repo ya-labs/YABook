@@ -113,10 +113,9 @@ class EditingTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 editing.save(self.store, self.cfg, bad)
 
-    def test_sheet_confirmation_from_the_site(self):
-        editing.save(self.store, self.cfg, dict(ficha=dict(data="2026-11-11", linhas=[dict(tipo="projeto", codigo="5723", total=8)], extras=[])))
-        self.assertEqual(sheet.confirmed_day(self.root, "2026-11-11")["linhas"][0]["total"], 8)
-        self.assertEqual(events.pending(self.root)[0]["acao"], "confirmar-ficha")
+    def test_legacy_confirmation_request_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "não é mais suportada"):
+            editing.save(self.store, self.cfg, dict(ficha=dict(data="2026-11-11", linhas=[], extras=[])))
 
     def test_site_correction_removes_only_the_selected_window(self):
         day = "2026-11-11"

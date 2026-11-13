@@ -14,8 +14,6 @@ import uuid
 from pathlib import Path
 
 from . import tree
-from .precommit_hook import find_terms
-from .store import now
 
 WINDOW_HOURS = 0.25
 
@@ -217,73 +215,19 @@ def day_sheet(store, day, complement=None):
                 row["complemento"] = "\n".join(extra)
         rows.append(row)
     rows.sort(key=lambda r: (-r["total"], r["tipo"], str(r["codigo"])))
-    confirmed = confirmed_day(store.root, day)
-    if confirmed:  # observação ajustada na confirmação prevalece
-        chosen = {(r["tipo"], str(r["codigo"])): r.get("observacao") for r in confirmed.get("linhas", [])}
-        for row in rows:
-            if chosen.get((row["tipo"], str(row["codigo"]))):
-                row["observacao_sugerida"], row["observacao"] = row["observacao"], chosen[(row["tipo"], str(row["codigo"]))]
     return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 2), linhas=rows, divididas=spread,
-                extras=extras, confirmada=confirmed, janelas=windows)
+                extras=extras, janelas=windows)
 
 
 def week_sheet(store, day, complement=None):
     date = datetime.date.fromisoformat(day)
     monday = date - datetime.timedelta(days=date.weekday())
     days = [day_sheet(store, (monday + datetime.timedelta(days=i)).isoformat(), complement) for i in range(7)]
-    days = [d for d in days if d["linhas"] or d["extras"] or d["confirmada"]]
+    days = [d for d in days if d["linhas"] or d["extras"]]
     summary = {}
     for sheet in days:
-        source = sheet["confirmada"]["linhas"] if sheet["confirmada"] else sheet["linhas"]
-        for row in source:
+        for row in sheet["linhas"]:
             key = (row["tipo"], str(row["codigo"]))
             summary[key] = round(summary.get(key, 0) + row["total"], 2)
     return dict(inicio=monday.isoformat(), dias=days,
                 totais=[dict(tipo=k[0], codigo=k[1], total=v) for k, v in sorted(summary.items(), key=lambda i: -i[1])])
-
-
-def confirmed_day(root, day):
-    path = Path(root, "fichas", day[:7] + ".jsonl")
-    if not path.exists():
-        return None
-    latest = None
-    for line in path.read_text(encoding="utf-8").splitlines():
-        try:
-            entry = json.loads(line)
-        except ValueError:
-            continue
-        if entry.get("data") == day:
-            latest = entry
-    return latest
-
-
-def confirm(store, day, rows=None, extras=None):
-    """Grava os totais confirmados do dia; a confirmação mais recente prevalece."""
-    sheet = day_sheet(store, day)
-    rows = rows if rows is not None else [dict(tipo=r["tipo"], codigo=r["codigo"], total=r["total"], observacao=r["observacao"])
-                                          for r in sheet["linhas"]]
-    extras = extras if extras is not None else [dict(tarefa=e["tarefa"], horas=e["horas"]) for e in sheet["extras"]]
-    clean_rows = []
-    for row in rows:
-        coded = row.get("tipo") in ("demanda", "projeto", "especificacao") and str(row.get("codigo", "")).strip()
-        if not coded and row.get("tipo") != "trabalho":
-            raise ValueError("Linha da ficha precisa de tipo demanda, projeto ou especificacao e código, "
-                             "ou tipo trabalho para horas sem código")
-        total = float(row["total"])
-        if not 0 <= total <= 24:
-            raise ValueError("Total fora do intervalo do dia")
-        clean = dict(tipo=row["tipo"], codigo=str(row["codigo"]), total=total)
-        if str(row.get("observacao") or "").strip():
-            clean["observacao"] = str(row["observacao"]).strip()
-            hits = find_terms(clean["observacao"], store.terms)
-            if hits:
-                raise ValueError("Observação com termo confidencial (%s); reescreva sem o termo" % ", ".join(hits))
-        clean_rows.append(clean)
-    clean_extras = [dict(tarefa=e["tarefa"], horas=float(e["horas"])) for e in extras]
-    entry = dict(data=day, linhas=clean_rows, extras=clean_extras, ts=now())
-    path = store.root / "fichas" / (day[:7] + ".jsonl")
-    with store.lock():
-        path.parent.mkdir(exist_ok=True)
-        with path.open("a", encoding="utf-8", newline="\n") as stream:
-            stream.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")) + "\n")
-    return entry

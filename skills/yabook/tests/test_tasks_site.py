@@ -49,7 +49,7 @@ class Element {
   replaceChildren(...n) { this.childNodes = n.flat(); }
   get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
 }
-const sheet = {data:"2026-11-11", total:8, horas_dia:8, extras:[], janelas:[], confirmada:null,
+const sheet = {data:"2026-11-11", total:8, horas_dia:8, extras:[], janelas:[], confirmada:{linhas:[]},
   linhas:[{tipo:"demanda", rotulo:"Demanda", codigo:"1001", total:8, estimado:.25, observacao:""}]};
 let copied = "";
 const ctx = vm.createContext({Node:Element, window:{addEventListener(){}},
@@ -73,7 +73,7 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
   const draft = vm.runInContext("app.rascunho.correcoes",ctx);
   sheet.linhas=[]; sheet.total=0;
   const empty = flatten(await view.render({hoje:sheet.data}));
-  process.stdout.write(JSON.stringify({copied, draft, emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
+  process.stdout.write(JSON.stringify({copied, draft, confirmationShown:full.some(n=>n.textContent.includes("Confirmada:")), emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
     emptyText:empty.some(n=>n.textContent.includes("Nenhuma hora que conta"))}));
 })().catch(e=>{console.error(e);process.exit(1)});
 '''
@@ -81,6 +81,7 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
         self.assertEqual(result.returncode, 0, result.stderr)
         actual = json.loads(result.stdout)
         self.assertIn("1001", actual["copied"])
+        self.assertFalse(actual["confirmationShown"])
         self.assertEqual(actual["draft"], [dict(data="2026-11-11", janela="08:00", tarefa="demanda-1001", ignorar=True)])
         self.assertFalse(actual["emptyCopy"])
         self.assertTrue(actual["emptyText"])
