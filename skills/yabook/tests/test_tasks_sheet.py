@@ -72,6 +72,25 @@ class SheetTest(unittest.TestCase):
         self.assertEqual(espec["rotulo"], "Especificação")
         self.assertIsNone(espec["inicio"])
 
+    def test_window_correction_is_reversible_and_deduplicated_across_machines(self):
+        self.windows("trabalho", "demanda-1001", 2)
+        self.windows("casa", "demanda-1001", 1)
+        original = (self.root / "horas" / "2026-11-casa.jsonl").read_text()
+        correction = dict(janela="08:00", tarefa="demanda-1001", ignorar=True)
+        sheet.correct_windows(self.store, "trabalho", DAY, [correction])
+        result = sheet.day_sheet(self.store, DAY)
+        self.assertEqual(result["linhas"][0]["estimado"], 0.25)
+        self.assertEqual((self.root / "horas" / "2026-11-casa.jsonl").read_text(), original)
+        sheet.correct_windows(self.store, "casa", DAY, [dict(correction, janela="08:15")])
+        result = sheet.day_sheet(self.store, DAY)
+        self.assertEqual(result["linhas"], [])
+        self.assertEqual(result["total"], 0)
+        self.assertTrue(all(j["ignorar"] for j in result["janelas"]))
+        sheet.correct_windows(self.store, "casa", DAY, [dict(correction, ignorar=False)])
+        self.assertEqual(sheet.day_sheet(self.store, DAY)["linhas"][0]["estimado"], 0.25)
+        with self.assertRaises(ValueError):
+            sheet.correct_windows(self.store, "casa", DAY, [dict(correction, janela="09:00")])
+
     def test_observation_uses_complement_only_when_available(self):
         self.windows("trabalho", "demanda-1001", 4)
         plain = sheet.day_sheet(self.store, DAY)["linhas"][0]

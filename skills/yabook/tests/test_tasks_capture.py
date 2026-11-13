@@ -79,6 +79,18 @@ class CaptureTest(unittest.TestCase):
         capture.prompt(self.cfg, "sem-escolha", WHEN)
         self.assertEqual(len(self.hours()), 3)
 
+    def test_admin_and_inherited_task_do_not_create_windows(self):
+        self.tasks.add("tarefa", "A", coluna="pronto")
+        self.tasks.start("tarefa-a", self.root / "local" / "ativa.json")
+        capture.prompt(self.cfg, "nova", WHEN, "corrija o código")
+        self.assertEqual(self.hours(), [])  # tarefa antiga ainda não escolhida nesta sessão
+        capture.set_active(self.store, "nova", "tarefa-a")
+        for text in ("$yabook commit msg", "$yabook task review", "$yabook task add corrigir tela", "registre envio à QA", "mostre o quadro"):
+            capture.prompt(self.cfg, "nova", WHEN, text)
+        self.assertEqual(self.hours(), [])
+        capture.prompt(self.cfg, "nova", WHEN, "corrija o código e atualize a tarefa")
+        self.assertEqual(len(self.hours()), 1)
+
     def test_session_choice_overrides_machine_choice(self):
         self.tasks.add("tarefa", "A", coluna="pronto")
         self.tasks.add("tarefa", "B", coluna="pronto")

@@ -866,13 +866,15 @@ const VIEWS = {
       const sheet = await api("/api/ficha?data=" + day);
       const confirmed = sheet.confirmada;
       const rows = sheet.linhas;
+      const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
       const text = rows.map((r) => [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", hours(r.total), r.observacao].join("\t")).join("\n");
       return h("section", {},
         dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
         confirmed ? h("p", { class: "aviso" }, "Confirmada: ", confirmed.linhas.map((r) => `${label(r.tipo)} ${r.codigo || "sem código"} ${hours(r.total)}`).join(" · ")) : null,
+        pendingWindows ? h("p", { class: "aviso" }, "Salve as correções de janelas para atualizar a sugestão.") : null,
         h("div", { class: "filtros" },
           h("span", {}, `Sugestão: ${hours(sheet.total)} de ${hours(sheet.horas_dia)}`),
-          rows.length ? h("button", { class: "botao", type: "button", onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null,
+          rows.length ? h("button", { class: "botao", type: "button", disabled: pendingWindows, onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null,
           app.editando && rows.length ? h("button", { class: "botao", type: "button", onclick: () => setSheetRow(sheet) },
             app.rascunho.ficha && app.rascunho.ficha.data === day ? "Confirmação no rascunho" : "Confirmar no salvamento") : null),
         rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Início", "Fim", "Total", "Observação", ""].map((c, i) => h("th", { class: i === 4 ? "num" : null }, c)))),
@@ -886,6 +888,15 @@ const VIEWS = {
               : r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
+        h("h2", {}, "Janelas de atividade"),
+        sheet.janelas && sheet.janelas.length ? h("table", {}, h("tbody", {}, sheet.janelas.map((j) => {
+          const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
+          const ignored = pending ? pending.ignorar : j.ignorar;
+          return h("tr", {}, h("td", {}, j.janela), h("td", {}, j.titulo),
+            h("td", {}, ignored ? "Desconsiderada" : "Considerada"),
+            h("td", {}, app.editando ? h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) },
+              ignored ? "Considerar" : "Desconsiderar") : null));
+        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."),
         h("h2", {}, "Extras (fora do total)"),
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
           h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
@@ -1369,7 +1380,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Edição -----------------------------------------------------------------------
 // Rascunho local: {tarefas: {id: {revision, campos, unset, registro}}, colunas: {id: nome}, complementos: [], ficha}.
 function emptyDraft() {
-  return { tarefas: {}, colunas: {}, complementos: [], ficha: null };
+  return { tarefas: {}, colunas: {}, complementos: [], ficha: null, correcoes: [] };
 }
 
 function loadDraft() {
@@ -1383,7 +1394,7 @@ function persistDraft() {
 
 function draftCount() {
   const d = app.rascunho || emptyDraft();
-  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.ficha ? 1 : 0);
+  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.ficha ? 1 : 0) + (d.correcoes || []).length;
 }
 
 function effectiveState() {
@@ -1591,6 +1602,15 @@ function editForm(id) {
   return form;
 }
 
+function toggleWindow(day, entry, ignored) {
+  if (app.salvando) return;
+  const corrections = app.rascunho.correcoes || [];
+  app.rascunho.correcoes = corrections.filter((c) => !(c.data === day && c.janela === entry.janela && c.tarefa === entry.tarefa));
+  if (ignored !== entry.ignorar) app.rascunho.correcoes.push({ data: day, janela: entry.janela, tarefa: entry.tarefa, ignorar: ignored });
+  persistDraft();
+  render();
+}
+
 function sheetValue(day, row) {
   const draft = app.rascunho.ficha;
   if (!draft || draft.data !== day) return row.total;
@@ -1662,6 +1682,7 @@ async function saveDraft() {
     colunas: Object.entries(d.colunas).map(([id, nome]) => ({ id, nome })),
     complementos: d.complementos,
     ficha: d.ficha,
+    correcoes: d.correcoes || [],
   };
   let response, result;
   try {

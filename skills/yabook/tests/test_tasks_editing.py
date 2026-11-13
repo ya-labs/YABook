@@ -118,6 +118,19 @@ class EditingTest(unittest.TestCase):
         self.assertEqual(sheet.confirmed_day(self.root, "2026-11-11")["linhas"][0]["total"], 8)
         self.assertEqual(events.pending(self.root)[0]["acao"], "confirmar-ficha")
 
+    def test_site_correction_removes_only_the_selected_window(self):
+        day = "2026-11-11"
+        path = self.root / "horas" / "2026-11-casa.jsonl"
+        path.write_text("\n".join(json.dumps(dict(tipo="janela", data=day, janela=hour, tarefa="issue-agenda"))
+                                  for hour in ("08:00", "08:15")) + "\n")
+        correction = dict(data=day, janela="08:00", tarefa="issue-agenda", ignorar=True)
+        result = editing.save(self.store, self.cfg, dict(correcoes=[correction]))
+        self.assertEqual(result["aplicadas"][0]["acao"], "correcao")
+        self.assertEqual(sheet.day_sheet(self.store, day)["linhas"][0]["estimado"], 0.25)
+        self.assertEqual(events.pending(self.root)[0]["acao"], "corrigir-janelas")
+        with self.assertRaises(ValueError):
+            editing.save(self.store, self.cfg, dict(correcoes=[dict(correction, janela="09:00")]))
+
     def test_tree_violation_is_refused_before_writing(self):
         body = dict(tarefas=[dict(id="tarefa-revisar-layout", revision=self.rev("tarefa-revisar-layout"), campos=dict(coluna="testes")),
                              dict(id="projeto-5723", revision=self.rev("projeto-5723"), campos=dict(nivel="historia"))])

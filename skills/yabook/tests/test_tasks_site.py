@@ -38,6 +38,53 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
     def deadlines(self, *tasks):
         return self.evaluate("deadlineTasks(tasks).map(t => t.id)", tasks)
 
+    def test_sheet_copies_only_current_suggestion_and_hides_copy_when_empty(self):
+        script = r'''
+const fs = require("node:fs"), vm = require("node:vm");
+class Element {
+  constructor(tag, text = "") { this.tag = tag; this.text = text; this.childNodes = []; this.events = {}; this.style = {}; }
+  setAttribute(k, v) { this[k] = v; }
+  addEventListener(k, v) { this.events[k] = v; }
+  append(n) { this.childNodes.push(n); }
+  replaceChildren(...n) { this.childNodes = n.flat(); }
+  get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
+}
+const sheet = {data:"2026-11-11", total:8, horas_dia:8, extras:[], janelas:[], confirmada:null,
+  linhas:[{tipo:"demanda", rotulo:"Demanda", codigo:"1001", total:8, estimado:.25, observacao:""}]};
+let copied = "";
+const ctx = vm.createContext({Node:Element, window:{addEventListener(){}},
+  document:{querySelector(){return null;}, addEventListener(){}, createElement(t){return new Element(t);},
+    createTextNode(t){return new Element("text", t);}},
+  fetch:async()=>({ok:true,json:async()=>sheet}), navigator:{clipboard:{writeText:async t=>{copied=t;}}},
+  setTimeout(){}, console});
+vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),ctx);
+vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.editando=false;',ctx);
+(async()=>{
+  const view = vm.runInContext("VIEWS.ficha",ctx);
+  const flatten = n => [n, ...n.childNodes.flatMap(flatten)];
+  const full = flatten(await view.render({hoje:sheet.data}));
+  const button = full.find(n=>n.tag==="button" && n.textContent.includes("Copiar ficha"));
+  await button.events.click({currentTarget:button});
+  sheet.janelas=[{janela:"08:00",tarefa:"demanda-1001",titulo:"Demanda",ignorar:false}];
+  vm.runInContext('app.editando=true; render=()=>{};',ctx);
+  const editing = flatten(await view.render({hoje:sheet.data}));
+  const toggle = editing.find(n=>n.tag==="button" && n.textContent.includes("Desconsiderar"));
+  toggle.events.click({currentTarget:toggle});
+  const draft = vm.runInContext("app.rascunho.correcoes",ctx);
+  sheet.linhas=[]; sheet.total=0;
+  const empty = flatten(await view.render({hoje:sheet.data}));
+  process.stdout.write(JSON.stringify({copied, draft, emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
+    emptyText:empty.some(n=>n.textContent.includes("Nenhuma hora que conta"))}));
+})().catch(e=>{console.error(e);process.exit(1)});
+'''
+        result = subprocess.run(["node", "-e", script, str(SITE)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        actual = json.loads(result.stdout)
+        self.assertIn("1001", actual["copied"])
+        self.assertEqual(actual["draft"], [dict(data="2026-11-11", janela="08:00", tarefa="demanda-1001", ignorar=True)])
+        self.assertFalse(actual["emptyCopy"])
+        self.assertTrue(actual["emptyText"])
+
     def test_same_date_only_shows_parent(self):
         self.assertEqual(self.deadlines(self.task("epico", "2026-12-18"),
                                         self.task("historia", "2026-12-18", "epico")), ["epico"])

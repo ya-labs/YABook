@@ -117,8 +117,9 @@ captura também na configuração global do host, ou ela roda duas vezes.
   escolha à sessão.
 - `SessionStart` também lembra as regras de manutenção: registro e próximo passo
   ao concluir etapa, dúvida da pessoa como `ask`, prazo citado e mudança de fase.
-- `UserPromptSubmit` marca a janela de 15 minutos da tarefa ativa em
-  `horas/AAAA-MM-<maquina>.jsonl`, sem rede, e avisa só ações novas. Mensagem com
+- `UserPromptSubmit` marca a janela de 15 minutos da tarefa escolhida na sessão em
+  `horas/AAAA-MM-<maquina>.jsonl`, sem rede; comandos administrativos reconhecidos,
+  como `task review` e `commit msg`, não geram janela. Pedidos ambíguos podem exigir correção. Mensagem com
   prazo, código ou conclusão gera um lembrete por janela; sem tarefa ativa, a
   pergunta volta uma vez após algumas mensagens.
 - `Stop` faz commit local quando há mudança; o push vai em lote, em segundo
@@ -132,13 +133,13 @@ captura também na configuração global do host, ou ela roda duas vezes.
 
 ## Ficha de horas
 
-- O código é o do próprio tipo (`projeto` em `tipo: projeto`, `demanda` em
-  `tipo: demanda`); sem ele, o do ancestral mais próximo na cadeia de `pai`;
-  `tipo: especificacao` usa o código da cadeia e, sem código, é pessoal como os
-  demais. Iniciativa própria vai como `tarefa` ou `issue`, não `especificacao`. Tarefa pessoal é extra: aparece
-  no dia com horas estimadas, fora do total. Trabalho sem código vira linha
-  `trabalho` ("Sem código") para ajustar. Horas do épico vão às histórias com
-  demanda tocadas no dia.
+- Use o código do próprio tipo ou do ancestral mais próximo; especificação usa
+  o da cadeia e, sem código, é pessoal. Iniciativa própria é `tarefa` ou `issue`.
+  Tarefa pessoal é extra; trabalho sem código vira linha `trabalho`. Horas do
+  épico vão às histórias com demanda tocadas no dia.
+- Na ficha, em Editar, desconsidere ou volte a considerar cada janela e salve;
+  a correção preserva o histórico e vale entre máquinas. Após salvar, a
+  sugestão e a cópia usam somente janelas consideradas.
 - A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
   janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
   somando exatamente o total.
@@ -146,6 +147,5 @@ captura também na configuração global do host, ou ela roda duas vezes.
   sistema de horas: `Desenvolvimento: item; item.` com o campo curto `ficha` de
   cada tarefa trabalhada ou alterada no dia (ou o título) e as notas de `log`;
   sem registro, datas nem números. Preencha `ficha` ao criar histórias.
-- Ajustes da pessoa entram por `--confirm --input` com `linhas` (`tipo`,
-  `codigo`, `total`, `observacao`) e `extras`; a confirmação mais recente do dia prevalece e
-  a semana soma as confirmadas no lugar das sugestões.
+- Ajustes entram por `--confirm --input` com `linhas` (`tipo`, `codigo`,
+  `total`, `observacao`) e `extras`. A última confirmação prevalece na semana.

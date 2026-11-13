@@ -151,14 +151,32 @@ def _plain(text):
     return unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode().lower()
 
 
+# Somente comandos inequivocamente administrativos são ignorados. Mensagens
+# mistas ou desconhecidas continuam elegíveis após a escolha na sessão.
+ADMIN_COMMAND = re.compile(r"^\s*(?:\$?yabook(?:[:/]yabook)?\s+)?(?:commit\s+(?:msg|mensagem)|task\s+(?:review|show|search|recent|board|summary|edit|move|analyze|sync|events|sheet|start|ask|answer|capture|log|add|forget|clean|policy))\b", re.I)
+ADMIN_NATURAL = re.compile(r"^\s*(?:pode\s+)?(?:consulte|consultar|mostre|mostrar|revise|revisar|atualize|atualizar|registre|registrar|mova|mover)\b.*\b(?:quadro|tarefas?|registros?|qa|ficha)\b", re.I)
+WORK_REQUEST = re.compile(r"\b(?:implemente|implementar|desenvolva|desenvolver|corrija|corrigir|altere|alterar|crie|criar|teste|testar|investigue|investigar)\b", re.I)
+
+
+def administrative(text):
+    clean = _plain(text).strip()
+    if not clean:
+        return False
+    if ADMIN_COMMAND.search(clean):
+        return not (re.search(r"(?:&|\be depois\b)", clean) and WORK_REQUEST.search(clean))
+    return bool(not WORK_REQUEST.search(clean) and ADMIN_NATURAL.search(clean))
+
+
 def prompt(cfg, session, when=None, text=""):
     store, tasks_cfg = open_store(cfg)
     if store is None:
         return ""
     when = when or datetime.datetime.now().astimezone()
     current = active(store, session)
+    chosen = _read(_session_file(store, session), {}).get("ativa")
     if current and store.exists(current):
-        mark(store, tasks_cfg.get("machine"), current, when)
+        if chosen == current and not administrative(text):
+            mark(store, tasks_cfg.get("machine"), current, when)
     else:
         current = None
     path = _session_file(store, session)
