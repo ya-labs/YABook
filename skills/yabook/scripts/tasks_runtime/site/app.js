@@ -929,6 +929,7 @@ const VIEWS = {
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
           h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
           : h("p", { class: "vazio" }, "Nenhum extra."),
+        SNAPSHOT ? null : await estimateSection(),  // janelas, a seção mais longa, ficam sempre no fim
         h("h2", {}, "Janelas de atividade"),
         sheet.janelas && sheet.janelas.length ? h("table", {}, h("tbody", {}, sheet.janelas.map((j) => {
           const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
@@ -937,8 +938,7 @@ const VIEWS = {
             h("td", {}, ignored ? "Desconsiderada" : "Considerada"),
             h("td", {}, app.editando ? h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) },
               ignored ? "Considerar" : "Desconsiderar") : null));
-        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."),
-        SNAPSHOT ? null : await estimateSection());
+        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."));
     },
   },
   historico: {
