@@ -103,8 +103,6 @@ def build_parser():
     sheet = sub.add_parser("sheet", help="Ficha de horas sugerida do dia ou da semana")
     sheet.add_argument("--data", help="Dia de referência; padrão hoje")
     sheet.add_argument("--semana", action="store_true")
-    sheet.add_argument("--confirm", action="store_true", help="Grava os totais do dia")
-    sheet.add_argument("--input", help="JSON com linhas e extras ajustados para --confirm")
     history = sub.add_parser("events", help="Histórico de ações")
     history.add_argument("--pending", action="store_true", help="Só ações do quadro não analisadas")
     history.add_argument("--limit", type=int, default=30)
@@ -218,13 +216,6 @@ def run(args):
         from tasks_runtime import sheet
         from tasks_runtime.commands import parse_date, today
         day = parse_date(args.data) if args.data else today().isoformat()
-        if args.confirm:
-            if args.semana:
-                raise ValueError("Confirme um dia por vez")
-            adjusted = json.loads(Path(args.input).read_text(encoding="utf-8")) if args.input else {}
-            entry = sheet.confirm(store, day, adjusted.get("linhas"), adjusted.get("extras"))
-            tasks._event("confirmar-ficha", data=day, total=sum(r["total"] for r in entry["linhas"]))
-            return entry
         build = sheet.week_sheet if args.semana else sheet.day_sheet
         return build(store, day, tasks.complement)
     if args.command == "events":

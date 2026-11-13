@@ -122,37 +122,30 @@ class SheetTest(unittest.TestCase):
         self.assertTrue(row["observacao"].endswith("."))
         self.assertEqual(row["observacao"].count("; "), row["observacao"].count(";"))
 
-    def test_confirmed_observation_prevails_and_terms_are_checked(self):
-        self.windows("trabalho", "projeto-2001", 4)
-        sheet.confirm(self.store, DAY, [dict(tipo="projeto", codigo="2001", total=8, observacao="Desenvolvimento: tela X; tela Y.")], [])
-        row = sheet.day_sheet(self.store, DAY)["linhas"][0]
-        self.assertEqual(row["observacao"], "Desenvolvimento: tela X; tela Y.")
-        self.assertIn("observacao_sugerida", row)
-        store = TaskStore(self.root, str(self._terms()))
-        with self.assertRaises(ValueError):
-            sheet.confirm(store, DAY, [dict(tipo="projeto", codigo="2001", total=8, observacao="Base do ClienteSecreto")], [])
-
-    def _terms(self):
-        path = Path(self.tmp.name) / "termos.txt"
-        path.write_text("ClienteSecreto\n", encoding="utf-8")
-        return path
-
     def test_empty_day(self):
         result = sheet.day_sheet(self.store, DAY)
         self.assertEqual((result["total"], result["linhas"], result["extras"]), (0, [], []))
 
-    def test_confirmation_latest_wins_and_week_uses_it(self):
+    def test_legacy_confirmation_is_preserved_but_ignored_in_day_and_week(self):
         self.windows("trabalho", "demanda-1001", 4)
-        sheet.confirm(self.store, DAY)
-        sheet.confirm(self.store, DAY, [dict(tipo="demanda", codigo="1001", total=6), dict(tipo="projeto", codigo="2001", total=2)], [])
-        self.assertEqual(sheet.confirmed_day(self.root, DAY)["linhas"][0]["total"], 6)
+        legacy = self.root / "fichas" / "2026-11.jsonl"
+        original = json.dumps(dict(data=DAY, linhas=[dict(tipo="projeto", codigo="2001", total=6,
+                               observacao="antiga")], extras=[])) + "\n"
+        legacy.write_text(original, encoding="utf-8")
+        day = sheet.day_sheet(self.store, DAY)
         week = sheet.week_sheet(self.store, DAY)
-        self.assertEqual(week["inicio"], "2026-11-09")
-        self.assertEqual(week["totais"], [dict(tipo="demanda", codigo="1001", total=6), dict(tipo="projeto", codigo="2001", total=2)])
-        for row in (dict(tipo="tarefa", codigo="x", total=1), dict(tipo="demanda", codigo="", total=1),
-                    dict(tipo="demanda", codigo="1", total=30)):
-            with self.assertRaises(ValueError):
-                sheet.confirm(self.store, DAY, [row], [])
+        self.assertNotIn("confirmada", day)
+        self.assertEqual([(r["tipo"], r["codigo"], r["total"]) for r in day["linhas"]], [("demanda", "1001", 8)])
+        self.assertEqual(week["totais"], [dict(tipo="demanda", codigo="1001", total=8)])
+        self.assertEqual(legacy.read_text(encoding="utf-8"), original)
+        correction = dict(janela="%02d:00" % 8, tarefa="demanda-1001", ignorar=True)
+        sheet.correct_windows(self.store, "trabalho", DAY, [correction])
+        self.assertEqual(sheet.day_sheet(self.store, DAY)["linhas"][0]["estimado"], 0.75)
+        sheet.correct_windows(self.store, "trabalho", DAY,
+                              [dict(correction, janela="08:%02d" % minute) for minute in (15, 30, 45)])
+        self.assertEqual(sheet.day_sheet(self.store, DAY)["linhas"], [])
+        self.assertEqual(sheet.week_sheet(self.store, DAY)["totais"], [])
+        self.assertEqual(legacy.read_text(encoding="utf-8"), original)
 
     def test_cli(self):
         self.windows("trabalho", "demanda-1001", 4)
@@ -169,10 +162,10 @@ class SheetTest(unittest.TestCase):
         self.assertEqual((code, day["total"]), (0, 8))
         code, week = cli("sheet", "--data", DAY, "--semana")
         self.assertEqual(week["totais"][0]["total"], 8)
-        code, entry = cli("sheet", "--data", DAY, "--confirm")
-        self.assertEqual((code, entry["linhas"][0]["codigo"]), (0, "1001"))
-        self.assertEqual(cli("sheet", "--semana", "--confirm")[0], 1)
-        self.assertTrue(cli("sheet", "--data", DAY)[1]["confirmada"])
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(io.StringIO()):
+                yabook_tasks.main(["--config", str(config), "sheet", "--confirm"])
+
 
 
 if __name__ == "__main__":

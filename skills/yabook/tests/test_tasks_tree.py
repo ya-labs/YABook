@@ -86,7 +86,6 @@ class TreeTest(unittest.TestCase):
         self.assertEqual(set(rows), {"projeto", "trabalho"})
         self.assertEqual((rows["trabalho"]["codigo"], rows["trabalho"]["rotulo"]), ("", "Sem código"))
         self.assertIn("demanda-1001", [e["tarefa"] for e in result["extras"]])
-        sheet.confirm(self.store, DAY)  # linha sem código pode ser confirmada e ajustada depois
         self.tasks.edit("tarefa-revisar-layout-recebido-do-trabalho", unset=["pessoal"])
         self.assertNotIn("trabalho", {r["tipo"] for r in sheet.day_sheet(self.store, DAY)["linhas"]})
 

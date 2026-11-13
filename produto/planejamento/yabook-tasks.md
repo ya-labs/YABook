@@ -68,7 +68,7 @@ Arquivos do repositório de dados:
 | `eventos/AAAA-MM-<maquina>.jsonl` | Histórico de ações, somente acréscimo. |
 | `propostas/<id>.md` | Mudanças estruturais aguardando análise. |
 | `horas/AAAA-MM-<maquina>.jsonl` | Janelas de atividade de 15 minutos por tarefa. |
-| `fichas/AAAA-MM.jsonl` | Totais diários confirmados, incluindo extras. |
+| `fichas/AAAA-MM.jsonl` | Confirmações históricas preservadas, sem uso nos cálculos atuais. |
 | `.githooks/pre-commit` | Trava de termos proibidos. |
 
 Configuração da máquina, como caminho da base confidencial, nome da máquina e
@@ -125,7 +125,7 @@ O site tem modo de edição com salvamento explícito.
 
 | Tipo | Exemplos | Aplicação |
 | --- | --- | --- |
-| Mecânica | Mover ou reordenar card, editar campos, renomear coluna, ajustar a ficha. | O servidor grava, cria um commit por salvamento e registra eventos não analisados. |
+| Mecânica | Mover ou reordenar card, editar campos, renomear coluna, corrigir janelas. | O servidor grava, cria um commit por salvamento e registra eventos não analisados. |
 | Estrutural | Criar ou remover coluna, mudar papel de coluna. | O servidor grava `propostas/<id>.md`; `task change` apresenta o impacto e `do task change <id>` aplica. |
 
 - O salvamento exibe um resumo em Markdown com o que foi aplicado, o commit e as
@@ -189,9 +189,8 @@ os eventos existentes:
 - A ficha apresenta tipo, código, início e fim opcionais, total e observação.
   Demanda dispensa observação; nas demais linhas ela resume o que foi feito no
   dia (`Desenvolvimento: item; item.`), com o texto curto `ficha` de cada
-  tarefa, sem registro, datas nem números. A observação ajustada na confirmação
-  prevalece; o complemento confidencial aparece à parte, só na máquina que
-  possui a base.
+  tarefa, sem registro, datas nem números. O complemento confidencial aparece
+  à parte, só na máquina que possui a base.
 - Lançamentos manuais (`task log`) cobrem trabalho fora do agente.
 
 ## Site
