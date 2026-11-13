@@ -802,4 +802,14 @@ button.selo { cursor: pointer; text-align: left; }
 .historico-agente { margin-top: 12px; border-top: 1px solid var(--borda-suave); padding-top: 8px; }
 .historico-agente > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--texto-2); font-size: 12px; font-weight: 600; }
 @media (max-width: 1000px) { .hoje-colunas, .numeros.compactos { grid-template-columns: 1fr; } .hoje-itens { max-height: none; } }
-.card-sinais .sinal-size { padding: 1px 6px; border: 1px solid var(--borda); border-radius: 999px; font-weight: 600; white-space: nowrap; }
+/* Size: mesmo desenho do .selo (fundo translúcido, borda fina, texto na cor), um tom por valor */
+:root { --s1: 21, 128, 61; --s2: 22, 77, 204; --s3: 109, 40, 217; --s4: 180, 83, 9; --s5: 184, 31, 64; }
+:root[data-theme="dark"] { --s1: 110, 220, 160; --s2: 121, 180, 255; --s3: 190, 170, 255; --s4: 250, 180, 110; --s5: 255, 130, 148; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --s1: 110, 220, 160; --s2: 121, 180, 255; --s3: 190, 170, 255; --s4: 250, 180, 110; --s5: 255, 130, 148; }
+}
+.size-numero { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 2px 6px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; line-height: 1.5; font-variant-numeric: tabular-nums;
+  color: rgb(var(--lc)); background: rgba(var(--lc), var(--rotulo-fundo)); border: 1px solid rgba(var(--lc), var(--rotulo-borda)); }
+.size-1 { --lc: var(--s1); } .size-2 { --lc: var(--s2); } .size-3 { --lc: var(--s3); } .size-4 { --lc: var(--s4); } .size-5 { --lc: var(--s5); }
+.selo .size-numero { min-width: 0; padding: 0 5px; }

@@ -169,6 +169,7 @@ function badges(task, options = {}) {
   if (options.status) items.push(h("span", { class: "selo neutro forte", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.nivel && !options.semNivel) items.push(pill(LEVEL[task.nivel][0], LEVEL[task.nivel][1]));
   const ref = issueRef(task);
+  if (task.size && options.compacto) items.push(sizeNumber(task));
   if (task.codigo && (!ref || task.codigo !== ref.full) && !options.semCodigo) {
     items.push(pill(task.codigo, "blue", { title: task.pessoal ? "Código" : "Código na ficha", icon: "repo" }));
   }
@@ -276,7 +277,6 @@ function card(task, options = {}) {
     h("div", { class: "card-origem" }, stateIcon(task), h("span", { class: "origem-texto" }, origin(task)),
       h("span", { class: "card-sinais" },
         task.nivel === "epico" ? signal("epicos", "Épico", "Épico") : null,
-        task.size ? h("span", { class: "sinal sinal-size", title: sizeTitle(task) }, `Size ${task.size}`) : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
@@ -286,6 +286,10 @@ function card(task, options = {}) {
     task.nivel === "epico" ? epicProgress(task) : null,
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null,
     lastChange(task));
+}
+
+function sizeNumber(task) {
+  return h("span", { class: `size-numero size-${task.size}`, title: sizeTitle(task), "aria-label": sizeTitle(task) }, String(task.size));
 }
 
 function sizeTitle(task) {
@@ -448,7 +452,7 @@ async function openTask(id) {
           stateIcon(parent), `Parent: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
         task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
         ref ? h("span", { class: "selo neutro forte grande" }, icon("repo"), ref.full.split("#")[0]) : null,
-        task.size ? h("span", { class: "selo neutro forte grande", title: sizeTitle(task) }, `Size ${task.size}`) : null,
+        task.size ? h("span", { class: "selo neutro forte grande" }, sizeNumber(task), "Size") : null,
         task.pessoal ? h("span", { class: "selo cor-pink grande" }, "pessoal") : null),
       h("div", { class: "painel-colunas" },
         h("div", { class: "painel-principal" },
