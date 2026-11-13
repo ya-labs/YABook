@@ -276,6 +276,7 @@ function card(task, options = {}) {
     h("div", { class: "card-origem" }, stateIcon(task), h("span", { class: "origem-texto" }, origin(task)),
       h("span", { class: "card-sinais" },
         task.nivel === "epico" ? signal("epicos", "Épico", "Épico") : null,
+        task.size ? h("span", { class: "sinal sinal-size", title: sizeTitle(task) }, `Size ${task.size}`) : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
@@ -285,6 +286,11 @@ function card(task, options = {}) {
     task.nivel === "epico" ? epicProgress(task) : null,
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null,
     lastChange(task));
+}
+
+function sizeTitle(task) {
+  return `Size ${task.size}: ${["", "menos de uma hora com agente", "uma sessão longa ou duas curtas", "cerca de um dia ou validação fora do código",
+    "vários dias, outra equipe, QA ou retrabalho", "semana ou mais; dividir"][task.size]}` + (task.size_manual ? " · marcado no quadro" : " · estimado pelo agente");
 }
 
 // Registro em Markdown simples, montado em nós (sem innerHTML): títulos, listas, parágrafos e `código`.
@@ -442,6 +448,7 @@ async function openTask(id) {
           stateIcon(parent), `Parent: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
         task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
         ref ? h("span", { class: "selo neutro forte grande" }, icon("repo"), ref.full.split("#")[0]) : null,
+        task.size ? h("span", { class: "selo neutro forte grande", title: sizeTitle(task) }, `Size ${task.size}`) : null,
         task.pessoal ? h("span", { class: "selo cor-pink grande" }, "pessoal") : null),
       h("div", { class: "painel-colunas" },
         h("div", { class: "painel-principal" },
@@ -1541,6 +1548,7 @@ function editForm(id) {
     compare("descricao", values.descricao.trim(), original.descricao);
     compare("coluna", values.coluna, original.coluna);
     compare("prazo", values.prazo, original.prazo);
+    compare("size", values.size, original.size ? String(original.size) : "");
     compare("proximo_passo", values.proximo_passo.trim(), original.proximo_passo);
     compare("ficha", values.ficha.trim(), original.ficha);
     compare("aguardando", values.aguardando.trim(), original.aguardando);
@@ -1571,7 +1579,10 @@ function editForm(id) {
     field("titulo", "Título", h("input", { name: "titulo", value: task.titulo, required: true })),
     field("descricao", "Descrição (o que é a tarefa, 1 a 3 linhas)", h("textarea", { name: "descricao", rows: 2 }, task.descricao || "")),
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
-    field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
+    h("div", { class: "campos-linha" },
+      field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
+      field("size", "Size (entrega com agentes)", h("select", { name: "size" }, h("option", { value: "" }, "Sem tamanho"),
+        [1, 2, 3, 4, 5].map((n) => h("option", { value: String(n), selected: task.size === n }, String(n)))))),
     field("proximo_passo", "Próximo passo", h("textarea", { name: "proximo_passo", rows: 2 }, task.proximo_passo || "")),
     field("ficha", "Texto na observação da ficha (curto, ex.: tela de clientes em atraso)", h("input", { name: "ficha", value: task.ficha || "" })),
     field("aguardando", "Aguardando (de quem ou do quê; vazio encerra a espera)", h("input", { name: "aguardando", value: task.aguardando || "", placeholder: "ex.: validação de QA" })),

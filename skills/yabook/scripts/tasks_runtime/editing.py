@@ -22,7 +22,7 @@ from .precommit_hook import find_terms
 from .store import NIVEIS, Conflict, atomic_write, validate_quadro
 
 EDITABLE = ("titulo", "coluna", "ordem", "prazo", "proximo_passo", "projeto", "demanda", "issue", "nivel", "pai", "pessoal", "ficha",
-            "aguardando", "descricao")
+            "aguardando", "descricao", "size")
 TEXT_FIELDS = ("titulo", "descricao", "proximo_passo", "ficha", "aguardando", "projeto", "demanda", "issue")
 COMMIT_MESSAGE = "chore: salva alterações do quadro"
 
@@ -137,6 +137,13 @@ def _validate(store, cfg, tasks, changes, columns, complements):
             raise ValueError("%s: nível inválido" % identifier)
         if "pessoal" in fields and not isinstance(fields["pessoal"], bool):
             raise ValueError("%s: pessoal precisa ser verdadeiro ou falso" % identifier)
+        if "size" in fields:
+            try:
+                fields["size"] = int(fields["size"])
+            except (TypeError, ValueError):
+                raise ValueError("%s: size precisa ser de 1 a 5" % identifier)
+            if not 1 <= fields["size"] <= 5:
+                raise ValueError("%s: size precisa ser de 1 a 5" % identifier)
         for key in TEXT_FIELDS:
             value = fields.get(key)
             for text in (value if isinstance(value, list) else [value]):

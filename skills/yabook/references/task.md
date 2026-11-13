@@ -23,8 +23,11 @@ A configuração da máquina fica na seção `tasks` de `~/.config/yabook/config
 
 ## Formato
 
-Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (código `@n`,
-dado na criação; comandos aceitam `@n`; `numerar [--corrigir]`), `descricao` (o que é, 1–3 linhas), `tipo` (`demanda`,
+Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
+aceito nos comandos; `numerar [--corrigir]`), `descricao` (o que é, 1–3 linhas),
+`size` (1–5, escala de `Size` das issues, obrigatório ao criar: o da issue
+vinculada ou estimado pelo agente; reestime só com mudança de escopo e registre
+o motivo; `size_manual` do quadro prevalece), `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
 e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 `prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a
@@ -42,8 +45,8 @@ pessoal não usa a numeração da empresa: o código exibido é a issue.
 
 - Grave somente pela biblioteca do runtime, que valida, preserva `criada`,
   atualiza `atualizada` e recusa escrita sobre revisão diferente da lida.
-- Campos versionados usam texto técnico e genérico. Cliente, base, ambiente e
-  acessos ficam no complemento confidencial local e entram só como `refs`.
+- Campos versionados usam texto técnico e genérico; cliente, base, ambiente e
+  acessos vão ao complemento confidencial, só como `refs`.
 - A gravação recusa termos da lista local; não contorne movendo o texto para
   outro campo versionado.
 - `validate` confere configuração, quadro e todas as tarefas.
@@ -58,7 +61,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task show <id>` | `show`; inclui o complemento confidencial quando existe |
 | `task search <termo>` | `search [--tipo] [--coluna] [--projeto] [--nivel] [--pai]`; `--projeto` inclui herdados |
 | `task recent` | `recent [--limit]` |
-| `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo e paradas |
+| `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo, sem `size` e paradas |
 | `task add <texto livre>` | `add --tipo --titulo [--nivel --pai --pessoal sim\|nao --demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
 | `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
@@ -67,7 +70,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), instalável como PWA, com modo Editar; `--output <arquivo>`: cópia estática |
-| `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch, no PR e no merge |
+| `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch (e copia o `Size` por `--size-da-issue`), no PR e no merge |
 | `task sync` | `sync`: commit local, pull com rebase e push; conflito aborta sem descartar |
 | `task clean` | `clean [--days] [--apply]`: concluídas antigas e duplicatas |
 | `task sheet [dia\|semana]` | `sheet [--data] [--semana]`: sugestão diária ou semanal |
@@ -80,8 +83,6 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 - Ao ouvir prazo ou entrega na conversa, proponha `task add` ou `task edit`.
 - Política `automatic`: escrita direta, informando o que foi gravado. `manual`:
   mostre a mudança e aplique só após `do task`. Consulta nunca exige `do`.
-- Escreva `titulo`, `proximo_passo`, registros e perguntas de forma genérica;
-  sem termos da lista local nem dados de cliente.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
 
 ## Captura da conversa
@@ -92,7 +93,7 @@ issues ligadas e das tarefas existentes; restrinja ao assunto quando informado.
 Monte o lote JSON no scratchpad:
 
 - `itens`: um por projeto, demanda, especificação ou issue, com `tipo`, `titulo`,
-  códigos, `issue`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
+  códigos, `issue`, `size`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
   disser, `estado` (papel ou coluna conforme a fase), `prazo`,
   `proximo_passo`, `registro` (o que foi feito), `complemento` (detalhe
   confidencial, só onde há base) e `chave` local.
@@ -115,11 +116,9 @@ captura também na configuração global do host, ou ela roda duas vezes.
   prazos e até 10 ações do quadro não analisadas. Confirme a tarefa ativa com a
   pessoa uma vez por sessão e rode `start` com a escolhida; o hook vincula essa
   escolha à sessão.
-- `SessionStart` também lembra as regras de manutenção: registro e próximo passo
-  ao concluir etapa, dúvida da pessoa como `ask`, prazo citado e mudança de fase.
 - `UserPromptSubmit` marca a janela de 15 minutos da tarefa escolhida na sessão em
   `horas/AAAA-MM-<maquina>.jsonl`, sem rede; comandos administrativos reconhecidos,
-  como `task review` e `commit msg`, não geram janela. Pedidos ambíguos podem exigir correção. Mensagem com
+  como `task review` e `commit msg`, não geram janela. Mensagem com
   prazo, código ou conclusão gera um lembrete por janela; sem tarefa ativa, a
   pergunta volta uma vez após algumas mensagens.
 - `Stop` faz commit local quando há mudança; o push vai em lote, em segundo

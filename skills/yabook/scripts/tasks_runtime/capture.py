@@ -25,8 +25,7 @@ MAX_EVENTS = 10
 REASK_AFTER = 8
 RULES = ("Mantenha as tarefas sem pedido, conforme a política: etapa concluída vira registro e próximo passo "
          "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa, espera que a "
-         "coluna não mostra vira --aguardando (QA já é a coluna de validação; retorno: --unset aguardando) e mudança de fase move a coluna. Conversa "
-         "anterior sem registro: task capture.")
+         "coluna não mostra vira --aguardando (QA já é a coluna de validação; retorno: --unset aguardando) e mudança de fase move a coluna. Tarefa criada leva --size (escala de Size das issues; o da issue se houver). Conversa anterior sem registro: task capture.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
                     r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando)\b")
@@ -138,6 +137,9 @@ def session_start(cfg, session, source="startup"):
         lines.append("Ações do quadro não analisadas: " + "; ".join(_event_line(e) for e in shown)
                      + (" (+%d)" % (len(waiting) - len(shown)) if len(waiting) > len(shown) else "")
                      + ". Analise no fim da resposta se não tiver relação com o pedido e registre com task analyze.")
+    if review["sem_size"]:
+        lines.append("Sem size (estime e grave com task edit --size): " + "; ".join(_label(t) for t in review["sem_size"][:8])
+                     + (" (+%d)" % (len(review["sem_size"]) - 8) if len(review["sem_size"]) > 8 else ""))
     path = _session_file(store, session)
     state = _read(path, {})
     state["avisados"] = [e["id"] for e in waiting]

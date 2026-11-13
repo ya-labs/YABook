@@ -802,3 +802,4 @@ button.selo { cursor: pointer; text-align: left; }
 .historico-agente { margin-top: 12px; border-top: 1px solid var(--borda-suave); padding-top: 8px; }
 .historico-agente > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--texto-2); font-size: 12px; font-weight: 600; }
 @media (max-width: 1000px) { .hoje-colunas, .numeros.compactos { grid-template-columns: 1fr; } .hoje-itens { max-height: none; } }
+.card-sinais .sinal-size { padding: 1px 6px; border: 1px solid var(--borda); border-radius: 999px; font-weight: 600; white-space: nowrap; }

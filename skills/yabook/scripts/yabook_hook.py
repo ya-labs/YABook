@@ -702,7 +702,11 @@ def tasks_issue_flow(event, session):
             branch = issueflow._git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
             ref = issueflow.ref_from_branch(cwd, branch)
             if ref:
-                issueflow.advance(store, tasks_cfg, ref, "inicio", branch=branch, session=session)
+                result = issueflow.advance(store, tasks_cfg, ref, "inicio", branch=branch, session=session)
+                if result and not store.get(result["id"])["data"].get("size_manual"):  # Size do Project sem esperar a rede
+                    script = Path(__file__).with_name("yabook_tasks.py")
+                    spawn_background([sys.executable, str(script), "--config", str(config_path()), "issue", "--ref", ref,
+                                      "--size-da-issue"])
         record_stats("tasks.issue", 0, result="ok", ms=round((time.monotonic() - started) * 1000, 1))
     except Exception as error:
         record_stats("tasks.issue", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
