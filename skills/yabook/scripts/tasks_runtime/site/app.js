@@ -674,39 +674,6 @@ function recordedTime(value) {
   return whole ? whole + "h" + (rest ? " " + rest + "min" : "") : rest + "min";
 }
 
-function freeEntryForm(day, sheet) {
-  if (SNAPSHOT) return null;
-  const pending = (app.rascunho.apontamentos || []).filter((entry) => entry.data === day);
-  const code = h("input", { name: "codigo", inputmode: "numeric", pattern: "[0-9]+", maxlength: "20", required: true,
-    value: pref("ficha.codigo-livre", sheet.codigo_livre || "") });
-  const minutes = h("input", { name: "minutos", type: "number", min: "1", max: "1440", step: "1", required: true });
-  const description = h("textarea", { name: "descricao", rows: "2", maxlength: "1000", required: true,
-    oninput: (event) => event.currentTarget.setCustomValidity("") });
-  return h("section", { class: "ficha-avulsos" }, h("h2", {}, "Atividades sem código próprio"),
-    h("p", { class: "vazio" }, "Informe o código da ficha livre, a duração e o que foi feito. O saldo do dia não é preenchido automaticamente. Se o apontamento substituir uma captura, desconsidere as janelas correspondentes para não contar duas vezes."),
-    app.editando ? h("form", { class: "formulario", onsubmit: (event) => {
-      event.preventDefault();
-      const entry = { id: crypto.randomUUID(), data: day, codigo: code.value.trim(),
-        minutos: Number(minutes.value), descricao: description.value.trim() };
-      if (!entry.descricao) { description.setCustomValidity("Descreva a atividade."); description.reportValidity(); return; }
-      setPref("ficha.codigo-livre", entry.codigo);
-      app.rascunho.apontamentos = [...(app.rascunho.apontamentos || []), entry];
-      persistDraft(); render();
-    } },
-      h("div", { class: "campos-linha" }, h("label", { class: "campo" }, "Código da ficha livre", code),
-        h("label", { class: "campo" }, "Duração em minutos", minutes)),
-      h("label", { class: "campo" }, "Descrição da atividade", description),
-      h("button", { class: "botao", type: "submit" }, "Adicionar ao rascunho"))
-      : h("p", { class: "vazio" }, "Ative Editar para lançar uma atividade."),
-    pending.map((entry) => h("div", { class: "linha-caixa" },
-      h("span", {}, `${entry.codigo} · ${recordedTime(entry.minutos / 60)} · ${entry.descricao} (não salvo)`),
-      h("button", { class: "botao pequeno", type: "button", onclick: () => {
-        app.rascunho.apontamentos = app.rascunho.apontamentos.filter((item) => item.id !== entry.id);
-        persistDraft(); render();
-      } }, "Remover"))),
-    (sheet.apontamentos || []).map((entry) => h("p", { class: "vazio" }, `${entry.codigo} · ${recordedTime(entry.minutos / 60)} · ${entry.descricao}`)));
-}
-
 function row(task) {
   return h("div", { class: "linha-caixa" }, stateIcon(task), titleLink(task),
     h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
@@ -983,35 +950,29 @@ const VIEWS = {
           "aria-label": `Abrir card ${row.codigo}: ${task.titulo}`, onclick: () => openTask(task.id) }, row.codigo)
           : row.codigo || "Sem código";
       };
-      const pendingWindows = [...(app.rascunho.correcoes || []), ...(app.rascunho.apontamentos || [])].some((c) => c.data === day);
-      const copiedRows = (field) => rows.filter((r) => r[field] > 0).map((r) =>
-        [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", recordedTime(r[field]), r.observacao].join("\t")).join("\n");
-      const text = copiedRows("registrado"), rateio = copiedRows("total");
+      const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
+      const capturedSheet = rows.reduce((sum, row) => sum + (row.capturado || 0), 0);
+      const capturedExtras = sheet.extras.reduce((sum, row) => sum + (row.capturado || 0), 0);
+      const difference = sheet.horas_dia - capturedSheet;
       return h("section", {},
         dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
         h("div", { class: "ficha-resumo caixa" },
-          h("strong", {}, `Registrado no dia: ${recordedTime(sheet.registrado_total)}`),
-          h("p", {}, `Capturado: ${recordedTime(sheet.capturado_total)} · Informado manualmente: ${recordedTime(sheet.informado_total)}`),
-          h("p", {}, `Na ficha: ${recordedTime(sheet.registrado_ficha)} · Extras: ${recordedTime(sheet.extras_registrado)} · Jornada: ${recordedTime(sheet.horas_dia)}`),
-          h("p", {}, sheet.excedente > 0 ? `Acima da jornada: ${recordedTime(sheet.excedente)}` : `Falta registrar na ficha: ${recordedTime(sheet.falta)}`),
-          h("p", { class: "vazio" }, "Capturado é estimativa por janelas de 15 minutos, divididas entre sessões simultâneas. Não é um cronômetro. Horas do épico distribuídas aos filhos entram apenas na sugestão de rateio.")),
-        pendingWindows ? h("p", { class: "aviso" }, "Salve os apontamentos e as correções para atualizar os totais e copiar a ficha.") : null,
-        h("div", { class: "filtros" },
-          h("span", {}, `Rateio sugerido: ${recordedTime(sheet.total)}. Não representa tempo medido.`),
-          text ? h("button", { class: "botao", type: "button", title: "Copiar somente o tempo registrado, sem expandir para a jornada", disabled: pendingWindows, onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null,
-          rateio ? h("button", { class: "botao", type: "button", disabled: pendingWindows, onclick: (e) => copy(rateio, e.currentTarget) }, "Copiar rateio") : null),
-        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Capturado", "Manual", "Registrado", "Rateio", "Observação", ""].map((c, i) => h("th", { class: i >= 2 && i <= 5 ? "num" : null }, c)))),
+          h("strong", {}, `Tempo capturado no dia: ${recordedTime(sheet.capturado_total)}`),
+          h("p", {}, `Na ficha: ${recordedTime(capturedSheet)} · Extras: ${recordedTime(capturedExtras)} · Jornada: ${recordedTime(sheet.horas_dia)}`),
+          h("p", {}, difference >= 0 ? `Diferença para a jornada: ${recordedTime(difference)}` : `Acima da jornada: ${recordedTime(-difference)}`),
+          h("p", { class: "vazio" }, "Capturado é estimativa por janelas de 15 minutos. O tempo rateado é uma sugestão proporcional para a jornada.")),
+        pendingWindows ? h("p", { class: "aviso" }, "Salve as correções de janelas para atualizar os totais.") : null,
+        h("p", { class: "vazio" }, `Total rateado: ${recordedTime(sheet.total)}`),
+        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Capturado", "Rateado", "Observação", ""].map((c, i) => h("th", { class: i === 2 || i === 3 ? "num" : null }, c)))),
           h("tbody", {}, rows.map((r) => h("tr", {},
             h("td", {}, r.rotulo), h("td", {}, code(r)),
-            h("td", { class: "num" }, recordedTime(r.capturado)), h("td", { class: "num" }, recordedTime(r.informado)),
-            h("td", { class: "num" }, recordedTime(r.registrado)), h("td", { class: "num" }, recordedTime(r.total)),
+            h("td", { class: "num" }, recordedTime(r.capturado)), h("td", { class: "num" }, recordedTime(r.total)),
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
-            h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
+            h("td", {}, (r.observacao || "").trim() ? h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar observação") : null)))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
-        freeEntryForm(day, sheet),
         h("h2", {}, "Extras (fora do total da ficha)"),
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
-          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, recordedTime(e.registrado))))))
+          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, recordedTime(e.capturado))))))
           : h("p", { class: "vazio" }, "Nenhum extra."),
         SNAPSHOT ? null : await estimateSection(),  // janelas, a seção mais longa, ficam sempre no fim
         h("h2", {}, "Janelas de atividade"),
@@ -1506,7 +1467,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Edição -----------------------------------------------------------------------
 // Rascunho local: {tarefas: {id: {revision, campos, unset, registro}}, colunas: {id: nome}, complementos: [], correcoes: []}.
 function emptyDraft() {
-  return { tarefas: {}, colunas: {}, complementos: [], correcoes: [], apontamentos: [] };
+  return { tarefas: {}, colunas: {}, complementos: [], correcoes: [] };
 }
 
 function loadDraft() {
@@ -1520,7 +1481,7 @@ function persistDraft() {
 
 function draftCount() {
   const d = app.rascunho || emptyDraft();
-  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.correcoes || []).length + (d.apontamentos || []).length;
+  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.correcoes || []).length;
 }
 
 function effectiveState() {
@@ -1782,7 +1743,6 @@ async function saveDraft() {
     colunas: Object.entries(d.colunas).map(([id, nome]) => ({ id, nome })),
     complementos: d.complementos,
     correcoes: d.correcoes || [],
-    apontamentos: d.apontamentos || [],
   };
   let response, result;
   try {
