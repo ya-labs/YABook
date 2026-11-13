@@ -10,6 +10,7 @@ datas nem números de demanda ou issue.
 import datetime
 import json
 import math
+import uuid
 from pathlib import Path
 
 from . import tree
@@ -35,9 +36,9 @@ def attribution(data, index=None):
     return found or ("trabalho", "")
 
 
-def activity(root, day):
-    """Horas estimadas por tarefa no dia: janelas únicas entre máquinas e lançamentos manuais."""
-    windows, manual, notes = set(), {}, {}
+def window_records(root, day):
+    """Janelas deduplicadas e correções ordenadas, inclusive entre máquinas."""
+    windows, corrections, manual, notes = set(), {}, {}, {}
     for path in sorted(Path(root, "horas").glob(day[:7] + "-*.jsonl")):
         for line in path.read_text(encoding="utf-8").splitlines():
             try:
@@ -46,16 +47,54 @@ def activity(root, day):
                 continue
             if entry.get("data") != day or not entry.get("tarefa"):
                 continue
-            if entry.get("tipo") == "janela":
+            kind = entry.get("tipo")
+            if kind == "janela" and entry.get("janela"):
                 windows.add((entry["janela"], entry["tarefa"]))
-            elif entry.get("tipo") == "manual":
+            elif kind == "correcao" and entry.get("janela") and isinstance(entry.get("ignorar"), bool):
+                key = (entry["janela"], entry["tarefa"])
+                order = (entry.get("ts", ""), entry.get("id", ""))
+                if key not in corrections or order > corrections[key][0]:
+                    corrections[key] = (order, entry["ignorar"])
+            elif kind == "manual":
                 manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
                 if entry.get("obs"):
                     notes.setdefault(entry["tarefa"], []).append(entry["obs"])
+    rows = [dict(janela=start, tarefa=task, ignorar=corrections.get((start, task), (None, False))[1])
+            for start, task in sorted(windows)]
+    return rows, manual, notes
+
+
+def activity(root, day):
+    """Horas estimadas por tarefa, respeitando correções sem apagar o histórico."""
+    windows, manual, notes = window_records(root, day)
     hours = dict(manual)
-    for _, task in windows:
-        hours[task] = hours.get(task, 0) + WINDOW_HOURS
+    for entry in windows:
+        if not entry["ignorar"]:
+            task = entry["tarefa"]
+            hours[task] = hours.get(task, 0) + WINDOW_HOURS
     return hours, notes
+
+
+def correct_windows(store, machine, day, corrections):
+    """Acrescenta correções reversíveis; a chave representa a janela entre máquinas."""
+    from .events import _machine
+    with store.lock():
+        available = {(r["janela"], r["tarefa"]) for r in window_records(store.root, day)[0]}
+        seen = set()
+        for item in corrections:
+            key = (item.get("janela"), item.get("tarefa"))
+            if key not in available or key in seen or not isinstance(item.get("ignorar"), bool):
+                raise ValueError("Correção de janela inválida ou desatualizada")
+            seen.add(key)
+        path = Path(store.root, "horas", "%s-%s.jsonl" % (day[:7], _machine(machine)))
+        path.parent.mkdir(exist_ok=True)
+        with path.open("a", encoding="utf-8", newline="\n") as stream:
+            for item in corrections:
+                entry = dict(tipo="correcao", data=day, janela=item["janela"], tarefa=item["tarefa"],
+                             ignorar=item["ignorar"], ts=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="microseconds"),
+                             id=uuid.uuid4().hex)
+                stream.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")) + "\n")
+
 
 
 def distribute(weights, total, step):
@@ -132,9 +171,12 @@ def day_sheet(store, day, complement=None):
     ficha = cfg.get("ficha", {})
     labels = cfg.get("rotulos", {})
     per_day, step = float(ficha.get("horas_dia", 8)), float(ficha.get("arredondamento", 1))
+    windows, _, _ = window_records(store.root, day)
     hours, notes = activity(store.root, day)
     tasks = {t["data"]["id"]: t for t in store.list()}
     index = {k: t["data"] for k, t in tasks.items()}
+    for entry in windows:
+        entry["titulo"] = index.get(entry["tarefa"], {}).get("titulo", entry["tarefa"])
     hours, spread = spread_epic_hours(hours, index, touches(store.root, day, index))
     groups, extras = {}, []
     touched = [d for d in index.values() if (d.get("atualizada") or "")[:10] == day and d.get("tipo") != "pergunta"
@@ -182,7 +224,7 @@ def day_sheet(store, day, complement=None):
             if chosen.get((row["tipo"], str(row["codigo"]))):
                 row["observacao_sugerida"], row["observacao"] = row["observacao"], chosen[(row["tipo"], str(row["codigo"]))]
     return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 2), linhas=rows, divididas=spread,
-                extras=extras, confirmada=confirmed)
+                extras=extras, confirmada=confirmed, janelas=windows)
 
 
 def week_sheet(store, day, complement=None):

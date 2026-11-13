@@ -54,11 +54,20 @@ def save(store, cfg, body):
     columns = body.get("colunas") or []
     complements = body.get("complementos") or []
     day_sheet = body.get("ficha")
-    if not (changes or columns or complements or day_sheet):
+    corrections = body.get("correcoes") or []
+    if not (changes or columns or complements or day_sheet or corrections):
         raise ValueError("Nada para salvar")
     tasks = Tasks(store, cfg, origem="quadro")
     with store.lock():
         plan = _validate(store, cfg, tasks, changes, columns, complements, day_sheet)
+        by_day = {}
+        for item in corrections:
+            day = parse_date(item["data"])
+            key = (item.get("janela"), item.get("tarefa"))
+            available = {(r["janela"], r["tarefa"]) for r in sheet.window_records(store.root, day)[0]}
+            if key not in available or not isinstance(item.get("ignorar"), bool) or any((x["janela"], x["tarefa"]) == key for x in by_day.get(day, [])):
+                raise ValueError("Correção de janela inválida ou desatualizada")
+            by_day.setdefault(day, []).append(item)
         applied, seen = [], {e["id"] for e in events.read_all(store.root, months=1)}
         for entry in plan["complementos"]:
             _write_complement(cfg, entry["id"], entry["texto"])
@@ -79,6 +88,10 @@ def save(store, cfg, body):
                     tasks._event("renomear-coluna", coluna=column["id"], de=old, para=column["nome"])
             validate_quadro(quadro)
             atomic_write(store.root / "quadro.yml", fmt.dumps(quadro, ["formato", "colunas"]))
+        for day, items in by_day.items():
+            sheet.correct_windows(store, cfg.get("machine"), day, items)
+            tasks._event("corrigir-janelas", data=day, quantidade=len(items))
+            applied.append(dict(acao="correcao", data=day, quantidade=len(items)))
         if plan["ficha"]:
             entry = sheet.confirm(store, plan["ficha"]["data"], plan["ficha"]["linhas"], plan["ficha"]["extras"])
             tasks._event("confirmar-ficha", data=entry["data"], total=sum(r["total"] for r in entry["linhas"]))
@@ -228,6 +241,8 @@ def summary(store, applied, commit, event_ids):
             lines.append("- Coluna `%s` renomeada: %s → %s" % (item["id"], item["de"], item["para"]))
         elif item["acao"] == "complemento":
             lines.append("- `%s` %s: texto movido para o complemento confidencial local" % (item["id"], item["titulo"]))
+        elif item["acao"] == "correcao":
+            lines.append("- Janelas de %s corrigidas: %d" % (item["data"], item["quantidade"]))
         elif item["acao"] == "ficha":
             totals = ", ".join("%s %s %sh" % (r["tipo"], r["codigo"] or "sem código", ("%g" % r["total"]).replace(".", ","))
                                for r in item["linhas"])
