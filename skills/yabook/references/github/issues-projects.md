@@ -40,6 +40,8 @@ essa nomenclatura sem criar variações de nome.
 
 Mede a entrega com agentes de IA (sessão, revisão e validação), não código
 manual. Cresce com validação externa, regra indefinida e espera por terceiros.
+Código que cabe numa sessão é `1`; `2`+ exige motivo fora do código. Risco
+resolvido na sessão não conta; estimativa atribuída não é corrigida depois.
 
 `Size` é campo do Project, nunca label ou parte do título. Toda issue relevante
 recebe o valor quando o projeto usa YA LABS. Se a ferramenta não conseguir

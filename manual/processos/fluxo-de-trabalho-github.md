@@ -158,6 +158,8 @@ Toda issue relevante vinculada ao Project deve receber `Size`. A escala mede o e
 
 O tamanho cresce com validação fora do alcance do agente, regra indefinida, espera por terceiros e integração arriscada, não com a quantidade de código.
 
+Mudança de código que cabe numa sessão do agente é `Size 1`. `Size 2` ou maior exige um motivo concreto fora do código: outra sessão, QA, outra equipe, ambiente de cliente ou regra indefinida. Risco técnico resolvido na própria sessão e conversa para decidir não aumentam o tamanho. Estimativas já atribuídas não são corrigidas depois; a diferença para o tempo real serve de calibração.
+
 Se a IA sugerir `Size 5`, ela deve sugerir também uma divisão em issues menores.
 
 Use Markdown para conhecimento estável. Use GitHub para backlog, responsáveis, status, milestones, épicos, Pull Requests e progresso operacional.
