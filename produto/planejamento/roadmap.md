@@ -127,12 +127,9 @@ posteriores à V1 estão registradas na [issue #161](https://github.com/ya-labs/
 3. [Exibir semana, ficha e histórico no site (#173)](https://github.com/ya-labs/YABook/issues/173) · depende da #172.
 4. [Editar as tarefas pelo site com salvamento explícito (#174)](https://github.com/ya-labs/YABook/issues/174) · depende da #172.
 
-### M3. Quadro personalizável
+### M3. Tamanho das tarefas
 
-- Personalizar colunas por `quadro.yml` com papéis fixos.
-- Analisar e aplicar mudanças estruturais por `task change` e
-  `do task change <id>`.
-- Adicionar o campo `Size` às tarefas e ao card.
+1. [Preencher o tamanho das tarefas pelo agente no YABook Tasks (#207)](https://github.com/ya-labs/YABook/issues/207).
 
 ## Eficiência de contexto da YABook Skill
 
