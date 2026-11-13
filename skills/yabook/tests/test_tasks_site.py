@@ -38,6 +38,41 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
     def deadlines(self, *tasks):
         return self.evaluate("deadlineTasks(tasks).map(t => t.id)", tasks)
 
+    def test_sheet_code_opens_owner_instead_of_child_with_inherited_code(self):
+        tasks = [dict(id="epico", tipo="projeto", projeto="1001"),
+                 dict(id="historia", tipo="issue", pai="epico", projeto="1001", demanda="2001"),
+                 dict(id="filho", tipo="tarefa", pai="historia", projeto="1001", demanda="2001")]
+        for kind, code, owner in [("demanda", "2001", "historia"), ("projeto", "1001", "epico")]:
+            with self.subTest(kind=kind):
+                row = dict(tipo=kind, codigo=code, tarefas=["filho"])
+                self.assertEqual(self.evaluate(f"sheetTask({json.dumps(row)}, tasks)?.id", tasks), owner)
+
+    def test_sheet_project_groups_several_children_under_one_card(self):
+        tasks = [dict(id="epico", tipo="projeto", projeto="1001"),
+                 dict(id="a", tipo="issue", pai="epico", projeto="1001"),
+                 dict(id="b", tipo="issue", pai="epico", projeto="1001")]
+        self.assertEqual(self.evaluate('sheetTask({tipo:"projeto", codigo:"1001", tarefas:["a","b"]}, tasks)?.id', tasks), "epico")
+
+    def test_sheet_matches_type_and_code_without_guessing_ambiguous_cards(self):
+        tasks = [dict(id="projeto", tipo="projeto", projeto="1001"),
+                 dict(id="demanda", tipo="demanda", demanda="1001")]
+        self.assertEqual(self.evaluate('sheetTask({tipo:"demanda", codigo:"1001"}, tasks)?.id', tasks), "demanda")
+        tasks.append(dict(id="outra", tipo="demanda", demanda="1001"))
+        self.assertIsNone(self.evaluate('sheetTask({tipo:"demanda", codigo:"1001"}, tasks)', tasks))
+        self.assertEqual(self.evaluate('sheetTask({tipo:"demanda", codigo:"1001", tarefas:["demanda"]}, tasks)?.id', tasks), "demanda")
+
+    def test_sheet_without_code_or_available_card_stays_text(self):
+        for row in [dict(tipo="trabalho", codigo=""), dict(tipo="demanda", codigo="9999", tarefas=["apagada"])]:
+            with self.subTest(row=row):
+                self.assertIsNone(self.evaluate(f"sheetTask({json.dumps(row)}, tasks)", []))
+
+    def test_sheet_specification_opens_its_card_with_own_or_inherited_code(self):
+        for field in ["demanda", "projeto", "codigo"]:
+            with self.subTest(field=field):
+                tasks = [dict(id="spec", tipo="especificacao", **{field: "3001"}),
+                         dict(id="outro", tipo="demanda", demanda="3001")]
+                self.assertEqual(self.evaluate('sheetTask({tipo:"especificacao",codigo:"3001",tarefas:["spec"]}, tasks)?.id', tasks), "spec")
+
     def test_sheet_copies_only_current_suggestion_and_hides_copy_when_empty(self):
         script = r'''
 const fs = require("node:fs"), vm = require("node:vm");
