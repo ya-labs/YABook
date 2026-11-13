@@ -597,6 +597,27 @@ function epicOf(task, map) {
   return null;
 }
 
+// Estimativa × tempo real: horas registradas das tarefas concluídas por size, para calibrar a escala.
+async function estimateSection() {
+  let data;
+  try { data = await api("/api/estimativa"); } catch (e) { data = null; }
+  if (!data || !Array.isArray(data.por_size)) return null;  // a Ficha segue mesmo sem a comparação
+  const range = (f) => f[1] === null ? `mais de ${hours(f[0])}` : `até ${hours(f[1])}`;
+  return h("section", { class: "estimativa" },
+    h("h2", {}, "Estimativa × tempo real"),
+    h("p", { class: "vazio" }, `${data.tarefas} tarefas concluídas com size e horas. As horas contam o trabalho registrado, não a espera por validação.`),
+    h("table", {}, h("thead", {}, h("tr", {}, ["Size", "Faixa esperada", "Tarefas", "Mediana", "Menor", "Maior"].map((c, i) => h("th", { class: i > 1 ? "num" : null }, c)))),
+      h("tbody", {}, data.por_size.map((g) => h("tr", {},
+        h("td", {}, sizeNumber(g)), h("td", {}, range(g.faixa)), h("td", { class: "num" }, String(g.quantidade)),
+        ...[g.mediana, g.minimo, g.maximo].map((v) => h("td", { class: "num" }, v === null ? "—" : hours(v))))))),
+    data.fora_da_faixa.length ? [h("h3", {}, "Fora da faixa"),
+      h("table", {}, h("tbody", {}, data.fora_da_faixa.map((r) => h("tr", {},
+        h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(r.id) }, (r.numero ? `@${r.numero} ` : "") + r.titulo)),
+        h("td", {}, sizeNumber(r)), h("td", { class: "num" }, hours(r.horas)),
+        h("td", {}, "pelas horas: ", sizeNumber({ size: r.size_pelas_horas }))))))]
+      : h("p", { class: "vazio" }, "Nenhuma tarefa fora da faixa."));
+}
+
 // Colunas fechadas mostram só as 5 mais recentes até a pessoa pedir todas; a busca mostra tudo.
 const CLOSED_PREVIEW = 5;
 function closedPreview(column, cards) {
@@ -914,7 +935,8 @@ const VIEWS = {
             h("td", {}, ignored ? "Desconsiderada" : "Considerada"),
             h("td", {}, app.editando ? h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) },
               ignored ? "Considerar" : "Desconsiderar") : null));
-        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."));
+        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."),
+        SNAPSHOT ? null : await estimateSection());
     },
   },
   historico: {
