@@ -597,6 +597,16 @@ function epicOf(task, map) {
   return null;
 }
 
+// Colunas fechadas mostram só as 5 mais recentes até a pessoa pedir todas; a busca mostra tudo.
+const CLOSED_PREVIEW = 5;
+function closedPreview(column, cards) {
+  if (!["concluido", "arquivado"].includes(column.papel) || (app.busca || "").trim() || (app.colunasAbertas || {})[column.id]
+      || cards.length <= CLOSED_PREVIEW) return cards;
+  const recent = new Set([...cards].sort((a, b) => String(b.atualizada || "").localeCompare(String(a.atualizada || "")))
+    .slice(0, CLOSED_PREVIEW).map((t) => t.id));
+  return cards.filter((t) => recent.has(t.id));
+}
+
 function filtered(tasks) {
   const text = (app.busca || "").trim().toLowerCase();
   if (!text) return tasks;
@@ -715,6 +725,7 @@ const VIEWS = {
           : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum épico")));
       return h("div", { class: "quadro" }, columns.map((column) => {
         const cards = items.filter((t) => t.coluna === column.id).sort(boardOrder);
+        const shown = closedPreview(column, cards);
         return h("div", { class: `coluna papel-${column.papel}`, "data-coluna": column.id,
           ondragover: app.editando ? indicateDrop : null,
           ondragleave: app.editando ? (e) => { if (!e.currentTarget.contains(e.relatedTarget)) clearDrop(); } : null,
@@ -723,7 +734,10 @@ const VIEWS = {
             h("span", { class: "acoes" }, app.editando
               ? h("button", { class: "botao-icone discreto", type: "button", title: "Renomear coluna", "aria-label": "Renomear coluna " + column.nome, onclick: () => renameColumn(column) }, icon("editar"))
               : null)),
-          h("div", { class: "itens" }, cards.length ? cards.map((t) => card(t)) : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum item")));
+          h("div", { class: "itens" }, cards.length ? shown.map((t) => card(t)) : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum item"),
+            shown.length < cards.length ? h("button", { class: "botao exibir-todas", type: "button",
+              onclick: () => { app.colunasAbertas = { ...(app.colunasAbertas || {}), [column.id]: true }; render(); } },
+              `Exibir todas (${cards.length})`) : null));
       }), epicColumn);
     },
   },
@@ -1374,7 +1388,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("visibilitychange", refreshChangeTimes);
   refresh();
   listen();
-  if (!SNAPSHOT && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  // Sem PWA: remove o service worker e o cache deixados pelas versões antigas.
+  if (!SNAPSHOT && "serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then((list) => list.forEach((r) => r.unregister())).catch(() => {});
+    if ("caches" in window) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+  }
 });
 
 // Edição -----------------------------------------------------------------------

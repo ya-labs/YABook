@@ -198,7 +198,7 @@ os eventos existentes:
   apenas em `127.0.0.1`, iniciado manualmente.
 - Front em HTML, CSS e JavaScript sem etapa de build; atualização por SSE a
   partir da verificação periódica dos arquivos.
-- Instalado como PWA nas duas máquinas.
+- Usado em guia do navegador, sem instalação.
 - Visões: Hoje, Semana, Quadro, Épicos, Prazos, Perguntas, Ficha e Histórico.
 - O card mostra título, nível, código (herdado ou a issue), selo pessoal, prazo,
   `Size`, próximo passo, indicador de pergunta aberta e indicador de referência
@@ -229,7 +229,7 @@ os eventos existentes:
 
 - Labels e campos personalizados além de `Size`.
 - Incorporação de bases confidenciais existentes ao modelo de tarefas.
-- Aplicativo nativo; a V1 usa PWA.
+- Aplicativo nativo e PWA.
 - Comparação entre estimativa e tempo real, relatórios periódicos e mineração
   de transcrições.
 - Login, uso multiusuário, integração com sistemas externos de atendimento e

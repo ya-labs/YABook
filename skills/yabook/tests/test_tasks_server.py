@@ -129,10 +129,8 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.request("POST", "/api/salvar", body={}, headers={"X-YABook-Token": token})[0], 404)
 
     def test_static_shell(self):
-        status, kind, _ = self.request("GET", "/manifest.webmanifest")
-        self.assertEqual((status, kind.split(";")[0]), (200, "application/manifest+json"))
-        self.assertEqual(self.request("GET", "/sw.js")[0], 200)
-        self.assertEqual(self.request("GET", "/icon-192.png")[1], "image/png")
+        self.assertEqual(self.request("GET", "/manifest.webmanifest")[0], 404)  # sem PWA
+        self.assertEqual(self.request("GET", "/sw.js")[0], 200)  # só desinstala o service worker antigo
         self.assertEqual(self.request("GET", "/../store.py")[0], 404)
         self.assertEqual(self.request("GET", "/server.py")[0], 404)
 

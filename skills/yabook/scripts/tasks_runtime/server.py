@@ -30,7 +30,7 @@ PING_SECONDS = 15.0
 WATCHED_DIRS = ("tarefas", "eventos", "horas", "fichas")
 WATCHED_FILES = ("quadro.yml", "config.yml", "local/ativa.json")
 MAX_REF_BYTES = 20000
-SHELL = ("index.html", "app.css", "app.js", "manifest.webmanifest", "sw.js", "icon-192.png", "icon-512.png", "icon.svg")
+SHELL = ("index.html", "app.css", "app.js", "sw.js", "icon.svg")  # sw.js só desinstala o service worker antigo
 
 
 class Board:
@@ -178,7 +178,6 @@ class Board:
         snapshot = dict(estado=self.state(), semana=self.week(), ficha=self.sheet(), historico=self.history())
         payload = json.dumps(snapshot, ensure_ascii=False).replace("</", "<\\/")
         html = html.replace('<link rel="stylesheet" href="app.css">', "<style>\n%s\n</style>" % css)
-        html = html.replace('<link rel="manifest" href="manifest.webmanifest">', "")
         html = html.replace('<script src="app.js" defer></script>',
                             "<script>window.YABOOK_SNAPSHOT = %s;</script>\n<script>\n%s\n</script>" % (payload, js))
         html = html.replace("{{TOKEN}}", "")
@@ -274,8 +273,7 @@ class Handler(BaseHTTPRequestHandler):
         if name not in SHELL:
             return self._error(HTTPStatus.NOT_FOUND, "Não encontrado")
         file = SITE / name
-        content_type = "application/manifest+json" if name.endswith(".webmanifest") else (
-            mimetypes.guess_type(name)[0] or "application/octet-stream")
+        content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
         if content_type.startswith("text/") or content_type.endswith(("javascript", "json")):
             content_type += "; charset=utf-8"
         data = file.read_bytes()
