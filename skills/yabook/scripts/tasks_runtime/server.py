@@ -103,7 +103,7 @@ class Board:
             data = task["data"]
             item = dict(self.tasks.brief(task, index), ordem=data.get("ordem", 0), revision=task["revision"],
                         atualizada=data.get("atualizada"), criada=data.get("criada"), papel=roles.get(data.get("coluna")))
-            for key in ("refs", "sobre", "resposta", "pessoal"):
+            for key in ("refs", "sobre", "resposta", "pessoal", "size_manual"):
                 if key in data:
                     item[key + ("_marcado" if key == "pessoal" else "")] = data[key]
             item["perguntas_abertas"] = open_questions.get(data["id"], 0)

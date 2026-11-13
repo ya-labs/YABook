@@ -32,11 +32,14 @@ essa nomenclatura sem criar variações de nome.
 
 | Size | Uso |
 | --- | --- |
-| `1` | Ajuste rápido, baixo risco e escopo evidente. |
-| `2` | Tarefa pequena, poucos arquivos ou pouca incerteza. |
-| `3` | Tarefa média, implementação ou revisão normal. |
-| `4` | Tarefa grande, várias partes ou análise relevante. |
-| `5` | Alta incerteza; proponha divisão. |
+| `1` | Agente conclui em menos de uma hora, uma sessão e um PR. |
+| `2` | Uma sessão longa ou duas curtas, sem dependência externa. |
+| `3` | Cerca de um dia ou validação fora do código. |
+| `4` | Vários dias; outra equipe, QA ou retrabalho. |
+| `5` | Semana ou mais; proponha divisão. |
+
+Mede a entrega com agentes de IA (sessão, revisão e validação), não código
+manual. Cresce com validação externa, regra indefinida e espera por terceiros.
 
 `Size` é campo do Project, nunca label ou parte do título. Toda issue relevante
 recebe o valor quando o projeto usa YA LABS. Se a ferramenta não conseguir

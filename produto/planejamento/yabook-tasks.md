@@ -14,7 +14,7 @@ plugin. A pessoa acompanha e edita por um site local sempre aberto.
 | Lugar | Contém |
 | --- | --- |
 | YABook (este repositório) | Contrato do formato, comandos `task`, captura pelos hooks, site e servidor local, regra de escrita genérica. |
-| Repositório de dados `YABook-task-<loginGitHub>` | Tarefas, quadro, histórico de ações, propostas, horas, fichas e trava de commit. Privado e pessoal. |
+| Repositório de dados `YABook-task-<loginGitHub>` | Tarefas, quadro, histórico de ações, horas, fichas e trava de commit. Privado e pessoal. |
 | Base confidencial local | Complementos confidenciais por tarefa, páginas de conhecimento sensível e lista de termos proibidos. Nunca versionada no repositório de dados. |
 | Memória YABook | Conhecimento técnico reutilizável. Não referencia tarefas. |
 
@@ -66,7 +66,6 @@ Arquivos do repositório de dados:
 | `quadro.yml` | Colunas com nome livre e papel fixo. |
 | `tarefas/<id>.md` | Uma tarefa por arquivo. |
 | `eventos/AAAA-MM-<maquina>.jsonl` | Histórico de ações, somente acréscimo. |
-| `propostas/<id>.md` | Mudanças estruturais aguardando análise. |
 | `horas/AAAA-MM-<maquina>.jsonl` | Janelas de atividade de 15 minutos por tarefa. |
 | `fichas/AAAA-MM.jsonl` | Confirmações históricas preservadas, sem uso nos cálculos atuais. |
 | `.githooks/pre-commit` | Trava de termos proibidos. |
@@ -126,10 +125,10 @@ O site tem modo de edição com salvamento explícito.
 | Tipo | Exemplos | Aplicação |
 | --- | --- | --- |
 | Mecânica | Mover ou reordenar card, editar campos, renomear coluna, corrigir janelas. | O servidor grava, cria um commit por salvamento e registra eventos não analisados. |
-| Estrutural | Criar ou remover coluna, mudar papel de coluna. | O servidor grava `propostas/<id>.md`; `task change` apresenta o impacto e `do task change <id>` aplica. |
+| Estrutural | Criar ou remover coluna, mudar papel de coluna. | Edição do `quadro.yml`, validada pelos papéis obrigatórios. |
 
-- O salvamento exibe um resumo em Markdown com o que foi aplicado, o commit e as
-  propostas criadas, com opção de copiar.
+- O salvamento exibe um resumo em Markdown com o que foi aplicado, e o commit,
+  com opção de copiar.
 - Agente e servidor usam a mesma biblioteca de escrita.
 - Cada tarefa carrega a revisão do arquivo. Salvamento sobre arquivo alterado
   depois da leitura é recusado e a tela recarrega.
@@ -147,7 +146,7 @@ A família `task` segue a família `memory` quando há equivalente.
 | Configuração | `task init`, `do task init`, `do task policy automatic\|manual` |
 | Consulta | `task`, `task show`, `task search`, `task recent`, `task review` |
 | Escrita | `task add <texto livre>`, `task edit`, `task forget`, `task start <id>`, `task ask <pergunta>`, `task log <id> <horas> [obs]`, `task capture [assunto]`, `do task capture` |
-| Quadro | `task board [--serve --port\|--output]`, `task change [<texto>]`, `do task change <id>` |
+| Quadro | `task board [--serve --port\|--output]` |
 | Horas | `task sheet [dia\|semana]` |
 | Manutenção | `task sync`, `task clean` |
 
@@ -224,7 +223,7 @@ os eventos existentes:
 | --- | --- |
 | M1 | Repositório de dados, `task init`, comandos, captura nos dois hosts, histórico de ações e `task sheet` por comando. |
 | M2 | Site com as visões, edição mecânica, resumo do salvamento e visão Histórico. |
-| M3 | Quadro personalizável, propostas estruturais com `task change` e campo `Size`. |
+| M3 | Campo `size` preenchido pelo agente, na escala de `Size` das issues. |
 
 ## Fora da V1
 

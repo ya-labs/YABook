@@ -72,6 +72,8 @@ def build_parser():
         command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
         command.add_argument("--proximo-passo")
         command.add_argument("--descricao", help="O que é a tarefa: objetivo e escopo em 1 a 3 linhas")
+        command.add_argument("--size", type=int, choices=range(1, 6), metavar="1-5",
+                             help="Tamanho na escala de Size das issues (entrega com agentes)")
         command.add_argument("--ficha", help="Texto curto do item na observação da ficha de horas")
         command.add_argument("--aguardando", help="De quem ou do quê a tarefa espera; --unset aguardando encerra")
         command.add_argument("--sobre")
@@ -123,6 +125,7 @@ def build_parser():
     flow.add_argument("--registro", help="Texto do registro; padrão conforme a fase")
     flow.add_argument("--pr", help="Número ou URL do PR")
     flow.add_argument("--repo-dir", default=os.getcwd(), help="Checkout usado para branch, remoto e gh")
+    flow.add_argument("--size-da-issue", action="store_true", help="Copia o Size da issue no Project para a tarefa")
     number = sub.add_parser("numerar", help="Numera (@n) as tarefas sem número pela ordem de criação")
     number.add_argument("--corrigir", action="store_true", help="Renumera também os números repetidos")
     policy = sub.add_parser("policy")
@@ -130,7 +133,7 @@ def build_parser():
     return parser
 
 
-FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai", "ficha", "aguardando", "descricao")
+FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai", "ficha", "aguardando", "descricao", "size")
 
 
 def fields(args, existing=None):
@@ -243,6 +246,8 @@ def run(args):
                 return dict(id=None, motivo="PR não integrado ou sem issue na branch")
             return issueflow.advance(store, cfg, merged[0], "integrado", args.registro, "#%s" % args.pr) or dict(id=None, ref=merged[0])
         ref = args.ref or issueflow.ref_from_branch(args.repo_dir)
+        if ref and args.size_da_issue:
+            return issueflow.sync_size(store, cfg, ref)
         if not ref or not args.fase:
             raise ValueError("Informe --fase e --ref (ou rode na branch n-descricao de um repositório do GitHub)")
         return issueflow.advance(store, cfg, ref, args.fase, args.registro, args.pr) or dict(id=None, ref=ref, motivo="Sem tarefa para a issue")

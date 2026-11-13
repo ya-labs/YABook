@@ -146,15 +146,17 @@ Ideias futuras
 
 `Size` é um campo do GitHub Project para estimar o tamanho da issue. Não é label e não deve aparecer no título.
 
-Toda issue relevante vinculada ao Project deve receber `Size`:
+Toda issue relevante vinculada ao Project deve receber `Size`. A escala mede o esforço de entrega com agentes de IA: sessão do agente, revisão e validação da pessoa, não a escrita manual do código.
 
 | Size | Uso |
 | --- | --- |
-| `1` | Ajuste rápido, baixo risco e escopo evidente. |
-| `2` | Tarefa pequena, poucos arquivos ou pouca incerteza. |
-| `3` | Tarefa média, exige implementação ou revisão normal. |
-| `4` | Tarefa grande, envolve várias partes, análise relevante ou coordenação. |
-| `5` | Tarefa muito grande, alta incerteza ou candidata a ser quebrada. |
+| `1` | O agente conclui em menos de uma hora, numa sessão e num PR. |
+| `2` | Uma sessão longa ou duas curtas; várias partes, sem dependência externa. |
+| `3` | Cerca de um dia; várias sessões ou validação fora do código (sistema externo, aparelho, ambiente de cliente). |
+| `4` | Vários dias; depende de outra equipe, de QA ou de rodadas de retrabalho. |
+| `5` | Semana ou mais; candidata a ser quebrada antes de começar. |
+
+O tamanho cresce com validação fora do alcance do agente, regra indefinida, espera por terceiros e integração arriscada, não com a quantidade de código.
 
 Se a IA sugerir `Size 5`, ela deve sugerir também uma divisão em issues menores.
 

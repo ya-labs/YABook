@@ -104,3 +104,42 @@ def merged_pr(cwd, number):
         return None
     ref = ref_from_branch(cwd, info.get("headRefName"))
     return (ref, info.get("url")) if ref else None
+
+
+_SIZE_QUERY = """query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){
+projectItems(first:10){nodes{fieldValueByName(name:"Size"){... on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}"""
+
+
+def issue_size(ref):
+    """`Size` da issue no Project (1 a 5), consultando o GitHub; None se ausente."""
+    match = re.fullmatch(r"([^/]+)/([^#]+)#(\d+)", ref or "")
+    if not match:
+        return None
+    try:
+        result = subprocess.run(["gh", "api", "graphql", "-f", "query=" + _SIZE_QUERY, "-f", "o=" + match.group(1),
+                                 "-f", "r=" + match.group(2), "-F", "n=" + match.group(3)],
+                                capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode:
+        return None
+    nodes = (((json.loads(result.stdout).get("data") or {}).get("repository") or {}).get("issue") or {}).get("projectItems", {}).get("nodes", [])
+    for node in nodes:
+        name = str((node.get("fieldValueByName") or {}).get("name") or "").strip()
+        if name in ("1", "2", "3", "4", "5"):
+            return int(name)
+    return None
+
+
+def sync_size(store, cfg, ref, size=None):
+    """Copia o `Size` da issue para a tarefa; tamanho marcado pela pessoa prevalece."""
+    task = find(store, ref)
+    if task is None:
+        return dict(id=None, ref=ref, motivo="Sem tarefa para a issue")
+    data = task["data"]
+    size = size if size is not None else issue_size(ref)
+    if size is None or data.get("size_manual") or data.get("size") == size:
+        return dict(id=data["id"], size=data.get("size"), alterada=False)
+    Tasks(store, cfg).edit(data["id"], dict(size=size), append="Size %d copiado da issue %s." % (size, ref),
+                           expected_revision=task["revision"])
+    return dict(id=data["id"], size=size, alterada=True)

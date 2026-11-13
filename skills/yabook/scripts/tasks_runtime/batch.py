@@ -21,7 +21,7 @@ from .commands import Tasks, _append_log, _plain, parse_date
 from .precommit_hook import find_terms
 from .store import PAPEIS, TIPOS, Conflict, atomic_write, check_tree, infer_level, now
 
-FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha", "aguardando", "descricao")
+FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha", "aguardando", "descricao", "size")
 CODED = ("demanda", "projeto", "especificacao")
 ITEM_KEYS = FIELDS + ("chave", "id", "tipo", "estado", "registro", "complemento", "pai")
 
@@ -149,6 +149,8 @@ class Capture:
             fields["prazo"] = parse_date(fields["prazo"])
         if "pessoal" in fields and not isinstance(fields["pessoal"], bool):
             raise ValueError(where + ".pessoal: use true ou false")
+        if "size" in fields and (isinstance(fields["size"], bool) or fields["size"] not in range(1, 6)):
+            raise ValueError(where + ".size: use inteiro de 1 a 5")
         column = self._column(item.get("estado"), where) if item.get("estado") else None
         task = self._match(item, tipo, fields, existing, where)
         if task:

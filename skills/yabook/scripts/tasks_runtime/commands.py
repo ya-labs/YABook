@@ -80,7 +80,7 @@ class Tasks:
 
     def brief(self, task, index=None):
         data = task["data"]
-        keys = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "pai", "projeto", "demanda", "issue", "prazo", "proximo_passo", "ficha",
+        keys = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "pai", "projeto", "demanda", "issue", "size", "prazo", "proximo_passo", "ficha",
                 "aguardando", "aguardando_desde")
         result = {k: data[k] for k in keys if k in data}
         if data.get("tipo") != "pergunta":
@@ -166,7 +166,7 @@ class Tasks:
     def review(self, tasks=None, stale_days=7, soon_days=2):
         tasks, roles, day = tasks or self.store.list(), self.roles(), today()
         index = tree.index_of(tasks)
-        result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[], aguardando=[])
+        result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[], aguardando=[], sem_size=[])
         for task in tasks:
             data, role = task["data"], roles.get(task["data"].get("coluna"))
             if data.get("tipo") == "pergunta":
@@ -175,6 +175,8 @@ class Tasks:
                 continue
             if role in CLOSED:
                 continue
+            if not data.get("size"):
+                result["sem_size"].append(self.brief(task, index))
             if data.get("aguardando"):
                 since = datetime.date.fromisoformat(data.get("aguardando_desde") or day.isoformat())
                 result["aguardando"].append(dict(self.brief(task, index), dias=(day - since).days))
@@ -222,6 +224,10 @@ class Tasks:
                 if key in ("id", "criada", "atualizada"):
                     raise ValueError("Campo não editável: " + key)
                 data[key] = parse_date(value) if key == "prazo" and value else value
+            if "size" in (changes or {}) and self.origem == "quadro":
+                data["size_manual"] = True  # tamanho escolhido pela pessoa prevalece sobre a estimativa
+            if "size" in unset:
+                data.pop("size_manual", None)
             roles = self.roles()
             if (changes and roles.get(data.get("coluna")) == "validacao" and roles.get(task["data"].get("coluna")) != "validacao"
                     and re.search(r"\b(qa|valida\w*|tester|testes?)\b", _plain(data.get("aguardando") or ""))):
