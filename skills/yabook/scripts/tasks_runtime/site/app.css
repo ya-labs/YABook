@@ -813,3 +813,4 @@ button.selo { cursor: pointer; text-align: left; }
   color: rgb(var(--lc)); background: rgba(var(--lc), var(--rotulo-fundo)); border: 1px solid rgba(var(--lc), var(--rotulo-borda)); }
 .size-1 { --lc: var(--s1); } .size-2 { --lc: var(--s2); } .size-3 { --lc: var(--s3); } .size-4 { --lc: var(--s4); } .size-5 { --lc: var(--s5); }
 .selo .size-numero { min-width: 0; padding: 0 5px; }
+.exibir-todas { width: 100%; justify-content: center; margin-top: 2px; }
