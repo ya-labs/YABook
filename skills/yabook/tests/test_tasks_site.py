@@ -73,7 +73,7 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
                          dict(id="outro", tipo="demanda", demanda="3001")]
                 self.assertEqual(self.evaluate('sheetTask({tipo:"especificacao",codigo:"3001",tarefas:["spec"]}, tasks)?.id', tasks), "spec")
 
-    def test_sheet_copies_only_current_suggestion_and_hides_copy_when_empty(self):
+    def test_sheet_copies_registered_time_or_explicit_rateio_and_hides_copy_when_empty(self):
         script = r'''
 const fs = require("node:fs"), vm = require("node:vm");
 class Element {
@@ -85,7 +85,7 @@ class Element {
   get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
 }
 const sheet = {data:"2026-11-11", total:8, horas_dia:8, extras:[], janelas:[], confirmada:{linhas:[]},
-  linhas:[{tipo:"demanda", rotulo:"Demanda", codigo:"1001", total:8, estimado:.25, observacao:""}]};
+  linhas:[{tipo:"demanda", rotulo:"Demanda", codigo:"1001", total:8, estimado:.25, capturado:.25, informado:0, registrado:.25, observacao:""}]};
 let copied = "";
 const ctx = vm.createContext({Node:Element, window:{addEventListener(){}},
   document:{querySelector(){return null;}, addEventListener(){}, createElement(t){return new Element(t);},
@@ -100,6 +100,9 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
   const full = flatten(await view.render({hoje:sheet.data}));
   const button = full.find(n=>n.tag==="button" && n.textContent.includes("Copiar ficha"));
   await button.events.click({currentTarget:button});
+  const registered = copied;
+  const rateio = full.find(n=>n.tag==="button" && n.textContent.includes("Copiar rateio"));
+  await rateio.events.click({currentTarget:rateio});
   sheet.janelas=[{janela:"08:00",tarefa:"demanda-1001",titulo:"Demanda",ignorar:false}];
   vm.runInContext('app.editando=true; render=()=>{};',ctx);
   const editing = flatten(await view.render({hoje:sheet.data}));
@@ -108,14 +111,15 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
   const draft = vm.runInContext("app.rascunho.correcoes",ctx);
   sheet.linhas=[]; sheet.total=0;
   const empty = flatten(await view.render({hoje:sheet.data}));
-  process.stdout.write(JSON.stringify({copied, draft, confirmationShown:full.some(n=>n.textContent.includes("Confirmada:")), emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
+  process.stdout.write(JSON.stringify({copied, registered, draft, confirmationShown:full.some(n=>n.textContent.includes("Confirmada:")), emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
     emptyText:empty.some(n=>n.textContent.includes("Nenhuma hora que conta"))}));
 })().catch(e=>{console.error(e);process.exit(1)});
 '''
         result = subprocess.run(["node", "-e", script, str(SITE)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         actual = json.loads(result.stdout)
-        self.assertIn("1001", actual["copied"])
+        self.assertEqual(actual["copied"], "Demanda\t1001\t\t\t8h\t")
+        self.assertEqual(actual["registered"], "Demanda\t1001\t\t\t15min\t")
         self.assertFalse(actual["confirmationShown"])
         self.assertEqual(actual["draft"], [dict(data="2026-11-11", janela="08:00", tarefa="demanda-1001", ignorar=True)])
         self.assertFalse(actual["emptyCopy"])

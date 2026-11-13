@@ -816,3 +816,8 @@ button.selo { cursor: pointer; text-align: left; }
 .exibir-todas { width: 100%; justify-content: center; margin-top: 2px; }
 .card-pai:hover > span:last-child { text-decoration: underline; }
 .card-pai-numero { font-weight: 800; font-variant-numeric: tabular-nums; flex: none; }
+
+.ficha-resumo { padding: 16px; margin: 16px 0; }
+.ficha-resumo strong { font-size: 16px; }
+.ficha-resumo p { margin: 8px 0 0; }
+.ficha-avulsos { margin-top: 24px; }

@@ -55,7 +55,7 @@ def save(store, cfg, body):
     if body.get("ficha"):
         raise ValueError("Confirmação de ficha não é mais suportada")
     corrections = body.get("correcoes") or []
-    if not (changes or columns or complements or corrections):
+    if not (changes or columns or complements or corrections or body.get("apontamentos")):
         raise ValueError("Nada para salvar")
     tasks = Tasks(store, cfg, origem="quadro")
     with store.lock():
@@ -68,6 +68,9 @@ def save(store, cfg, body):
             if key not in available or not isinstance(item.get("ignorar"), bool) or any((x["janela"], x["tarefa"]) == key for x in by_day.get(day, [])):
                 raise ValueError("Correção de janela inválida ou desatualizada")
             by_day.setdefault(day, []).append(item)
+        free = sheet.validate_free_entries(store.root, body.get("apontamentos") or [])
+        for item in free:
+            tasks._check_text(item["codigo"], item["descricao"])
         applied, seen = [], {e["id"] for e in events.read_all(store.root, months=1)}
         for entry in plan["complementos"]:
             _write_complement(cfg, entry["id"], entry["texto"])
@@ -92,6 +95,10 @@ def save(store, cfg, body):
             sheet.correct_windows(store, cfg.get("machine"), day, items)
             tasks._event("corrigir-janelas", data=day, quantidade=len(items))
             applied.append(dict(acao="correcao", data=day, quantidade=len(items)))
+        if free:
+            sheet.append_free_entries(store, cfg.get("machine"), free)
+            tasks._event("apontar-atividade", quantidade=len(free))
+            applied.append(dict(acao="apontamento", quantidade=len(free)))
         event_ids = [e["id"] for e in events.read_all(store.root, months=1)
                      if e["id"] not in seen and e.get("origem") == "quadro"]
         commit, warning = _commit(store.root)
@@ -241,6 +248,8 @@ def summary(store, applied, commit, event_ids):
             lines.append("- Coluna `%s` renomeada: %s → %s" % (item["id"], item["de"], item["para"]))
         elif item["acao"] == "complemento":
             lines.append("- `%s` %s: texto movido para o complemento confidencial local" % (item["id"], item["titulo"]))
+        elif item["acao"] == "apontamento":
+            lines.append("- Atividades informadas manualmente: %d" % item["quantidade"])
         elif item["acao"] == "correcao":
             lines.append("- Janelas de %s corrigidas: %d" % (item["data"], item["quantidade"]))
     lines += ["", "Commit: %s" % (commit or "sem commit"),

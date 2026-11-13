@@ -66,7 +66,7 @@ class SheetTest(unittest.TestCase):
         self.assertEqual(totals, {("projeto", "2001"): 4, ("demanda", "1001"): 2, ("especificacao", "3001"): 2})
         projeto = next(r for r in result["linhas"] if r["tipo"] == "projeto")
         self.assertEqual(sorted(projeto["tarefas"]), ["issue-corrigir-sincronizacao", "projeto-2001"])
-        self.assertEqual(result["extras"], [dict(tarefa="tarefa-evoluir-o-yabook", titulo="Evoluir o YABook", horas=2)])
+        self.assertEqual(result["extras"], [dict(tarefa="tarefa-evoluir-o-yabook", titulo="Evoluir o YABook", horas=2, capturado=2, informado=0, registrado=2)])
         espec = next(r for r in result["linhas"] if r["tipo"] == "especificacao")
         self.assertIn("levantamento", espec["observacao"])
         self.assertEqual(espec["rotulo"], "Especificação")

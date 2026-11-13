@@ -146,7 +146,10 @@ class Board:
     def sheet(self, day=None, week=False):
         day = day or today().isoformat()
         complement = self.tasks.complement if self.base() else None
-        return (sheet.week_sheet if week else sheet.day_sheet)(self.store, day, complement)
+        result = (sheet.week_sheet if week else sheet.day_sheet)(self.store, day, complement)
+        if not week:
+            result["codigo_livre"] = self.cfg.get("codigo_ficha_livre", "")
+        return result
 
     def week(self, day=None):
         """Horas estimadas e tarefas tocadas por dia, de segunda a domingo."""

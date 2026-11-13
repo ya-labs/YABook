@@ -140,9 +140,25 @@ captura também na configuração global do host, ou ela roda duas vezes.
 - Na ficha, em Editar, desconsidere ou volte a considerar cada janela e salve;
   a correção preserva o histórico e vale entre máquinas. Após salvar, a
   sugestão e a cópia usam somente janelas consideradas.
-- A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
-  janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
-  somando exatamente o total.
+- A Ficha separa `Capturado` (janelas), `Manual` (tempo informado), `Registrado`
+  (soma dos dois) e `Rateio` (sugestão para a jornada). A captura é estimativa,
+  não cronômetro. Uma janela simultânea é dividida entre as tarefas, sem
+  multiplicar o total do dia; horas espalhadas do épico não viram captura dos filhos.
+- O resumo mostra o registrado no dia, o que entra na ficha, extras e a
+  diferença para a jornada. `Copiar ficha` usa somente o tempo registrado;
+  `Copiar rateio` é a escolha explícita da sugestão proporcional.
+- Em Editar, atividades sem código próprio recebem código de ficha livre,
+  minutos inteiros e descrição; entram no rascunho e só são gravadas em Salvar.
+  A configuração local `tasks.codigo_ficha_livre` preenche o código inicial;
+  o navegador lembra o último usado. Não versionar código pessoal no produto.
+  Não completar o saldo automaticamente. Se o apontamento substituir captura,
+  desconsiderar as janelas correspondentes para evitar soma duplicada.
+- Apontamentos avulsos mantêm sua duração, inclusive no rateio. O restante de
+  `ficha.horas_dia` (8) é distribuído pelos pesos anteriores, preservando
+  `ficha.arredondamento` quando possível; o ajuste residual mantém a soma da
+  jornada. Sem pesos para distribuir, não inventar horas além do informado.
+  Eventos `avulso` ficam em `horas/` com ID estável para não duplicar reenvios.
+  A exportação estática mostra os tempos e apontamentos, sem formulário de escrita.
 - Demanda dispensa observação. Nas demais linhas ela resume o dia para colar no
   sistema de horas: `Desenvolvimento: item; item.` com o campo curto `ficha` de
   cada tarefa trabalhada ou alterada no dia (ou o título) e as notas de `log`;

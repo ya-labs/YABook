@@ -95,6 +95,81 @@ def correct_windows(store, machine, day, corrections):
 
 
 
+def captured_activity(windows):
+    """Uma janela vale 15 min no dia, repartida entre tarefas simultâneas."""
+    slots = {}
+    for entry in windows:
+        if not entry["ignorar"]:
+            slots.setdefault(entry["janela"], set()).add(entry["tarefa"])
+    result = {}
+    for identifiers in slots.values():
+        for identifier in identifiers:
+            result[identifier] = result.get(identifier, 0) + WINDOW_HOURS / len(identifiers)
+    return result
+
+
+def free_entries(root, day=None):
+    entries = {}
+    pattern = (day[:7] if day else "*") + "-*.jsonl"
+    for path in sorted(Path(root, "horas").glob(pattern)):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                continue
+            if entry.get("tipo") == "avulso" and entry.get("id") and (day is None or entry.get("data") == day):
+                entries.setdefault(entry["id"], entry)
+    return list(entries.values())
+
+
+def validate_free_entries(root, entries):
+    """Valida o lote inteiro e reconhece reenvios pelo ID, antes de gravar."""
+    if not isinstance(entries, list) or len(entries) > 100:
+        raise ValueError("Lote de apontamentos inválido")
+    known = {e["id"]: e for e in free_entries(root)}
+    pending, totals = [], {}
+    for entry in known.values():
+        totals[entry["data"]] = totals.get(entry["data"], 0) + entry["minutos"]
+    for item in entries:
+        if not isinstance(item, dict):
+            raise ValueError("Apontamento inválido")
+        try:
+            identifier = str(uuid.UUID(item["id"]))
+            day = datetime.date.fromisoformat(item["data"]).isoformat()
+        except (KeyError, ValueError, TypeError, AttributeError):
+            raise ValueError("ID ou data de apontamento inválidos")
+        if day != item["data"]:
+            raise ValueError("Data de apontamento inválida")
+        code, minutes, description = item.get("codigo"), item.get("minutos"), item.get("descricao")
+        if not isinstance(code, str) or not code.isascii() or not code.isdecimal() or len(code) > 20:
+            raise ValueError("Informe um código numérico válido")
+        if isinstance(minutes, bool) or not isinstance(minutes, int) or not 1 <= minutes <= 1440:
+            raise ValueError("Informe de 1 a 1440 minutos inteiros")
+        if not isinstance(description, str) or not description.strip() or len(description) > 1000:
+            raise ValueError("Informe a descrição da atividade (até 1000 caracteres)")
+        value = dict(id=identifier, data=day, codigo=code, minutos=minutes, descricao=description.strip())
+        if identifier in known:
+            if any(known[identifier].get(k) != v for k, v in value.items()):
+                raise ValueError("ID de apontamento já usado com outro conteúdo")
+            continue
+        totals[day] = totals.get(day, 0) + minutes
+        if totals[day] > 1440:
+            raise ValueError("Apontamentos excedem 24 horas no dia")
+        pending.append(value)
+        known[identifier] = value
+    return pending
+
+
+def append_free_entries(store, machine, entries):
+    from .events import _machine
+    from .store import now
+    for item in entries:
+        path = store.root / "horas" / (item["data"][:7] + "-" + _machine(machine or "local") + ".jsonl")
+        path.parent.mkdir(exist_ok=True)
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(dict(item, tipo="avulso", ts=now()), ensure_ascii=False) + "\n")
+
+
 def distribute(weights, total, step):
     """Divide `total` em múltiplos de `step` proporcionalmente, somando exatamente `total`."""
     units = int(round(total / step))
@@ -169,54 +244,91 @@ def day_sheet(store, day, complement=None):
     ficha = cfg.get("ficha", {})
     labels = cfg.get("rotulos", {})
     per_day, step = float(ficha.get("horas_dia", 8)), float(ficha.get("arredondamento", 1))
-    windows, _, _ = window_records(store.root, day)
-    hours, notes = activity(store.root, day)
+    windows, manual, notes = window_records(store.root, day)
+    captured = captured_activity(windows)
+    hours, _ = activity(store.root, day)
     tasks = {t["data"]["id"]: t for t in store.list()}
     index = {k: t["data"] for k, t in tasks.items()}
     for entry in windows:
         entry["titulo"] = index.get(entry["tarefa"], {}).get("titulo", entry["tarefa"])
     hours, spread = spread_epic_hours(hours, index, touches(store.root, day, index))
     groups, extras = {}, []
+
+    def group_for(key):
+        return groups.setdefault(key, dict(peso=0.0, tarefas=[], capturado=0.0, informado=0.0, avulso=0.0, descricoes=[]))
+
+    for identifier in sorted(set(hours) | set(captured) | set(manual)):
+        task = index.get(identifier)
+        key = attribution(task, index) if task else None
+        direct, informed = captured.get(identifier, 0), manual.get(identifier, 0)
+        if key is None:
+            extras.append(dict(tarefa=identifier, titulo=task["titulo"] if task else identifier,
+                               horas=_round_step(hours.get(identifier, 0), step),
+                               capturado=round(direct, 6), informado=round(informed, 6), registrado=round(direct + informed, 6)))
+            continue
+        group = group_for(key)
+        group["peso"] += hours.get(identifier, 0)
+        group["capturado"] += direct
+        group["informado"] += informed
+        group["tarefas"].append(identifier)
+
+    free = free_entries(store.root, day)
+    for entry in free:
+        group = group_for(("demanda", entry["codigo"]))
+        group["informado"] += entry["minutos"] / 60
+        group["avulso"] += entry["minutos"] / 60
+        group["descricoes"].append(entry["descricao"])
+
     touched = [d for d in index.values() if (d.get("atualizada") or "")[:10] == day and d.get("tipo") != "pergunta"
                and d["id"] not in hours]
-    for identifier, value in sorted(hours.items()):
-        task = tasks.get(identifier)
-        key = attribution(task["data"], index) if task else None
-        if key is None:
-            extras.append(dict(tarefa=identifier, titulo=task["data"]["titulo"] if task else identifier,
-                               horas=_round_step(value, step)))
-            continue
-        group = groups.setdefault(key, dict(peso=0.0, tarefas=[]))
-        group["peso"] += value
-        group["tarefas"].append(identifier)
-    for data in touched:  # alterada no dia sem horas marcadas: entra na observação, não no peso
+    for data in touched:
         key = attribution(data, index)
         if key in groups:
             groups[key].setdefault("tocadas", []).append(data["id"])
-    totals = distribute({k: g["peso"] for k, g in groups.items()}, per_day, step)
+    fixed = sum(g["avulso"] for g in groups.values())
+    # Apontamentos avulsos mantêm os minutos informados; só o restante é rateado.
+    remaining = max(0, per_day - fixed)
+    weights = {k: g["peso"] for k, g in groups.items() if g["peso"] > 0}
+    totals = distribute(weights, remaining, step)
+    if weights:
+        if totals:
+            largest = max(totals, key=totals.get)
+            totals[largest] += remaining - sum(totals.values())
+        else:
+            totals = {k: remaining * v / sum(weights.values()) for k, v in weights.items()}
     rows = []
     for key, group in groups.items():
-        if key not in totals:
+        total = totals.get(key, 0) + group["avulso"]
+        if not total and not group["capturado"] and not group["informado"]:
             continue
         observacao = ""
-        if key[0] != "demanda":  # chamado dispensa observação
+        if key[0] != "demanda":
             worked = group["tarefas"] + group.get("tocadas", [])
-            covered = set().union(*(set(d["id"] for d in tree.chain(index[i], index)[1:]) for i in worked))
-            items = [index[i] for i in worked if i not in covered]  # épico cede lugar às histórias do dia
+            covered = set().union(*(set(d["id"] for d in tree.chain(index[i], index)[1:]) for i in worked)) if worked else set()
+            items = [index[i] for i in worked if i not in covered]
             items.sort(key=lambda d: (d.get("nivel") != "historia", d.get("ordem", 0), d["titulo"]))
             observacao = observation(items, [n for i in group["tarefas"] for n in notes.get(i, [])])
+        observacao = " ".join(filter(None, [observacao, *group["descricoes"]]))
         label = labels.get(key[0], "Sem código" if key[0] == "trabalho" else key[0])
         row = dict(tipo=key[0], rotulo=label, codigo=key[1], inicio=None, fim=None,
-                   total=totals[key], estimado=round(group["peso"], 2), tarefas=group["tarefas"],
-                   observacao=observacao)
+                   total=round(total, 6), estimado=round(group["peso"], 2), tarefas=group["tarefas"],
+                   capturado=round(group["capturado"], 6), informado=round(group["informado"], 6),
+                   registrado=round(group["capturado"] + group["informado"], 6), observacao=observacao)
         if complement:
             extra = [c for c in (complement(i) for i in group["tarefas"]) if c]
             if extra:
                 row["complemento"] = "\n".join(extra)
         rows.append(row)
     rows.sort(key=lambda r: (-r["total"], r["tipo"], str(r["codigo"])))
-    return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 2), linhas=rows, divididas=spread,
-                extras=extras, janelas=windows)
+    capture_total = sum(captured.values())
+    manual_total = sum(manual.values()) + fixed
+    registered = sum(r["registrado"] for r in rows)
+    return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 6), linhas=rows, divididas=spread,
+                capturado_total=round(capture_total, 6), informado_total=round(manual_total, 6),
+                registrado_total=round(capture_total + manual_total, 6), registrado_ficha=round(registered, 6),
+                extras_registrado=round(sum(e["registrado"] for e in extras), 6),
+                falta=round(max(0, per_day - registered), 6), excedente=round(max(0, registered - per_day), 6),
+                apontamentos=free, extras=extras, janelas=windows)
 
 
 def week_sheet(store, day, complement=None):
@@ -227,6 +339,8 @@ def week_sheet(store, day, complement=None):
     summary = {}
     for sheet in days:
         for row in sheet["linhas"]:
+            if row["total"] <= 0:
+                continue
             key = (row["tipo"], str(row["codigo"]))
             summary[key] = round(summary.get(key, 0) + row["total"], 2)
     return dict(inicio=monday.isoformat(), dias=days,

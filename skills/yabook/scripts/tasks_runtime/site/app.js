@@ -599,14 +599,14 @@ function epicOf(task, map) {
   return null;
 }
 
-// Estimativa × tempo real: horas registradas das tarefas concluídas por size, para calibrar a escala.
+// Estimativa × tempo registrado: horas registradas das tarefas concluídas por size, para calibrar a escala.
 async function estimateSection() {
   let data;
   try { data = await api("/api/estimativa"); } catch (e) { data = null; }
   if (!data || !Array.isArray(data.por_size)) return null;  // a Ficha segue mesmo sem a comparação
   const range = (f) => f[1] === null ? `mais de ${hours(f[0])}` : `até ${hours(f[1])}`;
   return h("section", { class: "estimativa" },
-    h("h2", {}, "Estimativa × tempo real"),
+    h("h2", {}, "Estimativa × tempo registrado"),
     h("p", { class: "vazio" }, `${data.tarefas} tarefas concluídas com size e horas. As horas contam o trabalho registrado, não a espera por validação.`),
     h("table", {}, h("thead", {}, h("tr", {}, ["Size", "Faixa esperada", "Tarefas", "Mediana", "Menor", "Maior"].map((c, i) => h("th", { class: i > 1 ? "num" : null }, c)))),
       h("tbody", {}, data.por_size.map((g) => h("tr", {},
@@ -666,6 +666,45 @@ function sheetTask(row, tasks = []) {
     for (const task of typed.length ? typed : candidates) owners.set(task.id, task);
   }
   return owners.size === 1 ? owners.values().next().value : null;
+}
+
+function recordedTime(value) {
+  if (value === undefined || value === null) return "—";
+  const minutes = Math.round(value * 60), whole = Math.floor(minutes / 60), rest = minutes % 60;
+  return whole ? whole + "h" + (rest ? " " + rest + "min" : "") : rest + "min";
+}
+
+function freeEntryForm(day, sheet) {
+  if (SNAPSHOT) return null;
+  const pending = (app.rascunho.apontamentos || []).filter((entry) => entry.data === day);
+  const code = h("input", { name: "codigo", inputmode: "numeric", pattern: "[0-9]+", maxlength: "20", required: true,
+    value: pref("ficha.codigo-livre", sheet.codigo_livre || "") });
+  const minutes = h("input", { name: "minutos", type: "number", min: "1", max: "1440", step: "1", required: true });
+  const description = h("textarea", { name: "descricao", rows: "2", maxlength: "1000", required: true,
+    oninput: (event) => event.currentTarget.setCustomValidity("") });
+  return h("section", { class: "ficha-avulsos" }, h("h2", {}, "Atividades sem código próprio"),
+    h("p", { class: "vazio" }, "Informe o código da ficha livre, a duração e o que foi feito. O saldo do dia não é preenchido automaticamente. Se o apontamento substituir uma captura, desconsidere as janelas correspondentes para não contar duas vezes."),
+    app.editando ? h("form", { class: "formulario", onsubmit: (event) => {
+      event.preventDefault();
+      const entry = { id: crypto.randomUUID(), data: day, codigo: code.value.trim(),
+        minutos: Number(minutes.value), descricao: description.value.trim() };
+      if (!entry.descricao) { description.setCustomValidity("Descreva a atividade."); description.reportValidity(); return; }
+      setPref("ficha.codigo-livre", entry.codigo);
+      app.rascunho.apontamentos = [...(app.rascunho.apontamentos || []), entry];
+      persistDraft(); render();
+    } },
+      h("div", { class: "campos-linha" }, h("label", { class: "campo" }, "Código da ficha livre", code),
+        h("label", { class: "campo" }, "Duração em minutos", minutes)),
+      h("label", { class: "campo" }, "Descrição da atividade", description),
+      h("button", { class: "botao", type: "submit" }, "Adicionar ao rascunho"))
+      : h("p", { class: "vazio" }, "Ative Editar para lançar uma atividade."),
+    pending.map((entry) => h("div", { class: "linha-caixa" },
+      h("span", {}, `${entry.codigo} · ${recordedTime(entry.minutos / 60)} · ${entry.descricao} (não salvo)`),
+      h("button", { class: "botao pequeno", type: "button", onclick: () => {
+        app.rascunho.apontamentos = app.rascunho.apontamentos.filter((item) => item.id !== entry.id);
+        persistDraft(); render();
+      } }, "Remover"))),
+    (sheet.apontamentos || []).map((entry) => h("p", { class: "vazio" }, `${entry.codigo} · ${recordedTime(entry.minutos / 60)} · ${entry.descricao}`)));
 }
 
 function row(task) {
@@ -944,24 +983,35 @@ const VIEWS = {
           "aria-label": `Abrir card ${row.codigo}: ${task.titulo}`, onclick: () => openTask(task.id) }, row.codigo)
           : row.codigo || "Sem código";
       };
-      const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
-      const text = rows.map((r) => [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", hours(r.total), r.observacao].join("\t")).join("\n");
+      const pendingWindows = [...(app.rascunho.correcoes || []), ...(app.rascunho.apontamentos || [])].some((c) => c.data === day);
+      const copiedRows = (field) => rows.filter((r) => r[field] > 0).map((r) =>
+        [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", recordedTime(r[field]), r.observacao].join("\t")).join("\n");
+      const text = copiedRows("registrado"), rateio = copiedRows("total");
       return h("section", {},
         dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
-        pendingWindows ? h("p", { class: "aviso" }, "Salve as correções de janelas para atualizar a sugestão.") : null,
+        h("div", { class: "ficha-resumo caixa" },
+          h("strong", {}, `Registrado no dia: ${recordedTime(sheet.registrado_total)}`),
+          h("p", {}, `Capturado: ${recordedTime(sheet.capturado_total)} · Informado manualmente: ${recordedTime(sheet.informado_total)}`),
+          h("p", {}, `Na ficha: ${recordedTime(sheet.registrado_ficha)} · Extras: ${recordedTime(sheet.extras_registrado)} · Jornada: ${recordedTime(sheet.horas_dia)}`),
+          h("p", {}, sheet.excedente > 0 ? `Acima da jornada: ${recordedTime(sheet.excedente)}` : `Falta registrar na ficha: ${recordedTime(sheet.falta)}`),
+          h("p", { class: "vazio" }, "Capturado é estimativa por janelas de 15 minutos, divididas entre sessões simultâneas. Não é um cronômetro. Horas do épico distribuídas aos filhos entram apenas na sugestão de rateio.")),
+        pendingWindows ? h("p", { class: "aviso" }, "Salve os apontamentos e as correções para atualizar os totais e copiar a ficha.") : null,
         h("div", { class: "filtros" },
-          h("span", {}, `Sugestão: ${hours(sheet.total)} de ${hours(sheet.horas_dia)}`),
-          rows.length ? h("button", { class: "botao", type: "button", disabled: pendingWindows, onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null),
-        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Início", "Fim", "Total", "Observação", ""].map((c, i) => h("th", { class: i === 4 ? "num" : null }, c)))),
+          h("span", {}, `Rateio sugerido: ${recordedTime(sheet.total)}. Não representa tempo medido.`),
+          text ? h("button", { class: "botao", type: "button", title: "Copiar somente o tempo registrado, sem expandir para a jornada", disabled: pendingWindows, onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null,
+          rateio ? h("button", { class: "botao", type: "button", disabled: pendingWindows, onclick: (e) => copy(rateio, e.currentTarget) }, "Copiar rateio") : null),
+        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Capturado", "Manual", "Registrado", "Rateio", "Observação", ""].map((c, i) => h("th", { class: i >= 2 && i <= 5 ? "num" : null }, c)))),
           h("tbody", {}, rows.map((r) => h("tr", {},
-            h("td", {}, r.rotulo), h("td", {}, code(r)), h("td", {}, r.inicio || ""), h("td", {}, r.fim || ""),
-            h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, hours(r.total)),
+            h("td", {}, r.rotulo), h("td", {}, code(r)),
+            h("td", { class: "num" }, recordedTime(r.capturado)), h("td", { class: "num" }, recordedTime(r.informado)),
+            h("td", { class: "num" }, recordedTime(r.registrado)), h("td", { class: "num" }, recordedTime(r.total)),
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
-        h("h2", {}, "Extras (fora do total)"),
+        freeEntryForm(day, sheet),
+        h("h2", {}, "Extras (fora do total da ficha)"),
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
-          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
+          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, recordedTime(e.registrado))))))
           : h("p", { class: "vazio" }, "Nenhum extra."),
         SNAPSHOT ? null : await estimateSection(),  // janelas, a seção mais longa, ficam sempre no fim
         h("h2", {}, "Janelas de atividade"),
@@ -1456,7 +1506,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Edição -----------------------------------------------------------------------
 // Rascunho local: {tarefas: {id: {revision, campos, unset, registro}}, colunas: {id: nome}, complementos: [], correcoes: []}.
 function emptyDraft() {
-  return { tarefas: {}, colunas: {}, complementos: [], correcoes: [] };
+  return { tarefas: {}, colunas: {}, complementos: [], correcoes: [], apontamentos: [] };
 }
 
 function loadDraft() {
@@ -1470,7 +1520,7 @@ function persistDraft() {
 
 function draftCount() {
   const d = app.rascunho || emptyDraft();
-  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.correcoes || []).length;
+  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.correcoes || []).length + (d.apontamentos || []).length;
 }
 
 function effectiveState() {
@@ -1732,6 +1782,7 @@ async function saveDraft() {
     colunas: Object.entries(d.colunas).map(([id, nome]) => ({ id, nome })),
     complementos: d.complementos,
     correcoes: d.correcoes || [],
+    apontamentos: d.apontamentos || [],
   };
   let response, result;
   try {

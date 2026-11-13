@@ -51,9 +51,12 @@ class EpicHoursTest(unittest.TestCase):
         self.touch("issue-boletos", 1)
         self.touch("issue-sem-chamado", 1)  # sem demanda: não recebe a divisão
         result = sheet.day_sheet(self.store, DAY)
-        totals = {(r["tipo"], r["codigo"]): r["total"] for r in result["linhas"]}
+        totals = {(r["tipo"], r["codigo"]): r["total"] for r in result["linhas"] if r["total"]}
         self.assertEqual(totals, {("demanda", "111"): 6, ("demanda", "222"): 2})
-        self.assertTrue(all(r["observacao"] == "" for r in result["linhas"]))
+        self.assertTrue(all(r["observacao"] == "" for r in result["linhas"] if r["tipo"] == "demanda"))
+        project = next(r for r in result["linhas"] if r["tipo"] == "projeto")
+        self.assertEqual((project["capturado"], project["total"]), (4, 0))
+        self.assertEqual(result["registrado_ficha"], 4)
         self.assertEqual(result["divididas"], {"projeto-5000": ["issue-agenda", "issue-boletos"]})
 
     def test_without_touched_demands_epic_stays_on_project(self):
