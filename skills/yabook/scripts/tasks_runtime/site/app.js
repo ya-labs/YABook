@@ -282,7 +282,9 @@ function card(task, options = {}) {
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
     h("div", { class: "card-titulo" }, task.titulo),
     h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: currentView() === "quadro", compacto: true, semNivel: true, semPai: true, semPessoal: true })),
-    parent && !options.semPai ? h("div", { class: "card-pai", title: "Faz parte de: " + parent.titulo }, icon("relacoes"), h("span", {}, parent.titulo)) : null,
+    parent && !options.semPai ? h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
+      onclick: (e) => { e.stopPropagation(); openTask(parent.id); }, onkeydown: (e) => e.stopPropagation() },
+      parent.numero ? h("span", { class: "card-pai-numero" }, `@${parent.numero}`) : icon("relacoes"), h("span", {}, parent.titulo)) : null,
     task.nivel === "epico" ? epicProgress(task) : null,
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null,
     lastChange(task));
@@ -597,6 +599,27 @@ function epicOf(task, map) {
   return null;
 }
 
+// Estimativa × tempo real: horas registradas das tarefas concluídas por size, para calibrar a escala.
+async function estimateSection() {
+  let data;
+  try { data = await api("/api/estimativa"); } catch (e) { data = null; }
+  if (!data || !Array.isArray(data.por_size)) return null;  // a Ficha segue mesmo sem a comparação
+  const range = (f) => f[1] === null ? `mais de ${hours(f[0])}` : `até ${hours(f[1])}`;
+  return h("section", { class: "estimativa" },
+    h("h2", {}, "Estimativa × tempo real"),
+    h("p", { class: "vazio" }, `${data.tarefas} tarefas concluídas com size e horas. As horas contam o trabalho registrado, não a espera por validação.`),
+    h("table", {}, h("thead", {}, h("tr", {}, ["Size", "Faixa esperada", "Tarefas", "Mediana", "Menor", "Maior"].map((c, i) => h("th", { class: i > 1 ? "num" : null }, c)))),
+      h("tbody", {}, data.por_size.map((g) => h("tr", {},
+        h("td", {}, sizeNumber(g)), h("td", {}, range(g.faixa)), h("td", { class: "num" }, String(g.quantidade)),
+        ...[g.mediana, g.minimo, g.maximo].map((v) => h("td", { class: "num" }, v === null ? "—" : hours(v))))))),
+    data.fora_da_faixa.length ? [h("h3", {}, "Fora da faixa"),
+      h("table", {}, h("tbody", {}, data.fora_da_faixa.map((r) => h("tr", {},
+        h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(r.id) }, (r.numero ? `@${r.numero} ` : "") + r.titulo)),
+        h("td", {}, sizeNumber(r)), h("td", { class: "num" }, hours(r.horas)),
+        h("td", {}, "pelas horas: ", sizeNumber({ size: r.size_pelas_horas }))))))]
+      : h("p", { class: "vazio" }, "Nenhuma tarefa fora da faixa."));
+}
+
 // Colunas fechadas mostram só as 5 mais recentes até a pessoa pedir todas; a busca mostra tudo.
 const CLOSED_PREVIEW = 5;
 function closedPreview(column, cards) {
@@ -906,6 +929,7 @@ const VIEWS = {
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
           h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
           : h("p", { class: "vazio" }, "Nenhum extra."),
+        SNAPSHOT ? null : await estimateSection(),  // janelas, a seção mais longa, ficam sempre no fim
         h("h2", {}, "Janelas de atividade"),
         sheet.janelas && sheet.janelas.length ? h("table", {}, h("tbody", {}, sheet.janelas.map((j) => {
           const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);

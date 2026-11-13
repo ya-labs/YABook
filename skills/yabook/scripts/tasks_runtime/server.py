@@ -236,6 +236,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(HTTPStatus.OK, self.board.sheet(query.get("data"), query.get("semana") == "1"))
             if url.path == "/api/semana":
                 return self._send(HTTPStatus.OK, self.board.week(query.get("data")))
+            if url.path == "/api/estimativa":
+                from . import estimate
+                return self._send(HTTPStatus.OK, estimate.compare(self.board.store))
             if url.path == "/api/historico":
                 return self._send(HTTPStatus.OK, self.board.history(int(query.get("limite", 200))))
             if url.path == "/api/stream":

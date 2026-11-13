@@ -128,6 +128,7 @@ def build_parser():
     flow.add_argument("--size-da-issue", action="store_true", help="Copia o Size da issue no Project para a tarefa")
     mirror = sub.add_parser("espelhar", help="Publica papel e size das tarefas no GitHub Project da issue")
     mirror.add_argument("--simular", action="store_true", help="Mostra o que mudaria, sem gravar no Project")
+    sub.add_parser("estimativa", help="Size das tarefas concluídas comparado às horas registradas")
     number = sub.add_parser("numerar", help="Numera (@n) as tarefas sem número pela ordem de criação")
     number.add_argument("--corrigir", action="store_true", help="Renumera também os números repetidos")
     policy = sub.add_parser("policy")
@@ -256,6 +257,9 @@ def run(args):
     if args.command == "espelhar":
         from tasks_runtime import mirror
         return mirror.run(store, cfg, args.simular)
+    if args.command == "estimativa":
+        from tasks_runtime import estimate
+        return estimate.compare(store)
     if args.command == "capture":
         from tasks_runtime.batch import Capture
         batch = json.loads(Path(args.input).read_text(encoding="utf-8"))
