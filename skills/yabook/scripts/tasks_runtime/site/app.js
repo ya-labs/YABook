@@ -877,6 +877,10 @@ const VIEWS = {
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
+        h("h2", {}, "Extras (fora do total)"),
+        sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
+          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
+          : h("p", { class: "vazio" }, "Nenhum extra."),
         h("h2", {}, "Janelas de atividade"),
         sheet.janelas && sheet.janelas.length ? h("table", {}, h("tbody", {}, sheet.janelas.map((j) => {
           const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
@@ -885,11 +889,7 @@ const VIEWS = {
             h("td", {}, ignored ? "Desconsiderada" : "Considerada"),
             h("td", {}, app.editando ? h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) },
               ignored ? "Considerar" : "Desconsiderar") : null));
-        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."),
-        h("h2", {}, "Extras (fora do total)"),
-        sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
-          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
-          : h("p", { class: "vazio" }, "Nenhum extra."));
+        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."));
     },
   },
   historico: {
