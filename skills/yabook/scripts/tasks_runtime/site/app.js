@@ -282,7 +282,9 @@ function card(task, options = {}) {
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
     h("div", { class: "card-titulo" }, task.titulo),
     h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: currentView() === "quadro", compacto: true, semNivel: true, semPai: true, semPessoal: true })),
-    parent && !options.semPai ? h("div", { class: "card-pai", title: "Faz parte de: " + parent.titulo }, icon("relacoes"), h("span", {}, parent.titulo)) : null,
+    parent && !options.semPai ? h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
+      onclick: (e) => { e.stopPropagation(); openTask(parent.id); }, onkeydown: (e) => e.stopPropagation() },
+      parent.numero ? h("span", { class: "card-pai-numero" }, `@${parent.numero}`) : icon("relacoes"), h("span", {}, parent.titulo)) : null,
     task.nivel === "epico" ? epicProgress(task) : null,
     task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null,
     lastChange(task));
