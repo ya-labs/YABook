@@ -640,6 +640,34 @@ function titleLink(task) {
   return h("button", { class: "link titulo", type: "button", title: task.titulo, onclick: () => openTask(task.id) }, task.titulo);
 }
 
+function sheetTask(row, tasks = []) {
+  if (!row.codigo || !["demanda", "projeto", "especificacao"].includes(row.tipo)) return null;
+  const matches = (task) => {
+    const code = row.tipo === "especificacao" ? task.codigo ?? task.demanda ?? task.projeto : task[row.tipo];
+    return task.tipo !== "pergunta" && (row.tipo !== "especificacao" || task.tipo === "especificacao")
+      && String(code ?? "") === String(row.codigo);
+  };
+  const index = new Map(tasks.map((task) => [task.id, task]));
+  const owners = new Map();
+  for (const id of row.tarefas || []) {
+    const seen = new Set();
+    let task = index.get(id), owner = null;
+    while (task && !seen.has(task.id)) {
+      seen.add(task.id);
+      if (matches(task)) owner = task;
+      task = index.get(task.pai);
+    }
+    if (owner) owners.set(owner.id, owner);
+  }
+  // Linhas antigas podem não trazer as tarefas: só aceita um dono inequívoco.
+  if (!owners.size) {
+    const candidates = tasks.filter(matches);
+    const typed = candidates.filter((task) => task.tipo === row.tipo);
+    for (const task of typed.length ? typed : candidates) owners.set(task.id, task);
+  }
+  return owners.size === 1 ? owners.values().next().value : null;
+}
+
 function row(task) {
   return h("div", { class: "linha-caixa" }, stateIcon(task), titleLink(task),
     h("span", { class: "selo neutro" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
@@ -910,6 +938,12 @@ const VIEWS = {
       const day = SNAPSHOT ? SNAPSHOT.ficha.data : app.ficha || estado.hoje;
       const sheet = await api("/api/ficha?data=" + day);
       const rows = sheet.linhas;
+      const code = (row) => {
+        const task = sheetTask(row, estado.tarefas);
+        return task ? h("button", { class: "link", type: "button", title: "Abrir card: " + task.titulo,
+          "aria-label": `Abrir card ${row.codigo}: ${task.titulo}`, onclick: () => openTask(task.id) }, row.codigo)
+          : row.codigo || "Sem código";
+      };
       const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
       const text = rows.map((r) => [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", hours(r.total), r.observacao].join("\t")).join("\n");
       return h("section", {},
@@ -920,7 +954,7 @@ const VIEWS = {
           rows.length ? h("button", { class: "botao", type: "button", disabled: pendingWindows, onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null),
         rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Início", "Fim", "Total", "Observação", ""].map((c, i) => h("th", { class: i === 4 ? "num" : null }, c)))),
           h("tbody", {}, rows.map((r) => h("tr", {},
-            h("td", {}, r.rotulo), h("td", {}, r.codigo || "Sem código"), h("td", {}, r.inicio || ""), h("td", {}, r.fim || ""),
+            h("td", {}, r.rotulo), h("td", {}, code(r)), h("td", {}, r.inicio || ""), h("td", {}, r.fim || ""),
             h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, hours(r.total)),
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
             h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
