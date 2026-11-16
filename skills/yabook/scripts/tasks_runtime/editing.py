@@ -54,6 +54,8 @@ def save(store, cfg, body):
     complements = body.get("complementos") or []
     if body.get("ficha"):
         raise ValueError("Confirmação de ficha não é mais suportada")
+    if body.get("apontamentos"):
+        raise ValueError("Lançamentos de atividades não são suportados na Ficha")
     corrections = body.get("correcoes") or []
     if not (changes or columns or complements or corrections):
         raise ValueError("Nada para salvar")

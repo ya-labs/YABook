@@ -599,14 +599,14 @@ function epicOf(task, map) {
   return null;
 }
 
-// Estimativa × tempo real: horas registradas das tarefas concluídas por size, para calibrar a escala.
+// Estimativa × tempo registrado: horas registradas das tarefas concluídas por size, para calibrar a escala.
 async function estimateSection() {
   let data;
   try { data = await api("/api/estimativa"); } catch (e) { data = null; }
   if (!data || !Array.isArray(data.por_size)) return null;  // a Ficha segue mesmo sem a comparação
   const range = (f) => f[1] === null ? `mais de ${hours(f[0])}` : `até ${hours(f[1])}`;
   return h("section", { class: "estimativa" },
-    h("h2", {}, "Estimativa × tempo real"),
+    h("h2", {}, "Estimativa × tempo registrado"),
     h("p", { class: "vazio" }, `${data.tarefas} tarefas concluídas com size e horas. As horas contam o trabalho registrado, não a espera por validação.`),
     h("table", {}, h("thead", {}, h("tr", {}, ["Size", "Faixa esperada", "Tarefas", "Mediana", "Menor", "Maior"].map((c, i) => h("th", { class: i > 1 ? "num" : null }, c)))),
       h("tbody", {}, data.por_size.map((g) => h("tr", {},
@@ -666,6 +666,13 @@ function sheetTask(row, tasks = []) {
     for (const task of typed.length ? typed : candidates) owners.set(task.id, task);
   }
   return owners.size === 1 ? owners.values().next().value : null;
+}
+
+function recordedTime(value) {
+  if (value === undefined || value === null) return "—";
+  const seconds = Math.round(value * 3600), whole = Math.floor(seconds / 3600);
+  const minutes = Math.floor(seconds % 3600 / 60), rest = seconds % 60;
+  return [whole ? whole + "h" : "", minutes ? minutes + "min" : "", rest ? rest + "s" : ""].filter(Boolean).join(" ") || "0min";
 }
 
 function row(task) {
@@ -903,10 +910,12 @@ const VIEWS = {
       const ref = app.semana || estado.hoje;
       const [week, sheetWeek] = await Promise.all([api("/api/semana?data=" + ref), api("/api/ficha?semana=1&data=" + ref)]);
       const total = week.dias.reduce((sum, d) => sum + d.horas, 0);
+      const accumulated = week.dias.reduce((sum, d) => sum + (d.acumulado ?? d.horas), 0);
       const peak = Math.max(1, ...week.dias.map((d) => d.horas));
       return h("section", {},
         dayNav("semana", ref, 7, `Semana de ${fmtDate(week.inicio)}`),
-        h("div", { class: "numeros" }, h("div", { class: "numero" }, h("b", {}, hours(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Atividade estimada"))),
+        h("div", { class: "numeros" }, h("div", { class: "numero" }, h("b", {}, recordedTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)"))),
+        h("p", { class: "vazio" }, `Atividade acumulada: ${recordedTime(accumulated)}. Soma as frentes simultâneas; capturado conta cada janela uma vez.`),
         h("h2", {}, "Por dia"),
         h("div", { class: "semana-grade" }, week.dias.map((day) => h("article", {
           class: "dia-card" + (day.data === estado.hoje ? " hoje" : ""),
@@ -916,17 +925,19 @@ const VIEWS = {
               title: SNAPSHOT && day.data !== SNAPSHOT.ficha.data ? "Ficha deste dia disponível no painel local" : "Abrir ficha de " + fmtDate(day.data),
               onclick: () => { app.ficha = day.data; location.hash = "ficha"; } },
               h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10)))),
-          h("div", { class: "dia-horas" }, h("strong", {}, hours(day.horas)), h("span", {}, "estimadas")),
+          h("div", { class: "dia-horas" }, h("strong", {}, recordedTime(day.horas)), h("span", {}, "capturadas")),
+          h("p", { class: "vazio" }, `Acumulado: ${recordedTime(day.acumulado ?? day.horas)}`),
+          day.informado ? h("p", { class: "vazio" }, `Informado: ${recordedTime(day.informado)}`) : null,
           h("div", { class: "dia-barra", "aria-hidden": "true", title: "Atividade em relação ao dia mais ativo da semana" }, h("i", { style: `width:${Math.round(day.horas / peak * 100)}%` })),
           day.tarefas.length ? h("ul", { class: "dia-tarefas" }, day.tarefas.slice(0, 3).map((task) =>
-            h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, hours(task.horas)))))
+            h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, recordedTime(task.horas)))))
             : h("p", { class: "dia-vazio" }, "Sem atividade"),
           day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
             onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))),
-        h("section", { class: "totais-semana" }, h("h2", {}, "Totais da ficha na semana"),
+        h("section", { class: "totais-semana" }, h("h2", {}, "Rateio sugerido na semana"),
           !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
             : sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
-            h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, hours(r.total))))))
+            h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, recordedTime(r.total))))))
             : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana.")));
     },
   },
@@ -945,23 +956,33 @@ const VIEWS = {
           : row.codigo || "Sem código";
       };
       const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
-      const text = rows.map((r) => [r.rotulo, r.codigo || "", r.inicio || "", r.fim || "", hours(r.total), r.observacao].join("\t")).join("\n");
+      const capturedSheet = rows.reduce((sum, row) => sum + (row.capturado || 0), 0);
+      const capturedExtras = sheet.extras.reduce((sum, row) => sum + (row.capturado || 0), 0);
+      const registeredSheet = rows.reduce((sum, row) => sum + (row.registrado ?? row.capturado ?? 0), 0);
+      const difference = sheet.horas_dia - registeredSheet;
+      const hasManual = !!sheet.informado_total;
       return h("section", {},
         dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
-        pendingWindows ? h("p", { class: "aviso" }, "Salve as correções de janelas para atualizar a sugestão.") : null,
-        h("div", { class: "filtros" },
-          h("span", {}, `Sugestão: ${hours(sheet.total)} de ${hours(sheet.horas_dia)}`),
-          rows.length ? h("button", { class: "botao", type: "button", disabled: pendingWindows, onclick: (e) => copy(text, e.currentTarget) }, icon("copiar"), "Copiar ficha") : null),
-        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Início", "Fim", "Total", "Observação", ""].map((c, i) => h("th", { class: i === 4 ? "num" : null }, c)))),
+        h("div", { class: "ficha-resumo caixa" },
+          h("strong", {}, `Tempo capturado no dia: ${recordedTime(sheet.capturado_total)}`),
+          h("p", {}, `Atividade acumulada: ${recordedTime(sheet.acumulado_total)}`),
+          hasManual ? h("p", {}, `Informado por lançamentos existentes: ${recordedTime(sheet.informado_total)}`) : null,
+          h("p", {}, `Na ficha: ${recordedTime(capturedSheet)} · Extras: ${recordedTime(capturedExtras)} · Jornada: ${recordedTime(sheet.horas_dia)}`),
+          h("p", {}, difference >= 0 ? `Saldo usando a base capturada/informada: ${recordedTime(difference)}` : `Acima da jornada: ${recordedTime(-difference)}`),
+          h("p", { class: "vazio" }, "Capturado é estimativa por janelas de 15 minutos, sem somar sobreposições. Acumulado soma as frentes simultâneas. Rateado sugere até 50% a mais, limitado a 1h por código e ao saldo da jornada.")),
+        pendingWindows ? h("p", { class: "aviso" }, "Salve as correções de janelas para atualizar os totais.") : null,
+        h("p", { class: "vazio" }, `Rateio sugerido: ${recordedTime(sheet.total)} · Saldo após rateio: ${recordedTime(sheet.saldo_rateado ?? Math.max(0, sheet.horas_dia - sheet.total))}`),
+        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Capturado", ...(hasManual ? ["Informado"] : []), "Rateado", "Observação", ""].map((c, i) => h("th", { class: i >= 2 && i < (hasManual ? 5 : 4) ? "num" : null }, c)))),
           h("tbody", {}, rows.map((r) => h("tr", {},
-            h("td", {}, r.rotulo), h("td", {}, code(r)), h("td", {}, r.inicio || ""), h("td", {}, r.fim || ""),
-            h("td", { class: "num", title: `estimado ${hours(r.estimado)}` }, hours(r.total)),
+            h("td", {}, r.rotulo), h("td", {}, code(r)),
+            h("td", { class: "num", title: !r.capturado ? "Sem captura individual neste código" : "Estimativa sem sobreposição" }, r.capturado ? recordedTime(r.capturado) : "Sem captura individual"),
+            hasManual ? h("td", { class: "num" }, recordedTime(r.informado)) : null, h("td", { class: "num" }, r.total ? recordedTime(r.total) : "—"),
             h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
-            h("td", {}, h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar"))))))
+            h("td", {}, (r.observacao || "").trim() ? h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar observação") : null)))))
           : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
-        h("h2", {}, "Extras (fora do total)"),
+        h("h2", {}, "Extras (fora do total da ficha)"),
         sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
-          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, hours(e.horas))))))
+          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, recordedTime(e.capturado))))))
           : h("p", { class: "vazio" }, "Nenhum extra."),
         SNAPSHOT ? null : await estimateSection(),  // janelas, a seção mais longa, ficam sempre no fim
         h("h2", {}, "Janelas de atividade"),

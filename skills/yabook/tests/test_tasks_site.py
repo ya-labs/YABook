@@ -31,6 +31,10 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
                                 check=True, capture_output=True, text=True)
         return json.loads(result.stdout)
 
+    def test_recorded_time_preserves_fractional_minutes_from_concurrent_windows(self):
+        self.assertEqual(self.evaluate("[.125, .375, 1.125, 0, null].map(recordedTime)", []),
+                         ["7min 30s", "22min 30s", "1h 7min 30s", "0min", "—"])
+
     def task(self, identifier, prazo=None, pai=None, **fields):
         return dict(id=identifier, titulo=identifier, tipo="issue", papel="ativo", coluna="andamento",
                     prazo=prazo, pai=pai, **fields)
@@ -73,7 +77,7 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
                          dict(id="outro", tipo="demanda", demanda="3001")]
                 self.assertEqual(self.evaluate('sheetTask({tipo:"especificacao",codigo:"3001",tarefas:["spec"]}, tasks)?.id', tasks), "spec")
 
-    def test_sheet_copies_only_current_suggestion_and_hides_copy_when_empty(self):
+    def test_sheet_only_copies_nonempty_observations(self):
         script = r'''
 const fs = require("node:fs"), vm = require("node:vm");
 class Element {
@@ -85,7 +89,7 @@ class Element {
   get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
 }
 const sheet = {data:"2026-11-11", total:8, horas_dia:8, extras:[], janelas:[], confirmada:{linhas:[]},
-  linhas:[{tipo:"demanda", rotulo:"Demanda", codigo:"1001", total:8, estimado:.25, observacao:""}]};
+  linhas:[{tipo:"demanda", rotulo:"Demanda", codigo:"1001", total:8, estimado:.25, capturado:.25, informado:0, registrado:.25, observacao:""}]};
 let copied = "";
 const ctx = vm.createContext({Node:Element, window:{addEventListener(){}},
   document:{querySelector(){return null;}, addEventListener(){}, createElement(t){return new Element(t);},
@@ -98,7 +102,12 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
   const view = vm.runInContext("VIEWS.ficha",ctx);
   const flatten = n => [n, ...n.childNodes.flatMap(flatten)];
   const full = flatten(await view.render({hoje:sheet.data}));
-  const button = full.find(n=>n.tag==="button" && n.textContent.includes("Copiar ficha"));
+  const absent = full.filter(n=>n.tag==="button" && n.textContent.includes("Copiar"));
+  sheet.linhas[0].observacao="   ";
+  const whitespace = flatten(await view.render({hoje:sheet.data})).filter(n=>n.tag==="button" && n.textContent.includes("Copiar"));
+  sheet.linhas[0].observacao="Desenvolvimento: ajustar relatório.";
+  const observed = flatten(await view.render({hoje:sheet.data}));
+  const button = observed.find(n=>n.tag==="button" && n.textContent==="Copiar observação");
   await button.events.click({currentTarget:button});
   sheet.janelas=[{janela:"08:00",tarefa:"demanda-1001",titulo:"Demanda",ignorar:false}];
   vm.runInContext('app.editando=true; render=()=>{};',ctx);
@@ -108,14 +117,17 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
   const draft = vm.runInContext("app.rascunho.correcoes",ctx);
   sheet.linhas=[]; sheet.total=0;
   const empty = flatten(await view.render({hoje:sheet.data}));
-  process.stdout.write(JSON.stringify({copied, draft, confirmationShown:full.some(n=>n.textContent.includes("Confirmada:")), emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
+  process.stdout.write(JSON.stringify({copied, absent:absent.length, whitespace:whitespace.length, fullCopy:full.some(n=>n.tag==="button" && /Copiar ficha|Copiar rateio/.test(n.textContent)), draft, confirmationShown:full.some(n=>n.textContent.includes("Confirmada:")), emptyCopy:empty.some(n=>n.tag==="button" && n.textContent.includes("Copiar ficha")),
     emptyText:empty.some(n=>n.textContent.includes("Nenhuma hora que conta"))}));
 })().catch(e=>{console.error(e);process.exit(1)});
 '''
         result = subprocess.run(["node", "-e", script, str(SITE)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         actual = json.loads(result.stdout)
-        self.assertIn("1001", actual["copied"])
+        self.assertEqual(actual["copied"], "Desenvolvimento: ajustar relatório.")
+        self.assertEqual(actual["absent"], 0)
+        self.assertEqual(actual["whitespace"], 0)
+        self.assertFalse(actual["fullCopy"])
         self.assertFalse(actual["confirmationShown"])
         self.assertEqual(actual["draft"], [dict(data="2026-11-11", janela="08:00", tarefa="demanda-1001", ignorar=True)])
         self.assertFalse(actual["emptyCopy"])

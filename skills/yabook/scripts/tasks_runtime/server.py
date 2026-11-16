@@ -149,7 +149,7 @@ class Board:
         return (sheet.week_sheet if week else sheet.day_sheet)(self.store, day, complement)
 
     def week(self, day=None):
-        """Horas estimadas e tarefas tocadas por dia, de segunda a domingo."""
+        """Captura sem sobreposição e atividade acumulada por dia, de segunda a domingo."""
         date = datetime.date.fromisoformat(day or today().isoformat())
         monday = date - datetime.timedelta(days=date.weekday())
         titles = {t["data"]["id"]: t["data"]["titulo"] for t in self.store.list()}
@@ -157,8 +157,13 @@ class Board:
         for offset in range(7):
             current = (monday + datetime.timedelta(days=offset)).isoformat()
             hours, _ = sheet.activity(self.store.root, current)
-            entries = [dict(tarefa=k, titulo=titles.get(k, k), horas=round(v, 2)) for k, v in sorted(hours.items(), key=lambda i: -i[1])]
-            days.append(dict(data=current, horas=round(sum(hours.values()), 2), tarefas=entries))
+            windows, manual, _ = sheet.window_records(self.store.root, current)
+            captured = sheet.captured_activity(windows)
+            entries = [dict(tarefa=k, titulo=titles.get(k, k), horas=round(captured.get(k, 0), 6),
+                            informado=round(manual.get(k, 0), 6), acumulado=round(hours[k], 6))
+                       for k in sorted(hours, key=lambda k: (-captured.get(k, 0), k))]
+            days.append(dict(data=current, horas=round(sum(captured.values()), 6),
+                             informado=round(sum(manual.values()), 6), acumulado=round(sum(hours.values()), 6), tarefas=entries))
         return dict(inicio=monday.isoformat(), dias=days)
 
     def history(self, limit=200):

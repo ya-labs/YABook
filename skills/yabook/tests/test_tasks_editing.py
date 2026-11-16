@@ -52,6 +52,14 @@ class EditingTest(unittest.TestCase):
     def log(self):
         return subprocess.run(["git", "-C", str(self.root), "log", "--format=%s"], capture_output=True, text=True).stdout.splitlines()
 
+    def test_sheet_does_not_accept_free_activity_entries(self):
+        before = self.store.get("issue-agenda")
+        body = dict(apontamentos=[dict(codigo="9001", minutos=20)], tarefas=[
+            dict(id="issue-agenda", revision=before["revision"], campos=dict(titulo="Não gravar"))])
+        with self.assertRaises(ValueError):
+            editing.save(self.store, self.cfg, body)
+        self.assertEqual(self.store.get("issue-agenda")["revision"], before["revision"])
+
     def test_save_moves_edits_commits_and_leaves_board_events_pending(self):
         body = dict(tarefas=[
             dict(id="issue-agenda", revision=self.rev("issue-agenda"), campos=dict(coluna="andamento", proximo_passo="Publicar"),

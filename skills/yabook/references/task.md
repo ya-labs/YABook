@@ -146,13 +146,30 @@ captura também na configuração global do host, ou ela roda duas vezes.
 - Use o código do próprio tipo ou do ancestral mais próximo; especificação usa
   o da cadeia e, sem código, é pessoal. Iniciativa própria é `tarefa` ou `issue`.
   Tarefa pessoal é extra; trabalho sem código vira linha `trabalho`. Horas do
-  épico vão às histórias com demanda tocadas no dia.
+  épico permanecem no projeto; eventos ou tamanho não comprovam horas de filhos.
 - Na ficha, em Editar, desconsidere ou volte a considerar cada janela e salve;
   a correção preserva o histórico e vale entre máquinas. Após salvar, a
-  sugestão e a cópia usam somente janelas consideradas.
-- A sugestão divide `ficha.horas_dia` (8) entre as linhas na proporção das
-  janelas e dos lançamentos manuais, em múltiplos de `ficha.arredondamento` (1),
-  somando exatamente o total.
+  captura e o rateio usam somente janelas consideradas.
+- A Ficha mostra `Capturado` (janelas diretas) e `Rateado` (sugestão para a
+  jornada) por demanda/projeto. Uma janela simultânea é dividida entre tarefas,
+  sem multiplicar o dia; horas gerais do épico permanecem no projeto.
+  Capturado é estimativa por janelas, não cronômetro.
+- O resumo mostra o total capturado no dia, o que entra na ficha, extras e a
+  diferença para a jornada. A pessoa escolhe os tempos ao preencher o timesheet
+  externo. Só há cópia da observação, nas linhas com observação não vazia.
+- A sugestão usa captura sem sobreposição e lançamentos existentes como base.
+  Acrescenta até 50%, no máximo 1h por código, limitada ao saldo de
+  `ficha.horas_dia` (8). Distribui a margem disponível na proporção desses
+  limites; não força o fechamento da jornada nem reduz bases acima dela.
+  `ficha.arredondamento` não arredonda esse rateio para horas inteiras.
+- Semana e Ficha mostram o mesmo capturado. Acumulado soma as frentes simultâneas
+  e lançamentos existentes e pode superar a duração do dia. Ambos são estimativas,
+  não cronômetro. Os lançamentos existentes também aparecem separados como Informado.
+- Demandas tocadas sob um projeto capturado, mas sem janelas próprias, aparecem
+  sem captura individual e sem horas sugeridas. Troque a tarefa ativa ao mudar
+  de chamado para melhorar as próximas estimativas.
+- Mostre o saldo da base e do rateio para decisão externa. Não há formulário
+  de atividades livres, preenchimento de saldo ou cópia de ficha/rateio no site.
 - Demanda dispensa observação. Nas demais linhas ela resume o dia para colar no
   sistema de horas: `Desenvolvimento: item; item.` com o campo curto `ficha` de
   cada tarefa trabalhada ou alterada no dia (ou o título) e as notas de `log`;
