@@ -35,6 +35,15 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
         self.assertEqual(self.evaluate("[.125, .375, 1.125, 0, null].map(recordedTime)", []),
                          ["7min 30s", "22min 30s", "1h 7min 30s", "0min", "—"])
 
+    def test_grouped_navigation_keeps_legacy_routes_and_shortcut_order(self):
+        self.assertEqual(self.evaluate("ORDER", []),
+                         ["hoje", "quadro", "epicos", "prazos", "perguntas", "semana", "ficha", "historico"])
+        for route, title in [("ficha", "Ficha de horas"), ("historico", "Registro de alterações"),
+                             ("prazos", "Calendário"), ("rota-antiga-invalida", "Visão geral")]:
+            with self.subTest(route=route):
+                expression = 'globalThis.location = {hash: ' + json.dumps("#" + route) + '}; VIEWS[currentView()].titulo'
+                self.assertEqual(self.evaluate(expression, []), title)
+
     def task(self, identifier, prazo=None, pai=None, **fields):
         return dict(id=identifier, titulo=identifier, tipo="issue", papel="ativo", coluna="andamento",
                     prazo=prazo, pai=pai, **fields)
