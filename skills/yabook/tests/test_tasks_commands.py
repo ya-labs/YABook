@@ -102,7 +102,8 @@ class CommandsTest(unittest.TestCase):
         self.assertEqual(summary["colunas"]["concluido"]["total"], 1)
 
     def test_stale_tasks_are_reported(self):
-        self.tasks.add("tarefa", "Parada", coluna="andamento")
+        with patch("tasks_runtime.store.now", lambda: BASE.isoformat() + "T10:00:00-03:00"):
+            self.tasks.add("tarefa", "Parada", coluna="andamento")
         later = patch.object(commands, "today", lambda: BASE + datetime.timedelta(days=10))
         with later:
             self.assertEqual([t["id"] for t in self.tasks.review()["paradas"]], ["tarefa-parada"])

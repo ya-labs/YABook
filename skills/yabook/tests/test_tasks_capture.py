@@ -46,6 +46,50 @@ class CaptureTest(unittest.TestCase):
         path = self.root / "horas" / "2026-11-trabalho.jsonl"
         return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
+    def focus_fixture(self):
+        self.tasks.add("projeto", "Geral", projeto="9001", coluna="andamento", nivel="epico")
+        self.tasks.add("demanda", "Primeira", demanda="1001", coluna="andamento", issue=["org/repo#10"])
+        self.tasks.add("demanda", "Segunda", demanda="1002", coluna="pronto")
+        capture.set_active(self.store, "s1", "projeto-9001")
+
+    def test_work_request_switches_before_mark_and_preserves_other_sessions(self):
+        self.focus_fixture()
+        capture.set_active(self.store, "s2", "projeto-9001")
+        capture.prompt(self.cfg, "s1", WHEN, "corrija o chamado 1001")
+        self.assertEqual(self.hours()[0]["tarefa"], "demanda-1001")
+        self.assertEqual(capture.active(self.store, "s2"), "projeto-9001")
+        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=15), "teste org/repo#10")
+        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=30), "retome o projeto 9001")
+        self.assertEqual([h["tarefa"] for h in self.hours()], ["demanda-1001", "demanda-1001", "projeto-9001"])
+
+    def test_ambiguous_missing_closed_and_unconfirmed_do_not_capture(self):
+        self.focus_fixture()
+        for text in ("corrija o chamado 1001 e o chamado 1002", "corrija o chamado 9999"):
+            self.assertIn("não foi capturada", capture.prompt(self.cfg, "s1", WHEN, text))
+        self.tasks.move("demanda-1001", "concluido")
+        capture.prompt(self.cfg, "s1", WHEN, "corrija o chamado 1001")
+        capture.prompt(self.cfg, "nova", WHEN, "corrija o chamado 1002")
+        capture.set_active(self.store, "s3", "demanda-1001")
+        capture.prompt(self.cfg, "s3", WHEN, "continuar")
+        self.assertEqual(self.hours(), [])
+        self.assertEqual(capture.active(self.store, "s1"), "projeto-9001")
+
+    def test_incidental_references_do_not_switch_and_number_is_supported(self):
+        self.focus_fixture()
+        for text in ("mostre as tarefas do chamado 1001", 'ele disse "corrija o chamado 1001"',
+                     "corrija o código, como feito no chamado 1001"):
+            capture.prompt(self.cfg, "s1", WHEN, text)
+            self.assertEqual(capture.active(self.store, "s1"), "projeto-9001")
+        number = self.store.get("demanda-1002")["data"]["numero"]
+        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=15), "teste @%s" % number)
+        self.assertEqual(self.hours()[-1]["tarefa"], "demanda-1002")
+
+    def test_issue_number_requires_unique_owner(self):
+        self.focus_fixture()
+        self.tasks.add("issue", "Outra", issue=["other/repo#10"])
+        self.assertEqual(capture.prompt_focus(self.store, "teste issue #10"), (None, True))
+        self.assertEqual(capture.prompt_focus(self.store, "teste org/repo#10"), ("demanda-1001", False))
+
     def test_session_start_lists_suggestion_questions_deadlines_and_events(self):
         self.tasks.add("demanda", "Ajustar limite", demanda="1001", coluna="andamento", prazo="hoje")
         self.tasks.ask("Qual coluna usar?")

@@ -117,6 +117,16 @@ captura também na configuração global do host, ou ela roda duas vezes.
   prazos e até 10 ações do quadro não analisadas. Confirme a tarefa ativa com a
   pessoa uma vez por sessão e rode `start` com a escolhida; o hook vincula essa
   escolha à sessão.
+- Antes de executar trabalho ou mudar para outro assunto identificável, o agente
+  roda `task start` na tarefa do chamado/issue correspondente. Reuse a confirmação
+  inicial; não pergunte a cada troca clara. Trabalho geral fica no épico. Sem
+  referência explícita, resolva pelo contexto; pergunte apenas quando ambíguo.
+  Não reconstrua horas anteriores a partir de eventos ou tamanho da tarefa.
+- Pedidos diretos como “corrija o chamado 1001” ou “teste @4” resolvem a tarefa
+  antes da janela, somente após a escolha inicial da sessão. Também aceitam
+  `dono/repo#n` e `issue #n` inequívoca. Múltiplas referências, tarefa inexistente
+  ou encerrada suspendem essa marca e pedem resolução pelo agente. Menções
+  incidentais e consultas administrativas não trocam o foco. Sessões são isoladas.
 - `UserPromptSubmit` marca a janela de 15 minutos da tarefa escolhida na sessão em
   `horas/AAAA-MM-<maquina>.jsonl`, sem rede; comandos administrativos reconhecidos,
   como `task review` e `commit msg`, não geram janela. Mensagem com
