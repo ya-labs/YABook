@@ -7,6 +7,10 @@ Desenvolver até a validação, incluindo os pré-requisitos operacionais.
 `dev` é executivo, exceção explícita às prévias sem `do`: cria a issue necessária,
 prepara sua branch e implementa até a validação. Termina antes de commit, PR e
 merge, salvo autorização encadeada; não é gate exclusivo para editar.
+Com YABook Tasks, antes de trabalhar em outra demanda identificada na conversa,
+rode `task start` na tarefa correspondente. Reuse a confirmação inicial da sessão;
+pergunte apenas quando houver ambiguidade. Trabalho geral permanece no épico.
+
 Com YABook Tasks, branch, PR e merge avançam a tarefa da issue pelo hook; ao
 encerrar sem PR, rode `task issue --fase revisao --registro <resumo>`.
 

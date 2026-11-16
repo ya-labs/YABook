@@ -140,3 +140,9 @@ class PluginSyncTest(unittest.TestCase):
         (self.source / "assets/external").symlink_to(self.registry)
         with self.assertRaisesRegex(ValueError, "Link simbólico"):
             validate_package(self.source)
+
+    def test_crlf_skill_front_matter_is_accepted(self):
+        skill = self.source / "skills/yabook/SKILL.md"
+        skill.write_bytes(skill.read_bytes().replace(b"---\n", b"---\r\n", 1))
+
+        validate_package(self.source)
