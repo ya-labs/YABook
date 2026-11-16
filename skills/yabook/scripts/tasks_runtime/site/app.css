@@ -1022,3 +1022,26 @@ button.selo { cursor: pointer; text-align: left; }
   .card .selo, .card .size-numero, .card .card-passo, .paletas-opcoes { border-color: ButtonText; }
   .paletas-opcoes button[aria-pressed="true"] { outline: 2px solid Highlight; }
 }
+
+/* Cabeçalho e rodapé da navegação: ações alinhadas em cada tamanho. */
+.controle-rotulo { display: none; }
+.navegacao-conexao { display: flex; align-items: center; gap: 7px; }
+.navegacao-conexao .ponto, .navegacao-conexao .conexao-texto { margin-left: 0; }
+@media (min-width: 761px) {
+  :root[data-nav="expandida"] .navegacao-topo { flex-direction: row; align-items: center; gap: 12px; }
+  :root[data-nav="expandida"] .navegacao-acoes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+  :root[data-nav="expandida"] .aparencia { display: contents; }
+  :root[data-nav="expandida"] .paletas { grid-column: 1 / -1; min-width: 0; }
+  :root[data-nav="expandida"] .paletas summary { min-height: 36px; background: var(--bg-subtle); padding: 8px 10px; color: var(--texto); }
+  :root[data-nav="expandida"] .paletas summary:hover { background: var(--bg-hover); }
+  :root[data-nav="expandida"] .paletas-opcoes { width: 220px; }
+  :root[data-nav="expandida"] #tema, :root[data-nav="expandida"] #ajuda { width: 100%; min-width: 0; gap: 6px; height: 36px; padding: 7px; background: var(--bg-subtle); color: var(--texto); font-size: 11px; }
+  :root[data-nav="expandida"] #tema:hover, :root[data-nav="expandida"] #ajuda:hover { background: var(--bg-hover); }
+  :root[data-nav="expandida"] .controle-rotulo { display: inline; }
+  :root[data-nav="expandida"] .navegacao-conexao { grid-column: 1 / -1; padding: 6px 2px 0; }
+  :root[data-nav="compacta"] .navegacao-topo { flex-direction: column; }
+  :root[data-nav="compacta"] .navegacao-conexao { justify-content: center; padding-top: 5px; }
+}
+@media (max-width: 760px) {
+  .navegacao-conexao { display: none; }
+}

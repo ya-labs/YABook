@@ -1410,7 +1410,7 @@ function renderTheme() {
   const button = document.getElementById("tema");
   button.title = title + " (clique para trocar)";
   button.setAttribute("aria-label", button.title);
-  fill(button, icon(iconName));
+  fill(button, icon(iconName), h("span", { class: "controle-rotulo" }, ({ auto: "Automático", light: "Claro", dark: "Escuro" })[current] || "Automático"));
   if (current === "auto") delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = current;
 }
