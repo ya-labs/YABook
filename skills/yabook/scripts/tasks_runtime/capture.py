@@ -23,9 +23,11 @@ WINDOW_MINUTES = 15
 PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
 REASK_AFTER = 8
-RULES = ("Mantenha as tarefas sem pedido, conforme a política: etapa concluída vira registro e próximo passo "
-         "(task edit --append), dúvida que depende da pessoa vira task ask, prazo citado vai para a tarefa, espera que a "
-         "coluna não mostra vira --aguardando (QA já é a coluna de validação; retorno: --unset aguardando) e mudança de fase move a coluna. Tarefa criada leva --size (escala de Size das issues; o da issue se houver). Conversa anterior sem registro: task capture.")
+RULES = ("Antes de trabalhar ou mudar de assunto, rode task start na tarefa correspondente; geral fica no épico. "
+         "Reuse a escolha da sessão; pergunte só se ambíguo. Mantenha tarefas sem pedido: conclusão vira "
+         "task edit --append e próximo passo; dúvida vira task ask; prazo vai à tarefa; espera fora de QA usa "
+         "--aguardando (retorno: --unset aguardando); fase move coluna. Criação leva --size da issue. "
+         "Conversa sem registro: task capture.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
                     r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando)\b")
@@ -169,6 +171,51 @@ def administrative(text):
     return bool(not WORK_REQUEST.search(clean) and ADMIN_NATURAL.search(clean))
 
 
+# Só um pedido direto de trabalho é seletor. Menções no corpo, citações,
+# perguntas de status e comandos de manutenção não escolhem outra tarefa.
+FOCUS_REQUEST = re.compile(
+    r"^\s*(?:(?:por favor|vamos|agora|pode|quero)\s+)*(?:implemente|implementar|desenvolva|desenvolver|"
+    r"corrija|corrigir|teste|testar|investigue|investigar|retome|retomar|trabalhar)\s+"
+    r"(?:(?:no|na|o|a|em)\s+)?(?P<target>(?:chamado|demanda|projeto|issue)\s+#?\d+|@\d+|[\w.-]+/[\w.-]+#\d+)"
+    r"(?=$|[\s,.:;])", re.I)
+FOCUS_REF = re.compile(r"\b(chamado|demanda|projeto|issue)\s+#?(\d+)\b|@(\d+)\b|([\w.-]+/[\w.-]+#\d+)", re.I)
+
+
+def prompt_focus(store, text):
+    """Resolve apenas seletores explícitos; sem inferência por título ou histórico."""
+    clean = _plain(text)
+    if administrative(text) or not FOCUS_REQUEST.search(clean):
+        return None, False
+    tasks = [item["data"] for item in store.list() if item["data"].get("tipo") != "pergunta"]
+    roles = {c["id"]: c["papel"] for c in store.columns()}
+    selected = set()
+    # Mais de uma referência precisa ser resolvida pelo agente; não escolha pela ordem.
+    refs = list(FOCUS_REF.finditer(clean))
+    if len(refs) != 1:
+        return None, True
+    kind, code, number, issue = refs[0].groups()
+    for task in tasks:
+        if number:
+            matches = str(task.get("numero")) == number
+        elif issue:
+            matches = issue in [v.lower() for v in task.get("issue", [])]
+        elif kind == "issue":
+            matches = any(v.rsplit("#", 1)[-1] == code for v in task.get("issue", []))
+        else:
+            matches = str(task.get("projeto" if kind == "projeto" else "demanda")) == code
+        if matches:
+            selected.add(task["id"])
+    # Um código herdado em filhos não deve tirar a seleção do proprietário.
+    selected -= {t["id"] for t in tasks if t["id"] in selected and t.get("pai") in selected}
+    if len(selected) != 1:
+        return None, True
+    identifier = selected.pop()
+    task = next(t for t in tasks if t["id"] == identifier)
+    if roles.get(task.get("coluna")) in ("concluido", "arquivado"):
+        return None, True
+    return identifier, False
+
+
 def prompt(cfg, session, when=None, text=""):
     store, tasks_cfg = open_store(cfg)
     if store is None:
@@ -176,14 +223,29 @@ def prompt(cfg, session, when=None, text=""):
     when = when or datetime.datetime.now().astimezone()
     current = active(store, session)
     chosen = _read(_session_file(store, session), {}).get("ativa")
+    focus_lines = []
+    blocked = False
+    if chosen:
+        target, blocked = prompt_focus(store, text)
+        if target and target != current:
+            set_active(store, session, target)
+            current = chosen = target
+            focus_lines.append("YABook Tasks: tarefa ativa da sessão alterada para %s antes da captura." % target)
+        elif blocked:
+            focus_lines.append("YABook Tasks: pedido com referência ambígua, ausente ou encerrada; "
+                               "não foi capturada janela. Resolva a tarefa e rode task start antes de trabalhar.")
     if current and store.exists(current):
-        if chosen == current and not administrative(text):
+        task = store.get(current)["data"]
+        roles = {c["id"]: c["papel"] for c in store.columns()}
+        if roles.get(task.get("coluna")) in ("concluido", "arquivado"):
+            current = None
+        elif chosen == current and not blocked and not administrative(text):
             mark(store, tasks_cfg.get("machine"), current, when)
     else:
         current = None
     path = _session_file(store, session)
     state = _read(path, {})
-    changed, lines = False, []
+    changed, lines = False, focus_lines
     if current is None:
         # Sem escolha na sessão: pergunta de novo uma vez, depois de algumas mensagens.
         state["sem_ativa"] = state.get("sem_ativa", 0) + 1
