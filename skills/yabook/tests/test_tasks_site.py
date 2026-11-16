@@ -31,6 +31,10 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
                                 check=True, capture_output=True, text=True)
         return json.loads(result.stdout)
 
+    def test_recorded_time_preserves_fractional_minutes_from_concurrent_windows(self):
+        self.assertEqual(self.evaluate("[.125, .375, 1.125, 0, null].map(recordedTime)", []),
+                         ["7min 30s", "22min 30s", "1h 7min 30s", "0min", "—"])
+
     def task(self, identifier, prazo=None, pai=None, **fields):
         return dict(id=identifier, titulo=identifier, tipo="issue", papel="ativo", coluna="andamento",
                     prazo=prazo, pai=pai, **fields)

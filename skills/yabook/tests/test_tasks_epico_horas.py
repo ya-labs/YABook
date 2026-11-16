@@ -45,19 +45,19 @@ class EpicHoursTest(unittest.TestCase):
                 clock.datetime.now.return_value = datetime.datetime(2026, 11, 5, 10 + n, tzinfo=datetime.timezone(datetime.timedelta(hours=-3)))
                 self.tasks.edit(identifier, append="toque %d" % n)
 
-    def test_epic_hours_go_to_touched_demands(self):
+    def test_epic_hours_stay_on_project_despite_touched_demands(self):
         self.windows("projeto-5000", 16)  # 4h no épico
         self.touch("issue-agenda", 3)
         self.touch("issue-boletos", 1)
         self.touch("issue-sem-chamado", 1)  # sem demanda: não recebe a divisão
         result = sheet.day_sheet(self.store, DAY)
         totals = {(r["tipo"], r["codigo"]): r["total"] for r in result["linhas"] if r["total"]}
-        self.assertEqual(totals, {("demanda", "111"): 6, ("demanda", "222"): 2})
+        self.assertEqual(totals, {("projeto", "5000"): 5})
         self.assertTrue(all(r["observacao"] == "" for r in result["linhas"] if r["tipo"] == "demanda"))
         project = next(r for r in result["linhas"] if r["tipo"] == "projeto")
-        self.assertEqual((project["capturado"], project["total"]), (4, 0))
+        self.assertEqual((project["capturado"], project["total"]), (4, 5))
         self.assertEqual(result["registrado_ficha"], 4)
-        self.assertEqual(result["divididas"], {"projeto-5000": ["issue-agenda", "issue-boletos"]})
+        self.assertEqual(result["divididas"], {})
 
     def test_without_touched_demands_epic_stays_on_project(self):
         self.windows("projeto-5000", 8)

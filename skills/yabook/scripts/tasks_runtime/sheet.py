@@ -1,7 +1,7 @@
 """Ficha de horas sugerida a partir das janelas de atividade e dos lançamentos manuais.
 
-As horas configuradas do dia são divididas entre as tarefas que contam na
-ficha, na proporção da atividade; o resto é extra, registrado fora do total.
+A captura deduplica janelas simultâneas. O rateio sugere margem de até 50%,
+limitada a 1h por código e ao saldo da jornada, sem forçar seu preenchimento.
 Demanda (chamado) dispensa observação. Nas demais linhas a observação resume o
 que foi feito no dia para colar no sistema de horas: `Desenvolvimento: item;
 item.`, com o texto curto `ficha` de cada tarefa (ou o título), sem registro,
@@ -121,6 +121,16 @@ def distribute(weights, total, step):
     return {k: round(v * step, 2) for k, v in result.items() if v}
 
 
+def bounded_rateio(bases, jornada):
+    """Sugere margem limitada por código; nenhuma base é reduzida ou inventada."""
+    bases = {k: max(0, v) for k, v in bases.items()}
+    limits = {k: min(v * .5, 1.0) for k, v in bases.items()}
+    available = max(0, jornada - sum(bases.values()))
+    maximum = sum(limits.values())
+    factor = min(1, available / maximum) if maximum else 0
+    return {k: round(v + limits[k] * factor, 6) for k, v in bases.items()}
+
+
 def _item_text(data):
     text = (data.get("ficha") or data.get("titulo") or "").strip().rstrip(".")
     if len(text) > 1 and text[0].isupper() and not text[1].isupper():
@@ -139,43 +149,6 @@ def _round_step(value, step):
     return round(max(step, round(value / step) * step), 2) if value > 0 else 0
 
 
-TOUCH_ACTIONS = ("criar", "mover", "editar", "reordenar", "horas", "iniciar")
-
-
-def touches(root, day, index):
-    """Quantos toques cada tarefa recebeu no dia: eventos dela e alteração do arquivo na data."""
-    from . import events
-    count = {}
-    for entry in events.read_all(root, months=2):
-        if (entry.get("ts") or "")[:10] == day and entry.get("acao") in TOUCH_ACTIONS and entry.get("tarefa") in index:
-            count[entry["tarefa"]] = count.get(entry["tarefa"], 0) + 1
-    for data in index.values():
-        if (data.get("atualizada") or "")[:10] == day:
-            count[data["id"]] = max(count.get(data["id"], 0), 1)
-    return count
-
-
-def spread_epic_hours(hours, index, day_touches):
-    """Horas marcadas num épico vão para as descendentes com demanda tocadas no dia, na proporção dos toques.
-
-    Devolve o novo mapa de horas e, por épico, as tarefas que receberam a divisão.
-    """
-    result, spread = dict(hours), {}
-    for identifier, value in hours.items():
-        data = index.get(identifier)
-        if not data or data.get("nivel") != "epico" or tree.personal(data, index):
-            continue
-        kids = [d["id"] for d in index.values() if d["id"] != identifier and identifier in {a["id"] for a in tree.chain(d, index)[1:]}
-                and day_touches.get(d["id"]) and (tree.own_code(d) or (None,))[0] == "demanda" and not tree.personal(d, index)]
-        if not kids:
-            continue
-        total = sum(day_touches[k] for k in kids)
-        del result[identifier]
-        for kid in kids:
-            result[kid] = result.get(kid, 0) + value * day_touches[kid] / total
-        spread[identifier] = sorted(kids)
-    return result, spread
-
 
 def day_sheet(store, day, complement=None):
     cfg = store.config()
@@ -189,11 +162,10 @@ def day_sheet(store, day, complement=None):
     index = {k: t["data"] for k, t in tasks.items()}
     for entry in windows:
         entry["titulo"] = index.get(entry["tarefa"], {}).get("titulo", entry["tarefa"])
-    hours, spread = spread_epic_hours(hours, index, touches(store.root, day, index))
     groups, extras = {}, []
 
     def group_for(key):
-        return groups.setdefault(key, dict(peso=0.0, tarefas=[], capturado=0.0, informado=0.0))
+        return groups.setdefault(key, dict(tarefas=[], capturado=0.0, informado=0.0))
 
     for identifier in sorted(set(hours) | set(captured) | set(manual)):
         task = index.get(identifier)
@@ -205,7 +177,6 @@ def day_sheet(store, day, complement=None):
                                capturado=round(direct, 6), informado=round(informed, 6), registrado=round(direct + informed, 6)))
             continue
         group = group_for(key)
-        group["peso"] += hours.get(identifier, 0)
         group["capturado"] += direct
         group["informado"] += informed
         group["tarefas"].append(identifier)
@@ -214,14 +185,17 @@ def day_sheet(store, day, complement=None):
                and d["id"] not in hours]
     for data in touched:
         key = attribution(data, index)
+        if key not in groups and key and key[0] == "demanda" and any(
+                ancestor["id"] in captured for ancestor in tree.chain(data, index)[1:]):
+            group_for(key)
         if key in groups:
             groups[key].setdefault("tocadas", []).append(data["id"])
-    weights = {k: g["peso"] for k, g in groups.items() if g["peso"] > 0}
-    totals = distribute(weights, per_day, step)
+    bases = {k: g["capturado"] + g["informado"] for k, g in groups.items()}
+    totals = bounded_rateio(bases, per_day)
     rows = []
     for key, group in groups.items():
         total = totals.get(key, 0)
-        if not total and not group["capturado"] and not group["informado"]:
+        if not total and not group["capturado"] and not group["informado"] and not group.get("tocadas"):
             continue
         observacao = ""
         if key[0] != "demanda":
@@ -232,7 +206,7 @@ def day_sheet(store, day, complement=None):
             observacao = observation(items, [n for i in group["tarefas"] for n in notes.get(i, [])])
         label = labels.get(key[0], "Sem código" if key[0] == "trabalho" else key[0])
         row = dict(tipo=key[0], rotulo=label, codigo=key[1], inicio=None, fim=None,
-                   total=round(total, 6), estimado=round(group["peso"], 2), tarefas=group["tarefas"],
+                   total=round(total, 6), estimado=round(bases[key], 6), tarefas=group["tarefas"] or group.get("tocadas", []),
                    capturado=round(group["capturado"], 6), informado=round(group["informado"], 6),
                    registrado=round(group["capturado"] + group["informado"], 6), observacao=observacao)
         if complement:
@@ -244,7 +218,10 @@ def day_sheet(store, day, complement=None):
     capture_total = sum(captured.values())
     manual_total = sum(manual.values())
     registered = sum(r["registrado"] for r in rows)
-    return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 6), linhas=rows, divididas=spread,
+    return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 6), linhas=rows, divididas={},
+                acumulado_total=round(sum(hours.values()), 6),
+                saldo_rateado=round(max(0, per_day - sum(r["total"] for r in rows)), 6),
+                margem_percentual=50, margem_limite=1,
                 capturado_total=round(capture_total, 6), informado_total=round(manual_total, 6),
                 registrado_total=round(capture_total + manual_total, 6), registrado_ficha=round(registered, 6),
                 extras_registrado=round(sum(e["registrado"] for e in extras), 6),
@@ -263,6 +240,6 @@ def week_sheet(store, day, complement=None):
             if row["total"] <= 0:
                 continue
             key = (row["tipo"], str(row["codigo"]))
-            summary[key] = round(summary.get(key, 0) + row["total"], 2)
+            summary[key] = round(summary.get(key, 0) + row["total"], 6)
     return dict(inicio=monday.isoformat(), dias=days,
                 totais=[dict(tipo=k[0], codigo=k[1], total=v) for k, v in sorted(summary.items(), key=lambda i: -i[1])])

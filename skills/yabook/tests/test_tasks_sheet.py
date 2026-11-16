@@ -135,8 +135,8 @@ class SheetTest(unittest.TestCase):
         day = sheet.day_sheet(self.store, DAY)
         week = sheet.week_sheet(self.store, DAY)
         self.assertNotIn("confirmada", day)
-        self.assertEqual([(r["tipo"], r["codigo"], r["total"]) for r in day["linhas"]], [("demanda", "1001", 8)])
-        self.assertEqual(week["totais"], [dict(tipo="demanda", codigo="1001", total=8)])
+        self.assertEqual([(r["tipo"], r["codigo"], r["total"]) for r in day["linhas"]], [("demanda", "1001", 1.5)])
+        self.assertEqual(week["totais"], [dict(tipo="demanda", codigo="1001", total=1.5)])
         self.assertEqual(legacy.read_text(encoding="utf-8"), original)
         correction = dict(janela="%02d:00" % 8, tarefa="demanda-1001", ignorar=True)
         sheet.correct_windows(self.store, "trabalho", DAY, [correction])
@@ -159,9 +159,9 @@ class SheetTest(unittest.TestCase):
             return code, json.loads(out.getvalue())
 
         code, day = cli("sheet", "--data", DAY)
-        self.assertEqual((code, day["total"]), (0, 8))
+        self.assertEqual((code, day["total"]), (0, 1.5))
         code, week = cli("sheet", "--data", DAY, "--semana")
-        self.assertEqual(week["totais"][0]["total"], 8)
+        self.assertEqual(week["totais"][0]["total"], 1.5)
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(io.StringIO()):
                 yabook_tasks.main(["--config", str(config), "sheet", "--confirm"])
