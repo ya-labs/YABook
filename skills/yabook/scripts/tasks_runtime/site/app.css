@@ -817,6 +817,86 @@ button.selo { cursor: pointer; text-align: left; }
 .card-pai:hover > span:last-child { text-decoration: underline; }
 .card-pai-numero { font-weight: 800; font-variant-numeric: tabular-nums; flex: none; }
 
-.ficha-resumo { padding: 16px; margin: 16px 0; }
-.ficha-resumo strong { font-size: 16px; }
-.ficha-resumo p { margin: 8px 0 0; }
+/* Ficha: tempos e lançamentos primeiro; conferência por divulgação progressiva. */
+.ficha-dia { display: grid; gap: 22px; }
+.ficha-periodo { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.ficha-periodo .filtros { margin: 0; }
+.ficha-jornada { color: var(--texto-2); font-size: 12px; white-space: nowrap; }
+.ficha-indicadores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--bg); border-radius: 12px; }
+.ficha-metrica { display: grid; align-content: start; gap: 7px; padding: 20px 24px; min-width: 0; }
+.ficha-metrica + .ficha-metrica { border-left: 1px solid var(--borda-suave); }
+.ficha-metrica-nome { display: flex; align-items: center; gap: 7px; color: var(--texto-2); font-size: 12px; font-weight: 600; }
+.ficha-metrica-nome .icone { width: 16px; height: 16px; }
+.ficha-metrica > strong { font-size: clamp(22px, 2.4vw, 32px); letter-spacing: -.7px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.ficha-metrica-detalhe { color: var(--texto-2); font-size: 11px; }
+.ficha-lancamentos { min-width: 0; }
+.ficha-secao-topo { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.ficha-secao-topo h2 { margin: 0; font-size: 14px; }
+.ficha-tabela { background: var(--bg); border-radius: 12px; overflow: hidden; }
+.ficha-tabela > .tabela-rolagem { margin: 0; border: 0; border-radius: 0; overflow: visible; }
+.ficha-tabela td { max-width: none; }
+.ficha-tabela th { padding-top: 12px; padding-bottom: 12px; }
+.ficha-tabela td { padding-top: 18px; padding-bottom: 18px; vertical-align: middle; }
+.ficha-tabela .ficha-item { width: 30%; white-space: normal; }
+.ficha-item-origem { display: flex; align-items: center; gap: 7px; }
+.ficha-item-origem > .icone { width: 16px; height: 16px; flex: none; }
+.ficha-item-origem > span:last-child { color: var(--texto-2); font-size: 10px; }
+.ficha-codigo { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ficha-item-titulo { display: block; color: var(--texto-2); margin-top: 6px; font-size: 11px; white-space: normal; line-height: 1.5; }
+.ficha-tempo { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ficha-rateado { font-weight: 700; }
+.ficha-sem-captura { display: inline-block; max-width: 110px; font-size: 10px; color: var(--texto-2); white-space: normal; }
+.ficha-observacao { width: 36%; min-width: 180px; }
+.ficha-observacao-texto { line-height: 1.6; }
+.ficha-sem-observacao { color: var(--texto-2); font-size: 11px; }
+.ficha-copiar { margin-top: 9px; font-size: 10px; min-height: 30px; }
+.ficha-complemento { margin-top: 10px; font-size: 11px; }
+.ficha-complemento summary { cursor: pointer; color: var(--texto-2); }
+.ficha-apoio { display: grid; gap: 1px; background: var(--bg); border-radius: 12px; overflow: hidden; }
+.ficha-detalhes + .ficha-detalhes { border-top: 1px solid var(--borda-suave); }
+.ficha-detalhes > summary { display: flex; align-items: center; gap: 10px; padding: 16px 18px; cursor: pointer; font-size: 12px; font-weight: 600; list-style: none; }
+.ficha-detalhes > summary::-webkit-details-marker { display: none; }
+.ficha-detalhes > summary::after { content: "+"; margin-left: 8px; font-weight: 400; color: var(--texto-2); }
+.ficha-detalhes[open] > summary::after { content: "−"; }
+.ficha-detalhes > summary > .icone { color: var(--texto-2); width: 16px; height: 16px; }
+.ficha-detalhes-meta { margin-left: auto; color: var(--texto-2); font-size: 11px; font-weight: 400; }
+.ficha-detalhes > summary > span:nth-child(2) { flex: 1; }
+.ficha-detalhes-corpo { padding: 0 18px 18px; font-size: 12px; }
+.ficha-definicoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 4px 0 18px; }
+.ficha-definicoes dt { font-weight: 700; margin-bottom: 6px; }
+.ficha-definicoes dd { margin: 0; color: var(--texto-2); line-height: 1.6; }
+.ficha-nota { color: var(--texto-2); font-size: 11px; margin: 0 0 12px; line-height: 1.6; }
+.ficha-nota:last-child { margin-bottom: 0; }
+.ficha-lista-extras { list-style: none; padding: 0; margin: 0; }
+.ficha-lista-extras li { display: flex; align-items: center; gap: 20px; justify-content: space-between; padding: 10px 0; }
+.ficha-lista-extras strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ficha-tabela-apoio { overflow-x: auto; }
+.ficha-tabela-apoio table { min-width: 480px; }
+.ficha-detalhes .estimativa h2 { margin-top: 0; }
+@media (max-width: 800px) {
+  .ficha-metrica { padding: 16px; }
+  .ficha-tabela table, .ficha-tabela tbody { display: block; width: 100%; min-width: 0; }
+  .ficha-tabela thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ficha-tabela tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; padding: 18px; border-bottom: 1px solid var(--borda-suave); }
+  .ficha-tabela.com-informado tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ficha-tabela tr:last-child { border-bottom: 0; }
+  .ficha-tabela td { display: block; padding: 0; border: 0; }
+  .ficha-tabela .ficha-item, .ficha-tabela .ficha-observacao { grid-column: 1 / -1; width: auto; min-width: 0; }
+  .ficha-tabela .ficha-tempo { text-align: left; }
+  .ficha-tempo::before { display: block; content: attr(data-label); color: var(--texto-2); font-size: 10px; font-weight: 400; margin-bottom: 5px; }
+  .ficha-sem-captura { max-width: none; }
+  .ficha-observacao-texto { font-size: 11px; }
+  .ficha-sem-observacao { display: none; }
+  .ficha-definicoes { grid-template-columns: 1fr; gap: 16px; }
+}
+@media (max-width: 480px) {
+  .ficha-dia { gap: 18px; }
+  .ficha-periodo { flex-wrap: wrap; gap: 8px; }
+  .ficha-jornada { font-size: 11px; }
+  .ficha-indicadores { grid-template-columns: 1fr; }
+  .ficha-metrica { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 5px 12px; padding: 14px 16px; }
+  .ficha-metrica + .ficha-metrica { border-left: 0; border-top: 1px solid var(--borda-suave); }
+  .ficha-metrica > strong { grid-column: 2; grid-row: 1 / 3; font-size: 22px; }
+  .ficha-metrica-detalhe { grid-column: 1; font-size: 10px; }
+  .ficha-tabela tr { padding: 16px; }
+}

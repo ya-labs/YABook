@@ -943,57 +943,90 @@ const VIEWS = {
   },
   ficha: {
     titulo: "Ficha",
-    descricao: "Revise as horas do dia e copie a ficha para o seu registro.",
+    descricao: "Compare os tempos do dia e revise seus lançamentos.",
     icone: "ficha",
     async render(estado) {
       const day = SNAPSHOT ? SNAPSHOT.ficha.data : app.ficha || estado.hoje;
       const sheet = await api("/api/ficha?data=" + day);
       const rows = sheet.linhas;
-      const code = (row) => {
-        const task = sheetTask(row, estado.tarefas);
-        return task ? h("button", { class: "link", type: "button", title: "Abrir card: " + task.titulo,
-          "aria-label": `Abrir card ${row.codigo}: ${task.titulo}`, onclick: () => openTask(task.id) }, row.codigo)
-          : row.codigo || "Sem código";
-      };
+      const code = (row, task) => task ? h("button", { class: "link ficha-codigo", type: "button", title: "Abrir card: " + task.titulo,
+        "aria-label": `Abrir card ${row.codigo}: ${task.titulo}`, onclick: () => openTask(task.id) }, row.codigo || "Sem código")
+        : h("strong", { class: "ficha-codigo" }, row.codigo || "Sem código");
       const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
       const capturedSheet = rows.reduce((sum, row) => sum + (row.capturado || 0), 0);
       const capturedExtras = sheet.extras.reduce((sum, row) => sum + (row.capturado || 0), 0);
       const registeredSheet = rows.reduce((sum, row) => sum + (row.registrado ?? row.capturado ?? 0), 0);
       const difference = sheet.horas_dia - registeredSheet;
       const hasManual = !!sheet.informado_total;
-      return h("section", {},
-        dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
-        h("div", { class: "ficha-resumo caixa" },
-          h("strong", {}, `Tempo capturado no dia: ${recordedTime(sheet.capturado_total)}`),
-          h("p", {}, `Atividade acumulada: ${recordedTime(sheet.acumulado_total)}`),
-          hasManual ? h("p", {}, `Informado por lançamentos existentes: ${recordedTime(sheet.informado_total)}`) : null,
-          h("p", {}, `Na ficha: ${recordedTime(capturedSheet)} · Extras: ${recordedTime(capturedExtras)} · Jornada: ${recordedTime(sheet.horas_dia)}`),
-          h("p", {}, difference >= 0 ? `Saldo usando a base capturada/informada: ${recordedTime(difference)}` : `Acima da jornada: ${recordedTime(-difference)}`),
-          h("p", { class: "vazio" }, "Capturado é estimativa por janelas de 15 minutos, sem somar sobreposições. Acumulado soma as frentes simultâneas. Rateado sugere até 50% a mais, limitado a 1h por código e ao saldo da jornada.")),
+      const balance = sheet.horas_dia - sheet.total;
+      const metric = (name, value, detail, symbol) => h("div", { class: "ficha-metrica" },
+        h("span", { class: "ficha-metrica-nome" }, icon(symbol), name),
+        h("strong", {}, recordedTime(value)), h("span", { class: "ficha-metrica-detalhe" }, detail));
+      const estimate = SNAPSHOT ? null : await estimateSection();
+      return h("section", { class: "ficha-dia" },
+        h("div", { class: "ficha-periodo" }, dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
+          h("span", { class: "ficha-jornada" }, `Jornada de ${recordedTime(sheet.horas_dia)}`)),
+        h("div", { class: "ficha-indicadores", "aria-label": "Resumo do dia" },
+          metric("Capturado", sheet.capturado_total, "Estimativa sem sobreposição", "ficha"),
+          metric("Rateio sugerido", sheet.total, "Demandas e projetos", "camadas"),
+          metric(balance >= 0 ? "Saldo após rateio" : "Acima da jornada", Math.abs(balance),
+            balance >= 0 ? "Para completar a jornada" : "Revise os tempos do dia", "alvo")),
         pendingWindows ? h("p", { class: "aviso" }, "Salve as correções de janelas para atualizar os totais.") : null,
-        h("p", { class: "vazio" }, `Rateio sugerido: ${recordedTime(sheet.total)} · Saldo após rateio: ${recordedTime(sheet.saldo_rateado ?? Math.max(0, sheet.horas_dia - sheet.total))}`),
-        rows.length ? h("table", {}, h("thead", {}, h("tr", {}, ["Tipo", "Código", "Capturado", ...(hasManual ? ["Informado"] : []), "Rateado", "Observação", ""].map((c, i) => h("th", { class: i >= 2 && i < (hasManual ? 5 : 4) ? "num" : null }, c)))),
-          h("tbody", {}, rows.map((r) => h("tr", {},
-            h("td", {}, r.rotulo), h("td", {}, code(r)),
-            h("td", { class: "num", title: !r.capturado ? "Sem captura individual neste código" : "Estimativa sem sobreposição" }, r.capturado ? recordedTime(r.capturado) : "Sem captura individual"),
-            hasManual ? h("td", { class: "num" }, recordedTime(r.informado)) : null, h("td", { class: "num" }, r.total ? recordedTime(r.total) : "—"),
-            h("td", {}, r.observacao, r.complemento ? h("details", {}, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null),
-            h("td", {}, (r.observacao || "").trim() ? h("button", { class: "botao", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar observação") : null)))))
-          : h("p", { class: "vazio" }, "Nenhuma hora que conta na ficha neste dia."),
-        h("h2", {}, "Extras (fora do total da ficha)"),
-        sheet.extras.length ? h("table", {}, h("tbody", {}, sheet.extras.map((e) => h("tr", {},
-          h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo)), h("td", { class: "num" }, recordedTime(e.capturado))))))
-          : h("p", { class: "vazio" }, "Nenhum extra."),
-        SNAPSHOT ? null : await estimateSection(),  // janelas, a seção mais longa, ficam sempre no fim
-        h("h2", {}, "Janelas de atividade"),
-        sheet.janelas && sheet.janelas.length ? h("table", {}, h("tbody", {}, sheet.janelas.map((j) => {
-          const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
-          const ignored = pending ? pending.ignorar : j.ignorar;
-          return h("tr", {}, h("td", {}, j.janela), h("td", {}, j.titulo),
-            h("td", {}, ignored ? "Desconsiderada" : "Considerada"),
-            h("td", {}, app.editando ? h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) },
-              ignored ? "Considerar" : "Desconsiderar") : null));
-        }))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."));
+        h("section", { class: "ficha-lancamentos", "aria-labelledby": "ficha-lancamentos-titulo" },
+          h("header", { class: "ficha-secao-topo" }, h("h2", { id: "ficha-lancamentos-titulo" }, "Demandas e projetos"),
+            h("span", { class: "contador" }, rows.length)),
+          rows.length ? h("div", { class: "ficha-tabela" + (hasManual ? " com-informado" : "") }, h("table", {},
+            h("thead", {}, h("tr", {}, ["Item", "Capturado", ...(hasManual ? ["Informado"] : []), "Rateado", "Observação"].map((c) =>
+              h("th", { scope: "col", class: ["Capturado", "Informado", "Rateado"].includes(c) ? "num" : null }, c)))),
+            h("tbody", {}, rows.map((r) => {
+              const task = sheetTask(r, estado.tarefas);
+              return h("tr", {},
+                h("td", { class: "ficha-item", "data-label": "Item" },
+                  h("div", { class: "ficha-item-origem" }, task ? stateIcon(task) : icon("camadas"), code(r, task), h("span", {}, r.rotulo)),
+                  task ? h("span", { class: "ficha-item-titulo" }, task.titulo) : null),
+                h("td", { class: "num ficha-tempo", "data-label": "Capturado" }, r.capturado ? recordedTime(r.capturado)
+                  : h("span", { class: "ficha-sem-captura", title: "Sem captura individual neste código" }, "Sem captura individual")),
+                hasManual ? h("td", { class: "num ficha-tempo", "data-label": "Informado" }, recordedTime(r.informado)) : null,
+                h("td", { class: "num ficha-tempo ficha-rateado", "data-label": "Rateado" }, r.total ? recordedTime(r.total) : "—"),
+                h("td", { class: "ficha-observacao", "data-label": "Observação" },
+                  (r.observacao || "").trim() ? h("div", { class: "ficha-observacao-texto" }, r.observacao)
+                    : h("span", { class: "ficha-sem-observacao" }, "Dispensa observação"),
+                  (r.observacao || "").trim() ? h("button", { class: "botao ficha-copiar", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar observação") : null,
+                  r.complemento ? h("details", { class: "ficha-complemento" }, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null));
+            })))) : h("div", { class: "estado-vazio" }, icon("ficha"), h("h3", {}, "Nenhuma hora que conta na ficha neste dia."),
+              h("p", {}, "Escolha outro dia ou confira os detalhes de atividade abaixo."))),
+        h("div", { class: "ficha-apoio" },
+          h("details", { class: "ficha-detalhes" },
+            h("summary", {}, icon("livro"), h("span", {}, "Como ler os tempos")),
+            h("div", { class: "ficha-detalhes-corpo" },
+              h("dl", { class: "ficha-definicoes" },
+                h("div", {}, h("dt", {}, "Capturado"), h("dd", {}, "Estimativa por janelas de 15 minutos. Frentes simultâneas compartilham a mesma janela, sem multiplicar o dia.")),
+                h("div", {}, h("dt", {}, "Rateado"), h("dd", {}, "Sugestão com até 50% de margem, limitada a 1h por código e ao saldo da jornada. Você decide o que apontar.")),
+                h("div", {}, h("dt", {}, "Acumulado"), h("dd", {}, `${recordedTime(sheet.acumulado_total)} somando frentes simultâneas e lançamentos existentes.`))),
+              h("p", { class: "ficha-nota" }, `Capturado na ficha: ${recordedTime(capturedSheet)} · Extras: ${recordedTime(capturedExtras)}`),
+              hasManual ? h("p", { class: "ficha-nota" }, `Informado: ${recordedTime(sheet.informado_total)} em lançamentos existentes.`) : null,
+              h("p", { class: "ficha-nota" }, difference >= 0 ? `Saldo usando a base capturada/informada: ${recordedTime(difference)}` : `Base acima da jornada: ${recordedTime(-difference)}`))),
+          h("details", { class: "ficha-detalhes" },
+            h("summary", {}, icon("laptop"), h("span", {}, "Extras"), h("span", { class: "ficha-detalhes-meta" }, `${sheet.extras.length} · ${recordedTime(capturedExtras)}`)),
+            h("div", { class: "ficha-detalhes-corpo" }, h("p", { class: "ficha-nota" }, "Atividades fora do total da ficha."),
+              sheet.extras.length ? h("ul", { class: "ficha-lista-extras" }, sheet.extras.map((e) => h("li", {},
+                h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo), h("strong", {}, recordedTime(e.capturado)))))
+                : h("p", { class: "vazio" }, "Nenhum extra."))),
+          h("details", { class: "ficha-detalhes ficha-janelas", open: app.editando || pendingWindows },
+            h("summary", {}, icon("historico"), h("span", {}, "Janelas de atividade"), h("span", { class: "ficha-detalhes-meta" }, (sheet.janelas || []).length)),
+            h("div", { class: "ficha-detalhes-corpo" },
+              h("p", { class: "ficha-nota" }, app.editando ? "Desconsidere as janelas que não representam trabalho e salve as alterações." : "Use Editar para revisar quais janelas entram nos tempos do dia."),
+              sheet.janelas && sheet.janelas.length ? h("div", { class: "ficha-tabela-apoio" }, h("table", {},
+                h("thead", {}, h("tr", {}, ["Horário", "Tarefa", "Estado", ...(app.editando ? ["Ação"] : [])].map((c) => h("th", { scope: "col" }, c)))),
+                h("tbody", {}, sheet.janelas.map((j) => {
+                  const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
+                  const ignored = pending ? pending.ignorar : j.ignorar;
+                  return h("tr", {}, h("td", {}, j.janela), h("td", {}, j.titulo),
+                    h("td", {}, h("span", { class: "selo neutro" }, ignored ? "Desconsiderada" : "Considerada")),
+                    app.editando ? h("td", {}, h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) }, ignored ? "Considerar" : "Desconsiderar")) : null);
+                })))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."))),
+          estimate ? h("details", { class: "ficha-detalhes" }, h("summary", {}, icon("alvo"), h("span", {}, "Calibração de estimativas")),
+            h("div", { class: "ficha-detalhes-corpo ficha-tabela-apoio" }, estimate)) : null));
     },
   },
   historico: {
