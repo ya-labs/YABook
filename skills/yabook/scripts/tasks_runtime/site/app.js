@@ -169,7 +169,7 @@ function badges(task, options = {}) {
   if (options.status) items.push(h("span", { class: "selo neutro forte", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.nivel && !options.semNivel) items.push(pill(LEVEL[task.nivel][0], LEVEL[task.nivel][1]));
   const ref = issueRef(task);
-  if (task.size && options.compacto) items.push(sizeNumber(task));
+  if (task.size && options.compacto && !options.semSize) items.push(sizeNumber(task));
   if (task.codigo && (!ref || task.codigo !== ref.full) && !options.semCodigo) {
     items.push(pill(task.codigo, "blue", { title: task.pessoal ? "Código" : "Código na ficha", icon: "repo" }));
   }
@@ -214,7 +214,7 @@ function segments(done, total) {
 
 function epicProgress(task) {
   const epic = (app.estado.epicos || []).find((e) => e.id === task.id);
-  return epic ? segments(epic.concluidas, epic.historias) : null;
+  return epic && epic.historias ? segments(epic.concluidas, epic.historias) : null;
 }
 
 const CHANGE_DATE = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo" });
@@ -267,7 +267,7 @@ function card(task, options = {}) {
   const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
   const parent = task.pai ? effectiveState().tarefas.find((t) => t.id === task.pai) : null;
   return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
-    title: task.descricao ? task.titulo + "\n\n" + task.descricao : null,
+    title: [task.titulo, task.descricao, changeText(changeStamp(task))].filter(Boolean).join("\n\n"),
     draggable: editable ? "true" : null,
     ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
     ondragend: editable ? () => { app.dragId = null; clearDrop(); document.querySelectorAll(".arrastando").forEach((n) => n.classList.remove("arrastando")); } : null,
@@ -281,13 +281,14 @@ function card(task, options = {}) {
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
     h("div", { class: "card-titulo" }, task.titulo),
-    h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: currentView() === "quadro", compacto: true, semNivel: true, semPai: true, semPessoal: true })),
+    h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: false, compacto: true, semNivel: true, semPai: true, semPessoal: true })),
     parent && !options.semPai ? h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
       onclick: (e) => { e.stopPropagation(); openTask(parent.id); }, onkeydown: (e) => e.stopPropagation() },
       parent.numero ? h("span", { class: "card-pai-numero" }, `@${parent.numero}`) : icon("relacoes"), h("span", {}, parent.titulo)) : null,
     task.nivel === "epico" ? epicProgress(task) : null,
-    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo" }, icon("seta"), h("span", { class: "passo-texto" }, task.proximo_passo)) : null,
-    lastChange(task));
+    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo", "aria-label": "Próximo passo" }, icon("seta"),
+      h("div", {}, h("strong", { class: "passo-rotulo" }, "Próximo passo"), h("span", { class: "passo-texto" }, task.proximo_passo))) : null,
+    h("footer", { class: "card-rodape" }, lastChange(task)));
 }
 
 function sizeNumber(task) {
@@ -689,60 +690,40 @@ function progress(epic) {
 
 const VIEWS = {
   hoje: {
-    titulo: "Hoje",
+    titulo: "Visão geral",
+    descricao: "Seu trabalho em curso e o que precisa de atenção.",
     icone: "hoje",
     render(estado) {
       const tasks = filtered(work(estado));
-      const doing = tasks.filter((t) => t.papel === "ativo").sort(byRecent);
-      const testing = tasks.filter((t) => t.papel === "validacao").sort(byRecent);
-      const late = estado.prazos.filter((t) => daysUntil(t.prazo) < 0).length;
-      app.contagem = doing.length + testing.length;
-      const list = (title, symbol, items, empty, render = row) => h("div", { class: "caixa" },
-        h("header", {}, icon(symbol), h("h3", {}, title), h("span", { class: "contador" }, String(items.length))),
-        items.length ? items.map(render) : h("div", { class: "corpo vazio" }, icon("check"), empty));
-      const full = (t) => estado.tarefas.find((x) => x.id === t.id) || t;
-      const heading = (title, symbol, count) => h("h2", { class: "titulo-secao" }, icon(symbol), title,
-        count === undefined ? null : h("span", { class: "contador" }, String(count)));
-      const blank = (symbol, text) => h("div", { class: "foco-vazio" }, icon(symbol), h("span", {}, text));
-      const activeEpics = doing.filter((t) => t.nivel === "epico").length;
-      const activeTasks = doing.length - activeEpics;
-      const metrics = [
-        ["Em andamento", doing.length, "alvo", "purple", "quadro", `${activeTasks} ${activeTasks === 1 ? "tarefa" : "tarefas"} · ${activeEpics} ${activeEpics === 1 ? "épico" : "épicos"}`],
-        ["Em validação", testing.length, "tarefa", "green", "quadro", ""],
-        ["Prazos próximos", estado.prazos.length, "calendario", late ? "red" : "orange", "prazos", late ? `${late} em atraso` : ""],
-        ["Perguntas", estado.perguntas.length, "pergunta", "blue", "perguntas", ""],
-      ];
-      // Hoje compacta: tudo numa tela; prazos e perguntas só ganham caixa quando há itens.
       const waiting = tasks.filter((t) => t.aguardando && !CLOSED.includes(t.papel)).sort((a, b) => waitingDays(b) - waitingDays(a));
+      const doing = tasks.filter((t) => t.papel === "ativo" && !t.aguardando).sort(byRecent);
+      const testing = tasks.filter((t) => t.papel === "validacao" && !t.aguardando).sort(byRecent);
+      app.contagem = doing.length + testing.length + waiting.length;
+      const full = (task) => estado.tarefas.find((t) => t.id === task.id) || task;
       const deadlines = filtered(estado.prazos.map(full)), questions = filtered(estado.perguntas.map(full));
-      const tag = (t) => t.numero ? h("span", { class: "numero-tarefa" }, "@" + t.numero) : null;
-      const line = (t, ...extra) => h("div", { class: "linha-caixa", title: t.descricao || null }, stateIcon(t), tag(t), titleLink(t), ...extra);
-      const epicLine = (t) => h("div", { class: "linha-caixa linha-epico", title: t.descricao || null }, stateIcon(t), tag(t), titleLink(t), epicProgress(t));
-      const taskLine = (t) => h("div", { class: "linha-dupla", title: t.descricao || null },
-        h("div", { class: "linha-caixa" }, stateIcon(t), tag(t), titleLink(t)),
-        t.proximo_passo ? h("div", { class: "linha-passo" }, icon("seta"), t.proximo_passo) : null);
-      const column = (title, symbol, items, empty, render) => h("section", { class: "caixa hoje-coluna" },
-        h("header", {}, icon(symbol), h("h3", {}, title), h("span", { class: "contador" }, String(items.length))),
-        h("div", { class: "hoje-itens" }, items.length ? items.map(render) : h("div", { class: "corpo vazio" }, icon("check"), empty)));
-      const stories = doing.filter((t) => t.nivel !== "epico"), epics = doing.filter((t) => t.nivel === "epico");
-      return h("section", { class: "visao-hoje compacta" },
-        h("div", { class: "numeros compactos" }, metrics.map(([name, total, symbol, color, target, detail]) =>
-          h("button", { class: `numero cor-${color}`, type: "button", title: `Abrir ${VIEWS[target].titulo}`, onclick: () => { location.hash = target; } },
-            h("span", { class: "numero-icone" }, icon(symbol)), h("b", {}, total), h("span", { class: "numero-nome" }, name),
-            detail ? h("small", {}, detail) : null))),
-        deadlines.length || questions.length ? h("div", { class: "hoje-alertas" },
-          deadlines.length ? column("Prazos", "calendario", deadlines, "", (t) => line(t, badges(t, { semNivel: true, semPai: true, semCodigo: true }).filter((n) => n.title === "Prazo"))) : null,
-          questions.length ? column("Perguntas para você", "pergunta", questions, "", (t) => line(t)) : null)
-          : h("p", { class: "hoje-tranquilo" }, icon("check"), "Sem prazos próximos · Sem perguntas abertas"),
-        h("div", { class: "hoje-colunas" },
-          column("Em andamento", "quadro", [...stories, ...epics], "Nada em andamento.", (t) => t.nivel === "epico" ? epicLine(t) : taskLine(t)),
-          column("Em validação", "tarefa", testing, "Nada em validação.", (t) => line(t, h("span", { class: "selo neutro" }, h("span", { class: `status papel-${t.papel}` }), columnName(t.coluna)))),
-          column("Aguardando", "ficha", waiting, "Nada aguardando terceiros.", (t) => h("div", { class: "linha-dupla", title: t.descricao || null },
-            h("div", { class: "linha-caixa" }, stateIcon(t), tag(t), titleLink(t)), h("div", { class: "linha-passo" }, waitingPill(t))))));
+      const line = (task, detail = null) => h("div", { class: "resumo-linha" },
+        h("div", { class: "resumo-linha-tarefa" }, stateIcon(task),
+          h("span", { class: "resumo-codigo" }, task.codigo || (task.numero ? "@" + task.numero : "")), titleLink(task)),
+        detail ? h("div", { class: "resumo-linha-detalhe" }, detail) : null);
+      const section = (title, items, empty, renderItem = line) => h("section", { class: "caixa resumo-secao" },
+        h("header", {}, h("h2", {}, title), h("span", { class: "contador" }, items.length)),
+        items.length ? h("div", { class: "resumo-lista" }, items.map((task) => renderItem(task)))
+          : h("p", { class: "resumo-vazio" }, empty));
+      return h("section", { class: "visao-hoje resumo-dia" },
+        h("div", { class: "resumo-trabalho" },
+          section("Em andamento", doing, "Nenhuma tarefa em andamento."),
+          section("Em validação", testing, "Nenhuma tarefa em validação.")),
+        h("aside", { class: "resumo-atencao", "aria-label": "Prazos, perguntas e retornos" },
+          section("Prazos próximos", deadlines, "Nenhum prazo próximo.", (task) => line(task,
+            h("span", { class: "resumo-prazo" + (daysUntil(task.prazo) < 0 ? " vencido" : "") },
+              icon("calendario"), fmtDate(task.prazo), daysUntil(task.prazo) < 0 ? " · Em atraso" : ""))),
+          section("Perguntas para você", questions, "Nenhuma pergunta pendente."),
+          waiting.length ? section("Aguardando retorno", waiting, "", (task) => line(task, task.aguardando)) : null));
     },
   },
   quadro: {
-    titulo: "Quadro",
+    titulo: "Quadro de tarefas",
+    descricao: "Organize o trabalho por etapa, do planejamento à conclusão.",
     icone: "quadro",
     opcoes(estado) {
       const epicFilter = pref("quadro.epico", "");
@@ -835,7 +816,7 @@ const VIEWS = {
     },
   },
   prazos: {
-    titulo: "Prazos",
+    titulo: "Calendário",
     descricao: "Calendário e agenda das tarefas com prazo.",
     icone: "prazos",
     render(estado) {
@@ -903,7 +884,7 @@ const VIEWS = {
     },
   },
   semana: {
-    titulo: "Semana",
+    titulo: "Atividade semanal",
     descricao: "Atividade por dia e totais da ficha. Abra um dia para ver os detalhes.",
     icone: "semana",
     async render(estado) {
@@ -942,7 +923,7 @@ const VIEWS = {
     },
   },
   ficha: {
-    titulo: "Ficha",
+    titulo: "Ficha de horas",
     descricao: "Compare os tempos do dia e revise seus lançamentos.",
     icone: "ficha",
     async render(estado) {
@@ -1030,7 +1011,7 @@ const VIEWS = {
     },
   },
   historico: {
-    titulo: "Histórico",
+    titulo: "Registro de alterações",
     descricao: "Ações do agente e do quadro, com as mudanças que ainda precisam de análise.",
     icone: "historico",
     async render(estado) {
@@ -1077,7 +1058,12 @@ const VIEWS = {
     },
   },
 };
-const ORDER = ["hoje", "quadro", "epicos", "prazos", "perguntas", "semana", "ficha", "historico"];
+const NAV_GROUPS = [
+  { titulo: "Trabalho", visoes: ["hoje", "quadro", "epicos"] },
+  { titulo: "Planejamento", visoes: ["prazos", "perguntas"] },
+  { titulo: "Horas e registros", visoes: ["semana", "ficha", "historico"] },
+];
+const ORDER = NAV_GROUPS.flatMap((group) => group.visoes);
 
 function deadlineMonth(iso, delta = 0) {
   const date = new Date(iso.slice(0, 7) + "-01T12:00:00Z");
@@ -1223,22 +1209,28 @@ function renderTabs() {
   const current = currentView();
   const counts = { perguntas: app.estado.perguntas.length, prazos: app.estado.prazos.length, historico: app.estado.eventos_pendentes };
   if (!nav.children.length) {
-    fill(nav, ORDER.map((name, index) => h("button", {
-      type: "button", class: "nav-item", title: `${VIEWS[name].titulo} (Alt+${index + 1})`, "data-view": name, "aria-keyshortcuts": `Alt+${index + 1}`,
-      onclick: () => { location.hash = name; }, onkeydown: (event) => {
-        let target = index;
-        if (event.key === "ArrowRight" || event.key === "ArrowDown") target = (index + 1) % ORDER.length;
-        else if (event.key === "ArrowLeft" || event.key === "ArrowUp") target = (index - 1 + ORDER.length) % ORDER.length;
-        else if (event.key === "Home") target = 0;
-        else if (event.key === "End") target = ORDER.length - 1;
-        else return;
-        event.preventDefault();
-        nav.children[target].focus();
-        location.hash = ORDER[target];
-      },
-    }, icon(VIEWS[name].icone), h("span", { class: "nav-texto" }, VIEWS[name].titulo), h("span", { class: "contador", "data-count": name }))));
+    fill(nav, NAV_GROUPS.map((group) => h("div", { class: "nav-grupo", role: "group", "aria-label": group.titulo },
+      h("span", { class: "nav-grupo-titulo", "aria-hidden": "true" }, group.titulo),
+      group.visoes.map((name) => {
+        const index = ORDER.indexOf(name);
+        return h("button", {
+          type: "button", class: "nav-item", title: `${VIEWS[name].titulo} (Alt+${index + 1})`, "data-view": name, "aria-keyshortcuts": `Alt+${index + 1}`,
+          onclick: () => { setMenuOpen(false); location.hash = name; document.getElementById("conteudo").focus({ preventScroll: true }); },
+          onkeydown: (event) => {
+            let target = index;
+            if (event.key === "ArrowRight" || event.key === "ArrowDown") target = (index + 1) % ORDER.length;
+            else if (event.key === "ArrowLeft" || event.key === "ArrowUp") target = (index - 1 + ORDER.length) % ORDER.length;
+            else if (event.key === "Home") target = 0;
+            else if (event.key === "End") target = ORDER.length - 1;
+            else return;
+            event.preventDefault();
+            nav.querySelectorAll("button[data-view]")[target].focus();
+            location.hash = ORDER[target];
+          },
+        }, icon(VIEWS[name].icone), h("span", { class: "nav-texto" }, VIEWS[name].titulo), h("span", { class: "contador", "data-count": name }));
+      }))));
   }
-  for (const button of nav.children) {
+  for (const button of nav.querySelectorAll("button[data-view]")) {
     const name = button.dataset.view;
     if (name === current) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
@@ -1322,7 +1314,7 @@ async function render() {
   const filter = document.querySelector(".filtro");
   filter.hidden = name === "semana" || name === "ficha";
   document.getElementById("filtro").setAttribute("aria-label", name === "historico" ? "Filtrar histórico" : "Filtrar tarefas");
-  document.getElementById("filtro").placeholder = name === "historico" ? "Buscar nas ações carregadas…" : "Buscar nesta visão…";
+  document.getElementById("filtro").placeholder = name === "historico" ? "Buscar nas ações carregadas…" : `Buscar em ${VIEWS[name].titulo.toLocaleLowerCase("pt-BR")}…`;
   const estado = effectiveState();
   fill(document.getElementById("opcoes"), VIEWS[name].opcoes ? VIEWS[name].opcoes(estado) : []);
   app.contagem = null;
@@ -1371,6 +1363,17 @@ async function render() {
 
 const THEMES = [["auto", "Tema: automático", "auto"], ["light", "Tema: claro", "sol"], ["dark", "Tema: escuro", "lua"]];
 
+function setMenuOpen(open, restoreFocus = false) {
+  const button = document.getElementById("menu-visoes");
+  app.menuOpen = open;
+  document.querySelector(".navegacao").classList.toggle("menu-aberto", open);
+  button.setAttribute("aria-expanded", String(open));
+  button.setAttribute("aria-label", open ? "Fechar menu de navegação" : "Abrir menu de navegação");
+  fill(button, icon(open ? "fechar" : "painel"), h("span", {}, "Menu"));
+  if (open) document.querySelector('#abas [aria-current="page"]')?.focus({ preventScroll: true });
+  if (restoreFocus) button.focus();
+}
+
 function renderNavigation() {
   let saved = app.navPreference;
   try { saved = localStorage.getItem("yabook.navegacao") || saved; } catch (error) { /* preferência só nesta página */ }
@@ -1381,6 +1384,24 @@ function renderNavigation() {
   button.title = compact ? "Expandir navegação" : "Compactar navegação";
   button.setAttribute("aria-label", button.title);
   fill(button, icon("painel"));
+  if (!matchMedia("(max-width: 760px)").matches) setMenuOpen(false);
+}
+
+const PALETTES = [["azul", "Azul", "#8bb5ff"], ["verde", "Verde", "#82db9c"], ["violeta", "Violeta", "#c2a3ff"], ["rosa", "Rosa", "#f59ac5"], ["ambar", "Âmbar", "#e8bf71"], ["turquesa", "Turquesa", "#78d7cc"], ["preto", "Preto", "#111111"]];
+
+function renderPalettes() {
+  const saved = pref("paleta", "azul");
+  const current = PALETTES.some(([id]) => id === saved) ? saved : "azul";
+  document.documentElement.dataset.palette = current;
+  fill(document.getElementById("paletas-opcoes"), ...PALETTES.map(([id, label, color]) => h("button", {
+    type: "button", "aria-pressed": String(id === current),
+    onclick: () => {
+      setPref("paleta", id);
+      renderPalettes();
+      document.getElementById("paletas").open = false;
+      document.querySelector("#paletas summary").focus();
+    }
+  }, h("span", { class: "paleta-cor", style: `background:${color}`, "aria-hidden": "true" }), label)));
 }
 
 function renderTheme() {
@@ -1442,9 +1463,9 @@ function showShortcuts() {
   showPanel(h("h2", {}, "Atalhos de teclado"), h("p", { class: "vazio" }, "Disponíveis quando você não estiver preenchendo um campo."),
     h("dl", { class: "atalhos" },
       h("dt", {}, h("kbd", {}, "/")), h("dd", {}, "Focar o filtro da visão"),
-      h("dt", {}, h("kbd", {}, "Alt"), " + ", h("kbd", {}, "1–8")), h("dd", {}, "Trocar de visão na ordem das abas"),
+      h("dt", {}, h("kbd", {}, "Alt"), " + ", h("kbd", {}, "1–8")), h("dd", {}, "Trocar de visão na ordem do menu"),
       h("dt", {}, h("kbd", {}, "←"), " / ", h("kbd", {}, "→"), " / ", h("kbd", {}, "↑"), " / ", h("kbd", {}, "↓")), h("dd", {}, "Trocar de visão com o foco na navegação"),
-      h("dt", {}, h("kbd", {}, "Home"), " / ", h("kbd", {}, "End")), h("dd", {}, "Ir à primeira ou à última aba"),
+      h("dt", {}, h("kbd", {}, "Home"), " / ", h("kbd", {}, "End")), h("dd", {}, "Ir à primeira ou à última visão"),
       h("dt", {}, h("kbd", {}, "Enter"), " / ", h("kbd", {}, "Espaço")), h("dd", {}, "Abrir o card em foco"),
       h("dt", {}, h("kbd", {}, "Esc")), h("dd", {}, "Fechar o painel e voltar ao item de origem"),
       h("dt", {}, h("kbd", {}, "?")), h("dd", {}, "Mostrar esta ajuda")));
@@ -1452,13 +1473,14 @@ function showShortcuts() {
 
 document.addEventListener("keydown", (event) => {
   if (event.defaultPrevented || event.isComposing) return;
+  if (event.key === "Escape" && app.menuOpen) { event.preventDefault(); setMenuOpen(false, true); return; }
   if (event.key === "Escape" && !document.getElementById("painel").hidden) { event.preventDefault(); closePanel(); return; }
   const target = event.target instanceof Element ? event.target : null;
   if (target && target.closest("input, textarea, select, [contenteditable]:not([contenteditable=false])")) return;
   if (event.ctrlKey || event.metaKey) return;
   if (event.altKey) {
     if (!event.shiftKey && /^[1-8]$/.test(event.key)) {
-      event.preventDefault(); closePanel(false); location.hash = ORDER[Number(event.key) - 1];
+      event.preventDefault(); setMenuOpen(false); closePanel(false); location.hash = ORDER[Number(event.key) - 1];
     }
     return;
   }
@@ -1475,6 +1497,20 @@ document.addEventListener("click", (event) => {
 });
 document.addEventListener("DOMContentLoaded", () => {
   renderTheme();
+  renderPalettes();
+  document.addEventListener("click", (event) => {
+    const picker = document.getElementById("paletas");
+    if (!picker.contains(event.target)) picker.open = false;
+  });
+  document.getElementById("paletas").addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault(); event.stopPropagation();
+      document.getElementById("paletas").open = false;
+      document.querySelector("#paletas summary").focus();
+    }
+  });
+  setMenuOpen(false);
+  document.getElementById("menu-visoes").addEventListener("click", () => setMenuOpen(!app.menuOpen));
   renderNavigation();
   document.getElementById("compactar").addEventListener("click", () => {
     const next = document.documentElement.dataset.nav === "compacta" ? "expandida" : "compacta";
@@ -1484,6 +1520,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderNavigation();
   });
   matchMedia("(max-width: 1190px)").addEventListener("change", renderNavigation);
+  matchMedia("(max-width: 760px)").addEventListener("change", renderNavigation);
   const skip = document.querySelector(".pular-conteudo");
   if (skip) skip.addEventListener("click", (event) => {
     event.preventDefault();
