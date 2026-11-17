@@ -1083,3 +1083,124 @@ button.selo { cursor: pointer; text-align: left; }
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
 body, body * { font-weight: 400 !important; }
 h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-topo h2 { font-weight: 500 !important; }
+
+/* Revisão #248 (P1): tokens comuns, paleta neutra opcional, atenção na Visão geral, épicos e celular. */
+:root { --esp-1: 4px; --esp-2: 8px; --esp-3: 12px; --esp-4: 16px; --esp-5: 24px; --raio-controle: 6px; --raio-card: 8px; --raio-painel: 12px; }
+:root[data-palette="neutro"] { --bg: #ffffff; --bg-inset: #f7f6fb; --bg-subtle: #f1eff8; --bg-hover: #e9e5f5; --bg-coluna: #f3f2f7; --bg-navegacao: #ffffff;
+  --scrollbar-trilho: #f1eff8; --scrollbar-thumb: #8f86a8; --scrollbar-hover: #6a5aa8; --borda: #c9c4d8; --borda-suave: #e3e0ec; --texto: #1f1d24; --texto-2: #5a5666;
+  --link: #5b47b0; --primario: #5b47b0; --primario-hover: #4a3896; --primario-texto: #ffffff; --botao: #ffffff; --botao-borda: #c9c4d8; --botao-hover: #f1eff8; --acento-suave: #ece7fb; }
+:root[data-palette="neutro"][data-theme="dark"] { --bg: #262626; --bg-inset: #181818; --bg-subtle: #202020; --bg-hover: #303030; --bg-coluna: #202020; --bg-navegacao: #202020;
+  --scrollbar-trilho: #202020; --scrollbar-thumb: #4a4a4a; --scrollbar-hover: #b9a3f5; --borda: #383838; --borda-suave: #2e2e2e; --texto: #f2f2f2; --texto-2: #b8b8b8;
+  --link: #b9a3f5; --primario: #b9a3f5; --primario-hover: #cbb9f8; --primario-texto: #181818; --botao: #262626; --botao-borda: #383838; --botao-hover: #303030; --acento-suave: #2f2a3d; }
+@media (prefers-color-scheme: dark) { :root[data-palette="neutro"]:not([data-theme="light"]) { --bg: #262626; --bg-inset: #181818; --bg-subtle: #202020; --bg-hover: #303030;
+  --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #4a4a4a; --scrollbar-hover: #b9a3f5; --borda: #383838; --borda-suave: #2e2e2e;
+  --texto: #f2f2f2; --texto-2: #b8b8b8; --link: #b9a3f5; --primario: #b9a3f5; --primario-hover: #cbb9f8; --primario-texto: #181818; --botao: #262626; --botao-borda: #383838;
+  --botao-hover: #303030; --acento-suave: #2f2a3d; } }
+
+/* Faixa de atenção no topo da Visão geral. */
+.faixa-atencao { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin-bottom: var(--esp-2); }
+.atencao-item { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border: 0; border-radius: var(--raio-controle);
+  color: var(--texto); background: var(--bg-subtle); font: inherit; font-size: 13px; cursor: pointer; }
+.atencao-item:hover { background: var(--bg-hover); }
+.atencao-item .icone svg { width: 14px; height: 14px; }
+.atencao-item.vencido { color: rgb(var(--c-red)); }
+.atencao-vazia { color: var(--texto-2); font-size: 13px; }
+.resumo-vazio { font-size: 12px; color: var(--texto-2); }
+
+/* Progresso contínuo com fração. */
+.progresso { display: flex; align-items: center; gap: var(--esp-2); font-size: 12px; color: var(--texto-2); }
+.barra-progresso { flex: 1; min-width: 60px; height: 6px; border-radius: 999px; background: var(--borda-suave); overflow: hidden; }
+.barra-progresso > i { display: block; height: 100%; border-radius: inherit; background: var(--link); }
+
+/* Épicos concluídos recolhidos, em linhas baixas. */
+.epicos-concluidos > summary { cursor: pointer; color: var(--texto-2); font-size: 13px; }
+.epicos-concluidos[open] > summary { margin-bottom: var(--esp-2); }
+.epico-concluido { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(120px, 200px); align-items: center; gap: var(--esp-2); }
+.epico-concluido .link { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Detalhes técnicos do painel. */
+.detalhes-tecnicos { display: inline-block; margin-left: var(--esp-2); font-size: 12px; color: var(--texto-2); }
+.detalhes-tecnicos > summary { cursor: pointer; display: inline; }
+.detalhes-tecnicos code { margin-left: 6px; font-size: 11px; }
+
+/* Tipografia comum: título da página 20 px, seções 15 px, metadados 12 px. */
+.cabecalho-pagina h1, header h1 { font-size: 20px; }
+.caixa > header h2, .caixa > header h3, .resumo-secao h2 { font-size: 15px; }
+
+/* Celular: atenção antes do acompanhamento, cabeçalho e filtros compactos. */
+.alternar-filtros { display: none; }
+@media (max-width: 760px) {
+  .resumo-dia { display: flex; flex-direction: column; }
+  .resumo-dia .faixa-atencao { order: 0; }
+  .resumo-dia .resumo-atencao { order: 1; }
+  .resumo-dia .resumo-trabalho { order: 2; }
+  .alternar-filtros:not([hidden]) { display: inline-flex; min-height: 44px; }
+  .barra-filtro:not(.filtros-abertos) #opcoes { display: none; }
+  .barra-filtro.filtros-abertos #opcoes { display: flex; flex-wrap: wrap; width: 100%; gap: var(--esp-2); }
+  .atencao-item { min-height: 44px; }
+  .epico-concluido { grid-template-columns: auto minmax(0, 1fr); }
+  .epico-concluido .progresso { grid-column: 2; }
+}
+
+/* Revisão #248 (P2/P3). */
+/* Quadro: coluna vazia em faixa estreita, nome na vertical. */
+.coluna.coluna-vazia { flex: 0 0 48px; min-width: 48px; }
+.coluna.coluna-vazia > header { flex-direction: column; align-items: center; gap: var(--esp-2); padding: var(--esp-3) 0; height: 100%; }
+.coluna.coluna-vazia > header .nome { writing-mode: vertical-rl; transform: rotate(180deg); flex: 0 0 auto; }
+/* Quadro em lista: etapas recolhíveis. */
+.quadro-lista { display: grid; gap: var(--esp-2); }
+.lista-etapa { border: 1px solid var(--borda-suave); border-radius: var(--raio-painel); background: var(--bg-coluna); }
+.lista-etapa > summary { display: flex; align-items: center; gap: var(--esp-2); min-height: 44px; padding: 0 var(--esp-3); cursor: pointer; font-size: 14px; }
+.lista-etapa > summary .contador { color: var(--texto-2); background: none; border: 0; padding: 0; }
+.lista-itens { display: grid; gap: var(--esp-2); padding: 0 var(--esp-2) var(--esp-2); }
+.lista-etapa > .resumo-vazio { margin: 0; padding: 0 var(--esp-3) var(--esp-3); }
+/* Calendário: só agenda ocupa a largura toda; mesma data mostra o dia uma vez. */
+.prazos-visao.so-agenda { display: block; max-width: 760px; }
+.prazo-item.mesma-data .prazo-data { visibility: hidden; }
+/* Perguntas: largura de leitura e no máximo duas colunas. */
+.perguntas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: var(--esp-3); max-width: 1080px; }
+.indicador-respondida { margin-left: auto; padding: 1px 8px; border-radius: 999px; font-size: 11px; color: rgb(var(--c-green)); background: color-mix(in srgb, rgb(var(--c-green)) 14%, var(--bg)); }
+.pergunta-card.respondida { background: var(--bg); }
+.pergunta-resposta > summary { display: flex; gap: 6px; align-items: baseline; cursor: pointer; color: var(--texto-2); }
+.resposta-resumo { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pergunta-resposta[open] .resposta-resumo { display: none; }
+.comando-secundario { font-size: 12px; color: var(--texto-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* Histórico: linhas compactas por dia. */
+.historico-dia { margin-bottom: var(--esp-4); }
+.historico-dia > h2 { display: flex; align-items: center; gap: var(--esp-2); font-size: 14px; margin: 0 0 var(--esp-2); color: var(--texto-2); }
+.historico-dia .historico-lista { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.evento-linha { display: grid; grid-template-columns: 20px 150px minmax(0, 1fr) auto auto auto; align-items: center; gap: var(--esp-2);
+  padding: 6px var(--esp-3); border-radius: var(--raio-controle); background: var(--bg); font-size: 13px; }
+.evento-linha:hover { background: var(--bg-hover); }
+.evento-linha .titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.evento-linha .evento-acao, .evento-linha .evento-origem, .evento-linha .evento-hora { color: var(--texto-2); font-size: 12px; white-space: nowrap; }
+.evento-linha .evento-icone .icone svg { width: 14px; height: 14px; }
+.indicador-pendente { padding: 1px 6px; border-radius: 999px; font-size: 11px; color: rgb(var(--c-orange)); background: color-mix(in srgb, rgb(var(--c-orange)) 14%, var(--bg)); }
+.evento-detalhes { grid-column: 2 / -1; font-size: 12px; color: var(--texto-2); }
+.evento-detalhes > summary { cursor: pointer; }
+.evento-detalhes p { margin: 4px 0 0; }
+/* Semana: resumo compacto, dias futuros discretos. */
+.semana-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-4); margin-bottom: var(--esp-3); }
+.semana-resumo .vazio { margin: 0; max-width: 60ch; font-size: 12px; }
+.legenda-barra { margin-left: var(--esp-3); font-size: 12px; color: var(--texto-2); }
+.dia-card.futuro { opacity: .55; }
+/* Ficha: durações alinhadas e uniformes; sem observação discreto. */
+.ficha-tempo, .num { font-variant-numeric: tabular-nums; }
+.ficha-sem-observacao { color: var(--texto-2); }
+.ficha-item-titulo { text-align: left; }
+/* Ajuda de atalhos em painel estreito. */
+.painel:has(dl.atalhos) { width: min(460px, 100%); }
+@media (max-width: 760px) {
+  .semana-grade { grid-template-columns: 1fr !important; }
+  .evento-linha { grid-template-columns: 20px minmax(0, 1fr) auto; }
+  .evento-linha .evento-acao, .evento-linha .evento-origem { display: none; }
+  .evento-linha .indicador-pendente { grid-column: 2; justify-self: start; }
+}
+/* Histórico compacto: neutraliza a linha do tempo antiga dentro das linhas. */
+.evento-linha .evento-icone { position: static; display: inline-flex; width: 20px; padding: 0; align-items: center; justify-content: center; }
+.evento-linha .evento-icone::after { display: none; }
+.evento-linha .evento-icone > .icone { width: 20px; height: 20px; border: 0; border-radius: 0; background: none; color: var(--texto-2); }
+.evento-linha.pendente .evento-icone > .icone { color: var(--link); background: none; }
+.evento-linha .evento-detalhes { grid-column: 3 / -1; }
+.evento-linha .evento-detalhes:not([open]) { display: none; }
+.evento-linha:hover .evento-detalhes, .evento-linha:focus-within .evento-detalhes { display: block; }
