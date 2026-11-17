@@ -204,12 +204,13 @@ function waitingPill(task) {
     { icon: "ficha", title: `Aguardando desde ${fmtDate(task.aguardando_desde || app.estado.hoje)}` });
 }
 
+// Barra contínua com fração em texto: épicos com 3 ou 17 histórias ficam comparáveis.
 function segments(done, total) {
-  const count = Math.min(total, 20);
-  const filled = total ? Math.round((done / total) * count) : 0;
+  const percent = total ? Math.round((done / total) * 100) : 0;
   return h("div", { class: "progresso", title: `${done} de ${total} histórias concluídas` },
-    h("span", {}, `${done} / ${total}`),
-    total ? h("div", { class: "segmentos" }, Array.from({ length: count }, (_, i) => h("i", { class: i < filled ? "feito" : null }))) : null);
+    h("span", {}, `${done} de ${total} histórias`),
+    total ? h("div", { class: "barra-progresso", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(done) },
+      h("i", { style: `width:${percent}%` })) : null);
 }
 
 function epicProgress(task) {
@@ -489,7 +490,7 @@ async function openTask(id) {
       h("div", { class: "faixa-estado" },
         stateLabel(task),
         parent ? h("button", { class: "selo neutro forte grande", type: "button", onclick: () => openTask(parent.id) },
-          stateIcon(parent), `Parent: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
+          stateIcon(parent), `Faz parte de: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
         task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
         ref ? h("span", { class: "selo neutro forte grande" }, icon("repo"), ref.full.split("#")[0]) : null,
         task.size ? h("span", { class: "selo neutro forte grande" }, sizeNumber(task), "Size") : null,
@@ -497,8 +498,9 @@ async function openTask(id) {
       h("div", { class: "painel-colunas" },
         h("div", { class: "painel-principal" },
           h("div", { class: "comentario" },
-            h("header", {}, h("strong", {}, label(data.tipo)), h("span", { class: "vazio" }, ` · ${data.id}`),
-              data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null),
+            h("header", {}, h("strong", {}, label(data.tipo)),
+              data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null,
+              h("details", { class: "detalhes-tecnicos" }, h("summary", {}, "Detalhes técnicos"), h("code", {}, data.id))),
             h("div", { class: "comentario-corpo markdown" },
               data.descricao ? h("p", { class: "descricao-tarefa" }, data.descricao) : h("p", { class: "vazio" }, "Sem descrição."),
               data.proximo_passo ? h("div", { class: "proximo-destaque" }, h("h3", {}, icon("seta"), "Próximo passo"), h("p", {}, data.proximo_passo)) : null,
@@ -746,16 +748,27 @@ const VIEWS = {
         h("header", {}, h("h2", {}, title), h("span", { class: "contador" }, items.length)),
         items.length ? h("div", { class: "resumo-lista" }, items.map((task) => renderItem(task)))
           : h("p", { class: "resumo-vazio" }, empty));
+      // Faixa de atenção: o que depende da pessoa aparece primeiro, também no celular.
+      const next = deadlines.slice().sort((a, b) => (a.prazo || "").localeCompare(b.prazo || ""))[0];
+      const jump = (id) => () => { const node = document.getElementById(id); if (node) node.scrollIntoView({ block: "start", behavior: "smooth" }); };
+      const attention = [
+        questions.length ? h("button", { type: "button", class: "atencao-item", onclick: jump("secao-perguntas") }, icon("pergunta"), `${questions.length} pergunta${questions.length > 1 ? "s" : ""}`) : null,
+        waiting.length ? h("button", { type: "button", class: "atencao-item", onclick: jump("secao-aguardando") }, icon("ficha"), `${waiting.length} aguardando retorno`) : null,
+        next ? h("button", { type: "button", class: "atencao-item" + (daysUntil(next.prazo) < 0 ? " vencido" : ""), onclick: jump("secao-prazos") }, icon("calendario"), `próximo prazo ${fmtDate(next.prazo)}`) : null,
+      ].filter(Boolean);
+      const withId = (id, node) => { if (node) node.id = id; return node; };
       return h("section", { class: "visao-hoje resumo-dia" },
+        h("div", { class: "faixa-atencao", role: "navigation", "aria-label": "O que precisa de você" },
+          attention.length ? attention : h("span", { class: "atencao-vazia" }, "Nada pendente com você.")),
         h("div", { class: "resumo-trabalho" },
           section("Em andamento", doing, "Nenhuma tarefa em andamento."),
           section("Em validação", testing, "Nenhuma tarefa em validação.")),
         h("aside", { class: "resumo-atencao", "aria-label": "Prazos, perguntas e retornos" },
-          section("Prazos próximos", deadlines, "Nenhum prazo próximo.", (task) => line(task,
+          withId("secao-perguntas", section("Perguntas para você", questions, "Nenhuma pergunta pendente.")),
+          waiting.length ? withId("secao-aguardando", section("Aguardando retorno", waiting, "", (task) => line(task, task.aguardando))) : null,
+          withId("secao-prazos", section("Prazos próximos", deadlines, "Nenhum prazo próximo.", (task) => line(task,
             h("span", { class: "resumo-prazo" + (daysUntil(task.prazo) < 0 ? " vencido" : "") },
-              icon("calendario"), fmtDate(task.prazo), daysUntil(task.prazo) < 0 ? " · Em atraso" : ""))),
-          section("Perguntas para você", questions, "Nenhuma pergunta pendente."),
-          waiting.length ? section("Aguardando retorno", waiting, "", (task) => line(task, task.aguardando)) : null));
+              icon("calendario"), fmtDate(task.prazo), daysUntil(task.prazo) < 0 ? " · Em atraso" : ""))))));
     },
   },
   quadro: {
@@ -827,14 +840,20 @@ const VIEWS = {
         .sort((a, b) => ROLE_ORDER.indexOf(a.papel) - ROLE_ORDER.indexOf(b.papel) || byRecent(a, b));
       const text = (app.busca || "").toLowerCase();
       const matches = (t) => !text || [t.titulo, t.codigo, t.id].join(" ").toLowerCase().includes(text);
-      const epics = estado.epicos.filter((e) => matches(e) || children(e.id).some(matches));
+      const all = estado.epicos.filter((e) => matches(e) || children(e.id).some(matches));
+      const finished = (e) => CLOSED.includes(roleOf(e.coluna));
+      const epics = all.filter((e) => !finished(e));  // ativos primeiro; concluídos ficam recolhidos no fim
+      const done = all.filter(finished);
       const loose = filtered(tasks.filter((t) => !t.pai && t.nivel !== "epico" && !CLOSED.includes(t.papel))).sort(byRecent);
-      app.contagem = epics.length;
+      app.contagem = all.length;
       const storyRow = (story, sub) => h("div", { class: "linha-caixa" + (sub ? " sub" : "") }, stateIcon(story), titleLink(story),
         badges(story, { semNivel: true, semPai: true, semPessoal: true, semData: true }),
         h("span", { class: "selo neutro" }, h("span", { class: `status papel-${story.papel}` }), columnName(story.coluna)));
+      const doneRow = (epic) => h("div", { class: "linha-caixa epico-concluido" }, stateIcon(tasks.find((t) => t.id === epic.id) || epic),
+        h("button", { class: "link", type: "button", onclick: () => openTask(epic.id) }, epic.titulo), segments(epic.concluidas, epic.historias));
       return h("section", {},
-        epics.length ? epics.map((epic) => {
+        !epics.length && done.length && !app.busca ? h("p", { class: "resumo-vazio" }, "Nenhum épico ativo.") : null,
+        epics.length || done.length ? epics.map((epic) => {
           const full = tasks.find((t) => t.id === epic.id) || epic;
           const stories = children(epic.id);
           const open = stories.filter((s) => !CLOSED.includes(s.papel));
@@ -849,6 +868,8 @@ const VIEWS = {
             open.map(withTasks),
             closed.length ? h("details", {}, h("summary", {}, `${closed.length} concluída(s) ou arquivada(s)`), closed.map(withTasks)) : null);
         }) : emptyState(app.busca ? "Nenhum épico com esse filtro" : "Nenhum épico", "Os épicos reúnem histórias e mostram o progresso da iniciativa."),
+        done.length ? h("details", { class: "caixa epicos-concluidos", open: app.busca ? true : null },
+          h("summary", {}, `Concluídos (${done.length})`), done.map(doneRow)) : null,
         loose.length ? [h("h2", {}, "Sem épico"), h("div", { class: "cards" }, loose.map(card))] : null);
     },
   },
@@ -1359,7 +1380,17 @@ async function render() {
   document.getElementById("filtro").setAttribute("aria-label", name === "historico" ? "Filtrar histórico" : "Filtrar tarefas");
   document.getElementById("filtro").placeholder = name === "historico" ? "Buscar nas ações carregadas…" : `Buscar em ${VIEWS[name].titulo.toLocaleLowerCase("pt-BR")}…`;
   const estado = effectiveState();
-  fill(document.getElementById("opcoes"), VIEWS[name].opcoes ? VIEWS[name].opcoes(estado) : []);
+  const options = VIEWS[name].opcoes ? VIEWS[name].opcoes(estado) : [];
+  fill(document.getElementById("opcoes"), options);
+  // No celular, filtros e ordenação ficam atrás de "Filtros"; a busca continua visível.
+  const toggle = document.getElementById("alternar-filtros");
+  if (toggle) {
+    toggle.hidden = !options.length;
+    toggle.onclick = () => {
+      const open = document.querySelector(".barra-filtro").classList.toggle("filtros-abertos");
+      toggle.setAttribute("aria-expanded", String(open));
+    };
+  }
   app.contagem = null;
   let loading;
   try {
@@ -1430,7 +1461,7 @@ function renderNavigation() {
   if (!matchMedia("(max-width: 760px)").matches) setMenuOpen(false);
 }
 
-const PALETTES = [["azul", "Azul", "#8bb5ff"], ["verde", "Verde", "#82db9c"], ["violeta", "Violeta", "#c2a3ff"], ["rosa", "Rosa", "#f59ac5"], ["ambar", "Âmbar", "#e8bf71"], ["turquesa", "Turquesa", "#78d7cc"], ["preto", "Preto", "#111111"]];
+const PALETTES = [["azul", "Azul", "#8bb5ff"], ["verde", "Verde", "#82db9c"], ["violeta", "Violeta", "#c2a3ff"], ["rosa", "Rosa", "#f59ac5"], ["ambar", "Âmbar", "#e8bf71"], ["turquesa", "Turquesa", "#78d7cc"], ["preto", "Preto", "#111111"], ["neutro", "Neutro", "#b9a3f5"]];
 
 function renderPalettes() {
   const saved = pref("paleta", "azul");

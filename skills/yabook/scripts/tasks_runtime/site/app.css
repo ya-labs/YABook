@@ -1083,3 +1083,61 @@ button.selo { cursor: pointer; text-align: left; }
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
 body, body * { font-weight: 400 !important; }
 h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-topo h2 { font-weight: 500 !important; }
+
+/* Revisão #248 (P1): tokens comuns, paleta neutra opcional, atenção na Visão geral, épicos e celular. */
+:root { --esp-1: 4px; --esp-2: 8px; --esp-3: 12px; --esp-4: 16px; --esp-5: 24px; --raio-controle: 6px; --raio-card: 8px; --raio-painel: 12px; }
+:root[data-palette="neutro"] { --bg: #ffffff; --bg-inset: #f7f6fb; --bg-subtle: #f1eff8; --bg-hover: #e9e5f5; --bg-coluna: #f3f2f7; --bg-navegacao: #ffffff;
+  --scrollbar-trilho: #f1eff8; --scrollbar-thumb: #8f86a8; --scrollbar-hover: #6a5aa8; --borda: #c9c4d8; --borda-suave: #e3e0ec; --texto: #1f1d24; --texto-2: #5a5666;
+  --link: #5b47b0; --primario: #5b47b0; --primario-hover: #4a3896; --primario-texto: #ffffff; --botao: #ffffff; --botao-borda: #c9c4d8; --botao-hover: #f1eff8; --acento-suave: #ece7fb; }
+:root[data-palette="neutro"][data-theme="dark"] { --bg: #262626; --bg-inset: #181818; --bg-subtle: #202020; --bg-hover: #303030; --bg-coluna: #202020; --bg-navegacao: #202020;
+  --scrollbar-trilho: #202020; --scrollbar-thumb: #4a4a4a; --scrollbar-hover: #b9a3f5; --borda: #383838; --borda-suave: #2e2e2e; --texto: #f2f2f2; --texto-2: #b8b8b8;
+  --link: #b9a3f5; --primario: #b9a3f5; --primario-hover: #cbb9f8; --primario-texto: #181818; --botao: #262626; --botao-borda: #383838; --botao-hover: #303030; --acento-suave: #2f2a3d; }
+@media (prefers-color-scheme: dark) { :root[data-palette="neutro"]:not([data-theme="light"]) { --bg: #262626; --bg-inset: #181818; --bg-subtle: #202020; --bg-hover: #303030;
+  --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #4a4a4a; --scrollbar-hover: #b9a3f5; --borda: #383838; --borda-suave: #2e2e2e;
+  --texto: #f2f2f2; --texto-2: #b8b8b8; --link: #b9a3f5; --primario: #b9a3f5; --primario-hover: #cbb9f8; --primario-texto: #181818; --botao: #262626; --botao-borda: #383838;
+  --botao-hover: #303030; --acento-suave: #2f2a3d; } }
+
+/* Faixa de atenção no topo da Visão geral. */
+.faixa-atencao { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin-bottom: var(--esp-2); }
+.atencao-item { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border: 0; border-radius: var(--raio-controle);
+  color: var(--texto); background: var(--bg-subtle); font: inherit; font-size: 13px; cursor: pointer; }
+.atencao-item:hover { background: var(--bg-hover); }
+.atencao-item .icone svg { width: 14px; height: 14px; }
+.atencao-item.vencido { color: rgb(var(--c-red)); }
+.atencao-vazia { color: var(--texto-2); font-size: 13px; }
+.resumo-vazio { font-size: 12px; color: var(--texto-2); }
+
+/* Progresso contínuo com fração. */
+.progresso { display: flex; align-items: center; gap: var(--esp-2); font-size: 12px; color: var(--texto-2); }
+.barra-progresso { flex: 1; min-width: 60px; height: 6px; border-radius: 999px; background: var(--borda-suave); overflow: hidden; }
+.barra-progresso > i { display: block; height: 100%; border-radius: inherit; background: var(--link); }
+
+/* Épicos concluídos recolhidos, em linhas baixas. */
+.epicos-concluidos > summary { cursor: pointer; color: var(--texto-2); font-size: 13px; }
+.epicos-concluidos[open] > summary { margin-bottom: var(--esp-2); }
+.epico-concluido { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(120px, 200px); align-items: center; gap: var(--esp-2); }
+.epico-concluido .link { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Detalhes técnicos do painel. */
+.detalhes-tecnicos { display: inline-block; margin-left: var(--esp-2); font-size: 12px; color: var(--texto-2); }
+.detalhes-tecnicos > summary { cursor: pointer; display: inline; }
+.detalhes-tecnicos code { margin-left: 6px; font-size: 11px; }
+
+/* Tipografia comum: título da página 20 px, seções 15 px, metadados 12 px. */
+.cabecalho-pagina h1, header h1 { font-size: 20px; }
+.caixa > header h2, .caixa > header h3, .resumo-secao h2 { font-size: 15px; }
+
+/* Celular: atenção antes do acompanhamento, cabeçalho e filtros compactos. */
+.alternar-filtros { display: none; }
+@media (max-width: 760px) {
+  .resumo-dia { display: flex; flex-direction: column; }
+  .resumo-dia .faixa-atencao { order: 0; }
+  .resumo-dia .resumo-atencao { order: 1; }
+  .resumo-dia .resumo-trabalho { order: 2; }
+  .alternar-filtros:not([hidden]) { display: inline-flex; min-height: 44px; }
+  .barra-filtro:not(.filtros-abertos) #opcoes { display: none; }
+  .barra-filtro.filtros-abertos #opcoes { display: flex; flex-wrap: wrap; width: 100%; gap: var(--esp-2); }
+  .atencao-item { min-height: 44px; }
+  .epico-concluido { grid-template-columns: auto minmax(0, 1fr); }
+  .epico-concluido .progresso { grid-column: 2; }
+}
