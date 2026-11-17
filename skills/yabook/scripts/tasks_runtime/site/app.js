@@ -1423,7 +1423,8 @@ async function render() {
   const changedView = app.view !== name;
   const oldBoard = !changedView && main.querySelector(".quadro");
   const scroll = oldBoard ? { x: oldBoard.scrollLeft, mainX: main.scrollLeft, mainY: main.scrollTop,
-    columns: [...oldBoard.querySelectorAll(".coluna")].map((n) => [n.dataset.coluna, n.querySelector(".itens").scrollTop]) } : null;
+    // Coluna vazia recolhida não tem área de itens: guarda só as que rolam.
+    columns: [...oldBoard.querySelectorAll(".coluna")].map((n) => [n.dataset.coluna, n.querySelector(".itens")?.scrollTop || 0]) } : null;
   app.view = name;
   main.classList.toggle("quadro-ativo", name === "quadro");
   main.setAttribute("aria-busy", "true");
@@ -1464,7 +1465,8 @@ async function render() {
         board.scrollLeft = scroll.x;
         for (const column of board.querySelectorAll(".coluna")) {
           const saved = scroll.columns.find(([id]) => id === column.dataset.coluna);
-          if (saved) column.querySelector(".itens").scrollTop = saved[1];
+          const list = column.querySelector(".itens");
+          if (saved && list) list.scrollTop = saved[1];
         }
       }
       main.scrollLeft = scroll.mainX; main.scrollTop = scroll.mainY;
