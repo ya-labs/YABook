@@ -1,12 +1,9 @@
 # YABook Tasks
 
-Use para `task` e `do task`. Acompanha tarefas pessoais num repositório de dados
-privado próprio, separado da memória. Fluxo e decisões da capacidade:
-`produto/planejamento/yabook-tasks.md` no repositório do YABook.
-
-Execute `python3 scripts/yabook_tasks.py <serviço>` relativo à skill instalada.
-A configuração da máquina fica na seção `tasks` de `~/.config/yabook/config.json`
-(ou `YABOOK_CONFIG`), fora do Git.
+Use para `task` e `do task`: tarefas pessoais num repositório de dados privado,
+separado da memória. Execute `python3 scripts/yabook_tasks.py <serviço>` relativo
+à skill; a máquina se configura na seção `tasks` de `~/.config/yabook/config.json`
+(ou `YABOOK_CONFIG`).
 
 ## Inicialização
 
@@ -25,9 +22,8 @@ A configuração da máquina fica na seção `tasks` de `~/.config/yabook/config
 
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
 aceito nos comandos; `numerar [--corrigir]`), `descricao` (o que é, 1–3 linhas),
-`size` (1–5, escala de `Size` das issues, obrigatório ao criar: o da issue
-vinculada ou estimado pelo agente; reestime só com mudança de escopo e registre
-o motivo; `size_manual` do quadro prevalece), `tipo` (`demanda`,
+`size` (1–5 na escala das issues, obrigatório ao criar: o da issue ou estimado;
+reestime só com mudança de escopo; `size_manual` prevalece), `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
 e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 `prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a
@@ -36,15 +32,12 @@ gravação mantém `aguardando_desde`), `sobre`, `resposta` e `refs`
 ficha; `quadro.yml`, colunas com papel `entrada`, `pronto`, `ativo`,
 `validacao`, `concluido` ou `arquivado`.
 
-Hierarquia: `nivel` (`epico`, `historia`, `tarefa`) e `pai` (id acima). Épico não
-tem pai, história fica sob épico e tarefa sob história; o filho sem `nivel`
-assume o nível abaixo do pai. `tipo` segue indicando a origem. `pessoal` vem
-calculado (nenhuma demanda ou projeto na cadeia de `pai`) e só é gravado quando
-a pessoa marca ou desmarca; `--unset pessoal` volta ao cálculo. Iniciativa
-pessoal não usa a numeração da empresa: o código exibido é a issue.
+Hierarquia: `nivel` (`epico` > `historia` > `tarefa`) e `pai`; filho sem `nivel`
+assume o nível abaixo do pai e `tipo` indica a origem. `pessoal` é calculado (sem
+demanda ou projeto na cadeia), gravado só quando a pessoa marca; `--unset pessoal`
+volta ao cálculo. Iniciativa pessoal exibe a issue como código.
 
-- Grave somente pela biblioteca do runtime, que valida, preserva `criada`,
-  atualiza `atualizada` e recusa escrita sobre revisão diferente da lida.
+- Grave só pela biblioteca do runtime (valida e recusa revisão diferente da lida).
 - Campos versionados usam texto técnico e genérico; cliente, base, ambiente e
   acessos vão ao complemento confidencial, só como `refs`.
 - A gravação recusa termos da lista local; não contorne movendo o texto para
@@ -68,6 +61,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task ask <pergunta>` | `ask [--sobre <id>]`; a pessoa responde com `answer <id> <resposta>` |
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
+| `task horas mover` | `horas mover --data --de --para [--janelas]`: janelas do dia para outra tarefa |
 | `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), com modo Editar; `--output <arquivo>`: cópia estática |
 | `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch (e copia o `Size` por `--size-da-issue`), no PR e no merge |
 | `task espelhar` | `espelhar [--simular]`: Status/Size no Project da issue, só avança (`tasks.espelho.status`) |
@@ -79,19 +73,16 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task analyze` | `analyze --id <evento> --resultado <texto>` |
 | `do task policy automatic\|manual` | `policy <modo>` |
 
-- `--prazo` aceita `AAAA-MM-DD`, `DD/MM[/AAAA]`, `hoje`, `amanhã`, `+Nd` e dia da
-  semana; prefira a data já resolvida quando a conversa for ambígua.
-- Ao ouvir prazo ou entrega na conversa, proponha `task add` ou `task edit`.
+- `--prazo`: `AAAA-MM-DD`, `DD/MM[/AAAA]`, `hoje`, `amanhã`, `+Nd` ou dia da
+  semana. Prazo citado na conversa vai para a tarefa.
 - Política `automatic`: escrita direta, informando o que foi gravado. `manual`:
   mostre a mudança e aplique só após `do task`. Consulta nunca exige `do`.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
 
 ## Captura da conversa
 
-`task capture [assunto]` registra o que a conversa tratou, sem a pessoa descrever.
-Levante da conversa (ou do resumo compactado), da base confidencial do código, das
-issues ligadas e das tarefas existentes; restrinja ao assunto quando informado.
-Monte o lote JSON no scratchpad:
+`task capture [assunto]` registra o que a conversa tratou, a partir dela (ou do
+resumo), da base confidencial, das issues e das tarefas. Lote JSON no scratchpad:
 
 - `itens`: um por projeto, demanda, especificação ou issue, com `tipo`, `titulo`,
   códigos, `issue`, `size`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
@@ -101,78 +92,55 @@ Monte o lote JSON no scratchpad:
 - `perguntas` (`texto`, `sobre`), `ativa` (chave) e `horas` (`tarefa`, `data`,
   `horas`, `obs`) só quando a conversa informar dia e quantidade.
 
-Sem `--apply`, o serviço devolve a prévia: criar, atualizar ou sem alteração. Ele
-casa com a tarefa existente por `id`, issue, código ou título; repetir o lote não
-duplica. Termo da lista local recusa o lote inteiro indicando o campo. Política
-`automatic`: aplique com `--apply` e informe o resultado; `manual`: mostre a
-prévia e aplique após `do task capture` com o `approval_hash`. A aplicação grava
-sob uma trava, com um evento, e torna `ativa` a tarefa da sessão.
+Sem `--apply`, devolve a prévia; casa por `id`, issue, código ou título e não
+duplica. Termo da lista local recusa o lote indicando o campo. `automatic` aplica
+com `--apply`; `manual` aplica após `do task capture` com o `approval_hash`. A
+aplicação torna `ativa` a tarefa da sessão.
 
 ## Captura e histórico
 
 O `hooks/hooks.json` do plugin serve Claude Code e Codex; não registre a
 captura também na configuração global do host, ou ela roda duas vezes.
 
-- `SessionStart` faz pull curto e entrega tarefa ativa sugerida, perguntas,
-  prazos e até 10 ações do quadro não analisadas. Confirme a tarefa ativa com a
-  pessoa uma vez por sessão e rode `start` com a escolhida; o hook vincula essa
-  escolha à sessão.
-- Antes de executar trabalho ou mudar para outro assunto identificável, o agente
-  roda `task start` na tarefa do chamado/issue correspondente. Reuse a confirmação
-  inicial; não pergunte a cada troca clara. Trabalho geral fica no épico. Sem
-  referência explícita, resolva pelo contexto; pergunte apenas quando ambíguo.
-  Não reconstrua horas anteriores a partir de eventos ou tamanho da tarefa.
-- Pedidos diretos como “corrija o chamado 1001” ou “teste @4” resolvem a tarefa
-  antes da janela, somente após a escolha inicial da sessão. Também aceitam
-  `dono/repo#n` e `issue #n` inequívoca. Múltiplas referências, tarefa inexistente
-  ou encerrada suspendem essa marca e pedem resolução pelo agente. Menções
-  incidentais e consultas administrativas não trocam o foco. Sessões são isoladas.
-- `UserPromptSubmit` marca a janela de 15 minutos da tarefa escolhida na sessão em
-  `horas/AAAA-MM-<maquina>.jsonl`, sem rede; comandos administrativos reconhecidos,
-  como `task review` e `commit msg`, não geram janela. Mensagem com
-  prazo, código ou conclusão gera um lembrete por janela; sem tarefa ativa, a
-  pergunta volta uma vez após algumas mensagens.
+- `SessionStart` faz pull curto e entrega tarefa sugerida, perguntas, prazos e até
+  10 ações do quadro pendentes. Confirme a tarefa uma vez e rode `start`.
+- Antes de trabalhar ou mudar de assunto identificável, rode `task start` na tarefa
+  do chamado/issue; reuse a confirmação inicial e pergunte só se ambíguo. Trabalho
+  geral fica no épico. `edit` numa tarefa abaixo da ativa troca a ativa sozinho;
+  em tarefa sem relação, o hook avisa. Não reconstrua horas por eventos ou tamanho.
+- Após a escolha inicial, pedido direto com uma referência inequívoca (código,
+  `@n`, `dono/repo#n`, `issue #n`) troca a tarefa antes da janela; várias
+  referências ou tarefa inexistente/encerrada suspendem a marca. Menção incidental
+  e consulta administrativa não trocam. Sessões são isoladas.
+- `UserPromptSubmit` marca a janela de 15 min da tarefa da sessão em
+  `horas/AAAA-MM-<maquina>.jsonl`, sem rede; comandos administrativos (`task
+  review`, `commit msg`) não geram janela. Prazo, código ou conclusão gera um
+  lembrete por janela; sem tarefa ativa, a pergunta volta após algumas mensagens.
 - `Stop` faz commit local quando há mudança; o push vai em lote, em segundo
   plano, a cada 30 minutos ou por `sync`.
-- Salvar no site grava pela mesma biblioteca, faz um commit e registra ações do
-  quadro; o resumo copiado do site pode ser colado ao agente.
-- Ações do agente entram em `eventos/` já analisadas. Ação do quadro fica
-  pendente até `analyze`: analise no fim da resposta quando o pedido atual não
-  tiver relação, aplique os ajustes decorrentes conforme a política e registre o
-  resultado em texto genérico. `review` também traz as pendentes.
+- Salvar no site grava pela mesma biblioteca, com commit e ações do quadro
+  pendentes até `analyze`: analise no fim da resposta, aplique os ajustes conforme
+  a política e registre em texto genérico. Ações do agente já entram analisadas.
 
 ## Ficha de horas
 
-- Use o código do próprio tipo ou do ancestral mais próximo; especificação usa
-  o da cadeia e, sem código, é pessoal. Iniciativa própria é `tarefa` ou `issue`.
-  Tarefa pessoal é extra; trabalho sem código vira linha `trabalho`. Horas do
-  épico permanecem no projeto; eventos ou tamanho não comprovam horas de filhos.
-- Na ficha, em Editar, desconsidere ou volte a considerar cada janela e salve;
-  a correção preserva o histórico e vale entre máquinas. Após salvar, a
-  captura e o rateio usam somente janelas consideradas.
-- A Ficha mostra `Capturado` (janelas diretas) e `Rateado` (sugestão para a
-  jornada) por demanda/projeto. Uma janela simultânea é dividida entre tarefas,
-  sem multiplicar o dia; horas gerais do épico permanecem no projeto.
-  Capturado é estimativa por janelas, não cronômetro.
-- O resumo mostra o total capturado no dia, o que entra na ficha, extras e a
-  diferença para a jornada. A pessoa escolhe os tempos ao preencher o timesheet
-  externo. Só há cópia da observação, nas linhas com observação não vazia.
-- A sugestão usa captura sem sobreposição e lançamentos existentes como base.
-  Acrescenta até 50%, no máximo 1h por código, limitada ao saldo de
-  `ficha.horas_dia` (8). Distribui a margem disponível na proporção desses
-  limites; não força o fechamento da jornada nem reduz bases acima dela.
-  `ficha.arredondamento` não arredonda esse rateio para horas inteiras.
-- Semana e Ficha mostram o mesmo capturado. Acumulado soma as frentes simultâneas
-  e lançamentos existentes e pode superar a duração do dia. Ambos são estimativas,
-  não cronômetro. Os lançamentos existentes também aparecem separados como Informado.
-- Demandas tocadas sob um projeto capturado, mas sem janelas próprias, aparecem
-  sem captura individual e sem horas sugeridas. Troque a tarefa ativa ao mudar
-  de chamado para melhorar as próximas estimativas.
-- Mostre o saldo da base e do rateio para decisão externa. Não há formulário
-  de atividades livres, preenchimento de saldo ou cópia de ficha/rateio no site.
-- Demanda dispensa observação. Nas demais linhas ela resume o dia para colar no
-  sistema de horas: `Desenvolvimento: item; item.` com o campo curto `ficha` de
-  cada tarefa trabalhada ou alterada no dia (ou o título) e as notas de `log`;
-  sem registro, datas nem números. Preencha `ficha` ao criar histórias.
-- A semana soma as sugestões diárias atuais. Arquivos de confirmações antigas
-  permanecem preservados e não participam dos cálculos.
+- Código do próprio tipo ou do ancestral mais próximo; especificação sem código e
+  tarefa pessoal são extras; trabalho sem código vira linha `trabalho`. Horas do
+  épico ficam no projeto; eventos ou tamanho não comprovam horas de filhos.
+- Na Ficha, em Editar, cada janela pode ser desconsiderada, considerada de novo ou
+  movida para outra tarefa (`task horas mover --data --de --para [--janelas]`).
+  Correções preservam o histórico, valem entre máquinas e não duplicam tempo.
+- `Capturado` = janelas diretas, sem sobreposição (janela simultânea é dividida);
+  `Acumulado` soma frentes simultâneas e lançamentos (`Informado`) e pode passar
+  do dia. São estimativas, não cronômetro; Semana e Ficha usam o mesmo capturado.
+- `Rateado` sugere até +50% sobre a base, no máximo 1 h por código, limitado ao
+  saldo de `ficha.horas_dia` (8), proporcional; não força a jornada nem reduz
+  bases maiores; `ficha.arredondamento` não se aplica ao rateio. A pessoa escolhe
+  os tempos no timesheet externo; o site mostra saldos, sem preencher ficha.
+- Demanda tocada sob projeto capturado, sem janela própria, aparece sem captura e
+  sem sugestão.
+- Demanda dispensa observação; nas demais linhas ela é `Desenvolvimento: item;
+  item.` com o campo `ficha` (ou o título) das tarefas do dia e as notas de `log`,
+  sem datas nem números; só há cópia da observação não vazia. Preencha `ficha` ao
+  criar histórias. A semana soma as sugestões diárias; confirmações antigas não
+  entram nos cálculos.
