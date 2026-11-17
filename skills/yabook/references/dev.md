@@ -7,12 +7,9 @@ Desenvolver até a validação, incluindo os pré-requisitos operacionais.
 `dev` é executivo, exceção explícita às prévias sem `do`: cria a issue necessária,
 prepara sua branch e implementa até a validação. Termina antes de commit, PR e
 merge, salvo autorização encadeada; não é gate exclusivo para editar.
-Com YABook Tasks, antes de trabalhar em outra demanda identificada na conversa,
-rode `task start` na tarefa correspondente. Reuse a confirmação inicial da sessão;
-pergunte apenas quando houver ambiguidade. Trabalho geral permanece no épico.
-
-Com YABook Tasks, branch, PR e merge avançam a tarefa da issue pelo hook; ao
-encerrar sem PR, rode `task issue --fase revisao --registro <resumo>`.
+Com YABook Tasks, rode `task start` ao mudar para outra demanda identificada (geral
+fica no épico); branch, PR e merge avançam a tarefa pelo hook, e sem PR use
+`task issue --fase revisao --registro <resumo>`.
 
 Em `auto`, implemente, valide e organize commits sem `do` ou checkpoint aprovado.
 Escolha issue, pacote ou ajuste pontual documentado; este dispensa issue/branch.
@@ -145,10 +142,8 @@ Inclua, quando aplicável:
 3. ações manuais em ordem;
 4. resultado esperado em cada verificação relevante.
 
-Diferencie testes executados pelo agente das verificações que ainda dependem da
-pessoa. Não repita comandos que já falharam como se fossem válidos e não invente
-um procedimento sem evidência no projeto. Quando não houver teste aplicável,
-informe o motivo explicitamente.
+Separe o que o agente executou do que depende da pessoa; não repita comando que
+falhou nem invente procedimento sem evidência; sem teste aplicável, diga o motivo.
 
 Também se aplica ao `dev` encadeado, dentro do escopo da issue.
 
