@@ -209,13 +209,13 @@ const NARROW = () => matchMedia("(max-width: 760px)").matches;
 function boardMode() { return pref("quadro.modo", NARROW() ? "lista" : "quadro"); }
 function calendarMode() { return pref("prazos.modo", NARROW() ? "agenda" : "mes"); }
 
-// Barra contínua com fração em texto: épicos com 3 ou 17 histórias ficam comparáveis.
+// Fração "feitas / total" e uma linha tracejada com um traço por história; os concluídos ficam preenchidos.
 function segments(done, total) {
-  const percent = total ? Math.round((done / total) * 100) : 0;
   return h("div", { class: "progresso", title: `${done} de ${total} histórias concluídas` },
-    h("span", {}, `${done} de ${total} histórias`),
-    total ? h("div", { class: "barra-progresso", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(done) },
-      h("i", { style: `width:${percent}%` })) : null);
+    h("span", { class: "progresso-fracao" }, `${done} / ${total}`),
+    total ? h("div", { class: "tracos-progresso", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(done),
+      "aria-label": `${done} de ${total} histórias concluídas` },
+      Array.from({ length: total }, (_, i) => h("i", { class: i < done ? "feito" : null }))) : null);
 }
 
 function epicProgress(task) {
