@@ -212,8 +212,16 @@ def command_chain(command):
 def prompt_grant(text, state, root):
     # Só comandos explícitos fora de exemplos/citações; memória nunca passa aqui.
     clean = unquoted_prompt(text)
+    # A prévia vale só para a mensagem que é comando YABook sem `do`; conversa comum
+    # e perguntas não herdam a marca da mensagem anterior.
+    state.update(read_only=False, previews=[])
+    selector = re.search(r"<command-name>\s*/yabook(?::yabook)?\s*</command-name>.*?<command-args>(.*?)</command-args>",
+                         text, re.S | re.I)
+    if selector:  # seletor de skills: argumentos em bloco próprio
+        clean = "$yabook " + " ".join(selector[1].split())
     commands = []
-    for line in clean.splitlines():
+    lines = clean.splitlines()
+    for position, line in enumerate(lines):
         line = line.lstrip()
         match = YABOOK_PREFIX.match(line)
         if not match:
@@ -221,15 +229,21 @@ def prompt_grant(text, state, root):
             # fora de inline code; a palavra yabook sozinha só no início da linha.
             match = INLINE_INVOCATION.search(re.sub(r"`[^`]*`", lambda m: " " * len(m[0]), line))
         if match:
-            for part in command_chain(line[match.end():]):
+            rest = line[match.end():]
+            if not rest.strip():  # invocação sozinha: argumentos na próxima linha preenchida
+                rest = next((l.strip() for l in lines[position + 1:] if l.strip()), "")
+            for part in command_chain(rest):
                 commands.append(YABOOK_PREFIX.sub("", part, count=1))
+            if rest and not line[match.end():].strip():
+                break
     if commands:
         # Um novo comando não herda autorização de outro objetivo.
         state.update(grant=None, merge_requested=False, read_only=True, previews=[])
     else:
         request = re.sub(r"`[^`]*`|\"[^\"]*\"|'[^']*'", "", clean).strip()
         if re.match(r"(?:como|qual|quais|por que|porque|o que|será que)\b", request, re.I):
-            state.update(grant=None, merge_requested=False, read_only=True, previews=[])
+            # Pergunta não concede execução, mas também não bloqueia a manutenção de tarefas.
+            state.update(grant=None, merge_requested=False)
         elif execution_request(request):
             state.update(grant={"kind": "context", "root": root, "request": request},
                          read_only=False, previews=[], merge_requested=False)
@@ -458,6 +472,8 @@ def inside(path, root):
 MEMORY_WRITES = {"bootstrap", "prepare", "discard", "apply", "publish", "recover", "init-apply", "sync",
                  "sync-apply", "source-add", "learn", "learn-triggers", "learning-policy", "clean-done", "migration-start",
                  "migration-checkpoint", "vectors-import"}
+# Manutenção sem `do`: registro, foco, perguntas, horas e captura (que respeita a política).
+TASK_MAINTENANCE = {"add", "edit", "start", "ask", "answer", "log", "horas", "analyze", "forget", "capture", "numerar"}
 TASK_WRITES = {"add", "edit", "forget", "start", "ask", "answer", "log", "sync", "policy", "analyze", "init-apply"}
 
 
@@ -511,6 +527,8 @@ def preview_write(name, parts, command):
                     cli_service(memory) and set(memory) & {"--save-before", "--output", "--serve"})
     tasks = service_call(parts, "yabook_tasks.py")
     if tasks:
+        if cli_service(tasks) in TASK_MAINTENANCE:
+            return False  # manter tarefas é rotina do método; não depende de `do`
         return bool(cli_service(tasks) in TASK_WRITES or
                     cli_service(tasks) and set(tasks) & {"--apply", "--confirm", "--serve", "--output"})
     if svn_mutation(parts):
@@ -840,7 +858,8 @@ def run(event):
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."
         if state.get("read_only"):
-            text += " Comando de prévia: somente leitura, sem persistir propostas, tarefas ou memória; não execute nem publique."
+            text += (" Comando de prévia: somente leitura, sem persistir propostas ou memória; não execute nem publique."
+                     " A manutenção de tarefas (task edit, start, ask, log) continua.")
         cfg = config()
         details = dict(result="sem_busca")
         if cfg.get("memory_root") and event.get("prompt", "").strip() and needs_memory(event["prompt"]):
