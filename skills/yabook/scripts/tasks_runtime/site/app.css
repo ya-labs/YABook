@@ -1045,3 +1045,5 @@ button.selo { cursor: pointer; text-align: left; }
 @media (max-width: 760px) {
   .navegacao-conexao { display: none; }
 }
+.janela-acoes { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.janela-acoes select { max-width: 220px; }

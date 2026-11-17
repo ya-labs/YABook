@@ -79,6 +79,39 @@ def set_active(store, session, identifier):
     return state
 
 
+def follow_edit(store, cfg, session, identifier):
+    """Registro numa tarefa abaixo da ativa troca a ativa para ela; sem relação, só avisa.
+
+    Evita horas de uma história presas no épico quando o agente registra o andamento
+    com `edit --append` sem rodar `start`."""
+    current = active(store, session)
+    if not current or not identifier or identifier == current or not store.exists(current):
+        return ""
+    index = {t["data"]["id"]: t["data"] for t in store.list()}
+    task = index.get(identifier)
+    if not task or task.get("tipo") == "pergunta":
+        return ""
+
+    def chain(start):
+        seen, node = [], index.get(start, {}).get("pai")
+        while node and node not in seen:
+            seen.append(node)
+            node = index.get(node, {}).get("pai")
+        return seen
+
+    roles = {c["id"]: c["papel"] for c in store.columns()}
+    if current in chain(identifier) and roles.get(task.get("coluna")) not in ("concluido", "arquivado"):
+        from .commands import Tasks
+        Tasks(store, cfg).start(identifier, store.root / "local" / "ativa.json")
+        set_active(store, session, identifier)
+        return ("YABook Tasks: tarefa ativa trocada de %s para %s (registro abaixo da ativa); as próximas janelas vão para ela."
+                % (current, identifier))
+    if identifier in chain(current):
+        return ""  # registro no épico ou história acima da ativa é resumo, não troca de trabalho
+    return ("YABook Tasks: aviso: a tarefa ativa da sessão é %s, não %s. Se o trabalho mudou, rode task start %s."
+            % (current, identifier, identifier))
+
+
 def suggest(store, session):
     roles = {c["id"]: c["papel"] for c in store.columns()}
     tasks = {t["data"]["id"]: t["data"] for t in store.list() if t["data"].get("tipo") != "pergunta"}

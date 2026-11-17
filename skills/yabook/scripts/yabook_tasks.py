@@ -128,6 +128,12 @@ def build_parser():
     flow.add_argument("--size-da-issue", action="store_true", help="Copia o Size da issue no Project para a tarefa")
     mirror = sub.add_parser("espelhar", help="Publica papel e size das tarefas no GitHub Project da issue")
     mirror.add_argument("--simular", action="store_true", help="Mostra o que mudaria, sem gravar no Project")
+    hours = sub.add_parser("horas", help="Corrige horas capturadas: mover janelas de um dia entre tarefas")
+    hours.add_argument("acao", choices=["mover"])
+    hours.add_argument("--data", required=True, help="AAAA-MM-DD, DD/MM ou hoje")
+    hours.add_argument("--de", required=True, help="Tarefa de origem (id ou @n)")
+    hours.add_argument("--para", required=True, help="Tarefa de destino (id ou @n)")
+    hours.add_argument("--janelas", help="Inícios separados por vírgula (ex.: 09:00,09:15); padrão: todas do dia")
     sub.add_parser("estimativa", help="Size das tarefas concluídas comparado às horas registradas")
     number = sub.add_parser("numerar", help="Numera (@n) as tarefas sem número pela ordem de criação")
     number.add_argument("--corrigir", action="store_true", help="Renumera também os números repetidos")
@@ -257,6 +263,12 @@ def run(args):
     if args.command == "espelhar":
         from tasks_runtime import mirror
         return mirror.run(store, cfg, args.simular)
+    if args.command == "horas":
+        from tasks_runtime import sheet
+        from tasks_runtime.commands import parse_date
+        starts = {s.strip() for s in args.janelas.split(",") if s.strip()} if args.janelas else None
+        return sheet.move_windows(store, cfg.get("machine"), parse_date(args.data),
+                                  store.resolve(args.de), store.resolve(args.para), starts)
     if args.command == "estimativa":
         from tasks_runtime import estimate
         return estimate.compare(store)
