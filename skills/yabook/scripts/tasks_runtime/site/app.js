@@ -310,6 +310,7 @@ function cardKey(task) {
 
 function cardMeta(task, parent, options) {
   const lines = [], selos = [];
+  if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.prazo && !CLOSED.includes(task.papel)) {
     const days = daysUntil(task.prazo);
     lines.push(h("span", { class: "card-data" + (days < 0 ? " vencida" : days <= 2 ? " proxima" : ""), title: "Prazo" }, cardDate(task.prazo)));
@@ -819,11 +820,15 @@ const VIEWS = {
         (!epicFilter || (epicFilter === "-" ? !epicOf(t, map) : epicOf(t, map) === epicFilter)) &&
         (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
-      // Épico é hierarquia, não etapa: fica na página Épicos e no filtro "Nível: Épicos", não numa coluna própria.
-      const items = visible.filter((t) => t.nivel !== "epico" || levelFilter === "epico");
-      app.contagem = items.filter((t) => columns.some((c) => c.id === t.coluna)).length;
+      // Épicos ficam numa coluna própria no fim (ativos primeiro), com o status do fluxo em cada card.
+      const epics = visible.filter((t) => t.nivel === "epico" && columns.some((c) => c.id === t.coluna))
+        .sort((a, b) => CLOSED.includes(a.papel) - CLOSED.includes(b.papel) || boardOrder(a, b));
+      const items = visible.filter((t) => t.nivel !== "epico");
+      app.contagem = items.filter((t) => columns.some((c) => c.id === t.coluna)).length + epics.length;
+      const epicCards = () => epics.length ? epics.map((t) => card(t, { status: true, semNivel: true }))
+        : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum épico");
       if (boardMode() === "lista") {
-        return h("div", { class: "quadro-lista" }, columns.map((column) => {
+        return h("div", { class: "quadro-lista" }, [...columns.map((column) => {
           const cards = items.filter((t) => t.coluna === column.id).sort(boardOrder);
           const shown = closedPreview(column, cards);
           return h("details", { class: `lista-etapa papel-${column.papel}`, open: cards.length && !CLOSED.includes(column.papel) ? true : null },
@@ -831,8 +836,13 @@ const VIEWS = {
             cards.length ? h("div", { class: "lista-itens" }, shown.map((t) => card(t))) : h("p", { class: "resumo-vazio" }, "Nenhum item."),
             shown.length < cards.length ? h("button", { class: "botao exibir-todas", type: "button",
               onclick: () => { app.colunasAbertas = { ...(app.colunasAbertas || {}), [column.id]: true }; render(); } }, `Exibir todas (${cards.length})`) : null);
-        }));
+        }), h("details", { class: "lista-etapa lista-epicos" },
+          h("summary", {}, h("span", { class: "status" }), h("span", { class: "nome" }, "Épicos"), h("span", { class: "contador" }, String(epics.length))),
+          h("div", { class: "lista-itens" }, epicCards()))]);
       }
+      const epicColumn = h("div", { class: "coluna coluna-epicos", "data-coluna": "epicos" },
+        h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, "Épicos"), h("span", { class: "contador" }, String(epics.length))),
+        h("div", { class: "itens" }, epicCards()));
       return h("div", { class: "quadro" }, columns.map((column) => {
         const cards = items.filter((t) => t.coluna === column.id).sort(boardOrder);
         const shown = closedPreview(column, cards);
@@ -852,7 +862,7 @@ const VIEWS = {
             shown.length < cards.length ? h("button", { class: "botao exibir-todas", type: "button",
               onclick: () => { app.colunasAbertas = { ...(app.colunasAbertas || {}), [column.id]: true }; render(); } },
               `Exibir todas (${cards.length})`) : null));
-      }));
+      }), epicColumn);
     },
   },
   epicos: {

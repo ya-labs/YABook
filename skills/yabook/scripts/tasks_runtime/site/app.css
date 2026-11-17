@@ -1204,3 +1204,4 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .evento-linha .evento-detalhes { grid-column: 3 / -1; }
 .evento-linha .evento-detalhes:not([open]) { display: none; }
 .evento-linha:hover .evento-detalhes, .evento-linha:focus-within .evento-detalhes { display: block; }
+.card-meta > .card-status { display: flex; align-items: center; gap: 6px; }
