@@ -204,6 +204,11 @@ function waitingPill(task) {
     { icon: "ficha", title: `Aguardando desde ${fmtDate(task.aguardando_desde || app.estado.hoje)}` });
 }
 
+// Apresentação do quadro e do calendário: no celular, lista e agenda por padrão.
+const NARROW = () => matchMedia("(max-width: 760px)").matches;
+function boardMode() { return pref("quadro.modo", NARROW() ? "lista" : "quadro"); }
+function calendarMode() { return pref("prazos.modo", NARROW() ? "agenda" : "mes"); }
+
 // Barra contínua com fração em texto: épicos com 3 ou 17 histórias ficam comparáveis.
 function segments(done, total) {
   const percent = total ? Math.round((done / total) * 100) : 0;
@@ -708,6 +713,13 @@ function sheetTask(row, tasks = []) {
   return owners.size === 1 ? owners.values().next().value : null;
 }
 
+// Resumo em horas e minutos; a precisão em segundos fica no detalhe (title e tabelas).
+function summaryTime(value) {
+  if (value === undefined || value === null) return "—";
+  const minutes = Math.round(value * 60), whole = Math.floor(minutes / 60), rest = minutes % 60;
+  return [whole ? whole + "h" : "", rest ? rest + "min" : ""].filter(Boolean).join("") || "0min";
+}
+
 function recordedTime(value) {
   if (value === undefined || value === null) return "—";
   const seconds = Math.round(value * 3600), whole = Math.floor(seconds / 3600);
@@ -788,6 +800,9 @@ const VIEWS = {
             .map(([v, n]) => h("option", { value: v, selected: v === levelFilter }, n))),
         switchInput("Arquivadas", showArchived, (e) => { setPref("quadro.arquivadas", e.target.checked ? "1" : "0"); render(); }),
         switchInput("Só aguardando", pref("quadro.aguardando", "0") === "1", (e) => { setPref("quadro.aguardando", e.target.checked ? "1" : "0"); render(); }),
+        h("select", { "aria-label": "Apresentação", title: "Quadro ou lista agrupada por etapa",
+          onchange: (e) => { setPref("quadro.modo", e.target.value); render(); } },
+          [["quadro", "Quadro"], ["lista", "Lista"]].map(([value, text]) => h("option", { value, selected: boardMode() === value }, text))),
         h("select", { "aria-label": "Ordenar cards", title: "Em Última alteração, arraste entre colunas. Para reordenar na coluna, use Ordem manual.",
           onchange: (e) => { setPref("quadro.ordem", e.target.value); render(); } },
           [["recentes", "Última alteração"], ["manual", "Ordem manual"]].map(([value, text]) =>
@@ -804,17 +819,27 @@ const VIEWS = {
         (!epicFilter || (epicFilter === "-" ? !epicOf(t, map) : epicOf(t, map) === epicFilter)) &&
         (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
-      const epics = visible.filter((t) => t.nivel === "epico" && columns.some((c) => c.id === t.coluna))
-        .sort((a, b) => CLOSED.includes(a.papel) - CLOSED.includes(b.papel) || boardOrder(a, b));
-      const items = visible.filter((t) => t.nivel !== "epico");
-      app.contagem = items.filter((t) => columns.some((c) => c.id === t.coluna)).length + epics.length;
-      const epicColumn = h("div", { class: "coluna coluna-epicos", "data-coluna": "epicos" },
-        h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, "Épicos"), h("span", { class: "contador" }, String(epics.length))),
-        h("div", { class: "itens" }, epics.length ? epics.map((t) => card(t, { status: true, semNivel: true }))
-          : h("p", { class: "vazio", style: "text-align:center;font-size:12px" }, "Nenhum épico")));
+      // Épico é hierarquia, não etapa: fica na página Épicos e no filtro "Nível: Épicos", não numa coluna própria.
+      const items = visible.filter((t) => t.nivel !== "epico" || levelFilter === "epico");
+      app.contagem = items.filter((t) => columns.some((c) => c.id === t.coluna)).length;
+      if (boardMode() === "lista") {
+        return h("div", { class: "quadro-lista" }, columns.map((column) => {
+          const cards = items.filter((t) => t.coluna === column.id).sort(boardOrder);
+          const shown = closedPreview(column, cards);
+          return h("details", { class: `lista-etapa papel-${column.papel}`, open: cards.length && !CLOSED.includes(column.papel) ? true : null },
+            h("summary", {}, h("span", { class: `status papel-${column.papel}` }), h("span", { class: "nome" }, column.nome), h("span", { class: "contador" }, String(cards.length))),
+            cards.length ? h("div", { class: "lista-itens" }, shown.map((t) => card(t))) : h("p", { class: "resumo-vazio" }, "Nenhum item."),
+            shown.length < cards.length ? h("button", { class: "botao exibir-todas", type: "button",
+              onclick: () => { app.colunasAbertas = { ...(app.colunasAbertas || {}), [column.id]: true }; render(); } }, `Exibir todas (${cards.length})`) : null);
+        }));
+      }
       return h("div", { class: "quadro" }, columns.map((column) => {
         const cards = items.filter((t) => t.coluna === column.id).sort(boardOrder);
         const shown = closedPreview(column, cards);
+        if (!cards.length && !app.editando) {  // coluna vazia vira faixa estreita com nome e quantidade
+          return h("div", { class: `coluna coluna-vazia papel-${column.papel}`, "data-coluna": column.id, title: `${column.nome}: nenhum item` },
+            h("header", {}, h("span", { class: "status" }), h("span", { class: "nome" }, column.nome), h("span", { class: "contador" }, "0")));
+        }
         return h("div", { class: `coluna papel-${column.papel}`, "data-coluna": column.id,
           ondragover: app.editando ? indicateDrop : null,
           ondragleave: app.editando ? (e) => { if (!e.currentTarget.contains(e.relatedTarget)) clearDrop(); } : null,
@@ -827,7 +852,7 @@ const VIEWS = {
             shown.length < cards.length ? h("button", { class: "botao exibir-todas", type: "button",
               onclick: () => { app.colunasAbertas = { ...(app.colunasAbertas || {}), [column.id]: true }; render(); } },
               `Exibir todas (${cards.length})`) : null));
-      }), epicColumn);
+      }));
     },
   },
   epicos: {
@@ -877,6 +902,10 @@ const VIEWS = {
     titulo: "Calendário",
     descricao: "Calendário e agenda das tarefas com prazo.",
     icone: "prazos",
+    opcoes() {
+      return [h("select", { "aria-label": "Apresentação do calendário", onchange: (e) => { setPref("prazos.modo", e.target.value); render(); } },
+        [["mes", "Mês"], ["agenda", "Agenda"]].map(([value, text]) => h("option", { value, selected: calendarMode() === value }, text)))];
+    },
     render(estado) {
       const rows = deadlineTasks(filtered(work(estado)));
       app.contagem = rows.length;
@@ -886,7 +915,8 @@ const VIEWS = {
         { title: "Próximos 2 dias", icon: "calendario", class: "proximo", test: (days) => days >= 0 && days <= 2 },
         { title: "Mais adiante", icon: "prazos", class: "", test: (days) => days > 2 },
       ];
-      return h("section", { class: "prazos-visao" }, deadlineCalendar(rows, estado.hoje),
+      return h("section", { class: "prazos-visao" + (calendarMode() === "agenda" ? " so-agenda" : "") },
+        calendarMode() === "agenda" ? null : deadlineCalendar(rows, estado.hoje),
         h("section", { class: "prazos-lista", "aria-label": "Agenda de prazos" },
           h("div", { class: "prazos-agenda-topo" },
             h("h2", { id: "prazos-agenda-titulo", tabindex: "-1" }, app.prazoDia ? "Prazos de " + fmtDate(app.prazoDia) : "Todos os prazos"),
@@ -896,12 +926,13 @@ const VIEWS = {
             if (!items.length) return null;
             return h("section", { class: "prazo-grupo " + group.class },
               h("header", {}, h("h3", {}, icon(group.icon), group.title), h("span", { class: "contador" }, items.length)),
-              items.map((task) => {
+              items.map((task, index) => {
                 const days = daysUntil(task.prazo);
+                const sameDay = index > 0 && items[index - 1].prazo === task.prazo;  // mesma data: um cabeçalho só
                 const date = new Date(task.prazo + "T12:00:00");
                 const month = date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
                 const distance = days < 0 ? `${-days} dia${days === -1 ? "" : "s"} de atraso` : days === 0 ? "Hoje" : days === 1 ? "Amanhã" : `Em ${days} dias`;
-                return h("article", { class: "prazo-item " + group.class },
+                return h("article", { class: "prazo-item " + group.class + (sameDay ? " mesma-data" : "") },
                   h("time", { class: "prazo-data", datetime: task.prazo, "aria-label": fmtDate(task.prazo) },
                     h("strong", {}, task.prazo.slice(8, 10)), h("span", {}, month + (task.prazo.slice(0, 4) !== estado.hoje.slice(0, 4) ? " " + task.prazo.slice(0, 4) : ""))),
                   h("div", { class: "prazo-conteudo" }, h("div", { class: "prazo-titulo" }, stateIcon(task), titleLink(task)),
@@ -929,10 +960,13 @@ const VIEWS = {
       };
       const questionCard = (task, answered) => h("li", { class: "pergunta-card" + (answered ? " respondida" : "") },
         h("div", { class: "pergunta-topo" }, icon(answered ? "check" : "pergunta", answered ? "estado-aberto" : "estado-pergunta"),
-          h("h3", {}, task.titulo), answered ? pill("Respondida", "green") : null),
+          h("h3", {}, task.titulo), answered ? h("span", { class: "indicador-respondida" }, "Respondida") : null),
         about(task),
-        answered ? h("div", { class: "pergunta-resposta" }, icon("seta"), h("p", {}, task.resposta))
-          : h("details", { class: "passo" }, h("summary", {}, "Como responder"), h("code", {}, `task answer ${task.id} <resposta>`)));
+        answered ? h("details", { class: "pergunta-resposta" }, h("summary", {}, icon("seta"), h("span", { class: "resposta-resumo" }, task.resposta)), h("p", {}, task.resposta))
+          : h("details", { class: "passo" }, h("summary", {}, "Como responder"),
+            h("p", {}, `Responda ao agente mencionando esta pergunta${task.numero ? ` (@${task.numero})` : ""}.`),
+            h("p", { class: "comando-secundario" }, "Ou pela linha de comando: ", h("code", {}, `task answer ${task.id} <resposta>`), " ",
+              h("button", { class: "botao pequeno", type: "button", onclick: (e) => copy(`task answer ${task.id} `, e.currentTarget) }, icon("copiar"), "Copiar"))));
       return h("section", {},
         h("h2", {}, "Aguardando você", h("span", { class: "contador" }, open.length)),
         open.length ? h("ul", { class: "perguntas" }, open.map((t) => questionCard(t, false)))
@@ -953,11 +987,12 @@ const VIEWS = {
       const peak = Math.max(1, ...week.dias.map((d) => d.horas));
       return h("section", {},
         dayNav("semana", ref, 7, `Semana de ${fmtDate(week.inicio)}`),
-        h("div", { class: "numeros" }, h("div", { class: "numero" }, h("b", {}, recordedTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)"))),
-        h("p", { class: "vazio" }, `Atividade acumulada: ${recordedTime(accumulated)}. Soma as frentes simultâneas; capturado conta cada janela uma vez.`),
-        h("h2", {}, "Por dia"),
+        h("div", { class: "semana-resumo" },
+          h("div", { class: "numero" }, h("b", { title: recordedTime(total) }, summaryTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)")),
+          h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas; capturado conta cada janela uma vez.`)),
+        h("h2", {}, "Por dia", h("span", { class: "legenda-barra" }, "barra: atividade em relação ao dia mais ativo")),
         h("div", { class: "semana-grade" }, week.dias.map((day) => h("article", {
-          class: "dia-card" + (day.data === estado.hoje ? " hoje" : ""),
+          class: "dia-card" + (day.data === estado.hoje ? " hoje" : "") + (day.data > estado.hoje ? " futuro" : ""),
         },
           h("div", { class: "dia-topo" },
             h("button", { class: "link", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
@@ -970,7 +1005,7 @@ const VIEWS = {
           h("div", { class: "dia-barra", "aria-hidden": "true", title: "Atividade em relação ao dia mais ativo da semana" }, h("i", { style: `width:${Math.round(day.horas / peak * 100)}%` })),
           day.tarefas.length ? h("ul", { class: "dia-tarefas" }, day.tarefas.slice(0, 3).map((task) =>
             h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, recordedTime(task.horas)))))
-            : h("p", { class: "dia-vazio" }, "Sem atividade"),
+            : h("p", { class: "dia-vazio" }, day.data > estado.hoje ? "Ainda não chegou" : "Sem atividade"),
           day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
             onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))),
         h("section", { class: "totais-semana" }, h("h2", {}, "Rateio sugerido na semana"),
@@ -1000,13 +1035,13 @@ const VIEWS = {
       const balance = sheet.horas_dia - sheet.total;
       const metric = (name, value, detail, symbol) => h("div", { class: "ficha-metrica" },
         h("span", { class: "ficha-metrica-nome" }, icon(symbol), name),
-        h("strong", {}, recordedTime(value)), h("span", { class: "ficha-metrica-detalhe" }, detail));
+        h("strong", { title: recordedTime(value) }, summaryTime(value)), h("span", { class: "ficha-metrica-detalhe" }, detail));
       const estimate = SNAPSHOT ? null : await estimateSection();
       return h("section", { class: "ficha-dia" },
         h("div", { class: "ficha-periodo" }, dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
           h("span", { class: "ficha-jornada" }, `Jornada de ${recordedTime(sheet.horas_dia)}`)),
         h("div", { class: "ficha-indicadores", "aria-label": "Resumo do dia" },
-          metric("Capturado", sheet.capturado_total, "Estimativa sem sobreposição", "ficha"),
+          metric("Capturado", sheet.capturado_total, `${summaryTime(capturedSheet)} na ficha + ${summaryTime(capturedExtras)} extras`, "ficha"),
           metric("Rateio sugerido", sheet.total, "Demandas e projetos", "camadas"),
           metric(balance >= 0 ? "Saldo após rateio" : "Acima da jornada", Math.abs(balance),
             balance >= 0 ? "Para completar a jornada" : "Revise os tempos do dia", "alvo")),
@@ -1022,14 +1057,14 @@ const VIEWS = {
               return h("tr", {},
                 h("td", { class: "ficha-item", "data-label": "Item" },
                   h("div", { class: "ficha-item-origem" }, task ? stateIcon(task) : icon("camadas"), code(r, task), h("span", {}, r.rotulo)),
-                  task ? h("span", { class: "ficha-item-titulo" }, task.titulo) : null),
+                  task ? h("button", { class: "link ficha-item-titulo", type: "button", onclick: () => openTask(task.id) }, task.titulo) : null),
                 h("td", { class: "num ficha-tempo", "data-label": "Capturado" }, r.capturado ? recordedTime(r.capturado)
                   : h("span", { class: "ficha-sem-captura", title: "Sem captura individual neste código" }, "Sem captura individual")),
                 hasManual ? h("td", { class: "num ficha-tempo", "data-label": "Informado" }, recordedTime(r.informado)) : null,
                 h("td", { class: "num ficha-tempo ficha-rateado", "data-label": "Rateado" }, r.total ? recordedTime(r.total) : "—"),
                 h("td", { class: "ficha-observacao", "data-label": "Observação" },
                   (r.observacao || "").trim() ? h("div", { class: "ficha-observacao-texto" }, r.observacao)
-                    : h("span", { class: "ficha-sem-observacao" }, "Dispensa observação"),
+                    : h("span", { class: "ficha-sem-observacao", title: "Demanda dispensa observação" }, "—"),
                   (r.observacao || "").trim() ? h("button", { class: "botao ficha-copiar", type: "button", onclick: (e) => copy(r.observacao, e.currentTarget) }, icon("copiar"), "Copiar observação") : null,
                   r.complemento ? h("details", { class: "ficha-complemento" }, h("summary", {}, "Complemento local"), h("div", { class: "markdown" }, markdown(r.complemento))) : null));
             })))) : h("div", { class: "estado-vazio" }, icon("ficha"), h("h3", {}, "Nenhuma hora que conta na ficha neste dia."),
@@ -1099,24 +1134,31 @@ const VIEWS = {
       app.contagem = rows.length;
       return h("section", {},
         h("div", { class: "filtros" },
-          h("span", {}, icon("historico"), ` ${data.total} ações · ${data.pendentes} não analisadas`),
+          h("span", {}, icon("historico"), ` ${data.eventos.length} de ${data.total} ações carregadas · ${data.pendentes} não analisadas`),
           switchInput("Só não analisadas", onlyPending, (e) => { setPref("historico.pendentes", e.target.checked ? "1" : "0"); render(); }),
           h("label", {}, "Origem ", h("select", { onchange: (e) => { setPref("historico.origem", e.target.value); render(); } },
             [["", "Todas"], ["agente", "Agente"], ["quadro", "Quadro"]].map(([v, n]) => h("option", { value: v, selected: v === origin }, n))))),
-        rows.length ? h("ol", { class: "historico-lista", "aria-label": "Ações registradas" }, rows.map((event) => {
-          const action = actions[event.acao] || ["historico", event.acao];
-          const detail = eventDetail(event, titles);
-          const source = event.origem === "agente" ? "Agente" : event.origem === "quadro" ? "Quadro" : event.origem;
-          return h("li", { class: "evento" + (event.pendente ? " pendente" : "") },
-            h("div", { class: "evento-icone", title: action[1] }, icon(action[0])),
-            h("div", { class: "evento-corpo" },
-              h("div", { class: "evento-topo" }, h("strong", { title: event.acao }, action[1]),
-                event.pendente ? pill("Não analisada", "orange", { icon: "alerta" }) : null,
-                h("time", { class: "evento-hora", datetime: event.ts }, when(event.ts))),
-              event.tarefa ? h("button", { class: "link titulo", type: "button", onclick: () => openTask(event.tarefa) }, titles[event.tarefa] || event.tarefa)
-                : event.coluna ? h("span", {}, columnName(event.coluna)) : null,
-              h("div", { class: "evento-detalhe" }, source, detail ? " · " + detail : "")));
-        }))
+        // Linhas compactas agrupadas por dia: ação, tarefa, origem e horário; o detalhe fica recolhido.
+        rows.length ? Object.entries(rows.reduce((days, event) => {
+          const day = when(event.ts).split(" ")[0] || "Sem data";
+          (days[day] = days[day] || []).push(event);
+          return days;
+        }, {})).map(([day, events]) => h("section", { class: "historico-dia" },
+          h("h2", {}, day, h("span", { class: "contador" }, events.length)),
+          h("ol", { class: "historico-lista", "aria-label": "Ações de " + day }, events.map((event) => {
+            const action = actions[event.acao] || ["historico", event.acao];
+            const detail = eventDetail(event, titles);
+            const source = event.origem === "agente" ? "Agente" : event.origem === "quadro" ? "Quadro" : event.origem;
+            const target = event.tarefa ? h("button", { class: "link titulo", type: "button", onclick: () => openTask(event.tarefa) }, titles[event.tarefa] || event.tarefa)
+              : event.coluna ? h("span", { class: "titulo" }, columnName(event.coluna)) : h("span", { class: "titulo" });
+            return h("li", { class: "evento-linha" + (event.pendente ? " pendente" : "") },
+              h("span", { class: "evento-icone", title: action[1] }, icon(action[0])),
+              h("span", { class: "evento-acao", title: event.acao }, action[1]), target,
+              event.pendente ? h("span", { class: "indicador-pendente", title: "Não analisada" }, "não analisada") : null,
+              h("span", { class: "evento-origem" }, source),
+              h("time", { class: "evento-hora", datetime: event.ts }, when(event.ts).split(" ").slice(1).join(" ") || when(event.ts)),
+              detail ? h("details", { class: "evento-detalhes" }, h("summary", {}, "Detalhes"), h("p", {}, detail)) : null);
+          }))))
           : emptyState("Nenhuma ação com esses filtros", "Tente outra origem ou desmarque o filtro de ações não analisadas."),
         data.total > limit ? h("p", {}, h("button", { class: "botao", type: "button", onclick: () => { app.historicoLimite = limit + 200; render(); } }, "Carregar mais")) : null);
     },

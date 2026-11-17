@@ -1141,3 +1141,66 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
   .epico-concluido { grid-template-columns: auto minmax(0, 1fr); }
   .epico-concluido .progresso { grid-column: 2; }
 }
+
+/* Revisão #248 (P2/P3). */
+/* Quadro: coluna vazia em faixa estreita, nome na vertical. */
+.coluna.coluna-vazia { flex: 0 0 48px; min-width: 48px; }
+.coluna.coluna-vazia > header { flex-direction: column; align-items: center; gap: var(--esp-2); padding: var(--esp-3) 0; height: 100%; }
+.coluna.coluna-vazia > header .nome { writing-mode: vertical-rl; transform: rotate(180deg); flex: 0 0 auto; }
+/* Quadro em lista: etapas recolhíveis. */
+.quadro-lista { display: grid; gap: var(--esp-2); }
+.lista-etapa { border: 1px solid var(--borda-suave); border-radius: var(--raio-painel); background: var(--bg-coluna); }
+.lista-etapa > summary { display: flex; align-items: center; gap: var(--esp-2); min-height: 44px; padding: 0 var(--esp-3); cursor: pointer; font-size: 14px; }
+.lista-etapa > summary .contador { color: var(--texto-2); background: none; border: 0; padding: 0; }
+.lista-itens { display: grid; gap: var(--esp-2); padding: 0 var(--esp-2) var(--esp-2); }
+.lista-etapa > .resumo-vazio { margin: 0; padding: 0 var(--esp-3) var(--esp-3); }
+/* Calendário: só agenda ocupa a largura toda; mesma data mostra o dia uma vez. */
+.prazos-visao.so-agenda { display: block; max-width: 760px; }
+.prazo-item.mesma-data .prazo-data { visibility: hidden; }
+/* Perguntas: largura de leitura e no máximo duas colunas. */
+.perguntas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: var(--esp-3); max-width: 1080px; }
+.indicador-respondida { margin-left: auto; padding: 1px 8px; border-radius: 999px; font-size: 11px; color: rgb(var(--c-green)); background: color-mix(in srgb, rgb(var(--c-green)) 14%, var(--bg)); }
+.pergunta-card.respondida { background: var(--bg); }
+.pergunta-resposta > summary { display: flex; gap: 6px; align-items: baseline; cursor: pointer; color: var(--texto-2); }
+.resposta-resumo { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pergunta-resposta[open] .resposta-resumo { display: none; }
+.comando-secundario { font-size: 12px; color: var(--texto-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* Histórico: linhas compactas por dia. */
+.historico-dia { margin-bottom: var(--esp-4); }
+.historico-dia > h2 { display: flex; align-items: center; gap: var(--esp-2); font-size: 14px; margin: 0 0 var(--esp-2); color: var(--texto-2); }
+.historico-dia .historico-lista { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.evento-linha { display: grid; grid-template-columns: 20px 150px minmax(0, 1fr) auto auto auto; align-items: center; gap: var(--esp-2);
+  padding: 6px var(--esp-3); border-radius: var(--raio-controle); background: var(--bg); font-size: 13px; }
+.evento-linha:hover { background: var(--bg-hover); }
+.evento-linha .titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.evento-linha .evento-acao, .evento-linha .evento-origem, .evento-linha .evento-hora { color: var(--texto-2); font-size: 12px; white-space: nowrap; }
+.evento-linha .evento-icone .icone svg { width: 14px; height: 14px; }
+.indicador-pendente { padding: 1px 6px; border-radius: 999px; font-size: 11px; color: rgb(var(--c-orange)); background: color-mix(in srgb, rgb(var(--c-orange)) 14%, var(--bg)); }
+.evento-detalhes { grid-column: 2 / -1; font-size: 12px; color: var(--texto-2); }
+.evento-detalhes > summary { cursor: pointer; }
+.evento-detalhes p { margin: 4px 0 0; }
+/* Semana: resumo compacto, dias futuros discretos. */
+.semana-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-4); margin-bottom: var(--esp-3); }
+.semana-resumo .vazio { margin: 0; max-width: 60ch; font-size: 12px; }
+.legenda-barra { margin-left: var(--esp-3); font-size: 12px; color: var(--texto-2); }
+.dia-card.futuro { opacity: .55; }
+/* Ficha: durações alinhadas e uniformes; sem observação discreto. */
+.ficha-tempo, .num { font-variant-numeric: tabular-nums; }
+.ficha-sem-observacao { color: var(--texto-2); }
+.ficha-item-titulo { text-align: left; }
+/* Ajuda de atalhos em painel estreito. */
+.painel:has(dl.atalhos) { width: min(460px, 100%); }
+@media (max-width: 760px) {
+  .semana-grade { grid-template-columns: 1fr !important; }
+  .evento-linha { grid-template-columns: 20px minmax(0, 1fr) auto; }
+  .evento-linha .evento-acao, .evento-linha .evento-origem { display: none; }
+  .evento-linha .indicador-pendente { grid-column: 2; justify-self: start; }
+}
+/* Histórico compacto: neutraliza a linha do tempo antiga dentro das linhas. */
+.evento-linha .evento-icone { position: static; display: inline-flex; width: 20px; padding: 0; align-items: center; justify-content: center; }
+.evento-linha .evento-icone::after { display: none; }
+.evento-linha .evento-icone > .icone { width: 20px; height: 20px; border: 0; border-radius: 0; background: none; color: var(--texto-2); }
+.evento-linha.pendente .evento-icone > .icone { color: var(--link); background: none; }
+.evento-linha .evento-detalhes { grid-column: 3 / -1; }
+.evento-linha .evento-detalhes:not([open]) { display: none; }
+.evento-linha:hover .evento-detalhes, .evento-linha:focus-within .evento-detalhes { display: block; }
