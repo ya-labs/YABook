@@ -712,6 +712,27 @@ def tasks_issue_flow(event, session):
         record_stats("tasks.issue", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
 
 
+def tasks_followed(command, session):
+    """`task edit` numa história abaixo da ativa troca a ativa; em tarefa sem relação, avisa o agente."""
+    if not TASK_START.search(command):
+        return ""
+    try:
+        parts = shlex.split(command)
+        script = next((i for i, p in enumerate(parts) if Path(p).name == "yabook_tasks.py"), None)
+        rest = parts[script + 1:] if script is not None else []
+        if "edit" not in rest or rest.index("edit") + 1 >= len(rest):
+            return ""
+        from tasks_runtime import capture
+        cfg = config()
+        store, tasks_cfg = capture.open_store(cfg)
+        if store is None:
+            return ""
+        return capture.follow_edit(store, tasks_cfg, session, store.resolve(rest[rest.index("edit") + 1]))
+    except Exception as error:
+        record_stats("tasks.follow", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+        return ""
+
+
 def tasks_started(command, session):
     """`task start` ou `task capture --apply` pela CLI define a tarefa ativa desta sessão, conferida na máquina."""
     if not TASK_START.search(command):
@@ -875,11 +896,12 @@ def run(event):
             write_json(path, state)
         tasks_started(command, path.stem)
         tasks_issue_flow(event, path.stem)
+        followed = tasks_followed(command, path.stem)
         if LEARN.search(command):
             state["learned"] = True
             write_json(path, state)
             apply_learning_queue()
-        return {}
+        return context(event_name, followed) if followed else {}
     if event_name == "Stop":
         if state.get("read_only"):
             return {}

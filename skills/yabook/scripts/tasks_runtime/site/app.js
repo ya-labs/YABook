@@ -1001,10 +1001,16 @@ const VIEWS = {
                 h("thead", {}, h("tr", {}, ["Horário", "Tarefa", "Estado", ...(app.editando ? ["Ação"] : [])].map((c) => h("th", { scope: "col" }, c)))),
                 h("tbody", {}, sheet.janelas.map((j) => {
                   const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
-                  const ignored = pending ? pending.ignorar : j.ignorar;
-                  return h("tr", {}, h("td", {}, j.janela), h("td", {}, j.titulo),
+                  const ignored = pending && "ignorar" in pending ? pending.ignorar : j.ignorar;
+                  const target = pending && pending.para ? windowTargets().find((t) => t.id === pending.para) : null;
+                  return h("tr", {}, h("td", {}, j.janela), h("td", {}, target ? `${j.titulo} → ${target.titulo}` : j.titulo),
                     h("td", {}, h("span", { class: "selo neutro" }, ignored ? "Desconsiderada" : "Considerada")),
-                    app.editando ? h("td", {}, h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) }, ignored ? "Considerar" : "Desconsiderar")) : null);
+                    app.editando ? h("td", { class: "janela-acoes" },
+                      h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) }, ignored ? "Considerar" : "Desconsiderar"),
+                      h("select", { "aria-label": "Mover janela para outra tarefa", onchange: (e) => moveWindow(day, j, e.target.value) },
+                        h("option", { value: "" }, "Mover para…"),
+                        windowTargets().filter((t) => t.id !== j.tarefa)
+                          .map((t) => h("option", { value: t.id, selected: target && target.id === t.id }, (t.numero ? `@${t.numero} ` : "") + t.titulo)))) : null);
                 })))) : h("p", { class: "vazio" }, "Nenhuma janela registrada neste dia."))),
           estimate ? h("details", { class: "ficha-detalhes" }, h("summary", {}, icon("alvo"), h("span", {}, "Calibração de estimativas")),
             h("div", { class: "ficha-detalhes-corpo ficha-tabela-apoio" }, estimate)) : null));
@@ -1778,6 +1784,20 @@ function toggleWindow(day, entry, ignored) {
   const corrections = app.rascunho.correcoes || [];
   app.rascunho.correcoes = corrections.filter((c) => !(c.data === day && c.janela === entry.janela && c.tarefa === entry.tarefa));
   if (ignored !== entry.ignorar) app.rascunho.correcoes.push({ data: day, janela: entry.janela, tarefa: entry.tarefa, ignorar: ignored });
+  persistDraft();
+  render();
+}
+
+// Tarefas abertas que podem receber uma janela; sem estado completo, nenhuma.
+function windowTargets() {
+  try { return (effectiveState().tarefas || []).filter((t) => t.tipo !== "pergunta" && !CLOSED.includes(t.papel)); } catch (e) { return []; }
+}
+
+// Mover janela: correção reversível que leva a janela capturada para a tarefa certa, sem duplicar tempo.
+function moveWindow(day, entry, target) {
+  if (app.salvando) return;
+  app.rascunho.correcoes = (app.rascunho.correcoes || []).filter((c) => !(c.data === day && c.janela === entry.janela && c.tarefa === entry.tarefa));
+  if (target) app.rascunho.correcoes.push({ data: day, janela: entry.janela, tarefa: entry.tarefa, para: target });
   persistDraft();
   render();
 }

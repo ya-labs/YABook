@@ -67,7 +67,7 @@ def save(store, cfg, body):
             day = parse_date(item["data"])
             key = (item.get("janela"), item.get("tarefa"))
             available = {(r["janela"], r["tarefa"]) for r in sheet.window_records(store.root, day)[0]}
-            if key not in available or not isinstance(item.get("ignorar"), bool) or any((x["janela"], x["tarefa"]) == key for x in by_day.get(day, [])):
+            if key not in available or not isinstance(item.get("ignorar", False), bool) or any((x["janela"], x["tarefa"]) == key for x in by_day.get(day, [])):
                 raise ValueError("Correção de janela inválida ou desatualizada")
             by_day.setdefault(day, []).append(item)
         applied, seen = [], {e["id"] for e in events.read_all(store.root, months=1)}

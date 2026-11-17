@@ -52,13 +52,22 @@ def window_records(root, day):
                 key = (entry["janela"], entry["tarefa"])
                 order = (entry.get("ts", ""), entry.get("id", ""))
                 if key not in corrections or order > corrections[key][0]:
-                    corrections[key] = (order, entry["ignorar"])
+                    corrections[key] = (order, entry["ignorar"], entry.get("para") or None)
             elif kind == "manual":
                 manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
                 if entry.get("obs"):
                     notes.setdefault(entry["tarefa"], []).append(entry["obs"])
-    rows = [dict(janela=start, tarefa=task, ignorar=corrections.get((start, task), (None, False))[1])
-            for start, task in sorted(windows)]
+    # Correção "mover" leva a janela para outra tarefa sem duplicar: se o destino já tem
+    # a mesma janela, a de origem some. `origem` guarda a tarefa bruta para novas correções.
+    rows, seen = [], set()
+    for start, task in sorted(windows, key=lambda w: (w[0], (w[0], w[1]) in corrections and bool(corrections[w][2]), w[1])):
+        _, ignored, target = corrections.get((start, task), (None, False, None))
+        effective = target or task
+        if (start, effective) in seen or (target and (start, target) in windows):
+            continue
+        seen.add((start, effective))
+        rows.append(dict(janela=start, tarefa=effective, ignorar=ignored, **({"origem": task} if target else {})))
+    rows.sort(key=lambda r: (r["janela"], r["tarefa"]))
     return rows, manual, notes
 
 
@@ -77,22 +86,41 @@ def correct_windows(store, machine, day, corrections):
     """Acrescenta correções reversíveis; a chave representa a janela entre máquinas."""
     from .events import _machine
     with store.lock():
-        available = {(r["janela"], r["tarefa"]) for r in window_records(store.root, day)[0]}
-        seen = set()
+        available = {(r["janela"], r["tarefa"]): r for r in window_records(store.root, day)[0]}
+        seen, entries = set(), []
         for item in corrections:
             key = (item.get("janela"), item.get("tarefa"))
-            if key not in available or key in seen or not isinstance(item.get("ignorar"), bool):
+            row = available.get(key)
+            if row is None or key in seen or not isinstance(item.get("ignorar", row["ignorar"]), bool):
                 raise ValueError("Correção de janela inválida ou desatualizada")
             seen.add(key)
+            raw = row.get("origem", row["tarefa"])
+            target = item.get("para", row["tarefa"] if "origem" in row else None)
+            if target:
+                store.get(target)  # destino precisa existir
+            entries.append(dict(janela=item["janela"], tarefa=raw, ignorar=item.get("ignorar", row["ignorar"]),
+                                para=None if target == raw else target))
         path = Path(store.root, "horas", "%s-%s.jsonl" % (day[:7], _machine(machine)))
         path.parent.mkdir(exist_ok=True)
         with path.open("a", encoding="utf-8", newline="\n") as stream:
-            for item in corrections:
+            for item in entries:
                 entry = dict(tipo="correcao", data=day, janela=item["janela"], tarefa=item["tarefa"],
                              ignorar=item["ignorar"], ts=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="microseconds"),
-                             id=uuid.uuid4().hex)
+                             id=uuid.uuid4().hex, **({"para": item["para"]} if item["para"] else {}))
                 stream.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")) + "\n")
 
+
+
+def move_windows(store, machine, day, source, target, starts=None):
+    """Move as janelas de um dia de uma tarefa para outra (todas ou as indicadas)."""
+    if source == target:
+        raise ValueError("Origem e destino são a mesma tarefa")
+    store.get(target)
+    rows = [r for r in window_records(store.root, day)[0] if r["tarefa"] == source and (not starts or r["janela"] in starts)]
+    if not rows:
+        raise ValueError("Nenhuma janela de %s em %s" % (source, day))
+    correct_windows(store, machine, day, [dict(janela=r["janela"], tarefa=source, para=target) for r in rows])
+    return dict(data=day, de=source, para=target, janelas=[r["janela"] for r in rows])
 
 
 def captured_activity(windows):
