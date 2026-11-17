@@ -25,7 +25,7 @@ MAX_EVENTS = 10
 REASK_AFTER = 8
 RULES = ("Antes de trabalhar ou mudar de assunto, rode task start na tarefa correspondente; geral fica no épico. "
          "Reuse a escolha da sessão; pergunte só se ambíguo. Mantenha tarefas sem pedido: conclusão vira "
-         "task edit --append e próximo passo; dúvida vira task ask; prazo vai à tarefa; espera fora de QA usa "
+         "task edit --append e próximo passo; dúvida vira task ask, resposta vira task answer; prazo vai à tarefa; espera fora de QA usa "
          "--aguardando (retorno: --unset aguardando); fase move coluna. Criação leva --size da issue. "
          "Conversa sem registro: task capture. Na política automatic, nada disso pede do nem confirmação.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
@@ -249,6 +249,33 @@ def prompt_focus(store, text):
     return identifier, False
 
 
+_WORD = re.compile(r"[a-z0-9_]{4,}")
+_STOP = {"para", "como", "qual", "quando", "onde", "isso", "esse", "essa", "este", "esta", "pela", "pelo", "mais", "hoje",
+         "fica", "vale", "sobre", "analista", "proposta", "tarefa", "pergunta", "perguntas"}
+
+
+def answer_candidates(store, text, limit=3):
+    """Perguntas abertas que a mensagem parece responder: cita o @n ou repete termos específicos dela.
+
+    Só aponta candidatas; decidir se é resposta e gravar com `task answer` cabe ao agente."""
+    if not text or administrative(text):
+        return []
+    plain = _plain(text)
+    numbers = set(re.findall(r"@(\d+)", plain))
+    words = set(_WORD.findall(plain)) - _STOP
+    roles = {c["id"]: c["papel"] for c in store.columns()}
+    found = []
+    for task in store.list():
+        data = task["data"]
+        if data.get("tipo") != "pergunta" or data.get("resposta") or roles.get(data.get("coluna")) in ("concluido", "arquivado"):
+            continue
+        shared = words & (set(_WORD.findall(_plain(data.get("titulo", "")))) - _STOP)
+        if str(data.get("numero")) in numbers or len(shared) >= 3:
+            label = ("@%s " % data["numero"] if data.get("numero") else "") + data["id"]
+            found.append(label + " — " + data.get("titulo", "")[:60])
+    return found[:limit]
+
+
 def prompt(cfg, session, when=None, text=""):
     store, tasks_cfg = open_store(cfg)
     if store is None:
@@ -292,6 +319,10 @@ def prompt(cfg, session, when=None, text=""):
             state["lembrete"], changed = start, True
             lines.append("YABook Tasks: a mensagem cita prazo, código ou conclusão; ao responder, atualize a tarefa "
                          "correspondente (task edit, add ou ask) conforme a política.")
+    answered = answer_candidates(store, text)
+    if answered:
+        lines.append("YABook Tasks: a mensagem pode responder pergunta aberta: " + "; ".join(answered)
+                     + ". Se responder, grave com task answer <id> <resposta> sem pedir comando.")
     seen = set(state.get("avisados", []))
     fresh = [e for e in events.pending(store.root, months=1) if e["id"] not in seen]
     if fresh:

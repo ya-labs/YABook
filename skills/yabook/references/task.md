@@ -58,7 +58,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
 | `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
-| `task ask <pergunta>` | `ask [--sobre <id>]`; a pessoa responde com `answer <id> <resposta>` |
+| `task ask <pergunta>` | `ask [--sobre <id>]`; resposta dada na conversa: o agente grava `answer <id> <resposta>` |
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
 | `task horas mover` | `horas mover --data --de --para [--janelas]`: janelas do dia para outra tarefa |
