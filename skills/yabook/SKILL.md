@@ -28,6 +28,7 @@ Regras: [contexto.md](references/contexto.md).
 
 - Comandos de prévia sem `do`: só leitura, inclusive em `auto`. Pedido natural
   explícito autoriza seu objetivo; contexto não promove prévia a execução.
+  Tarefas em `automatic` nunca exigem `do`.
 - `dev` cria a issue necessária, prepara branch, implementa e valida;
   fora de `auto`, termina antes de commit/PR/merge/release.
 - `bypass` dispensa issue/branch só para a ação anexada; não autoriza Git.
