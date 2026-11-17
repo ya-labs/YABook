@@ -54,8 +54,13 @@ class CommandAuthorizationTest(unittest.TestCase):
         state = self.state("$yabook issue")
         for command in ("git add x", "git commit -m x", "gh issue create --title x",
                         "gh api graphql -f 'query=mutation { createIssue }'",
-                        "python3 yabook_tasks.py edit tarefa --titulo x"):
+                        "python3 yabook_tasks.py init-apply --plan x --approval-hash y",
+                        "python3 yabook_tasks.py policy manual"):
             self.assertTrue(self.denied(state, command), command)
+        for command in ("python3 yabook_tasks.py edit tarefa --append x", "python3 yabook_tasks.py start tarefa",
+                        "python3 yabook_tasks.py ask pergunta", "python3 yabook_tasks.py log tarefa 1",
+                        "python3 yabook_tasks.py horas mover --data hoje --de a --para b"):
+            self.assertFalse(self.denied(state, command), command)  # manutenção de tarefas não depende de `do`
         for name in ("apply_patch", "functions.apply_patch", "mcp__codex_apps__github_create_issue"):
             self.assertTrue(self.denied(state, name=name, args={"input": "patch"}), name)
         for command in ("rtk git status", "git diff", "git branch --show-current", "rg 'apply' yabook_memory.py",
@@ -63,6 +68,27 @@ class CommandAuthorizationTest(unittest.TestCase):
                         self.memory_call("apply --help"), "python3 yabook_tasks.py search edit",
                         "gh issue view 184", "gh api graphql -f 'query={ viewer { login } }'"):
             self.assertFalse(self.denied(state, command), command)
+
+    def test_preview_mark_does_not_stick_to_conversation_or_questions(self):
+        preview = self.state("$yabook issue")
+        self.assertTrue(preview["read_only"])
+        for prompt in ("funcionou o pf-2, encerrado", "o que eu tenho que conferir em casa?", "encerre o 156"):
+            state = self.state(prompt, dict(preview))
+            self.assertFalse(state["read_only"], prompt)
+            self.assertFalse(self.denied(state, "python3 yabook_tasks.py edit tarefa --append x"), prompt)
+            self.assertTrue(self.denied(state, "git commit -m x") or not state.get("grant"), prompt)
+        self.assertIsNone(self.state("o que falta?", self.state("pode commitar"))["grant"])  # pergunta não herda concessão
+
+    def test_skill_selector_arguments_are_read(self):
+        tagged = ("<command-message>yabook:yabook</command-message>\n<command-name>/yabook:yabook</command-name>\n"
+                  "<command-args>do commit & pr & merge & sync</command-args>")
+        typed = self.state("/yabook:yabook do commit & pr & merge & sync")
+        for prompt in (tagged, "/yabook:yabook\ndo commit & pr & merge & sync"):
+            state = self.state(prompt)
+            self.assertFalse(state["read_only"], prompt)
+            self.assertNotIn("help", state["previews"], prompt)
+            self.assertEqual((state["grant"], state["previews"]), (typed["grant"], typed["previews"]), prompt)
+            self.assertFalse(self.denied(state, "git commit -m x"), prompt)
 
     def test_natural_execution_is_authorized_without_do(self):
         for prompt in ("crie uma issue sobre X", "Por favor, crie uma issue", "$yabook crie uma issue",
