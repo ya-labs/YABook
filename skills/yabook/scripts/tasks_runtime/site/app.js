@@ -274,21 +274,58 @@ function card(task, options = {}) {
     onclick: () => openTask(task.id), onkeydown: (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(task.id); }
     } },
-    h("div", { class: "card-origem" }, stateIcon(task), h("span", { class: "origem-texto" }, origin(task)),
+    // Card compacto no padrão de quadro Kanban: título, uma linha de metadados e rodapé com chave e tamanho.
+    // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
+    h("div", { class: "card-titulo" }, task.titulo),
+    cardMeta(task, parent, options),
+    task.nivel === "epico" ? epicProgress(task) : null,
+    h("footer", { class: "card-rodape" },
+      h("span", { class: "card-chave" }, stateIcon(task), h("span", {}, cardKey(task))),
       h("span", { class: "card-sinais" },
-        task.nivel === "epico" ? signal("epicos", "Épico", "Épico") : null,
+        task.nivel === "epico" ? signal("epicos", "Épico") : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
-        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)),
-    h("div", { class: "card-titulo" }, task.titulo),
-    h("div", { class: "rotulos" }, badges(task, { ...options, confidencial: false, compacto: true, semNivel: true, semPai: true, semPessoal: true })),
-    parent && !options.semPai ? h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
+        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null,
+        task.size ? sizeNumber(task) : null)));
+}
+
+const CARD_DATE = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+function cardDate(day) {
+  return CARD_DATE.format(new Date(day + "T12:00:00Z"));
+}
+
+// Chave do card: @n e o código de origem (demanda, projeto ou issue), como a chave de um item no Kanban.
+function cardKey(task) {
+  const ref = issueRef(task);
+  const code = ref ? ref.full.split("/").pop() : task.codigo;
+  return [task.numero ? `@${task.numero}` : null, code].filter(Boolean).join(" · ") || label(task.tipo);
+}
+
+function cardMeta(task, parent, options) {
+  const lines = [], selos = [];
+  if (task.prazo && !CLOSED.includes(task.papel)) {
+    const days = daysUntil(task.prazo);
+    lines.push(h("span", { class: "card-data" + (days < 0 ? " vencida" : days <= 2 ? " proxima" : ""), title: "Prazo" }, cardDate(task.prazo)));
+  } else if (task.papel === "concluido" && task.atualizada) {
+    lines.push(h("span", { class: "card-data" }, "Concluída em " + cardDate(task.atualizada.slice(0, 10))));
+  }
+  if (task.aguardando && !CLOSED.includes(task.papel)) {
+    const days = waitingDays(task);
+    selos.push(h("span", { class: "card-espera" + (days >= 3 ? " longa" : ""),
+      title: `Aguardando: ${task.aguardando} (desde ${fmtDate(task.aguardando_desde || app.estado.hoje)})` },
+      icon("ficha"), h("span", {}, `Aguardando${days ? ` · ${days}d` : ""}`)));
+  }
+  if (parent && !options.semPai) {
+    // Só o código do pai (@n e projeto/demanda); o título fica no texto ao passar o mouse.
+    const parentCode = parent.codigo || parent.projeto || parent.demanda;
+    selos.push(h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
       onclick: (e) => { e.stopPropagation(); openTask(parent.id); }, onkeydown: (e) => e.stopPropagation() },
-      parent.numero ? h("span", { class: "card-pai-numero" }, `@${parent.numero}`) : icon("relacoes"), h("span", {}, parent.titulo)) : null,
-    task.nivel === "epico" ? epicProgress(task) : null,
-    task.proximo_passo && !CLOSED.includes(task.papel) ? h("div", { class: "card-passo", "aria-label": "Próximo passo" }, icon("seta"),
-      h("div", {}, h("strong", { class: "passo-rotulo" }, "Próximo passo"), h("span", { class: "passo-texto" }, task.proximo_passo))) : null,
-    h("footer", { class: "card-rodape" }, lastChange(task)));
+      icon(parent.nivel === "epico" ? "epicos" : "relacoes"),
+      h("span", { class: "card-pai-numero" }, [parent.numero ? `@${parent.numero}` : null, parentCode].filter(Boolean).join(" · "))));
+  }
+  if (selos.length) lines.push(h("div", { class: "card-selos" }, selos));
+  return lines.length ? h("div", { class: "card-meta" }, lines) : null;
 }
 
 function sizeNumber(task) {
