@@ -33,7 +33,10 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
 
     def test_recorded_time_preserves_fractional_minutes_from_concurrent_windows(self):
         self.assertEqual(self.evaluate("[.125, .375, 1.125, 0, null].map(recordedTime)", []),
-                         ["7min 30s", "22min 30s", "1h 7min 30s", "0min", "—"])
+                         ["7min 30s", "22min 30s", "1h 07min 30s", "0min", "—"])
+        # Resumo arredonda ao minuto com minutos em dois dígitos: "4h 45min", "1h 02min", "45min".
+        self.assertEqual(self.evaluate("[4.75, 1.0375, .75, 0].map(summaryTime)", []),
+                         ["4h 45min", "1h 02min", "45min", "0min"])
 
     def test_grouped_navigation_keeps_legacy_routes_and_shortcut_order(self):
         self.assertEqual(self.evaluate("ORDER", []),

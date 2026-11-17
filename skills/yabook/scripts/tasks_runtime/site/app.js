@@ -174,7 +174,7 @@ function badges(task, options = {}) {
     items.push(pill(task.codigo, "blue", { title: task.pessoal ? "Código" : "Código na ficha", icon: "repo" }));
   }
   if (task.pessoal && !options.semPessoal) items.push(pill("pessoal", "pink", { title: "Sem numeração da empresa" }));
-  if (task.prazo && !CLOSED.includes(task.papel)) {
+  if (task.prazo && !CLOSED.includes(task.papel) && !options.semPrazo) {
     const days = daysUntil(task.prazo);
     items.push(pill(fmtDate(task.prazo), days < 0 ? "red" : days <= 2 ? "orange" : "gray", { icon: "calendario", title: "Prazo" }));
   }
@@ -286,26 +286,35 @@ function card(task, options = {}) {
     cardMeta(task, parent, options),
     task.nivel === "epico" ? epicProgress(task) : null,
     h("footer", { class: "card-rodape" },
-      h("span", { class: "card-chave" }, stateIcon(task), h("span", {}, cardKey(task))),
+      h("span", { class: "card-chave" }, stateIcon(task), cardKey(task)),
       h("span", { class: "card-sinais" },
-        task.nivel === "epico" ? signal("epicos", "Épico") : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null,
         task.size ? sizeNumber(task) : null)));
 }
 
-const CARD_DATE = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const CARD_DATE = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: "UTC" });
+const FULL_DATE = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
+// Data curta nas listas ("27 nov"; ano só quando difere do atual); a completa fica no title e no detalhe.
 function cardDate(day) {
-  return CARD_DATE.format(new Date(day + "T12:00:00Z"));
+  const date = new Date(day + "T12:00:00Z");
+  const short = CARD_DATE.format(date).replace(/\s*de\s*/, " ").replace(".", "");
+  return day.slice(0, 4) === String(new Date().getFullYear()) ? short : `${short} ${day.slice(0, 4)}`;
 }
 
-// Chave do card: @n e o código de origem (demanda, projeto ou issue), como a chave de um item no Kanban.
+function fullDate(day) {
+  return FULL_DATE.format(new Date(day + "T12:00:00Z"));
+}
+
+// Chave do card: o código usado no trabalho em destaque e o @n como referência secundária.
 function cardKey(task) {
   const ref = issueRef(task);
   const code = ref ? ref.full.split("/").pop() : task.codigo;
-  return [task.numero ? `@${task.numero}` : null, code].filter(Boolean).join(" · ") || label(task.tipo);
+  const number = task.numero ? `@${task.numero}` : null;
+  if (!code) return h("span", { class: "card-codigo" }, number || label(task.tipo));
+  return [h("span", { class: "card-codigo" }, code), number ? h("span", { class: "card-numero" }, number) : null];
 }
 
 function cardMeta(task, parent, options) {
@@ -313,9 +322,9 @@ function cardMeta(task, parent, options) {
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.prazo && !CLOSED.includes(task.papel)) {
     const days = daysUntil(task.prazo);
-    lines.push(h("span", { class: "card-data" + (days < 0 ? " vencida" : days <= 2 ? " proxima" : ""), title: "Prazo" }, cardDate(task.prazo)));
+    lines.push(h("span", { class: "card-data" + (days < 0 ? " vencida" : days <= 2 ? " proxima" : ""), title: "Prazo: " + fullDate(task.prazo) }, cardDate(task.prazo)));
   } else if (task.papel === "concluido" && task.atualizada) {
-    lines.push(h("span", { class: "card-data" }, "Concluída em " + cardDate(task.atualizada.slice(0, 10))));
+    lines.push(h("span", { class: "card-data", title: "Concluída em " + fullDate(task.atualizada.slice(0, 10)) }, "Concluída em " + cardDate(task.atualizada.slice(0, 10))));
   }
   if (task.aguardando && !CLOSED.includes(task.papel)) {
     const days = waitingDays(task);
@@ -458,7 +467,7 @@ function stateLabel(task) {
   if (task.tipo === "pergunta") return h("span", { class: "estado-grande aberto" }, icon("pergunta"), task.resposta ? "Respondida" : "Pergunta");
   if (task.papel === "concluido") return h("span", { class: "estado-grande fechado" }, icon("fechado"), "Concluída");
   if (task.papel === "arquivado") return h("span", { class: "estado-grande arquivado" }, icon("arquivado"), "Arquivada");
-  return h("span", { class: "estado-grande aberto" }, icon("aberto"), "Aberta");
+  return h("span", { class: "estado-grande aberto", title: "Situação da tarefa; a etapa do fluxo aparece em Status" }, icon("aberto"), "Situação: aberta");
 }
 
 function sideSection(title, ...content) {
@@ -495,6 +504,11 @@ async function openTask(id) {
         h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar"))),
       h("div", { class: "faixa-estado" },
         stateLabel(task),
+        // Status do fluxo e prazo ao lado do título; o painel lateral não repete o prazo.
+        task.tipo !== "pergunta" ? h("span", { class: "selo neutro forte grande", title: "Status: etapa do fluxo" },
+          h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna)) : null,
+        data.prazo ? h("span", { class: "selo neutro forte grande" + (daysUntil(data.prazo) < 0 && !CLOSED.includes(task.papel) ? " vencido" : ""), title: "Prazo: " + fullDate(data.prazo) },
+          icon("calendario"), cardDate(data.prazo)) : null,
         parent ? h("button", { class: "selo neutro forte grande", type: "button", onclick: () => openTask(parent.id) },
           stateIcon(parent), `Faz parte de: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
         task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
@@ -526,19 +540,23 @@ async function openTask(id) {
             ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
           app.editando && data.tipo !== "pergunta" ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
         h("aside", { class: "painel-lateral" },
-          sideSection("Rótulos", h("div", { class: "rotulos" }, badges(task, { semPai: true, semCodigo: true, semData: true }))),
+          sideSection("Rótulos", h("div", { class: "rotulos" }, badges(task, { semPai: true, semCodigo: true, semData: true, semPrazo: true }))),
           sideSection("Campos",
             field("Status", h("span", { class: "selo neutro forte" }, h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna))),
             field("Tipo", label(data.tipo)),
             field("Nível", data.nivel ? LEVEL[data.nivel][0] : null),
             field("Código", task.codigo),
-            field("Prazo", data.prazo ? fmtDate(data.prazo) : null),
             field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null),
             field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null))),
           sideSection("Relacionamentos",
             parent ? [h("span", { class: "vazio" }, "Faz parte de"), h("div", { class: "relacao" }, stateIcon(parent), goTo(parent),
               epic && data.nivel !== "epico" ? h("span", { class: "contador" }, `${epic.concluidas} / ${epic.historias}`) : null)] : null,
-            (data.issue || []).length ? [h("span", { class: "vazio" }, "Issues"), (data.issue || []).map((i) => h("div", { class: "relacao" }, icon("aberto", "estado-aberto"), i))] : null))));
+            (data.issue || []).length ? [h("span", { class: "vazio" }, "Issues"), (data.issue || []).map((i) => h("div", { class: "relacao" }, icon("aberto", "estado-aberto"), i))] : null,
+            (() => {  // perguntas abertas desta tarefa, com acesso direto
+              const asked = (effectiveState().tarefas || []).filter((t) => t.tipo === "pergunta" && t.sobre === data.id && !t.resposta);
+              return asked.length ? [h("span", { class: "vazio" }, "Perguntas abertas"),
+                asked.map((q) => h("div", { class: "relacao" }, icon("pergunta"), goTo(q)))] : null;
+            })()))));
     panel.setAttribute("aria-busy", "false");
     focusPanel();
   } catch (error) {
@@ -714,18 +732,21 @@ function sheetTask(row, tasks = []) {
   return owners.size === 1 ? owners.values().next().value : null;
 }
 
-// Resumo em horas e minutos; a precisão em segundos fica no detalhe (title e tabelas).
+// Durações padronizadas: "4h 45min", "1h 02min", "45min". O resumo arredonda ao minuto;
+// o detalhe (recordedTime) mantém os segundos: "42min 30s", "1h 02min 30s".
 function summaryTime(value) {
   if (value === undefined || value === null) return "—";
   const minutes = Math.round(value * 60), whole = Math.floor(minutes / 60), rest = minutes % 60;
-  return [whole ? whole + "h" : "", rest ? rest + "min" : ""].filter(Boolean).join("") || "0min";
+  return whole ? `${whole}h ${String(rest).padStart(2, "0")}min` : `${rest}min`;
 }
 
 function recordedTime(value) {
   if (value === undefined || value === null) return "—";
   const seconds = Math.round(value * 3600), whole = Math.floor(seconds / 3600);
   const minutes = Math.floor(seconds % 3600 / 60), rest = seconds % 60;
-  return [whole ? whole + "h" : "", minutes ? minutes + "min" : "", rest ? rest + "s" : ""].filter(Boolean).join(" ") || "0min";
+  const parts = whole ? [whole + "h", String(minutes).padStart(2, "0") + "min"] : [minutes + "min"];
+  if (rest) parts.push(String(rest).padStart(2, "0") + "s");
+  return parts.join(" ");
 }
 
 function row(task) {
@@ -777,9 +798,17 @@ const VIEWS = {
           section("Em andamento", doing, "Nenhuma tarefa em andamento."),
           section("Em validação", testing, "Nenhuma tarefa em validação.")),
         h("aside", { class: "resumo-atencao", "aria-label": "Prazos, perguntas e retornos" },
-          withId("secao-perguntas", section("Perguntas para você", questions, "Nenhuma pergunta pendente.")),
+          // Até três perguntas; o restante fica na página Perguntas.
+          withId("secao-perguntas", (() => {
+            const box = section("Perguntas para você", questions.slice(0, 3), "Nenhuma pergunta pendente.");
+            if (questions.length > 3) {
+              box.querySelector("header .contador").textContent = String(questions.length);
+              box.append(h("a", { class: "link ver-todas", href: "#perguntas" }, `Ver todas (${questions.length})`));
+            }
+            return box;
+          })()),
           waiting.length ? withId("secao-aguardando", section("Aguardando retorno", waiting, "", (task) => line(task, task.aguardando))) : null,
-          withId("secao-prazos", section("Prazos próximos", deadlines, "Nenhum prazo próximo.", (task) => line(task,
+          withId("secao-prazos", section("Prazos: atrasados e próximos 2 dias", deadlines, "Nenhum prazo atrasado ou nos próximos 2 dias.", (task) => line(task,
             h("span", { class: "resumo-prazo" + (daysUntil(task.prazo) < 0 ? " vencido" : "") },
               icon("calendario"), fmtDate(task.prazo), daysUntil(task.prazo) < 0 ? " · Em atraso" : ""))))));
     },
@@ -894,12 +923,16 @@ const VIEWS = {
           const open = stories.filter((s) => !CLOSED.includes(s.papel));
           const closed = stories.filter((s) => CLOSED.includes(s.papel));
           const withTasks = (story) => [storyRow(story), children(story.id).map((sub) => storyRow(sub, true))];
-          return h("div", { class: "caixa" },
-            h("header", {}, stateIcon(full), h("button", { class: "link", type: "button", onclick: () => openTask(epic.id) }, h("h3", {}, epic.titulo)),
+          // Cada épico ativo é recolhível; o resumo mostra título, status, prazo e progresso.
+          const collapsed = (app.epicosRecolhidos || {})[epic.id];
+          return h("details", { class: "caixa epico-ativo", open: collapsed ? null : true,
+            ontoggle: (e) => { app.epicosRecolhidos = { ...(app.epicosRecolhidos || {}), [epic.id]: !e.currentTarget.open }; } },
+            h("summary", { class: "epico-resumo" }, stateIcon(full),
+              h("button", { class: "link", type: "button", onclick: (e) => { e.preventDefault(); openTask(epic.id); } }, h("h3", {}, epic.titulo)),
               h("span", { class: "rotulos" }, badges(full, { semNivel: true })),
-              h("span", { class: "direita" }, h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(epic.coluna)}` }), columnName(epic.coluna)))),
-            h("div", { class: "corpo" }, segments(epic.concluidas, epic.historias),
-              epic.proximo_passo ? h("div", { class: "card-passo", style: "margin-top:6px" }, epic.proximo_passo) : null),
+              h("span", { class: "direita" }, segments(epic.concluidas, epic.historias),
+                h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(epic.coluna)}` }), columnName(epic.coluna)))),
+            epic.proximo_passo ? h("div", { class: "corpo" }, h("div", { class: "card-passo" }, epic.proximo_passo)) : null,
             open.map(withTasks),
             closed.length ? h("details", {}, h("summary", {}, `${closed.length} concluída(s) ou arquivada(s)`), closed.map(withTasks)) : null);
         }) : emptyState(app.busca ? "Nenhum épico com esse filtro" : "Nenhum épico", "Os épicos reúnem histórias e mostram o progresso da iniciativa."),
@@ -971,18 +1004,30 @@ const VIEWS = {
       const questionCard = (task, answered) => h("li", { class: "pergunta-card" + (answered ? " respondida" : "") },
         h("div", { class: "pergunta-topo" }, icon(answered ? "check" : "pergunta", answered ? "estado-aberto" : "estado-pergunta"),
           h("h3", {}, task.titulo), answered ? h("span", { class: "indicador-respondida" }, "Respondida") : null),
-        about(task),
+        answered ? about(task) : null,  // abertas já ficam agrupadas sob a tarefa
         answered ? h("details", { class: "pergunta-resposta" }, h("summary", {}, icon("seta"), h("span", { class: "resposta-resumo" }, task.resposta)), h("p", {}, task.resposta))
           : h("details", { class: "passo" }, h("summary", {}, "Como responder"),
             h("p", {}, `Responda ao agente mencionando esta pergunta${task.numero ? ` (@${task.numero})` : ""}.`),
             h("p", { class: "comando-secundario" }, "Ou pela linha de comando: ", h("code", {}, `task answer ${task.id} <resposta>`), " ",
               h("button", { class: "botao pequeno", type: "button", onclick: (e) => copy(`task answer ${task.id} `, e.currentTarget) }, icon("copiar"), "Copiar"))));
+      // Abertas agrupadas pela tarefa relacionada; respondidas ficam recolhidas, em segundo plano.
+      const byTask = open.reduce((groups, t) => {
+        const key = t.sobre || "";
+        (groups[key] = groups[key] || []).push(t);
+        return groups;
+      }, {});
+      const taskTitle = (id) => (estado.tarefas.find((x) => x.id === id) || {}).titulo;
       return h("section", {},
         h("h2", {}, "Aguardando você", h("span", { class: "contador" }, open.length)),
-        open.length ? h("ul", { class: "perguntas" }, open.map((t) => questionCard(t, false)))
+        open.length ? Object.entries(byTask).map(([id, items]) => h("section", { class: "perguntas-grupo" },
+          h("h3", { class: "perguntas-grupo-titulo" }, id && taskTitle(id)
+            ? h("button", { class: "link", type: "button", onclick: () => openTask(id) }, icon("camadas"), taskTitle(id)) : "Sem tarefa relacionada",
+            h("span", { class: "contador" }, items.length)),
+          h("ul", { class: "perguntas" }, items.map((t) => questionCard(t, false)))))
           : emptyState(app.busca ? "Nenhuma pergunta com esse filtro" : "Tudo respondido por aqui", "As decisões pendentes aparecem aqui."),
-        answered.length ? [h("h2", {}, "Respondidas recentes", h("span", { class: "contador" }, answered.length)),
-          h("ul", { class: "perguntas" }, answered.map((t) => questionCard(t, true)))] : null);
+        answered.length ? h("details", { class: "perguntas-respondidas" },
+          h("summary", {}, `Respondidas recentes (${answered.length})`),
+          h("ul", { class: "perguntas" }, answered.map((t) => questionCard(t, true)))) : null);
     },
   },
   semana: {
@@ -997,32 +1042,38 @@ const VIEWS = {
       const peak = Math.max(1, ...week.dias.map((d) => d.horas));
       return h("section", {},
         dayNav("semana", ref, 7, `Semana de ${fmtDate(week.inicio)}`),
+        // Resumo e rateio lado a lado, antes dos dias: o total e a divisão por código ficam juntos.
         h("div", { class: "semana-resumo" },
-          h("div", { class: "numero" }, h("b", { title: recordedTime(total) }, summaryTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)")),
-          h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas; capturado conta cada janela uma vez.`)),
+          h("div", { class: "semana-totais" },
+            h("div", { class: "numero" }, h("b", { title: recordedTime(total) }, summaryTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)")),
+            h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas; capturado conta cada janela uma vez.`)),
+          h("section", { class: "totais-semana" }, h("h2", {}, "Rateio sugerido na semana"),
+            !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
+              : sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
+              h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, summaryTime(r.total))))))
+              : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana."))),
         h("h2", {}, "Por dia", h("span", { class: "legenda-barra" }, "barra: atividade em relação ao dia mais ativo")),
-        h("div", { class: "semana-grade" }, week.dias.map((day) => h("article", {
-          class: "dia-card" + (day.data === estado.hoje ? " hoje" : "") + (day.data > estado.hoje ? " futuro" : ""),
+        h("div", { class: "semana-grade" }, week.dias.map((day) => day.data > estado.hoje && !day.horas
+          ? h("article", { class: "dia-card futuro" },  // dia futuro compacto
+            h("div", { class: "dia-topo" }, h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10))),
+            h("p", { class: "dia-vazio" }, "Ainda não chegou"))
+          : h("article", {
+          class: "dia-card" + (day.data === estado.hoje ? " hoje" : ""),
         },
           h("div", { class: "dia-topo" },
             h("button", { class: "link", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
               title: SNAPSHOT && day.data !== SNAPSHOT.ficha.data ? "Ficha deste dia disponível no painel local" : "Abrir ficha de " + fmtDate(day.data),
               onclick: () => { app.ficha = day.data; location.hash = "ficha"; } },
               h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10)))),
-          h("div", { class: "dia-horas" }, h("strong", {}, recordedTime(day.horas)), h("span", {}, "capturadas")),
-          h("p", { class: "vazio" }, `Acumulado: ${recordedTime(day.acumulado ?? day.horas)}`),
+          h("div", { class: "dia-horas" }, h("strong", { title: recordedTime(day.horas) }, summaryTime(day.horas)), h("span", {}, "capturadas")),
+          h("p", { class: "vazio" }, `Acumulado: ${summaryTime(day.acumulado ?? day.horas)}`),
           day.informado ? h("p", { class: "vazio" }, `Informado: ${recordedTime(day.informado)}`) : null,
           h("div", { class: "dia-barra", "aria-hidden": "true", title: "Atividade em relação ao dia mais ativo da semana" }, h("i", { style: `width:${Math.round(day.horas / peak * 100)}%` })),
           day.tarefas.length ? h("ul", { class: "dia-tarefas" }, day.tarefas.slice(0, 3).map((task) =>
             h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, recordedTime(task.horas)))))
             : h("p", { class: "dia-vazio" }, day.data > estado.hoje ? "Ainda não chegou" : "Sem atividade"),
           day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
-            onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))),
-        h("section", { class: "totais-semana" }, h("h2", {}, "Rateio sugerido na semana"),
-          !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
-            : sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
-            h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, recordedTime(r.total))))))
-            : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana.")));
+            onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))));
     },
   },
   ficha: {
@@ -1051,7 +1102,8 @@ const VIEWS = {
         h("div", { class: "ficha-periodo" }, dayNav("ficha", day, 1, `${weekday(day)} ${fmtDate(day)}`),
           h("span", { class: "ficha-jornada" }, `Jornada de ${recordedTime(sheet.horas_dia)}`)),
         h("div", { class: "ficha-indicadores", "aria-label": "Resumo do dia" },
-          metric("Capturado", sheet.capturado_total, `${summaryTime(capturedSheet)} na ficha + ${summaryTime(capturedExtras)} extras`, "ficha"),
+          // Composição com segundos: as parcelas somam exatamente o total, sem parecer divergência de arredondamento.
+          metric("Capturado", sheet.capturado_total, `${recordedTime(capturedSheet)} na ficha + ${recordedTime(capturedExtras)} extras`, "ficha"),
           metric("Rateio sugerido", sheet.total, "Demandas e projetos", "camadas"),
           metric(balance >= 0 ? "Saldo após rateio" : "Acima da jornada", Math.abs(balance),
             balance >= 0 ? "Para completar a jornada" : "Revise os tempos do dia", "alvo")),
@@ -1155,20 +1207,33 @@ const VIEWS = {
           return days;
         }, {})).map(([day, events]) => h("section", { class: "historico-dia" },
           h("h2", {}, day, h("span", { class: "contador" }, events.length)),
-          h("ol", { class: "historico-lista", "aria-label": "Ações de " + day }, events.map((event) => {
-            const action = actions[event.acao] || ["historico", event.acao];
-            const detail = eventDetail(event, titles);
-            const source = event.origem === "agente" ? "Agente" : event.origem === "quadro" ? "Quadro" : event.origem;
-            const target = event.tarefa ? h("button", { class: "link titulo", type: "button", onclick: () => openTask(event.tarefa) }, titles[event.tarefa] || event.tarefa)
-              : event.coluna ? h("span", { class: "titulo" }, columnName(event.coluna)) : h("span", { class: "titulo" });
-            return h("li", { class: "evento-linha" + (event.pendente ? " pendente" : "") },
-              h("span", { class: "evento-icone", title: action[1] }, icon(action[0])),
-              h("span", { class: "evento-acao", title: event.acao }, action[1]), target,
-              event.pendente ? h("span", { class: "indicador-pendente", title: "Não analisada" }, "não analisada") : null,
-              h("span", { class: "evento-origem" }, source),
-              h("time", { class: "evento-hora", datetime: event.ts }, when(event.ts).split(" ").slice(1).join(" ") || when(event.ts)),
-              detail ? h("details", { class: "evento-detalhes" }, h("summary", {}, "Detalhes"), h("p", {}, detail)) : null);
-          }))))
+          h("ol", { class: "historico-lista", "aria-label": "Ações de " + day }, (() => {
+            const row = (event, extra) => {
+              const action = actions[event.acao] || ["historico", event.acao];
+              const detail = eventDetail(event, titles);
+              const source = event.origem === "agente" ? "Agente" : event.origem === "quadro" ? "Quadro" : event.origem;
+              const target = event.tarefa ? h("button", { class: "link titulo", type: "button", onclick: () => openTask(event.tarefa) }, titles[event.tarefa] || event.tarefa)
+                : event.coluna ? h("span", { class: "titulo" }, columnName(event.coluna)) : h("span", { class: "titulo" });
+              return h("li", { class: "evento-linha" + (event.pendente ? " pendente" : "") },
+                h("span", { class: "evento-icone", title: action[1] }, icon(action[0])),
+                h("span", { class: "evento-acao", title: event.acao }, action[1]), target,
+                event.pendente ? h("span", { class: "indicador-pendente", title: "Não analisada" }, "não analisada") : null,
+                h("span", { class: "evento-origem" }, source),
+                h("time", { class: "evento-hora", datetime: event.ts, title: when(event.ts) }, when(event.ts).split(" ").slice(1).join(" ") || when(event.ts)),
+                detail ? h("details", { class: "evento-detalhes" }, h("summary", {}, "Detalhes"), h("p", {}, detail)) : null,
+                extra || null);
+            };
+            // Ações consecutivas da mesma tarefa viram um grupo: a mais recente aparece e as demais ficam em "+N ações".
+            const groups = [];
+            for (const event of events) {
+              const last = groups[groups.length - 1];
+              if (last && event.tarefa && last[0].tarefa === event.tarefa) last.push(event);
+              else groups.push([event]);
+            }
+            return groups.map((group) => group.length === 1 ? row(group[0])
+              : row(group[0], h("details", { class: "evento-grupo" }, h("summary", {}, `+${group.length - 1} ${group.length === 2 ? "ação" : "ações"} nesta tarefa`),
+                h("ol", { class: "historico-lista" }, group.slice(1).map((event) => row(event))))));
+          })())))
           : emptyState("Nenhuma ação com esses filtros", "Tente outra origem ou desmarque o filtro de ações não analisadas."),
         data.total > limit ? h("p", {}, h("button", { class: "botao", type: "button", onclick: () => { app.historicoLimite = limit + 200; render(); } }, "Carregar mais")) : null);
     },
@@ -1281,10 +1346,14 @@ function when(ts) {
   return `${fmtDate(date)} ${time.slice(0, 5)}`;
 }
 
+const FIELD_LABELS = { proximo_passo: "próximo passo", descricao: "descrição", coluna: "coluna", prazo: "prazo", titulo: "título",
+  aguardando: "aguardando", aguardando_desde: "aguardando desde", ficha: "texto da ficha", size: "size", pai: "faz parte de",
+  nivel: "nível", issue: "issue", demanda: "demanda", projeto: "projeto", pessoal: "pessoal", ordem: "ordem", resposta: "resposta" };
+
 function eventDetail(e, titles) {
   if (e.acao === "analise") return `${(e.eventos || []).length} ação(ões): ${e.resultado || ""}`;
   if (e.de && e.para) return `${columnName(e.de)} → ${columnName(e.para)}`;
-  if (e.campos) return e.campos.join(", ");
+  if (e.campos) return "Campos alterados: " + e.campos.map((c) => FIELD_LABELS[c] || c).join(", ");
   if (e.acao === "capturar") return `${(e.criadas || []).length} criada(s), ${(e.atualizadas || []).length} atualizada(s)`;
   if (e.horas) return hours(e.horas);
   return e.resultado || e.coluna || "";

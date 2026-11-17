@@ -1210,3 +1210,75 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .tracos-progresso { flex: 1; display: flex; gap: 3px; min-width: 60px; }
 .tracos-progresso > i { flex: 1 1 0; min-width: 2px; height: 4px; border-radius: 2px; background: var(--borda-suave); }
 .tracos-progresso > i.feito { background: var(--link); }
+
+/* #250 — rodada de ajustes para 1366×768 a 75% (≈1821×877 CSS px). */
+/* Quadro: épicos separados à esquerda; chave com código em destaque e @n secundário; rodapé sem estouro. */
+.coluna.coluna-epicos { border-left: 2px solid var(--borda-suave); }
+.card-chave { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.card-chave .card-codigo { color: var(--texto); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.card-chave .card-numero { color: var(--texto-2); font-size: 11px; flex: none; opacity: .8; }
+.card-rodape .card-sinais { flex: none; }
+.card-meta { font-size: 12px; }
+/* Barra de ferramentas numa linha: a busca cede largura antes de quebrar; "Editar" mantém o espaço. */
+.barra-filtro { flex-wrap: nowrap; }
+.barra-filtro .filtro { flex: 1 1 240px; min-width: 160px; }
+.barra-filtro #opcoes { flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; }
+.barra-filtro #edicao, .barra-filtro .edicao { flex: none; }
+/* Rolagem horizontal do quadro sempre visível e larga o bastante para o ponteiro. */
+.quadro { scrollbar-width: auto; }
+.quadro::-webkit-scrollbar { height: 12px; }
+/* Navegação lateral cabe na altura: grupos e rodapé mais compactos. */
+.navegacao { padding-top: 18px; }
+.navegacao-topo { margin-bottom: 18px; }
+.nav-grupo + .nav-grupo { margin-top: 10px; }
+.nav-grupo { gap: 2px; }
+.nav-grupo-titulo { padding-bottom: 4px; }
+.navegacao-rodape { padding-top: 10px; }
+.navegacao-acoes { padding-top: 6px; }
+/* Ficha: números alinhados e faixa superior compacta. */
+.ficha-periodo { margin-bottom: var(--esp-2); }
+.ficha-indicadores { padding-block: var(--esp-3); }
+.ficha-metrica strong, .ficha-tempo, .num { font-variant-numeric: tabular-nums; text-align: right; }
+.ficha-metrica strong { text-align: left; }
+.ficha-metrica-detalhe { font-variant-numeric: tabular-nums; }
+/* Painel: campos com largura suficiente para "Em andamento"; prazo vencido em destaque discreto. */
+.painel-colunas { grid-template-columns: minmax(0, 1fr) 280px; }
+.faixa-estado .selo.vencido { color: rgb(var(--c-red)); }
+/* Divisórias internas mais suaves. */
+.linha-caixa, .resumo-linha, .evento-linha { border-color: var(--borda-suave); }
+/* Calendário: células mais baixas para caber o mês. */
+.calendario-dia, .calendario-vazio { min-height: 72px; }
+.calendario-dia { gap: 4px; padding: 6px; }
+.prazos-lista { min-width: 320px; }
+/* Semana: resumo e rateio lado a lado; dias mais baixos; futuros compactos. */
+.semana-resumo { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(320px, 2fr); align-items: start; gap: var(--esp-4); }
+.semana-totais { display: grid; gap: var(--esp-2); }
+.semana-resumo .totais-semana { margin: 0; }
+.semana-resumo .totais-semana h2 { font-size: 14px; margin: 0 0 var(--esp-2); }
+.dia-card { padding: var(--esp-3); gap: 6px; }
+.dia-card.futuro { min-height: 0; align-self: start; }
+.dia-tarefas li { padding-block: 2px; }
+/* Histórico: grupos da mesma tarefa. */
+.evento-grupo { grid-column: 2 / -1; font-size: 12px; color: var(--texto-2); }
+.evento-grupo > summary { cursor: pointer; }
+.evento-grupo .historico-lista { margin-top: 4px; }
+/* Visão geral: blocos vazios compactos e "Ver todas". */
+.resumo-secao .resumo-vazio { margin: 0; padding: var(--esp-2) var(--esp-3); }
+.ver-todas { display: block; padding: var(--esp-2) var(--esp-3); font-size: 12px; }
+/* Épicos: resumo recolhível com progresso e status. */
+.epico-ativo > summary { display: flex; align-items: center; gap: var(--esp-2); padding: var(--esp-3); cursor: pointer; list-style: none; }
+.epico-ativo > summary::-webkit-details-marker { display: none; }
+.epico-ativo > summary h3 { margin: 0; font-size: 15px; }
+.epico-ativo > summary .direita { margin-left: auto; display: flex; align-items: center; gap: var(--esp-3); min-width: 280px; }
+.epico-ativo > summary .direita .progresso { flex: 1; }
+/* Perguntas: grupos por tarefa; respondidas em segundo plano. */
+.perguntas-grupo { margin-bottom: var(--esp-4); }
+.perguntas-grupo-titulo { display: flex; align-items: center; gap: var(--esp-2); font-size: 13px; color: var(--texto-2); margin: 0 0 var(--esp-2); }
+.perguntas-respondidas > summary { cursor: pointer; color: var(--texto-2); margin: var(--esp-3) 0; }
+@media (max-width: 760px) {
+  .barra-filtro { flex-wrap: wrap; }
+  .semana-resumo { grid-template-columns: 1fr; }
+  .epico-ativo > summary { flex-wrap: wrap; }
+  .epico-ativo > summary .direita { min-width: 0; width: 100%; }
+}
+.dia-card > p.vazio { margin: 0; font-size: 12px; }
