@@ -75,8 +75,8 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 
 - `--prazo`: `AAAA-MM-DD`, `DD/MM[/AAAA]`, `hoje`, `amanhã`, `+Nd` ou dia da
   semana. Prazo citado na conversa vai para a tarefa.
-- Política `automatic`: escrita direta, informando o que foi gravado. `manual`:
-  mostre a mudança e aplique só após `do task`. Consulta nunca exige `do`.
+- `automatic`: grave direto e informe; nunca peça `do` ou confirmação para manter
+  tarefas. Só `manual` aplica após `do task`. Consulta nunca exige `do`.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
 
 ## Captura da conversa

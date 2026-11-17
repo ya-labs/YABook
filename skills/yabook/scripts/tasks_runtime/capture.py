@@ -27,7 +27,7 @@ RULES = ("Antes de trabalhar ou mudar de assunto, rode task start na tarefa corr
          "Reuse a escolha da sessão; pergunte só se ambíguo. Mantenha tarefas sem pedido: conclusão vira "
          "task edit --append e próximo passo; dúvida vira task ask; prazo vai à tarefa; espera fora de QA usa "
          "--aguardando (retorno: --unset aguardando); fase move coluna. Criação leva --size da issue. "
-         "Conversa sem registro: task capture.")
+         "Conversa sem registro: task capture. Na política automatic, nada disso pede do nem confirmação.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
                     r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando)\b")

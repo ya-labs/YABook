@@ -20,6 +20,7 @@ METHOD = """YABook ativo. Aplique o método YA LABS no projeto conforme AGENTS.m
 Antes de editar confira branch, worktree, staged/unstaged e último commit.
 Git e SVN seguem o pedido da pessoa e o roteamento, inferidos pelo contexto; na dúvida, pergunte.
 Comandos de prévia sem do são somente leitura, inclusive em auto; linguagem natural pode autorizar execução.
+Manter YABook Tasks (add, edit, start, ask, log, capture) na política automatic nunca exige do nem confirmação.
 dev é executivo: pode criar a issue necessária e preparar sua branch; termina antes de commit/PR.
 Fora de auto, edição e push em main/dev/release exigem exceção pedida e o hook barra force
 push, merge sem pedido, descarte de trabalho e troca de branch com worktree sujo.
