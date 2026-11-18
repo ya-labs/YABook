@@ -110,7 +110,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --rotulo-fundo: .1; --rotulo-borda: .55; color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #14243a; --bg-inset: #070f1c; --bg-subtle: #101d30; --bg-hover: #213b5c;
+  --bg: #14243a; --bg-card: #000000; --bg-inset: #070f1c; --bg-subtle: #101d30; --bg-hover: #213b5c;
   --bg-coluna: #0c1829; --bg-navegacao: #0b1728;
   --scrollbar-trilho: #0b1728; --scrollbar-thumb: #7c9cbe; --scrollbar-hover: #acccff;
   --borda: #6788ad; --borda-suave: #36516f; --texto: #f2f6ff; --texto-2: #bfcee4;
@@ -123,7 +123,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --bg: #14243a; --bg-inset: #070f1c; --bg-subtle: #101d30; --bg-hover: #213b5c;
+  --bg: #14243a; --bg-card: #000000; --bg-inset: #070f1c; --bg-subtle: #101d30; --bg-hover: #213b5c;
   --bg-coluna: #0c1829; --bg-navegacao: #0b1728;
   --scrollbar-trilho: #0b1728; --scrollbar-thumb: #7c9cbe; --scrollbar-hover: #acccff;
   --borda: #6788ad; --borda-suave: #36516f; --texto: #f2f6ff; --texto-2: #bfcee4;
@@ -264,7 +264,7 @@ h2:first-child { margin-top: 0; }
 
 /* Cards: origem discreta, título dominante, detalhes sem competir entre si. */
 .card { position: relative; display: grid; gap: 10px; width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--borda); border-radius: 12px;
-  background: var(--bg); box-shadow: var(--sombra); text-align: left; cursor: pointer; }
+  background: var(--bg-card, var(--bg)); box-shadow: var(--sombra); text-align: left; cursor: pointer; }
 .card:hover { background: var(--bg-subtle); border-color: var(--link); }
 .card:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
 .card.editado { background: var(--acento-suave); }
@@ -979,7 +979,8 @@ button.selo { cursor: pointer; text-align: left; }
 .card .rotulos { gap: 7px; }
 .card .selo, .card .size-numero { color: var(--texto); background: var(--bg-inset); border: 1px solid var(--borda); font-size: 12px; font-weight: 750; padding: 4px 8px; }
 .card .selo .icone { color: rgb(var(--lc, var(--c-gray))); }
-.card .size-numero { gap: 5px; }
+.card .size-numero { gap: 5px; color: #fff;
+  background: var(--bg-card-size, color-mix(in srgb, var(--primario) 32%, #000)); }
 .card .size-numero::before { content: "Size"; font-weight: 600; }
 .card .card-pai { color: var(--texto); font-size: 12px; line-height: 1.6; }
 .card .card-pai-numero { color: var(--link); }
@@ -992,8 +993,8 @@ button.selo { cursor: pointer; text-align: left; }
 
 /* Preto: cinzas sólidos, superfícies separadas e destaques brancos. */
 :root[data-palette="preto"] { --bg: #ffffff; --bg-inset: #f5f5f5; --bg-subtle: #ededed; --bg-hover: #e4e4e4; --bg-coluna: #eeeeee; --bg-navegacao: #ffffff; --scrollbar-trilho: #eeeeee; --scrollbar-thumb: #737373; --scrollbar-hover: #404040; --borda: #888888; --borda-suave: #cccccc; --texto: #141414; --texto-2: #454545; --link: #222222; --primario: #171717; --primario-hover: #333333; --primario-texto: #ffffff; --botao: #ffffff; --botao-borda: #888888; --botao-hover: #e4e4e4; --acento-suave: #dddddd; }
-:root[data-palette="preto"][data-theme="dark"] { --bg: #2a2a2a; --bg-inset: #181818; --bg-subtle: #242424; --bg-hover: #3b3b3b; --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #888888; --scrollbar-hover: #cccccc; --borda: #969696; --borda-suave: #595959; --texto: #ffffff; --texto-2: #dedede; --link: #f5f5f5; --primario: #f5f5f5; --primario-hover: #ffffff; --primario-texto: #111111; --botao: #2a2a2a; --botao-borda: #969696; --botao-hover: #3b3b3b; --acento-suave: #3b3b3b; }
-@media (prefers-color-scheme: dark) { :root[data-palette="preto"]:not([data-theme="light"]) { --bg: #2a2a2a; --bg-inset: #181818; --bg-subtle: #242424; --bg-hover: #3b3b3b; --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #888888; --scrollbar-hover: #cccccc; --borda: #969696; --borda-suave: #595959; --texto: #ffffff; --texto-2: #dedede; --link: #f5f5f5; --primario: #f5f5f5; --primario-hover: #ffffff; --primario-texto: #111111; --botao: #2a2a2a; --botao-borda: #969696; --botao-hover: #3b3b3b; --acento-suave: #3b3b3b; } }
+:root[data-palette="preto"][data-theme="dark"] { --bg: #2a2a2a; --bg-card-size: #292929; --bg-inset: #181818; --bg-subtle: #242424; --bg-hover: #3b3b3b; --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #888888; --scrollbar-hover: #cccccc; --borda: #969696; --borda-suave: #595959; --texto: #ffffff; --texto-2: #dedede; --link: #f5f5f5; --primario: #f5f5f5; --primario-hover: #ffffff; --primario-texto: #111111; --botao: #2a2a2a; --botao-borda: #969696; --botao-hover: #3b3b3b; --acento-suave: #3b3b3b; }
+@media (prefers-color-scheme: dark) { :root[data-palette="preto"]:not([data-theme="light"]) { --bg: #2a2a2a; --bg-card-size: #292929; --bg-inset: #181818; --bg-subtle: #242424; --bg-hover: #3b3b3b; --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #888888; --scrollbar-hover: #cccccc; --borda: #969696; --borda-suave: #595959; --texto: #ffffff; --texto-2: #dedede; --link: #f5f5f5; --primario: #f5f5f5; --primario-hover: #ffffff; --primario-texto: #111111; --botao: #2a2a2a; --botao-borda: #969696; --botao-hover: #3b3b3b; --acento-suave: #3b3b3b; } }
 
 /* Separação por superfícies: mantém o layout e os indicadores de foco. */
 .projeto { border-bottom-color: transparent; background: var(--bg-navegacao); }
@@ -1077,8 +1078,8 @@ button.selo { cursor: pointer; text-align: left; }
 .card-selos > .card-espera { color: rgb(var(--c-orange)); background: color-mix(in srgb, rgb(var(--c-orange)) 16%, var(--bg)); }
 .card-selos > .card-espera.longa { color: rgb(var(--c-red)); background: color-mix(in srgb, rgb(var(--c-red)) 16%, var(--bg)); }
 .card-selos > .card-pai, .card-selos > .card-pai .icone, .card-selos .card-pai-numero { color: var(--link); }
-.card-selos > .card-pai { background: color-mix(in srgb, var(--link) 14%, var(--bg)); }
-.card-selos > .card-pai:hover { background: color-mix(in srgb, var(--link) 22%, var(--bg)); }
+.card-selos > .card-pai { background: color-mix(in srgb, #5b5b5b 14%, var(--bg)); }
+.card-selos > .card-pai:hover { background: color-mix(in srgb, #5b5b5b 22%, var(--bg)); }
 
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
 body, body * { font-weight: 400 !important; }
