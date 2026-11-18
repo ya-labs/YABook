@@ -22,6 +22,8 @@ WHEN = datetime.datetime(2026, 11, 11, 14, 37, tzinfo=datetime.timezone(datetime
 
 class CaptureTest(unittest.TestCase):
     def setUp(self):
+        offline = patch("tasks_runtime.merge_check.can_conclude", return_value=True)  # sem consulta ao GitHub
+        offline.start(); self.addCleanup(offline.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.base = Path(self.tmp.name)
         self.env = patch.dict(os.environ, GIT_ENV)
@@ -182,6 +184,8 @@ class CaptureTest(unittest.TestCase):
 
 class HookIntegrationTest(unittest.TestCase):
     def setUp(self):
+        offline = patch("tasks_runtime.merge_check.can_conclude", return_value=True)  # sem consulta ao GitHub
+        offline.start(); self.addCleanup(offline.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.base = Path(self.tmp.name)
         self.env = patch.dict(os.environ, dict(GIT_ENV, YABOOK_CONFIG=str(self.base / "config.json"),

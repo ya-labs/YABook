@@ -80,6 +80,7 @@ def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=
         note = None  # mesma fase repetida não duplica o registro
     result = dict(id=data["id"], fase=fase, coluna=changes.get("coluna", data["coluna"]), movida=bool(changes.get("coluna")))
     if changes or unset or note:
+        tasks.merge_confirmed = fase == "integrado"  # o merge já foi conferido no GitHub
         tasks.edit(data["id"], changes, unset, note, task["revision"])
     if fase == "inicio":
         atomic_write(store.root / "local" / "ativa.json",

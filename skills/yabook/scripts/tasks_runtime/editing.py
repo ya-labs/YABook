@@ -62,6 +62,7 @@ def save(store, cfg, body):
     tasks = Tasks(store, cfg, origem="quadro")
     with store.lock():
         plan = _validate(store, cfg, tasks, changes, columns, complements)
+        tasks.merge_confirmed = True  # a validação acima já conferiu o PR de cada conclusão
         by_day = {}
         for item in corrections:
             day = parse_date(item["data"])
@@ -157,6 +158,16 @@ def _validate(store, cfg, tasks, changes, columns, complements):
             found = find_terms(note, store.terms)
             if found:
                 hits.append(dict(id=identifier, campo="registro", termos=found, texto=note))
+        # Concluir tarefa com issue exige PR integrado: confere antes de gravar qualquer mudança do salvamento.
+        target = fields.get("coluna")
+        if (target and known_columns.get(target, {}).get("papel") == "concluido"
+                and known_columns.get(current["data"].get("coluna"), {}).get("papel") != "concluido"):
+            for ref in fields.get("issue") or current["data"].get("issue") or []:
+                state = tasks.merge_checker(ref)
+                if state is not True:
+                    raise ValueError(("%s: a issue %s tem branch ou PR sem merge; integre o PR para concluir a tarefa" if state is False
+                                      else "%s: não foi possível confirmar no GitHub o PR da issue %s; tente de novo com rede")
+                                     % (identifier, ref))
         plan_tasks.append(dict(id=identifier, revision=current["revision"], campos=fields, unset=sorted(set(unset)),
                                registro=note or None))
     if conflicts:
