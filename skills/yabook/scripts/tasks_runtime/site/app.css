@@ -1222,11 +1222,17 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .card-chave .card-numero { color: var(--texto-2); font-size: 11px; flex: none; opacity: .8; }
 .card-rodape .card-sinais { flex: none; }
 .card-meta { font-size: 12px; }
-/* Barra de ferramentas numa linha: a busca cede largura antes de quebrar; "Editar" mantém o espaço. */
-.barra-filtro { flex-wrap: nowrap; }
+/* A busca cede espaço aos controles; a barra quebra quando eles não cabem. */
 .barra-filtro .filtro { flex: 1 1 240px; min-width: 160px; }
-.barra-filtro #opcoes { flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; }
+.barra-filtro #opcoes { flex: 0 1 auto; min-width: 0; }
 .barra-filtro #edicao, .barra-filtro .edicao { flex: none; }
+/* As ações e o aviso do rascunho ficam abaixo dos filtros durante a edição. */
+.barra-filtro.editando #edicao { flex: 1 1 100%; margin-left: 0; order: 3; }
+.barra-filtro.editando .edicao-ajuda { order: 4; }
+@media (max-width: 760px) {
+  .barra-filtro.editando #edicao { display: grid; grid-template-columns: repeat(2, max-content); }
+  .barra-filtro.editando #edicao > .selo { grid-column: 1 / -1; justify-self: start; }
+}
 /* Rolagem horizontal do quadro sempre visível e larga o bastante para o ponteiro. */
 .quadro { scrollbar-width: auto; }
 .quadro::-webkit-scrollbar { height: 12px; }
