@@ -57,8 +57,13 @@ def parse_date(text, base=None):
 
 
 class Tasks:
-    def __init__(self, store, cfg=None, origem="agente"):
+    def __init__(self, store, cfg=None, origem="agente", merge_checker=None):
         self.store, self.cfg, self.origem = store, cfg or {}, origem
+        # Concluir tarefa com issue que tem branch ou PR exige PR integrado; o fluxo de issue já confirma o merge.
+        if merge_checker is None:
+            from .merge_check import can_conclude as merge_checker
+        self.merge_checker = merge_checker
+        self.merge_confirmed = False
 
     def _event(self, acao, **fields):
         """Ação do agente entra analisada; a do quadro fica pendente até `analyze`."""
@@ -229,6 +234,16 @@ class Tasks:
             if "size" in unset:
                 data.pop("size_manual", None)
             roles = self.roles()
+            if (roles.get(data.get("coluna")) == "concluido" and roles.get(task["data"].get("coluna")) != "concluido"
+                    and data.get("issue") and not self.merge_confirmed):
+                for ref in data["issue"]:
+                    state = self.merge_checker(ref)
+                    if state is False:
+                        raise ValueError("%s: a issue %s tem branch ou PR sem merge; integre o PR para concluir a tarefa"
+                                         % (identifier, ref))
+                    if state is None:
+                        raise ValueError("%s: não foi possível confirmar no GitHub o PR da issue %s; tente de novo com rede"
+                                         % (identifier, ref))
             if (changes and roles.get(data.get("coluna")) == "validacao" and roles.get(task["data"].get("coluna")) != "validacao"
                     and re.search(r"\b(qa|valida\w*|tester|testes?)\b", _plain(data.get("aguardando") or ""))):
                 data.pop("aguardando", None)

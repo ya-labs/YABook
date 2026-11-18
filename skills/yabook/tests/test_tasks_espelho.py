@@ -2,6 +2,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -29,6 +30,8 @@ class FakeGitHub:
 
 class MirrorTest(unittest.TestCase):
     def setUp(self):
+        offline = patch("tasks_runtime.merge_check.can_conclude", return_value=True)  # sem consulta ao GitHub
+        offline.start(); self.addCleanup(offline.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name) / "dados"
         scaffold(self.root)
