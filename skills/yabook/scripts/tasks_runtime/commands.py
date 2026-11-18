@@ -85,7 +85,7 @@ class Tasks:
 
     def brief(self, task, index=None):
         data = task["data"]
-        keys = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "pai", "projeto", "demanda", "issue", "size", "prazo", "proximo_passo", "ficha",
+        keys = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "pai", "projeto", "demanda", "issue", "size", "rodada", "prazo", "proximo_passo", "ficha",
                 "aguardando", "aguardando_desde")
         result = {k: data[k] for k in keys if k in data}
         if data.get("tipo") != "pergunta":
@@ -244,6 +244,15 @@ class Tasks:
                     if state is None:
                         raise ValueError("%s: não foi possível confirmar no GitHub o PR da issue %s; tente de novo com rede"
                                          % (identifier, ref))
+            # Retorno da validação (Testes ou Validação QA) para trabalho abre uma nova rodada de ajuste.
+            round_note = None
+            if (changes and "rodada" not in changes and roles.get(task["data"].get("coluna")) == "validacao"
+                    and roles.get(data.get("coluna")) == "ativo"):
+                data["rodada"] = int(data.get("rodada") or 1) + 1
+                columns = {c["id"]: c["nome"] for c in self.store.columns()}
+                round_note = "Rodada %d: retorno de %s para %s." % (
+                    data["rodada"], columns.get(task["data"].get("coluna"), task["data"].get("coluna")),
+                    columns.get(data.get("coluna"), data.get("coluna")))
             if (changes and roles.get(data.get("coluna")) == "validacao" and roles.get(task["data"].get("coluna")) != "validacao"
                     and re.search(r"\b(qa|valida\w*|tester|testes?)\b", _plain(data.get("aguardando") or ""))):
                 data.pop("aguardando", None)
@@ -256,6 +265,8 @@ class Tasks:
             if append:
                 self._check_text(append)
                 body = _append_log(body, append)
+            if round_note:
+                body = _append_log(body, round_note)
             revision = self.store.save(data, body, task["revision"])
             before = task["data"].get("coluna")
             if before != data["coluna"]:

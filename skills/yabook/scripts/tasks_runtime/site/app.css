@@ -1291,3 +1291,7 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
   .epico-ativo > summary .direita { min-width: 0; width: 100%; }
 }
 .dia-card > p.vazio { margin: 0; font-size: 12px; }
+/* Rodada de ajuste: mesmo desenho discreto dos selos de espera e do pai. */
+.card-selos > .card-rodada { display: inline-flex; align-items: center; gap: 5px; width: fit-content; padding: 2px 8px; border-radius: 6px; font-size: 12px;
+  line-height: 1.5; color: rgb(var(--c-purple)); background: color-mix(in srgb, rgb(var(--c-purple)) 16%, var(--bg)); }
+.card-selos > .card-rodada .icone svg { width: 12px; height: 12px; transform: scaleX(-1); }

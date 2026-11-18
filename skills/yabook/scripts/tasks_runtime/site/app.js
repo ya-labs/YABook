@@ -326,6 +326,11 @@ function cardMeta(task, parent, options) {
   } else if (task.papel === "concluido" && task.atualizada) {
     lines.push(h("span", { class: "card-data", title: "Concluída em " + fullDate(task.atualizada.slice(0, 10)) }, "Concluída em " + cardDate(task.atualizada.slice(0, 10))));
   }
+  // Rodada de ajuste a partir da segunda (a primeira entrega é a rodada 1).
+  if (task.rodada > 1 && !CLOSED.includes(task.papel)) {
+    selos.push(h("span", { class: "card-rodada", title: `Rodada ${task.rodada} de ajuste: ${task.rodada - 1} retorno(s) da validação` },
+      icon("seta"), h("span", {}, `Rodada ${task.rodada}`)));
+  }
   if (task.aguardando && !CLOSED.includes(task.papel)) {
     const days = waitingDays(task);
     selos.push(h("span", { class: "card-espera" + (days >= 3 ? " longa" : ""),
@@ -546,6 +551,7 @@ async function openTask(id) {
             field("Tipo", label(data.tipo)),
             field("Nível", data.nivel ? LEVEL[data.nivel][0] : null),
             field("Código", task.codigo),
+            field("Rodada", data.rodada > 1 ? `${data.rodada} (${data.rodada - 1} retorno${data.rodada > 2 ? "s" : ""} da validação)` : null),
             field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null),
             field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null))),
           sideSection("Relacionamentos",
