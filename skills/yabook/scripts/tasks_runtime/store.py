@@ -340,6 +340,9 @@ class TaskStore:
                 if not isinstance(data[key], str) or not _DATE.fullmatch(data[key]):
                     raise ValueError("`%s` precisa estar em AAAA-MM-DD" % key)
                 datetime.date.fromisoformat(data[key])
+        if len(data.get("issue", [])) > 1:
+            raise ValueError("Uma issue por tarefa: %s tem %s; crie uma tarefa para cada issue (task add --tipo issue --pai %s) "
+                             "ou rode task dividir-issues" % (data.get("id"), ", ".join(data["issue"]), data.get("id")))
         for item in data.get("issue", []):
             if not isinstance(item, str) or not _ISSUE.fullmatch(item):
                 raise ValueError("Issue inválida, use dono/repositório#numero: %r" % (item,))

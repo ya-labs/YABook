@@ -331,6 +331,68 @@ class Tasks:
         self._event("horas", tarefa=identifier, horas=hours)
         return entry
 
+    def split_issues(self, apply=False, issue_info=None):
+        """Uma issue por tarefa: a tarefa com várias issues vira mãe e cada issue ganha uma tarefa filha.
+
+        A mãe mantém código, horas e histórico e passa a história; cada filha recebe a issue, o título e o
+        Size dela no GitHub, e a coluna da mãe. Issue que já tem tarefa própria só sai da mãe."""
+        if issue_info is None:
+            issue_info = _issue_info
+        tasks = [t for t in self.store.list() if t["data"].get("tipo") != "pergunta"]
+        roles = self.roles()
+        last_validation = ([c["id"] for c in self.store.columns() if c["papel"] == "validacao"] or [None])[-1]
+        owned = {}
+        for task in tasks:
+            refs = task["data"].get("issue") or []
+            if len(refs) == 1:
+                owned[refs[0].lower()] = task["data"]["id"]
+        plan = []
+        for task in tasks:
+            data = task["data"]
+            refs = data.get("issue") or []
+            if len(refs) < 2:
+                continue
+            children = []
+            for ref in refs:
+                if ref.lower() in owned:
+                    children.append(dict(issue=ref, existente=owned[ref.lower()]))
+                    continue
+                title, size = issue_info(ref)
+                column = data["coluna"]
+                # Mãe concluída não leva filha sem PR integrado a Concluído: ela fica na última coluna de validação.
+                if roles.get(column) == "concluido" and self.merge_checker(ref) is not True:
+                    column = last_validation or column
+                children.append(dict(issue=ref, titulo=title or ref, size=size, coluna=column))
+            plan.append(dict(id=data["id"], titulo=data["titulo"], coluna=data["coluna"], filhas=children))
+        if not apply:
+            return dict(previa=plan, tarefas=len(plan))
+        with self.store.lock():
+            index = {t["data"]["id"]: t["data"] for t in self.store.list()}
+            for item in plan:
+                parent_data = self.store.get(item["id"])["data"]
+                grand = index.get(parent_data.get("pai")) or {}
+                # A mãe vira história, exceto quando já está sob uma história: aí as filhas ficam como irmãs dela.
+                if parent_data.get("nivel") in ("epico", "historia") or grand.get("nivel") != "historia":
+                    holder, changes = item["id"], ({} if parent_data.get("nivel") in ("epico", "historia") else dict(nivel="historia"))
+                else:
+                    holder, changes = grand["id"], {}
+                child_level = "historia" if index.get(holder, parent_data).get("nivel") == "epico" and holder == item["id"] \
+                    and parent_data.get("nivel") == "epico" else "tarefa"
+                # A mãe perde as issues antes das filhas nascerem (a regra recusa gravar tarefa com várias issues).
+                self.edit(item["id"], changes, ["issue"])
+                for child in item["filhas"]:
+                    if child.get("existente"):
+                        continue
+                    fields = dict(issue=[child["issue"]], pai=holder, nivel=child_level)
+                    if child.get("size"):
+                        fields["size"] = child["size"]
+                    created = self.add("issue", child["titulo"], coluna=child.get("coluna") or item["coluna"],
+                                       body=_append_log("", "Separada da tarefa %s: uma issue por tarefa." % item["id"]), **fields)
+                    child["id"] = created["id"]
+                self.edit(item["id"], {}, (), "Issues separadas em tarefas próprias: %s." % ", ".join(
+                    c.get("id") or c["existente"] for c in item["filhas"]))
+        return dict(aplicado=True, tarefas=len(plan), detalhes=plan)
+
     def clean(self, days=30, apply=False):
         roles, day, tasks = self.roles(), today(), self.store.list()
         old = []
@@ -399,3 +461,19 @@ def set_policy(config_path, mode):
     full["tasks"]["policy"] = mode
     write_config(config_path, full)
     return dict(policy=mode)
+
+
+def _issue_info(ref):
+    """Título e Size da issue no GitHub; (None, None) sem rede."""
+    import subprocess
+    match = re.fullmatch(r"([^/]+/[^#]+)#(\d+)", ref or "")
+    if not match:
+        return None, None
+    try:
+        result = subprocess.run(["gh", "issue", "view", match.group(2), "-R", match.group(1), "--json", "title"],
+                                capture_output=True, text=True, timeout=20)
+        title = json.loads(result.stdout).get("title") if not result.returncode else None
+    except (OSError, subprocess.TimeoutExpired, ValueError):
+        title = None
+    from .issueflow import issue_size
+    return title, issue_size(ref)

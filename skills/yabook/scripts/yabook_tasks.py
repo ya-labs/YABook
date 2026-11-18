@@ -135,6 +135,8 @@ def build_parser():
     hours.add_argument("--para", required=True, help="Tarefa de destino (id ou @n)")
     hours.add_argument("--janelas", help="Inícios separados por vírgula (ex.: 09:00,09:15); padrão: todas do dia")
     sub.add_parser("estimativa", help="Size das tarefas concluídas comparado às horas registradas")
+    split = sub.add_parser("dividir-issues", help="Tarefa com várias issues vira mãe de uma tarefa por issue")
+    split.add_argument("--apply", action="store_true", help="Grava a divisão; sem a opção, só mostra a prévia")
     number = sub.add_parser("numerar", help="Numera (@n) as tarefas sem número pela ordem de criação")
     number.add_argument("--corrigir", action="store_true", help="Renumera também os números repetidos")
     policy = sub.add_parser("policy")
@@ -269,6 +271,8 @@ def run(args):
         starts = {s.strip() for s in args.janelas.split(",") if s.strip()} if args.janelas else None
         return sheet.move_windows(store, cfg.get("machine"), parse_date(args.data),
                                   store.resolve(args.de), store.resolve(args.para), starts)
+    if args.command == "dividir-issues":
+        return tasks.split_issues(args.apply)
     if args.command == "estimativa":
         from tasks_runtime import estimate
         return estimate.compare(store)

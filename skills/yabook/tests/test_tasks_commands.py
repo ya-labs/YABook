@@ -190,9 +190,12 @@ class CliAndSyncTest(unittest.TestCase):
         code, added = self.cli(self.work, "add", "--tipo", "demanda", "--titulo", "Ajustar limite",
                                "--demanda", "1001", "--prazo", "2026-11-14", "--issue", "org/repo#1")
         self.assertEqual((code, added["id"]), (0, "demanda-1001"))
-        code, edited = self.cli(self.work, "edit", "demanda-1001", "--issue", "org/repo#2", "--append", "nota")
+        code, refused = self.cli(self.work, "edit", "demanda-1001", "--issue", "org/repo#2")
+        self.assertEqual(code, 1)  # uma issue por tarefa: a segunda vai para tarefa própria
+        self.assertIn("Uma issue por tarefa", refused["error"])
+        code, edited = self.cli(self.work, "edit", "demanda-1001", "--append", "nota")
         self.assertEqual(code, 0)
-        self.assertEqual(self.cli(self.work, "show", "demanda-1001")[1]["data"]["issue"], ["org/repo#1", "org/repo#2"])
+        self.assertEqual(self.cli(self.work, "show", "demanda-1001")[1]["data"]["issue"], ["org/repo#1"])
         code, error = self.cli(self.work, "edit", "demanda-1001", "--prazo", "ontem")
         self.assertEqual(code, 1)
         self.assertIn("Prazo", error["error"])
