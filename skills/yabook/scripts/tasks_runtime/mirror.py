@@ -30,8 +30,9 @@ ROLE_PATTERNS = {
     "validacao": r"valida|revis|review|qa|teste|homolog",
     "concluido": r"conclu|done|feito|finaliz",
 }
-RANK = {"entrada": 0, "pronto": 1, "ativo": 2, "validacao": 3, "concluido": 4}
-TEAM_ONLY = r"bloque|ajuste|merge|epico|arquiv|impedid"
+# Ajustes fica entre o trabalho e a validação: é o retorno da QA, e o único recuo permitido é validação -> ajustes.
+RANK = {"entrada": 0, "pronto": 1, "ativo": 2, "ajustes": 2.5, "validacao": 3, "concluido": 4}
+TEAM_ONLY = r"bloque|merge|epico|arquiv|impedid"
 _REF = re.compile(r"([^/]+)/([^#]+)#(\d+)")
 _QUERY = """query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){projectItems(first:10){nodes{
 id project{id status:field(name:"Status"){... on ProjectV2SingleSelectField{id options{id name}}}
@@ -73,6 +74,8 @@ def role_of(name):
     plain = _plain(name)
     if not plain or re.search(TEAM_ONLY, plain):
         return None
+    if re.search(r"ajuste", plain):
+        return "ajustes"
     return next((role for role, pattern in ROLE_PATTERNS.items() if re.search(pattern, plain)), None)
 
 
@@ -85,6 +88,9 @@ def advances(current, target, target_role, options):
     role = role_of(current)
     if role is None:
         return False
+    target_role = role_of(target) or target_role  # opção "Ajustes" vale pelo próprio papel
+    if target_role == "ajustes" and role == "validacao":
+        return True  # retorno da validação com pontos de ajuste
     if RANK.get(target_role, -1) != RANK.get(role, -1):
         return RANK.get(target_role, -1) > RANK.get(role, -1)
     order = [o["name"] for o in options]

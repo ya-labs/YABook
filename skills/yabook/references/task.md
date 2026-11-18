@@ -23,7 +23,8 @@ separado da memória. Execute `python3 scripts/yabook_tasks.py <serviço>` relat
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
 aceito nos comandos; `numerar [--corrigir]`), `descricao` (o que é, 1–3 linhas),
 `size` (1–5 na escala das issues, obrigatório ao criar: o da issue ou estimado;
-reestime só com mudança de escopo; `size_manual` prevalece), `tipo` (`demanda`,
+reestime só com mudança de escopo; `size_manual` prevalece), `rodada` (sobe ao voltar da
+validação; com ajustes, vá à coluna Ajustes), `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
 e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 `prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a
@@ -37,11 +38,10 @@ assume o nível abaixo do pai e `tipo` indica a origem. `pessoal` é calculado (
 demanda ou projeto na cadeia), gravado só quando a pessoa marca; `--unset pessoal`
 volta ao cálculo. Iniciativa pessoal exibe a issue como código.
 
-- Grave só pela biblioteca do runtime (valida e recusa revisão diferente da lida).
+- Grave só pela biblioteca do runtime (recusa revisão diferente da lida).
 - Campos versionados usam texto técnico e genérico; cliente, base, ambiente e
   acessos vão ao complemento confidencial, só como `refs`.
-- A gravação recusa termos da lista local; não contorne movendo o texto para
-  outro campo versionado.
+- A gravação recusa termos da lista local; não os mova para outro campo.
 - `validate` confere configuração, quadro e todas as tarefas.
 
 ## Comandos
