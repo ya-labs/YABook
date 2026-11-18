@@ -1213,7 +1213,9 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 
 /* #250 — rodada de ajustes para 1366×768 a 75% (≈1821×877 CSS px). */
 /* Quadro: épicos separados à esquerda; chave com código em destaque e @n secundário; rodapé sem estouro. */
-.coluna.coluna-epicos { border-left: 2px solid var(--borda-suave); }
+.coluna.coluna-epicos { background: color-mix(in srgb, var(--link) 9%, var(--bg-coluna)); border-color: color-mix(in srgb, var(--link) 22%, var(--bg-coluna)); }
+.coluna.coluna-epicos > header .nome, .coluna.coluna-epicos > header .status { color: var(--link); }
+.coluna.coluna-epicos > header .status { border-color: var(--link); }
 .card-chave { flex: 1 1 auto; min-width: 0; overflow: hidden; }
 .card-chave .card-codigo { color: var(--texto); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .card-chave .card-numero { color: var(--texto-2); font-size: 11px; flex: none; opacity: .8; }
