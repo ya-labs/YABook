@@ -1050,7 +1050,7 @@ button.selo { cursor: pointer; text-align: left; }
 .janela-acoes select { max-width: 220px; }
 
 /* Quadro no padrão Kanban: colunas estreitas, card compacto (título, metadados, chave e tamanho). */
-.coluna { flex-basis: 280px; border-radius: 10px; }
+.coluna { flex-basis: 320px; border-radius: 10px; }
 .coluna > header { padding: 12px 12px 10px; font-size: 12px; font-weight: 700; }
 .coluna > header .nome { flex: 0 1 auto; }
 .coluna > header .contador { background: none; border: 0; padding: 0; min-width: 0; color: var(--texto-2); font-weight: 600; }
