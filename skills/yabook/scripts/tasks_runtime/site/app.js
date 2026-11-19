@@ -286,13 +286,11 @@ function card(task, options = {}) {
     // Card compacto com título, metadados e rodapé com identificadores e tamanho.
     // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
     h("div", { class: "card-titulo" }, task.titulo),
-    cardMeta(task, parent, options),
+    cardMeta(task, parent, options, demand && (issue || String(demand) !== String(task.codigo)) ? demand : null, tasks),
     task.nivel === "epico" ? epicProgress(task) : null,
     h("footer", { class: "card-rodape" },
       h("span", { class: "card-identificadores" },
-        h("span", { class: "card-chave" }, stateIcon(task), cardKey(task, issue)),
-        demand && (issue || String(demand) !== String(task.codigo))
-          ? h("span", { class: "card-demanda" }, "Demanda ", h("strong", {}, demand)) : null),
+        h("span", { class: "card-chave" }, stateIcon(task), cardKey(task, issue))),
       h("span", { class: "card-sinais" },
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
@@ -334,7 +332,7 @@ function cardKey(task, ref) {
     number ? h("span", { class: "card-numero" }, number) : null];
 }
 
-function cardMeta(task, parent, options) {
+function cardMeta(task, parent, options, demand = null, tasks = []) {
   const lines = [], selos = [];
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.prazo && !CLOSED.includes(task.papel)) {
@@ -354,13 +352,22 @@ function cardMeta(task, parent, options) {
       title: `Aguardando: ${task.aguardando} (desde ${fmtDate(task.aguardando_desde || app.estado.hoje)})` },
       icon("ficha"), h("span", {}, `Aguardando${days ? ` · ${days}d` : ""}`)));
   }
+  const parentCode = parent && !options.semPai ? parent.codigo || parent.projeto || parent.demanda : null;
   if (parent && !options.semPai) {
     // Só o código do pai (@n e projeto/demanda); o título fica no texto ao passar o mouse.
-    const parentCode = parent.codigo || parent.projeto || parent.demanda;
     selos.push(h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
       onclick: (e) => { e.stopPropagation(); openTask(parent.id); }, onkeydown: (e) => e.stopPropagation() },
       icon(parent.nivel === "epico" ? "epicos" : "relacoes"),
       h("span", { class: "card-pai-numero" }, [parent.numero ? `@${parent.numero}` : null, parentCode].filter(Boolean).join(" · "))));
+  }
+  // Demanda própria ou herdada no mesmo desenho do pai; omitida quando o selo do pai já mostra o código.
+  if (demand && String(parentCode ?? "") !== String(demand)) {
+    const owner = sheetTask({ tipo: "demanda", codigo: demand, tarefas: [task.id] }, tasks);
+    const content = [icon("etiqueta"), h("span", { class: "card-pai-numero" }, `Demanda ${demand}`)];
+    selos.push(owner && owner.id !== task.id
+      ? h("button", { class: "card-demanda", type: "button", title: "Abrir " + owner.titulo,
+        onclick: (e) => { e.stopPropagation(); openTask(owner.id); }, onkeydown: (e) => e.stopPropagation() }, content)
+      : h("span", { class: "card-demanda", title: "Demanda " + demand }, content));
   }
   if (selos.length) lines.push(h("div", { class: "card-selos" }, selos));
   return lines.length ? h("div", { class: "card-meta" }, lines) : null;

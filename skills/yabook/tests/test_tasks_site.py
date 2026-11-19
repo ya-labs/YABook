@@ -157,6 +157,50 @@ vm.runInContext('app.estado={hoje:"2026-11-11"}; app.rascunho=emptyDraft(); app.
         self.assertFalse(actual["emptyCopy"])
         self.assertTrue(actual["emptyText"])
 
+    def test_card_shows_demand_among_badges_like_parent(self):
+        script = r'''
+const fs = require("node:fs"), vm = require("node:vm");
+class Element {
+  constructor(tag, text = "") { this.tag = tag; this.text = text; this.childNodes = []; this.events = {}; this.style = {}; }
+  setAttribute(k, v) { this[k] = v; }
+  addEventListener(k, v) { this.events[k] = v; }
+  append(n) { this.childNodes.push(n); }
+  get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
+}
+const ctx = vm.createContext({Node:Element, window:{addEventListener(){}},
+  document:{querySelector(){return null;}, querySelectorAll(){return [];}, addEventListener(){},
+    createElement(t){return new Element(t);}, createTextNode(t){return new Element("text", t);}}});
+vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),ctx);
+const tasks = JSON.parse(process.argv[2]);
+ctx.tasks = tasks;
+vm.runInContext('app.estado={hoje:"2026-11-19", colunas:[{id:"andamento", nome:"Em andamento"}], tarefas:tasks}; app.rascunho=emptyDraft(); app.editando=false;',ctx);
+const find = (node, cls, out = []) => { if ((node.className || "").split(" ").includes(cls)) out.push(node); (node.childNodes || []).forEach(n => find(n, cls, out)); return out; };
+const result = {};
+for (const task of tasks) {
+  const card = vm.runInContext(`card(tasks.find(t => t.id === ${JSON.stringify(task.id)}))`, ctx);
+  const badges = find(card, "card-selos")[0];
+  result[task.id] = {selo: badges ? find(badges, "card-demanda").map(n => [n.tag, n.textContent]) : [],
+    rodape: find(find(card, "card-rodape")[0], "card-demanda").length};
+}
+process.stdout.write(JSON.stringify(result));
+'''
+        tasks = [
+            dict(id="chamado", titulo="Chamado", tipo="demanda", papel="ativo", coluna="andamento", demanda="322628", codigo="322628", nivel="historia"),
+            dict(id="issue", titulo="Issue", tipo="issue", papel="ativo", coluna="andamento", pai="chamado", issue=["dono/repo#7"]),
+            dict(id="propria", titulo="Própria", tipo="issue", papel="ativo", coluna="andamento", demanda="1001", issue=["dono/repo#8"]),
+            dict(id="solta", titulo="Solta", tipo="issue", papel="ativo", coluna="andamento", pai="neta", issue=["dono/repo#9"]),
+            dict(id="neta", titulo="Neta", tipo="tarefa", papel="ativo", coluna="andamento", pai="chamado", numero=4),
+        ]
+        result = subprocess.run(["node", "-e", script, str(SITE), json.dumps(tasks)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        actual = json.loads(result.stdout)
+        # O selo do pai já mostra 322628: sem duplicar.
+        self.assertEqual(actual["issue"]["selo"], [])
+        self.assertEqual(actual["propria"]["selo"], [["span", "Demanda 1001"]])
+        # Herdada do avô: selo clicável que abre a tarefa dona da demanda.
+        self.assertEqual(actual["solta"]["selo"], [["button", "Demanda 322628"]])
+        self.assertTrue(all(item["rodape"] == 0 for item in actual.values()))
+
     def test_same_date_only_shows_parent(self):
         self.assertEqual(self.deadlines(self.task("epico", "2026-12-18"),
                                         self.task("historia", "2026-12-18", "epico")), ["epico"])
