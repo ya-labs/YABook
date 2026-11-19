@@ -3,8 +3,10 @@
 Aceita mapas por indentação, listas em bloco (`- item`), coleções em linha
 (`[a, b]`, `{k: v}`), escalares com ou sem aspas e comentários `#`. É o
 suficiente para frontmatter, `config.yml` e `quadro.yml`, legíveis também pelo
-Obsidian. Recursos fora disso (âncoras, blocos multilinha) são recusados.
+Obsidian. Recursos fora disso (âncoras e blocos multilinha) são recusados. Textos com quebras são
+escapados em escalares com aspas duplas.
 """
+import json
 import re
 
 _INT = re.compile(r"-?\d+")
@@ -15,54 +17,50 @@ class FormatError(ValueError):
     pass
 
 
-def _strip_comment(line):
-    quote = None
-    for index, char in enumerate(line):
-        if quote:
-            if char == quote:
+def _unquoted(text):
+    quote, escaped = None, False
+    for index, char in enumerate(text):
+        if escaped:
+            escaped = False
+        elif quote:
+            if char == "\\" and quote == '"':
+                escaped = True
+            elif char == quote:
                 quote = None
         elif char in "\"'":
             quote = char
-        elif char == "#" and (index == 0 or line[index - 1] in " \t"):
+        else:
+            yield index, char
+
+
+def _strip_comment(line):
+    for index, char in _unquoted(line):
+        if char == "#" and (index == 0 or line[index - 1] in " \t"):
             return line[:index].rstrip()
     return line.rstrip()
 
 
 def _split_top(text):
-    parts, depth, quote, current = [], 0, None, ""
-    for char in text:
-        if quote:
-            current += char
-            if char == quote:
-                quote = None
-            continue
-        if char in "\"'":
-            quote = char
-        elif char in "[{":
+    parts, depth, start = [], 0, 0
+    for index, char in _unquoted(text):
+        if char in "[{":
             depth += 1
         elif char in "]}":
             depth -= 1
         elif char == "," and depth == 0:
-            parts.append(current.strip())
-            current = ""
-            continue
-        current += char
-    if quote or depth:
+            parts.append(text[start:index].strip())
+            start = index + 1
+    if depth:
         raise FormatError("Coleção em linha malformada: " + text)
-    if current.strip():
-        parts.append(current.strip())
+    tail = text[start:].strip()
+    if tail:
+        parts.append(tail)
     return parts
 
 
 def _key_value(text):
-    quote = None
-    for index, char in enumerate(text):
-        if quote:
-            if char == quote:
-                quote = None
-        elif char in "\"'":
-            quote = char
-        elif char == ":" and (index + 1 == len(text) or text[index + 1] == " "):
+    for index, char in _unquoted(text):
+        if char == ":" and (index + 1 == len(text) or text[index + 1] == " "):
             return text[:index].strip(), text[index + 1:].strip()
     return None
 
@@ -100,7 +98,10 @@ def scalar(text):
 
 def _unquote(text):
     if len(text) >= 2 and text[0] == text[-1] == '"':
-        return text[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as error:
+            raise FormatError("Texto entre aspas inválido") from error
     if len(text) >= 2 and text[0] == text[-1] == "'":
         return text[1:-1].replace("''", "'")
     if text[:1] in "\"'":
@@ -110,7 +111,7 @@ def _unquote(text):
 
 def loads(text):
     lines = []
-    for number, raw in enumerate(text.splitlines(), 1):
+    for number, raw in enumerate(text.split("\n"), 1):
         if "\t" in raw[: len(raw) - len(raw.lstrip())]:
             raise FormatError("Tabulação na indentação, linha %d" % number)
         line = _strip_comment(raw)
@@ -166,11 +167,11 @@ def _dump_scalar(value):
         return "{" + ", ".join(k + ": " + _dump_scalar(v) for k, v in value.items()) + "}"
     text = str(value)
     if (not text or _PLAIN_UNSAFE.search(text) or _INT.fullmatch(text)
-            or text in ("null", "~", "true", "false") or "\n" in text):
-        if "\n" in text:
-            raise FormatError("Texto multilinha não é suportado no frontmatter")
-        return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+            or text in ("null", "~", "true", "false")
+            or any(c in text for c in "\"'\n\r\t") or any(ord(c) < 32 for c in text)):
+        return json.dumps(text, ensure_ascii=False)
     return text
+
 
 
 def dumps(mapping, order=()):

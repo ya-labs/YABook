@@ -21,7 +21,7 @@ separado da memória. Execute `python3 scripts/yabook_tasks.py <serviço>` relat
 ## Formato
 
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
-aceito nos comandos; `numerar [--corrigir]`), `descricao` (o que é, 1–3 linhas),
+aceito nos comandos; `numerar [--corrigir]`), `descricao` (objetivo e escopo vigente em Markdown),
 `size` (1–5 na escala das issues, obrigatório ao criar: o da issue ou estimado;
 reestime só com mudança de escopo; `size_manual` prevalece), `rodada` (sobe ao voltar da
 validação; com ajustes, vá à coluna Ajustes), `tipo` (`demanda`,
@@ -56,6 +56,9 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo, sem `size` e paradas |
 | `task add <texto livre>` | `add --tipo --titulo [--nivel --pai --pessoal sim\|nao --demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
 | `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
+| `task anotacao <id> <ação>` | `anotacao <id> <ação> [--numero N] [--titulo ... --texto ...] [--revision ...]` |
+| `task anexar <id> <arquivo>` | `anexar <id> <arquivo> --local\|--compartilhado [--nome ...] [--revision ...]` |
+| `task baixar-anexo <id> <chave>` | `baixar-anexo <id> <chave> --output <arquivo-novo>` |
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
 | `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
 | `task ask <pergunta>` | `ask [--sobre <id>]`; resposta dada na conversa: o agente grava `answer <id> <resposta>` |
@@ -78,6 +81,16 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 - `automatic`: grave direto e informe; nunca peça `do` ou confirmação para manter
   tarefas. Só `manual` aplica após `do task`. Consulta nunca exige `do`.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
+
+## Informações da tarefa
+
+- Descrição mantém resumo, escopo vigente, restrições e validação em Markdown. Histórico registra o que ocorreu por rodada.
+- Use **Editar** no cabeçalho do card aberto para ativar o rascunho.
+- Anotações têm número por tarefa, título e texto. O site aplica criar, editar e excluir no rascunho e grava em Salvar. Número excluído não é reutilizado.
+- Ao receber informação nova e confirmada, abra a tarefa por `task show` e use a revisão lida. Se enriquecer uma nota do mesmo assunto, edite-a por número preservando o conteúdo válido. Se for assunto novo, crie uma nota. Exclua apenas a pedido da pessoa.
+- Quando mudar o escopo, atualize a descrição e registre a mudança e a origem em `edit --append`. Atualize o próximo passo se a decisão afetar a execução. Se o inventário estiver pendente, aguarde a fonte confirmada.
+- Anexe o arquivo real quando recebido ou localizado e relevante. Use `--local` para material interno ou confidencial e um nome genérico no card. Use `--compartilhado` para arquivo aprovado para o repositório privado de tarefas. A cópia estática não inclui anexos. Cada documento tem até 1 MB. Arquivos pendentes no site ficam na aba até salvar, e as notas usam o rascunho persistente existente.
+- Na política automática, use esses comandos quando a tarefa e a evidência forem claras. Se houver conflito com decisão anterior ou dúvida sobre o destino/sigilo, resolva antes de gravar.
 
 ## Captura da conversa
 

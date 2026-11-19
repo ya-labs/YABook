@@ -56,7 +56,9 @@ refs: [confidencial:<pagina>, yabook:<id-da-memoria>]
   marcado ou desmarcado à mão. Tarefa pessoal é extra na ficha e exibe a issue
   como código, pois não usa a numeração da empresa.
 - Perguntas do agente são tarefas `tipo: pergunta`, com `sobre:` e `resposta:`.
-- O corpo guarda um registro curto e genérico do andamento da tarefa.
+- A descrição em Markdown guarda objetivo e escopo vigentes. O corpo guarda um registro curto e genérico do andamento.
+- Notas numeradas e metadados de anexos pertencem à revisão da tarefa. O painel oferece edição de notas e inclusão de arquivos no rascunho.
+- O conteúdo de anexos compartilhados fica no diretório `anexos-tasks/` do repositório privado. Anexos confidenciais usam o mesmo diretório na base confidencial local. O download só fica disponível no site local.
 
 Arquivos do repositório de dados:
 

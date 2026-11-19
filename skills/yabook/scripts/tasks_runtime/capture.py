@@ -23,14 +23,13 @@ WINDOW_MINUTES = 15
 PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
 REASK_AFTER = 8
-RULES = ("Antes de trabalhar ou mudar de assunto, rode task start na tarefa correspondente; geral fica no épico. "
-         "Reuse a escolha da sessão; pergunte só se ambíguo. Mantenha tarefas sem pedido: conclusão vira "
-         "task edit --append e próximo passo; dúvida vira task ask, resposta vira task answer; prazo vai à tarefa; espera fora de QA usa "
-         "--aguardando (retorno: --unset aguardando); fase move coluna. Criação leva --size da issue. "
-         "Conversa sem registro: task capture. Na política automatic, nada disso pede do nem confirmação.")
+RULES = ("Use task start na tarefa escolhida; geral fica no épico. Pergunte só se ambíguo. "
+         "Conclusão: task edit --append e próximo passo. Use task ask/answer, prazo, --aguardando fora de QA "
+         "(remova no retorno), fase e --size da issue. Informação nova confirmada: atualize descrição, anotação ou anexo. "
+         "Conversa sem registro: task capture. Em automatic, grave sem pedir autorização.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
-                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando)\b")
+                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando|escopo|decidimos|ficou definido|lista de fontes|inventario|anexo)\b")
 COMMIT_MESSAGE = "chore: registra atividade do YABook Tasks"
 _GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="true")
 
@@ -190,7 +189,7 @@ def _plain(text):
 
 # Somente comandos inequivocamente administrativos são ignorados. Mensagens
 # mistas ou desconhecidas continuam elegíveis após a escolha na sessão.
-ADMIN_COMMAND = re.compile(r"^\s*(?:\$?yabook(?:[:/]yabook)?\s+)?(?:commit\s+(?:msg|mensagem)|task\s+(?:review|show|search|recent|board|summary|edit|move|analyze|sync|events|sheet|start|ask|answer|capture|log|add|forget|clean|policy))\b", re.I)
+ADMIN_COMMAND = re.compile(r"^\s*(?:\$?yabook(?:[:/]yabook)?\s+)?(?:commit\s+(?:msg|mensagem)|task\s+(?:review|show|search|recent|board|summary|edit|move|analyze|sync|events|sheet|start|ask|answer|capture|log|add|forget|clean|policy|anotacao|anexar|baixar-anexo))\b", re.I)
 ADMIN_NATURAL = re.compile(r"^\s*(?:pode\s+)?(?:consulte|consultar|mostre|mostrar|revise|revisar|atualize|atualizar|registre|registrar|mova|mover)\b.*\b(?:quadro|tarefas?|registros?|qa|ficha)\b", re.I)
 WORK_REQUEST = re.compile(r"\b(?:implemente|implementar|desenvolva|desenvolver|corrija|corrigir|altere|alterar|crie|criar|teste|testar|investigue|investigar)\b", re.I)
 
@@ -317,8 +316,8 @@ def prompt(cfg, session, when=None, text=""):
         start = window(when)[1]
         if state.get("lembrete") != start:
             state["lembrete"], changed = start, True
-            lines.append("YABook Tasks: a mensagem cita prazo, código ou conclusão; ao responder, atualize a tarefa "
-                         "correspondente (task edit, add ou ask) conforme a política.")
+            lines.append("YABook Tasks: a mensagem cita prazo, código, escopo, decisão ou entrega; ao responder, atualize a tarefa "
+                         "correspondente (descrição, anotação, anexo ou registro) conforme a política.")
     answered = answer_candidates(store, text)
     if answered:
         lines.append("YABook Tasks: a mensagem pode responder pergunta aberta: " + "; ".join(answered)

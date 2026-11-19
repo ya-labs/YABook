@@ -4,7 +4,7 @@
 
 const SNAPSHOT = window.YABOOK_SNAPSHOT || null;
 const TOKEN = (document.querySelector('meta[name="yabook-token"]') || {}).content || "";
-const app = { estado: null, view: null, cache: {} };
+const app = { estado: null, view: null, cache: {}, anexosRascunho: {} };
 
 // Utilidades ------------------------------------------------------------------
 function h(tag, attrs, ...children) {
@@ -481,18 +481,181 @@ function sideSection(title, ...content) {
   return h("section", { class: "lateral-secao" }, h("h4", {}, icon(symbols[title] || "mais"), title), body.length ? body : h("p", { class: "vazio" }, "Nenhum"));
 }
 
-async function openTask(id) {
+function draftAnnotations(data, operations = []) {
+  let seq = data.anotacoes_seq || 0;
+  const notes = new Map((data.anotacoes || []).map(note => [note.numero, note]));
+  for (const op of operations) {
+    const number = op.acao === "criar" ? ++seq : op.numero;
+    if (op.acao === "excluir") notes.delete(number);
+    else notes.set(number, { numero: number, titulo: op.titulo, texto: op.texto });
+  }
+  return [...notes.values()];
+}
+
+async function downloadAttachment(id, item) {
+  try {
+    const query = new URLSearchParams({ tarefa: id, id: item.id });
+    const response = await fetch("/api/anexo?" + query, { headers: { "X-YABook-Token": TOKEN } });
+    if (!response.ok) throw new Error((await response.json()).error);
+    const url = URL.createObjectURL(await response.blob());
+    const link = h("a", { href: url, download: item.nome, onclick: event => event.stopPropagation() });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    announce("Falha ao baixar anexo: " + error.message);
+  }
+}
+
+function taskMaterials(detail, editable) {
+  const data = detail.data, id = data.id;
+  const notesPanel = h("section", { class: "comentario task-materials" });
+  const filesPanel = h("section", { class: "comentario task-materials" });
+  const pending = () => app.anexosRascunho[id];
+  const label = (field, text) => h("label", { class: "campo" }, h("span", {}, text), field);
+
+  function stageNote(op) {
+    if (!app.editando || app.salvando) return;
+    const entry = app.rascunho.tarefas[id];
+    draftTask(id, {}, {
+      revision: entry?.revision || detail.revision,
+      anotacoes: [...(entry?.anotacoes || []), op],
+    });
+    renderNotes();
+    renderToolbar();
+    announce("Anotação atualizada no rascunho.");
+  }
+
+  function noteForm(note) {
+    const title = h("input", { value: note?.titulo || "", required: true, maxlength: 160 });
+    const text = h("textarea", { rows: 4, required: true, maxlength: 20000 }, note?.texto || "");
+    return h("form", { class: "material-form", onsubmit: event => {
+      event.preventDefault();
+      if (!title.value.trim() || !text.value.trim()) {
+        announce("Preencha o título e o conteúdo da anotação.");
+        return;
+      }
+      stageNote({ acao: note ? "editar" : "criar", numero: note?.numero, titulo: title.value.trim(), texto: text.value.trim() });
+    } }, label(title, "Título da anotação"), label(text, "Conteúdo em Markdown"),
+    h("button", { type: "submit", class: "botao pequeno" }, "Aplicar anotação ao rascunho"));
+  }
+
+  function renderNotes() {
+    const notes = draftAnnotations(data, editable ? app.rascunho.tarefas[id]?.anotacoes : []);
+    fill(notesPanel, h("header", {}, h("h3", {}, "Anotações")),
+      h("div", { class: "comentario-corpo material-lista" },
+        notes.length ? notes.map(note => h("details", { class: "material-item" },
+          h("summary", {}, "Nota " + String(note.numero).padStart(2, "0") + " · " + note.titulo),
+          h("div", { class: "markdown" }, markdown(note.texto)),
+          editable ? h("div", { class: "material-acoes" },
+            h("details", {}, h("summary", {}, "Editar anotação"), noteForm(note)),
+            h("button", { type: "button", class: "botao pequeno", onclick: () => stageNote({ acao: "excluir", numero: note.numero }) }, "Excluir anotação")) : null))
+          : h("p", { class: "vazio" }, "Nenhuma anotação."),
+        editable ? h("details", { class: "material-item" }, h("summary", {}, "Nova anotação"), noteForm()) : null));
+  }
+
+  function fileForm() {
+    const file = h("input", { type: "file", required: true, accept: ".pdf,.docx,.xlsx,.pptx,.odt,.ods,.txt,.md,.csv,.png,.jpg,.jpeg" });
+    const name = h("input", { maxlength: 145 });
+    const storage = h("select", { required: true }, h("option", { value: "" }, "Escolha onde guardar"),
+      h("option", { value: "local", disabled: !app.estado.base_confidencial }, "Base confidencial local"),
+      h("option", { value: "compartilhado" }, "Repositório privado de tarefas"));
+    const error = h("p", { class: "vazio", role: "status" });
+    return h("form", { class: "material-form", onsubmit: event => {
+      event.preventDefault();
+      const selected = file.files[0];
+      if (!app.editando || app.salvando || !selected) return;
+      if (!selected.size || selected.size > 1000000) {
+        error.textContent = "Cada anexo deve ter entre 1 byte e 1 MB.";
+        return;
+      }
+      const ext = selected.name.match(/\.[^.]+$/)?.[0] || "";
+      const local = storage.value === "local";
+      const nome = name.value.trim() ? name.value.trim() + ext
+        : local ? "Documento confidencial" + ext : selected.name;
+      const entry = pending() || { revision: detail.revision, items: [] };
+      const bytes = Object.values(app.anexosRascunho).flatMap(entry => entry.items).reduce((sum, item) => sum + item.file.size, 0);
+      if (bytes + selected.size > 1300000) {
+        error.textContent = "Salve os anexos atuais antes de incluir mais arquivos.";
+        return;
+      }
+      entry.items.push({ nome, local, file: selected });
+      app.anexosRascunho[id] = entry;
+      renderFiles();
+      renderToolbar();
+      announce("Anexo incluído no rascunho.");
+    } }, label(file, "Arquivo"), label(name, "Nome genérico no card (opcional)"), label(storage, "Armazenamento"), error,
+    h("button", { type: "submit", class: "botao pequeno" }, "Adicionar ao rascunho"));
+  }
+
+  function renderFiles() {
+    const files = data.anexos || [];
+    const staged = editable ? pending()?.items || [] : [];
+    fill(filesPanel, h("header", {}, h("h3", {}, "Anexos")),
+      h("div", { class: "comentario-corpo material-lista" },
+        files.map(item => h("div", { class: "material-arquivo" },
+          h("span", {}, item.nome, item.local ? " · só nesta máquina" : ""),
+          h("button", { type: "button", class: "botao pequeno", onclick: () => downloadAttachment(id, item) }, "Baixar"))),
+        staged.map((item, index) => h("div", { class: "material-arquivo" },
+          h("span", {}, item.nome + " · no rascunho"),
+          h("button", { type: "button", class: "botao pequeno", onclick: () => {
+            if (!app.editando || app.salvando) return;
+            pending().items.splice(index, 1);
+            if (!pending().items.length) delete app.anexosRascunho[id];
+            renderFiles();
+            renderToolbar();
+          } }, "Remover do rascunho"))),
+        !files.length && !staged.length ? h("p", { class: "vazio" }, "Nenhum anexo.") : null,
+        editable ? h("details", { class: "material-item" }, h("summary", {}, "Anexar arquivo"),
+          h("p", { class: "vazio" }, "Até 1 MB por arquivo. Use a base local para material interno. Salve antes de recarregar."),
+          fileForm()) : null));
+  }
+  renderNotes();
+  renderFiles();
+  return [notesPanel, filesPanel];
+}
+
+function fileBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",", 2)[1]);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function draftChanges(draft, files) {
+  const ids = new Set([...Object.keys(draft.tarefas), ...Object.keys(files)]);
+  return Promise.all([...ids].map(async id => {
+    const entry = draft.tarefas[id] || {};
+    const pending = files[id];
+    // Envie a revisão de cada edição. Mesmo um anexo isolado pode ficar desatualizado.
+    const revisions = [entry.revision, pending?.revision].filter(Boolean);
+    const revision = new Set(revisions).size === 1 ? revisions[0] : null;
+    const anexos = await Promise.all((pending?.items || []).map(async x =>
+      ({ nome: x.nome, local: x.local, base64: await fileBase64(x.file) })));
+    return { id, revision, campos: entry.campos, unset: entry.unset || [], registro: entry.registro,
+      anotacoes: entry.anotacoes || [], anexos };
+  }));
+}
+
+async function openTask(id, detail = null) {
   const panel = document.getElementById("painel");
   const request = beginPanel();
-  panel.setAttribute("aria-busy", "true");
-  fill(panel, panelHeader("Carregando tarefa…"), h("div", { class: "painel-corpo" }, loadingState()));
-  focusPanel();
+  if (!detail) {
+    panel.setAttribute("aria-busy", "true");
+    fill(panel, panelHeader("Carregando tarefa…"), h("div", { class: "painel-corpo" }, loadingState()));
+    focusPanel();
+  }
   try {
-    const detail = await api("/api/tarefa/" + encodeURIComponent(id));
+    detail ??= await api("/api/tarefa/" + encodeURIComponent(id));
     if (request !== app.painelRequest) return;
     const task = effectiveState().tarefas.find((t) => t.id === id) || detail.resumo;
     const data = { ...detail.data, ...task };
-    const draft = app.editando && app.rascunho.tarefas[id];
+    const canEdit = !SNAPSHOT && !!TOKEN && data.tipo !== "pergunta";
+    const editing = canEdit && app.editando;
+    const draft = editing && app.rascunho.tarefas[id];
     if (draft) {
       const changed = new Set([...(draft.unset || []), ...Object.keys(draft.campos || {})]);
       for (const key of changed) if (!(key in task)) delete data[key];
@@ -504,9 +667,14 @@ async function openTask(id) {
     const field = (name, value) => value ? h("div", { class: "campo-lateral" }, h("span", {}, name), h("span", {}, value)) : null;
     const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
     fill(panel,
-      h("div", { class: "painel-topo" },
-        h("h2", { id: "painel-titulo", tabindex: "-1" }, data.numero ? h("span", { class: "numero-issue" }, `@${data.numero} `) : null, data.titulo, ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null),
-        h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar"))),
+      panelHeader([
+        data.numero ? h("span", { class: "numero-issue" }, `@${data.numero} `) : null,
+        data.titulo,
+        ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null,
+      ], canEdit && !editing ? h("button", { class: "botao pequeno", type: "button", onclick: () => {
+        startEditing();
+        openTask(id, detail);
+      } }, icon("editar"), "Editar") : null),
       h("div", { class: "faixa-estado" },
         stateLabel(task),
         // Status do fluxo e prazo ao lado do título; o painel lateral não repete o prazo.
@@ -527,7 +695,7 @@ async function openTask(id) {
               data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null,
               h("details", { class: "detalhes-tecnicos" }, h("summary", {}, "Detalhes técnicos"), h("code", {}, data.id))),
             h("div", { class: "comentario-corpo markdown" },
-              data.descricao ? h("p", { class: "descricao-tarefa" }, data.descricao) : h("p", { class: "vazio" }, "Sem descrição."),
+              data.descricao ? h("div", { class: "descricao-tarefa markdown" }, markdown(data.descricao)) : h("p", { class: "vazio" }, "Sem descrição."),
               data.proximo_passo ? h("div", { class: "proximo-destaque" }, h("h3", {}, icon("seta"), "Próximo passo"), h("p", {}, data.proximo_passo)) : null,
               detail.body ? h("details", { class: "historico-agente" }, h("summary", {}, icon("historico"), "Histórico do agente"), taskDocument(detail.body)) : null)),
           detail.filhos && detail.filhos.length ? h("div", { class: "caixa" },
@@ -535,6 +703,7 @@ async function openTask(id) {
               epic && data.nivel === "epico" ? h("span", { class: "direita" }, segments(epic.concluidas, epic.historias)) : null),
             detail.filhos.map((child) => h("div", { class: "linha-caixa" }, stateIcon(child), goTo(child),
               h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(child.coluna)}` }), columnName(child.coluna))))) : null,
+          !SNAPSHOT && task.tipo !== "pergunta" ? taskMaterials(detail, editing) : null,
           detail.complemento ? h("section", { class: "comentario documento-confidencial" }, h("header", {}, icon("cadeado"), h("strong", {}, "Complemento confidencial"), h("span", { class: "vazio" }, " · só nesta máquina")),
             h("div", { class: "comentario-corpo markdown" }, markdown(detail.complemento))) : null,
           Object.entries(detail.referencias || {}).map(([refName, text]) => h("section", { class: "comentario documento-confidencial" },
@@ -543,7 +712,7 @@ async function openTask(id) {
             h("div", { class: "comentario-corpo markdown" }, text ? markdown(text) : h("p", { class: "vazio" }, "Referência indisponível: arquivo não encontrado na base confidencial ou acesso fora da base.")))),
           detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
             ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
-          app.editando && data.tipo !== "pergunta" ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
+          editing ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
         h("aside", { class: "painel-lateral" },
           sideSection("Rótulos", h("div", { class: "rotulos" }, badges(task, { semPai: true, semCodigo: true, semData: true, semPrazo: true }))),
           sideSection("Campos",
@@ -572,9 +741,10 @@ async function openTask(id) {
   }
 }
 
-function panelHeader(title) {
+function panelHeader(title, action = null) {
+  const close = h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar"));
   return h("div", { class: "painel-topo" }, h("h2", { id: "painel-titulo", tabindex: "-1" }, title),
-    h("button", { class: "botao-icone discreto", type: "button", title: "Fechar", "aria-label": "Fechar painel", onclick: closePanel }, icon("fechar")));
+    action ? h("div", { class: "painel-topo-acoes" }, action, close) : close);
 }
 
 function beginPanel() {
@@ -1696,7 +1866,7 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("click", (event) => {
   const panel = document.getElementById("painel");
   if (app.abrindoPainel) { app.abrindoPainel = false; return; }
-  if (!panel.hidden && !panel.contains(event.target)) closePanel(false);
+  if (!panel.hidden && !event.composedPath().includes(panel)) closePanel(false);
 });
 document.addEventListener("DOMContentLoaded", () => {
   renderTheme();
@@ -1735,6 +1905,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const filter = document.getElementById("filtro");
   filter.addEventListener("input", () => { app.busca = filter.value; clearTimeout(app.buscaTimer); app.buscaTimer = setTimeout(render, 150); });
   app.rascunho = loadDraft();
+  window.addEventListener("beforeunload", event => {
+    if (!Object.keys(app.anexosRascunho).length) return;
+    event.preventDefault();
+    event.returnValue = "";
+  });
   app.editando = !SNAPSHOT && draftCount() > 0;
   setInterval(refreshChangeTimes, 60000);
   document.addEventListener("visibilitychange", refreshChangeTimes);
@@ -1764,7 +1939,8 @@ function persistDraft() {
 
 function draftCount() {
   const d = app.rascunho || emptyDraft();
-  return Object.keys(d.tarefas).length + Object.keys(d.colunas).length + d.complementos.length + (d.correcoes || []).length;
+  return new Set([...Object.keys(d.tarefas), ...Object.keys(app.anexosRascunho)]).size
+    + Object.keys(d.colunas).length + d.complementos.length + (d.correcoes || []).length;
 }
 
 function effectiveState() {
@@ -1937,11 +2113,12 @@ function editForm(id) {
     if (!campos.titulo && campos.titulo === null) delete campos.titulo;
     const entry = app.rascunho.tarefas[id];
     const registro = values.registro.trim();
-    if (!Object.keys(campos).length && !registro) {
+    const anotacoes = entry?.anotacoes || [];
+    if (!Object.keys(campos).length && !registro && !anotacoes.length) {
       if (entry) { delete app.rascunho.tarefas[id]; persistDraft(); }
     } else {
       const keep = entry && entry.campos.ordem !== undefined && !("coluna" in campos && campos.coluna !== entry.campos.coluna) ? { ordem: entry.campos.ordem } : {};
-      app.rascunho.tarefas[id] = { revision: original.revision, campos: { ...keep, ...campos }, unset: [], ...(registro ? { registro } : {}) };
+      app.rascunho.tarefas[id] = { revision: entry?.revision || original.revision, campos: { ...keep, ...campos }, unset: [], anotacoes, ...(registro ? { registro } : {}) };
       persistDraft();
     }
     closePanel();
@@ -1951,7 +2128,7 @@ function editForm(id) {
     h("h2", { style: "margin:0" }, "Editar tarefa"),
     h("p", { class: "vazio", style: "margin:0" }, "Aplique as mudanças ao rascunho e depois use Salvar na barra de filtros."),
     field("titulo", "Título", h("input", { name: "titulo", value: task.titulo, required: true })),
-    field("descricao", "Descrição (o que é a tarefa, 1 a 3 linhas)", h("textarea", { name: "descricao", rows: 2 }, task.descricao || "")),
+    field("descricao", "Descrição (objetivo e escopo em Markdown)", h("textarea", { name: "descricao", rows: 5 }, task.descricao || "")),
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     h("div", { class: "campos-linha" },
       field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
@@ -1999,6 +2176,11 @@ function moveWindow(day, entry, target) {
   render();
 }
 
+function startEditing() {
+  app.editando = true;
+  render();
+}
+
 function renderToolbar() {
   const bar = document.getElementById("edicao");
   const filterBar = document.querySelector(".barra-filtro");
@@ -2015,7 +2197,7 @@ function renderToolbar() {
     h("span", { class: "selo cor-orange" }, count ? `${count} ${count === 1 ? "alteração" : "alterações"} no rascunho` : "Modo Editar"),
     h("button", { id: "descartar", class: "botao", type: "button", disabled: !!app.salvando, onclick: discardDraft }, icon("desfazer"), count ? "Descartar" : "Sair"),
     h("button", { id: "salvar", class: "botao primario", type: "button", disabled: !count || !!app.salvando, onclick: saveDraft }, icon("salvar"), app.salvando ? "Salvando…" : "Salvar"),
-  ] : [h("button", { class: "botao", type: "button", onclick: () => { app.editando = true; render(); } }, icon("editar"), "Editar")];
+  ] : [h("button", { class: "botao", type: "button", onclick: startEditing }, icon("editar"), "Editar")];
   bar.replaceChildren(...items.filter(Boolean));
 }
 
@@ -2023,6 +2205,7 @@ function discardDraft() {
   if (app.salvando) return;
   if (draftCount() && !window.confirm("Descartar as alterações não salvas?")) return;
   app.rascunho = emptyDraft();
+  app.anexosRascunho = {};
   persistDraft();
   app.editando = false;
   app.pendente = false;
@@ -2036,14 +2219,20 @@ async function saveDraft() {
   announce("Salvando alterações…");
   const d = app.rascunho;
   const body = {
-    tarefas: Object.entries(d.tarefas).map(([id, e]) => ({ id, revision: e.revision, campos: e.campos, unset: e.unset || [], registro: e.registro })),
     colunas: Object.entries(d.colunas).map(([id, nome]) => ({ id, nome })),
     complementos: d.complementos,
     correcoes: d.correcoes || [],
   };
   let response, result;
   try {
-    response = await fetch("/api/salvar", { method: "POST", headers: { "Content-Type": "application/json", "X-YABook-Token": TOKEN }, body: JSON.stringify(body) });
+    body.tarefas = await draftChanges(d, app.anexosRascunho);
+    const payload = JSON.stringify(body);
+    if (new TextEncoder().encode(payload).length > 2000000) {
+      app.salvando = false;
+      renderToolbar();
+      return showPanel(h("p", { class: "aviso erro" }, "O rascunho passa de 2 MB. Remova anexos do rascunho e salve em etapas."));
+    }
+    response = await fetch("/api/salvar", { method: "POST", headers: { "Content-Type": "application/json", "X-YABook-Token": TOKEN }, body: payload });
     result = await response.json();
   } catch (error) {
     app.salvando = false;
@@ -2055,6 +2244,7 @@ async function saveDraft() {
   renderToolbar();
   if (response.ok) {
     app.rascunho = emptyDraft();
+    app.anexosRascunho = {};
     persistDraft();
     app.editando = false;
     app.pendente = false;
@@ -2069,6 +2259,14 @@ async function saveDraft() {
   if (response.status === 409) {
     announce("Conflito ao salvar. Revise as tarefas alteradas em outro lugar.");
     const lost = (result.conflitos || []).map((id) => [id, d.tarefas[id]]);
+    const materials = lost.some(([id, e]) => e?.anotacoes?.length || app.anexosRascunho[id]);
+    if (materials) {
+      app.pendente = false;
+      await refresh();
+      return showPanel(h("h2", {}, "Tarefa alterada em outro lugar"),
+        h("p", { class: "aviso erro" }, result.error),
+        h("p", {}, "O rascunho foi mantido. Confira ou copie suas anotações no card antes de descartar e refazer sobre a versão atual."));
+    }
     for (const [id] of lost) delete d.tarefas[id];
     persistDraft();
     app.pendente = false;

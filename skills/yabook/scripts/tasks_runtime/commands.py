@@ -11,7 +11,7 @@ from pathlib import Path
 
 from . import events, remote, tree
 from .precommit_hook import find_terms
-from .store import TIPOS, atomic_write, now
+from .store import Conflict, TIPOS, atomic_write, now
 
 WEEKDAYS = ("segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo")
 CLOSED = ("concluido", "arquivado")
@@ -219,10 +219,11 @@ class Tasks:
         return dict(id=identifier, revision=revision, coluna=column)
 
     def edit(self, identifier, changes=None, unset=(), append=None, expected_revision=None):
+        if {"anotacoes", "anotacoes_seq", "anexos"} & set(unset):
+            raise ValueError("Use os comandos de anotação e anexos para alterar materiais da tarefa")
         with self.store.lock():
             task = self.store.get(identifier)
             if expected_revision and expected_revision != task["revision"]:
-                from .store import Conflict
                 raise Conflict("Tarefa mudou depois da leitura; recarregue antes de gravar: " + identifier)
             data = dict(task["data"])
             for key, value in (changes or {}).items():
@@ -278,6 +279,19 @@ class Tasks:
             if changed or append:
                 self._event("editar", tarefa=identifier, campos=changed + (["registro"] if append else []))
             return dict(id=identifier, revision=revision, coluna=data["coluna"])
+
+    def update_materials(self, identifier, operations=(), uploads=(), expected_revision=None):
+        from . import materials
+
+        with self.store.lock():
+            task = self.store.get(identifier)
+            identifier = task["data"]["id"]
+            if expected_revision is not None and task["revision"] != expected_revision:
+                raise Conflict("Tarefa mudou depois da leitura; recarregue antes de gravar: " + identifier)
+            fields, blobs = materials.prepare(self.store, self.cfg, task, list(operations), list(uploads))
+            materials.write_blobs(blobs)
+            result = self.edit(identifier, fields, expected_revision=task["revision"])
+            return dict(result, anotacoes=fields.get("anotacoes", []), anexos=fields.get("anexos", []))
 
     def move(self, identifier, papel, note=None):
         return self.edit(identifier, dict(coluna=self.first_column(papel)), append=note)
