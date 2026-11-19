@@ -201,6 +201,46 @@ process.stdout.write(JSON.stringify(result));
         self.assertEqual(actual["solta"]["selo"], [["button", "Demanda 322628"]])
         self.assertTrue(all(item["rodape"] == 0 for item in actual.values()))
 
+    def test_sheet_extras_show_recorded_time_with_informed_detail(self):
+        script = r"""
+const fs = require("node:fs"), vm = require("node:vm");
+class Element {
+  constructor(tag, text = "") { this.tag = tag; this.text = text; this.childNodes = []; this.events = {}; this.style = {}; }
+  setAttribute(k, v) { this[k] = v; }
+  addEventListener(k, v) { this.events[k] = v; }
+  append(n) { this.childNodes.push(n); }
+  replaceChildren(...n) { this.childNodes = n.flat(); }
+  get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
+}
+const sheet = {data:"2026-11-19", total:8, horas_dia:8, janelas:[], confirmada:{linhas:[]}, capturado_total:.5, linhas:[],
+  extras:[{tarefa:"extra", titulo:"Levantamento", capturado:.375, informado:1, registrado:1.375},
+          {tarefa:"so-captura", titulo:"Leitura", capturado:.125, informado:0, registrado:.125}]};
+const ctx = vm.createContext({Node:Element, window:{addEventListener(){}},
+  document:{querySelector(){return null;}, addEventListener(){}, createElement(t){return new Element(t);},
+    createTextNode(t){return new Element("text", t);}},
+  fetch:async()=>({ok:true,json:async()=>sheet}), setTimeout(){}, console});
+vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),ctx);
+vm.runInContext('app.estado={hoje:"2026-11-19"}; app.rascunho=emptyDraft(); app.editando=false;',ctx);
+(async()=>{
+  const flatten = n => [n, ...n.childNodes.flatMap(flatten)];
+  const nodes = flatten(await vm.runInContext("VIEWS.ficha",ctx).render({hoje:sheet.data}));
+  const list = nodes.find(n => n.className === "ficha-lista-extras");
+  const meta = nodes.filter(n => n.className === "ficha-detalhes-meta").map(n => n.textContent);
+  process.stdout.write(JSON.stringify({
+    rows: flatten(list).filter(n => n.tag === "strong").map(n => [n.textContent, n.title || null]),
+    meta, captured: nodes.filter(n => n.textContent.startsWith("Capturado") && n.tag === "p").map(n => n.textContent),
+    legacy: vm.runInContext('extraRecorded({capturado:.25, informado:.5})', ctx)}));
+})().catch(e=>{console.error(e);process.exit(1)});
+"""
+        result = subprocess.run(["node", "-e", script, str(SITE)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        actual = json.loads(result.stdout)
+        self.assertEqual(actual["rows"], [["1h 22min 30s", "22min 30s capturado + 1h 00min informado"], ["7min 30s", None]])
+        self.assertIn("2 · 1h 30min", actual["meta"])
+        # A métrica e a nota de captura continuam só com o capturado.
+        self.assertEqual(actual["captured"], ["Capturado na ficha: 0min · Extras: 30min"])
+        self.assertEqual(actual["legacy"], .75)
+
     def test_same_date_only_shows_parent(self):
         self.assertEqual(self.deadlines(self.task("epico", "2026-12-18"),
                                         self.task("historia", "2026-12-18", "epico")), ["epico"])
