@@ -666,15 +666,23 @@ async function openTask(id, detail = null) {
     const epic = (app.estado.epicos || []).find((e) => e.id === (data.nivel === "epico" ? data.id : data.pai));
     const field = (name, value) => value ? h("div", { class: "campo-lateral" }, h("span", {}, name), h("span", {}, value)) : null;
     const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
+    let editAction = null;
+    if (editing) {
+      editAction = draftExitButton({ id: "painel-descartar", class: "botao pequeno", onclick: async () => {
+        if (await discardDraft() && request === app.painelRequest) await openTask(id);
+      } });
+    } else if (canEdit) {
+      editAction = h("button", { class: "botao pequeno", type: "button", onclick: () => {
+        startEditing();
+        openTask(id, detail);
+      } }, icon("editar"), "Editar");
+    }
     fill(panel,
       panelHeader([
         data.numero ? h("span", { class: "numero-issue" }, `@${data.numero} `) : null,
         data.titulo,
         ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null,
-      ], canEdit && !editing ? h("button", { class: "botao pequeno", type: "button", onclick: () => {
-        startEditing();
-        openTask(id, detail);
-      } }, icon("editar"), "Editar") : null),
+      ], editAction),
       h("div", { class: "faixa-estado" },
         stateLabel(task),
         // Status do fluxo e prazo ao lado do título; o painel lateral não repete o prazo.
@@ -2181,6 +2189,15 @@ function startEditing() {
   render();
 }
 
+function draftExitLabel(count) {
+  return count ? "Descartar" : "Sair";
+}
+
+function draftExitButton(attrs, count = draftCount()) {
+  return h("button", { class: "botao", type: "button", disabled: !!app.salvando, onclick: discardDraft, ...attrs },
+    icon("desfazer"), h("span", {}, draftExitLabel(count)));
+}
+
 function renderToolbar() {
   const bar = document.getElementById("edicao");
   const filterBar = document.querySelector(".barra-filtro");
@@ -2192,24 +2209,30 @@ function renderToolbar() {
   } else if (!app.editando && help) help.remove();
   if (SNAPSHOT || !TOKEN) { bar.replaceChildren(); return; }
   const count = draftCount();
+  const panelExit = document.getElementById("painel-descartar");
+  if (panelExit) {
+    panelExit.disabled = !!app.salvando;
+    panelExit.lastElementChild.textContent = draftExitLabel(count);
+  }
   const items = app.editando ? [
     app.pendente ? h("span", { class: "selo cor-orange", title: "Salve ou descarte para ver as mudanças" }, "repositório mudou") : null,
     h("span", { class: "selo cor-orange" }, count ? `${count} ${count === 1 ? "alteração" : "alterações"} no rascunho` : "Modo Editar"),
-    h("button", { id: "descartar", class: "botao", type: "button", disabled: !!app.salvando, onclick: discardDraft }, icon("desfazer"), count ? "Descartar" : "Sair"),
+    draftExitButton({ id: "descartar" }, count),
     h("button", { id: "salvar", class: "botao primario", type: "button", disabled: !count || !!app.salvando, onclick: saveDraft }, icon("salvar"), app.salvando ? "Salvando…" : "Salvar"),
   ] : [h("button", { class: "botao", type: "button", onclick: startEditing }, icon("editar"), "Editar")];
   bar.replaceChildren(...items.filter(Boolean));
 }
 
-function discardDraft() {
-  if (app.salvando) return;
-  if (draftCount() && !window.confirm("Descartar as alterações não salvas?")) return;
+async function discardDraft() {
+  if (app.salvando) return false;
+  if (draftCount() && !window.confirm("Descartar as alterações não salvas?")) return false;
   app.rascunho = emptyDraft();
   app.anexosRascunho = {};
   persistDraft();
   app.editando = false;
   app.pendente = false;
-  refresh();
+  await refresh();
+  return true;
 }
 
 async function saveDraft() {
