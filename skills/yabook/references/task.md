@@ -21,7 +21,8 @@ separado da memória. Execute `python3 scripts/yabook_tasks.py <serviço>` relat
 ## Formato
 
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
-aceito nos comandos; `numerar [--corrigir]`), `descricao` (objetivo e escopo vigente em Markdown),
+aceito nos comandos; `numerar [--corrigir]`), `descricao` (objetivo e escopo
+vigente em Markdown, obrigatória ao criar uma tarefa pelo agente),
 `size` (1–5 na escala das issues, obrigatório ao criar: o da issue ou estimado;
 reestime só com mudança de escopo; `size_manual` prevalece), `rodada` (sobe ao voltar da
 validação; com ajustes, vá à coluna Ajustes), `tipo` (`demanda`,
@@ -53,8 +54,8 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task` | `summary`: ativas, tarefa ativa, prazos, perguntas e colunas |
 | `task show <id>` | `show`; inclui o complemento confidencial quando existe |
 | `task search <termo>` | `search [--tipo] [--coluna] [--projeto] [--nivel] [--pai]`; `--projeto` inclui herdados |
-| `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo, sem `size` e paradas |
-| `task add <texto livre>` | `add --tipo --titulo [--nivel --pai --pessoal sim\|nao --demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
+| `task review` | `review`: perguntas abertas, atrasadas, próximas, sem prazo, sem `size`, sem `descricao` e paradas |
+| `task add <texto livre>` | `add --tipo --titulo --descricao --size [--nivel --pai --pessoal sim\|nao --demanda --projeto --issue --prazo --coluna --proximo-passo --ref --sobre --body]` |
 | `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
 | `task anotacao <id> <ação>` | `anotacao <id> <ação> [--numero N] [--titulo ... --texto ...] [--revision ...]` |
 | `task anexar <id> <arquivo>` | `anexar <id> <arquivo> --local\|--compartilhado [--nome ...] [--revision ...]` |
@@ -98,16 +99,20 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 `task capture [assunto]` registra o que a conversa tratou, a partir dela (ou do
 resumo), da base confidencial, das issues e das tarefas. Lote JSON no scratchpad:
 
-- `itens`: um por projeto, demanda, especificação ou issue, com `tipo`, `titulo`,
-  códigos, `issue`, `size`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
+- `itens`: um por tarefa, projeto, demanda, especificação ou issue. Em item novo,
+  inclua `tipo`, `titulo`, `descricao` (o que é a tarefa, seu objetivo e
+  escopo) e `size` (inteiro de 1 a 5, da issue ou estimado). Inclua, quando
+  couber, códigos, `issue`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
   disser, `estado` (papel ou coluna conforme a fase), `prazo`,
-  `proximo_passo`, `registro` (o que foi feito), `complemento` (detalhe
+  `proximo_passo`, `registro` (histórico do que já foi feito), `complemento` (detalhe
   confidencial, só onde há base) e `chave` local.
 - `perguntas` (`texto`, `sobre`), `ativa` (chave) e `horas` (`tarefa`, `data`,
   `horas`, `obs`) só quando a conversa informar dia e quantidade.
 
-Sem `--apply`, devolve a prévia; casa por `id`, issue, código ou título e não
-duplica. Termo da lista local recusa o lote indicando o campo. `automatic` aplica
+Sem `--apply`, devolve a prévia. A captura casa por `id`, issue, código ou título
+e aceita atualizações parciais de tarefas existentes. A prévia e a aplicação
+recusam o lote se um item novo estiver sem descrição ou Size válido. Termo da
+lista local também recusa o lote indicando o campo. `automatic` aplica
 com `--apply`; `manual` aplica após `do task capture` com o `approval_hash`. A
 aplicação torna `ativa` a tarefa da sessão.
 

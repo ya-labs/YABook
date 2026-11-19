@@ -18,6 +18,21 @@ CLOSED = ("concluido", "arquivado")
 OPEN_WORK = ("pronto", "ativo", "validacao")
 
 
+def validate_task_details(fields, *, required=False, location=""):
+    prefix = location + "." if location else ""
+    errors = []
+    if required or "descricao" in fields:
+        description = fields.get("descricao")
+        if not isinstance(description, str) or not description.strip():
+            errors.append(prefix + "descricao: informe o objetivo e o escopo da tarefa")
+    if required or "size" in fields:
+        size = fields.get("size")
+        if type(size) is not int or not 1 <= size <= 5:
+            errors.append(prefix + "size: informe um inteiro de 1 a 5")
+    if errors:
+        raise ValueError(". ".join(errors))
+
+
 def _plain(text):
     return " ".join(unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().casefold().split())
 
@@ -171,7 +186,8 @@ class Tasks:
     def review(self, tasks=None, stale_days=7, soon_days=2):
         tasks, roles, day = tasks or self.store.list(), self.roles(), today()
         index = tree.index_of(tasks)
-        result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[], aguardando=[], sem_size=[])
+        result = dict(perguntas=[], atrasadas=[], proximas=[], sem_prazo=[], paradas=[], aguardando=[],
+                      sem_size=[], sem_descricao=[])
         for task in tasks:
             data, role = task["data"], roles.get(task["data"].get("coluna"))
             if data.get("tipo") == "pergunta":
@@ -182,6 +198,8 @@ class Tasks:
                 continue
             if not data.get("size"):
                 result["sem_size"].append(self.brief(task, index))
+            if not (data.get("descricao") or "").strip():
+                result["sem_descricao"].append(self.brief(task, index))
             if data.get("aguardando"):
                 since = datetime.date.fromisoformat(data.get("aguardando_desde") or day.isoformat())
                 result["aguardando"].append(dict(self.brief(task, index), dias=(day - since).days))

@@ -51,8 +51,8 @@ class OwnTypeCodeTest(unittest.TestCase):
 
     def test_mixed_codes_warn_in_capture_and_add(self):
         plan = Capture(self.store, dict(machine="trabalho")).plan(dict(itens=[
-            dict(tipo="projeto", titulo="Novo", projeto="1002", demanda="4000"),
-            dict(tipo="issue", titulo="Normal", demanda="4000")]))
+            dict(tipo="projeto", titulo="Novo", descricao="Atender a demanda", size=1, projeto="1002", demanda="4000"),
+            dict(tipo="issue", titulo="Normal", descricao="Atender a demanda", size=1, demanda="4000")]))
         self.assertEqual(len(plan["avisos"]), 1)
         self.assertIn("projeto 1002", plan["avisos"][0])
         config = Path(self.tmp.name) / "cfg.json"
@@ -60,7 +60,7 @@ class OwnTypeCodeTest(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             code = yabook_tasks.main(["--config", str(config), "add", "--tipo", "demanda", "--titulo", "X",
-                                      "--demanda", "5000", "--projeto", "1000"])
+                                      "--descricao", "Atender a demanda", "--size", "1", "--demanda", "5000", "--projeto", "1000"])
         self.assertEqual(code, 0)
         self.assertIn("demanda 5000", json.loads(out.getvalue())["aviso"])
 

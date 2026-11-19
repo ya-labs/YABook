@@ -205,7 +205,7 @@ def run(args):
     if args.command == "policy":
         from tasks_runtime.commands import set_policy
         return set_policy(args.config, args.mode)
-    from tasks_runtime.commands import Tasks, sync
+    from tasks_runtime.commands import Tasks, sync, validate_task_details
     store, cfg = open_store(args.config)
     tasks = Tasks(store, cfg)
     for key in ("id", "sobre", "pai"):  # `@n` vira o id da tarefa antes de qualquer serviço
@@ -226,7 +226,10 @@ def run(args):
         from tasks_runtime import events
         return dict(tasks.review(), eventos_pendentes=events.pending(store.root))
     if args.command == "add":
-        added = tasks.add(args.tipo, args.titulo, body=args.body, **fields(args))
+        values = fields(args)
+        if args.tipo != "pergunta":
+            validate_task_details(values, required=True)
+        added = tasks.add(args.tipo, args.titulo, body=args.body, **values)
         from tasks_runtime import tree
         warning = tree.mixed_code_warning(store.get(added["id"])["data"])
         return dict(added, aviso=warning) if warning else added
