@@ -201,6 +201,49 @@ process.stdout.write(JSON.stringify(result));
         self.assertEqual(actual["solta"]["selo"], [["button", "Demanda 322628"]])
         self.assertTrue(all(item["rodape"] == 0 for item in actual.values()))
 
+    def test_attachment_preview_kinds_csv_and_text_decoding(self):
+        script = r'''
+const fs = require("node:fs"), vm = require("node:vm");
+class Element {
+  constructor(tag, text = "") { this.tag = tag; this.text = text; this.childNodes = []; this.events = {}; this.style = {}; this.classList = {toggle(){}}; }
+  setAttribute(k, v) { this[k] = v; }
+  addEventListener(k, v) { this.events[k] = v; }
+  append(n) { this.childNodes.push(n); }
+  get textContent() { return this.text + this.childNodes.map(n => n.textContent).join(""); }
+}
+const ctx = vm.createContext({Node:Element, TextDecoder, TextEncoder, window:{addEventListener(){}},
+  document:{querySelector(){return null;}, addEventListener(){}, createElement(t){return new Element(t);}, createTextNode(t){return new Element("text", t);}}});
+vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),ctx);
+const run = (code) => vm.runInContext(code, ctx);
+const flat = (n) => [n, ...(n.childNodes || []).flatMap(flat)];
+const nodes = (value) => [value].flat().filter(Boolean).flatMap(flat);
+const csv = run('previewContent("csv", new TextEncoder().encode(\'nome;valor\\n"Silva; Ana";"1,5"\\n"linha\\nquebrada";2\\n\'), null, "a.csv")');
+const markdown = run('previewContent("markdown", new TextEncoder().encode("# Título\\n\\n- item"), null, "a.md")');
+const json = run('previewContent("json", new TextEncoder().encode(\'{"a":[1,2]}\'), null, "a.json")');
+process.stdout.write(JSON.stringify({
+  kinds: run('["a.PDF","b.jpeg","c.webp","d.md","e.txt","f.log","g.json","h.csv","i.docx","j"].map(previewKind)'),
+  delimiters: run('[parseCsv("a,b\\n1,2").delimiter, parseCsv("a\\tb").delimiter, parseCsv("a;b").delimiter]'),
+  cells: nodes(csv).filter(n => n.tag === "td" || n.tag === "th").map(n => n.textContent),
+  utf8: run('decodeText(new Uint8Array([0xEF,0xBB,0xBF,0x61,0xC3,0xA7,0xC3,0xA3,0x6F]))'),
+  latin: run('decodeText(new Uint8Array([0x61,0xE7,0xE3,0x6F]))'),
+  markdown: nodes(markdown).map(n => n.tag).filter(t => ["button","h1","h2","h3","li","pre"].includes(t)),
+  json: nodes(json).find(n => n.tag === "pre").textContent,
+  bytes: run('[512, 2048, 1500000].map(formatBytes)'),
+}));
+'''
+        result = subprocess.run(["node", "-e", script, str(SITE)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        actual = json.loads(result.stdout)
+        self.assertEqual(actual["kinds"], ["pdf", "imagem", "imagem", "markdown", "texto", "texto", "json", "csv", None, None])
+        self.assertEqual(actual["delimiters"], [",", "\t", ";"])
+        self.assertEqual(actual["cells"], ["nome", "valor", "Silva; Ana", "1,5", "linha\nquebrada", "2"])
+        self.assertEqual((actual["utf8"], actual["latin"]), ("ação", "ação"))
+        self.assertEqual(actual["markdown"][0], "button")
+        self.assertIn("li", actual["markdown"])
+        self.assertIn("pre", actual["markdown"])
+        self.assertEqual(actual["json"], '{\n  "a": [\n    1,\n    2\n  ]\n}')
+        self.assertEqual(actual["bytes"], ["512 B", "2,0 KB", "1,4 MB"])
+
     def test_same_date_only_shows_parent(self):
         self.assertEqual(self.deadlines(self.task("epico", "2026-12-18"),
                                         self.task("historia", "2026-12-18", "epico")), ["epico"])
