@@ -18,9 +18,9 @@ import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
-from . import events, sheet, tree
+from . import events, materials, sheet, tree
 from .commands import Tasks, today
 
 SITE = Path(__file__).resolve().parent / "site"
@@ -233,6 +233,13 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         query = {k: v[-1] for k, v in parse_qs(url.query).items()}
         try:
+            if url.path == "/api/anexo":
+                if not self._valid_token():
+                    return self._error(HTTPStatus.FORBIDDEN, "Token da página ausente ou inválido; recarregue")
+                item, data = materials.read_attachment(self.board.store, self.board.cfg, query["tarefa"], query["id"])
+                return self._send(HTTPStatus.OK, data, "application/octet-stream", extra={
+                    "Content-Disposition": "attachment; filename*=UTF-8''" + quote(item["nome"], safe=""),
+                })
             if url.path == "/api/estado":
                 return self._send(HTTPStatus.OK, self.board.state())
             if url.path.startswith("/api/tarefa/"):
@@ -254,13 +261,16 @@ class Handler(BaseHTTPRequestHandler):
             return self._error(HTTPStatus.BAD_REQUEST, str(error))
         return self._static(url.path)
 
+    def _valid_token(self):
+        return bool(self.token) and secrets.compare_digest(self.headers.get("X-YABook-Token", ""), self.token)
+
     def do_POST(self):
         if not self._allowed_host():
             return self._error(HTTPStatus.FORBIDDEN, "Host não permitido")
         origin = self.headers.get("Origin")
         if origin and origin.lower() not in ("http://127.0.0.1:%d" % self.port, "http://localhost:%d" % self.port):
             return self._error(HTTPStatus.FORBIDDEN, "Origem não permitida")
-        if not self.token or not secrets.compare_digest(self.headers.get("X-YABook-Token", ""), self.token):
+        if not self._valid_token():
             return self._error(HTTPStatus.FORBIDDEN, "Token da página ausente ou inválido; recarregue")
         if self.writer is None:
             return self._error(HTTPStatus.NOT_FOUND, "Escrita indisponível")
