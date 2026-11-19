@@ -259,8 +259,13 @@ class HookCaptureTest(unittest.TestCase):
         batch.write_text(json.dumps(dict(itens=[dict(tipo="demanda", titulo="Ajuste", demanda="1001", chave="d")], ativa="d")))
         script = str(Path(hook.__file__).with_name("yabook_tasks.py"))
         command = "python3 %s --config %s capture --input %s --apply" % (script, hook.config_path(), batch)
-        subprocess.run(command.split(), check=True, capture_output=True)
-        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=command)))
+        completed = subprocess.run(command.split(), check=True, capture_output=True, text=True)
+        # Uma ação simultânea pode mudar a ativa global antes do hook da captura.
+        store = TaskStore(self.root)
+        other = Tasks(store).add("tarefa", "Outra")
+        Tasks(store).start(other["id"], self.root / "local" / "ativa.json")
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=command),
+                      tool_response="Chunk ID: test\nWall time: 0.1 seconds\nFinal output:\n" + completed.stdout))
         session = hook.state_path(self.event).stem
         self.assertEqual(capture.active(TaskStore(self.root), session), "demanda-1001")
         result = hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="terminei o ajuste"))

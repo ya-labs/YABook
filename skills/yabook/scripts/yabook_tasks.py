@@ -115,6 +115,10 @@ def build_parser():
     capture.add_argument("--input", required=True, help="JSON com itens, perguntas, ativa e horas")
     capture.add_argument("--apply", action="store_true", help="Grava; na política manual exige --approval-hash")
     capture.add_argument("--approval-hash", help="Hash da prévia apresentada")
+    retroactive = sub.add_parser("retroativo", help="Consulta ou atribui janelas anteriores à primeira escolha da sessão")
+    retroactive.add_argument("--sessao", required=True, help="Identificador da sessão no aviso do hook")
+    retroactive.add_argument("--apply", action="store_true", help="Atribui as janelas pendentes na Ficha")
+    retroactive.add_argument("--approval-hash", help="Hash da prévia aprovada na política manual")
     board = sub.add_parser("board", help="Site local: --serve inicia o servidor; --output gera cópia estática")
     board.add_argument("--serve", action="store_true", help="Serve em 127.0.0.1 até Ctrl+C")
     board.add_argument("--port", type=int, help="Porta; padrão `tasks.port` ou 8765")
@@ -285,6 +289,9 @@ def run(args):
         if cfg.get("policy") == "manual" and not args.approval_hash:
             raise ValueError("Política manual: apresente a prévia e aplique com --approval-hash após do task capture")
         return capture.apply(batch, args.approval_hash)
+    if args.command == "retroativo":
+        from tasks_runtime import capture
+        return capture.retroactive(store, cfg, args.sessao, apply=args.apply, approval_hash=args.approval_hash)
     if args.command == "clean":
         return tasks.clean(args.days, args.apply)
     raise ValueError("Comando desconhecido: " + args.command)

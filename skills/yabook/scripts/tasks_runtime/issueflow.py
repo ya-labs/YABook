@@ -87,7 +87,9 @@ def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=
                      json.dumps(dict(id=data["id"], desde=now(), origem="issue"), ensure_ascii=False) + "\n")
         if session:
             from . import capture
-            capture.set_active(store, session, data["id"])
+            notice = capture.set_active(store, session, data["id"], cfg)
+            if notice:
+                result["aviso_retroativo"] = notice
     return result
 
 
