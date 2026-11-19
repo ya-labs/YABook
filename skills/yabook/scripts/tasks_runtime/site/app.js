@@ -516,20 +516,187 @@ function draftAnnotations(data, operations = []) {
   return [...notes.values()];
 }
 
+async function fetchAttachment(id, item) {
+  const query = new URLSearchParams({ tarefa: id, id: item.id });
+  const response = await fetch("/api/anexo?" + query, { headers: { "X-YABook-Token": TOKEN } });
+  if (!response.ok) throw new Error((await response.json()).error);
+  return response.blob();
+}
+
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const link = h("a", { href: url, download: name, onclick: event => event.stopPropagation() });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 async function downloadAttachment(id, item) {
   try {
-    const query = new URLSearchParams({ tarefa: id, id: item.id });
-    const response = await fetch("/api/anexo?" + query, { headers: { "X-YABook-Token": TOKEN } });
-    if (!response.ok) throw new Error((await response.json()).error);
-    const url = URL.createObjectURL(await response.blob());
-    const link = h("a", { href: url, download: item.nome, onclick: event => event.stopPropagation() });
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    saveBlob(await fetchAttachment(id, item), item.nome);
   } catch (error) {
     announce("Falha ao baixar anexo: " + error.message);
   }
+}
+
+// Visualizador de anexos: o tipo vem da extensão; o conteúdo vira nós DOM (sem innerHTML).
+const ATTACHMENT_ACCEPT = ".pdf,.docx,.xlsx,.pptx,.odt,.ods,.txt,.md,.csv,.json,.log,.png,.jpg,.jpeg,.gif,.webp";
+const PREVIEW_KIND = { ".pdf": "pdf", ".png": "imagem", ".jpg": "imagem", ".jpeg": "imagem", ".gif": "imagem", ".webp": "imagem",
+  ".md": "markdown", ".txt": "texto", ".log": "texto", ".json": "json", ".csv": "csv" };
+const PREVIEW_MIME = { ".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+  ".gif": "image/gif", ".webp": "image/webp" };
+const PREVIEW_ROWS = 500;
+
+function attachmentExt(name) {
+  return (String(name || "").match(/\.[^./\\]+$/)?.[0] || "").toLowerCase();
+}
+
+function previewKind(name) {
+  return PREVIEW_KIND[attachmentExt(name)] || null;
+}
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes)) return "";
+  const text = bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
+  return text.replace(".", ",");
+}
+
+// UTF-8 primeiro; arquivos antigos (Latin-1/Windows-1252) caem no recuo sem caracteres trocados por "�".
+function decodeText(buffer) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer).replace(/^﻿/, "");
+  } catch {
+    return new TextDecoder("windows-1252").decode(buffer);
+  }
+}
+
+// CSV com aspas, quebra de linha dentro de campo e separador detectado na primeira linha (; , ou tab).
+function parseCsv(text) {
+  const first = text.split(/\r?\n/, 1)[0] || "";
+  const delimiter = [";", ",", "\t"].reduce((best, d) => first.split(d).length > first.split(best).length ? d : best, ";");
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"' && !cell) quoted = true;
+    else if (ch === delimiter) { row.push(cell); cell = ""; }
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += ch;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return { delimiter, rows };
+}
+
+function csvTable(text) {
+  const { rows } = parseCsv(text);
+  if (!rows.length) return h("p", { class: "vazio" }, "Arquivo vazio.");
+  const [head, ...body] = rows;
+  const shown = body.slice(0, PREVIEW_ROWS);
+  return [h("div", { class: "tabela-rolagem visualizador-tabela", role: "region", tabindex: "0", "aria-label": "Tabela do CSV" },
+    h("table", {}, h("thead", {}, h("tr", {}, head.map(cell => h("th", {}, cell)))),
+      h("tbody", {}, shown.map(cells => h("tr", {}, cells.map(cell => h("td", {}, cell))))))),
+    body.length > shown.length ? h("p", { class: "vazio" }, `Mostrando ${shown.length} de ${body.length} linhas; baixe para ver tudo.`) : null];
+}
+
+// Conteúdo do visualizador para um tipo; `url` só é usado por PDF e imagem.
+function previewContent(kind, buffer, url, name) {
+  if (kind === "pdf") return h("iframe", { class: "visualizador-pdf", src: url, title: name });
+  if (kind === "imagem") {
+    const image = h("img", { class: "visualizador-imagem", src: url, alt: name, title: "Clique para alternar entre ajustar à tela e tamanho real" });
+    image.addEventListener("click", () => image.classList.toggle("real"));
+    return h("div", { class: "visualizador-imagem-area" }, image);
+  }
+  const text = decodeText(buffer);
+  if (kind === "csv") return csvTable(text);
+  if (kind === "json") {
+    let pretty = text;
+    try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch { /* JSON inválido: mostra o texto original. */ }
+    return h("pre", { class: "visualizador-texto", tabindex: "0" }, pretty);
+  }
+  if (kind === "markdown") {
+    const rendered = h("div", { class: "markdown visualizador-markdown" }, markdown(text));
+    const raw = h("pre", { class: "visualizador-texto", tabindex: "0", hidden: true }, text);
+    const toggle = h("button", { type: "button", class: "botao pequeno visualizador-alternar" }, "Ver texto original");
+    toggle.addEventListener("click", () => {
+      raw.hidden = !raw.hidden;
+      rendered.hidden = !raw.hidden;
+      toggle.textContent = raw.hidden ? "Ver texto original" : "Ver formatado";
+    });
+    return [toggle, rendered, raw];
+  }
+  return h("pre", { class: "visualizador-texto", tabindex: "0" }, text);
+}
+
+// entries: [{ nome, tamanho, nota, load: () => Promise<Blob> }]; abre em `index`.
+function openPreview(entries, index) {
+  closePreview();
+  const body = h("div", { class: "visualizador-corpo" });
+  const title = h("h2", {}), info = h("span", { class: "visualizador-info" });
+  const prev = h("button", { type: "button", class: "botao pequeno", title: "Anterior (←)", "aria-label": "Anexo anterior" }, "‹");
+  const next = h("button", { type: "button", class: "botao pequeno", title: "Próximo (→)", "aria-label": "Próximo anexo" }, "›");
+  const download = h("button", { type: "button", class: "botao pequeno" }, "Baixar");
+  const close = h("button", { type: "button", class: "botao pequeno", "aria-label": "Fechar visualizador", title: "Fechar (Esc)" }, icon("fechar"));
+  const dialog = h("dialog", { class: "visualizador", "aria-label": "Visualizar anexo" },
+    h("header", { class: "visualizador-topo" }, h("div", { class: "visualizador-titulo" }, title, info),
+      h("div", { class: "visualizador-acoes" }, entries.length > 1 ? [prev, next] : null, download, close)),
+    body);
+  const state = { dialog, index, generation: 0, url: null, blob: null };
+  app.visualizador = state;
+  const release = () => { if (state.url) URL.revokeObjectURL(state.url); state.url = null; state.blob = null; };
+  const show = async (position) => {
+    state.index = (position + entries.length) % entries.length;
+    const entry = entries[state.index], generation = ++state.generation, kind = previewKind(entry.nome);
+    release();
+    title.textContent = entry.nome;
+    info.textContent = [entries.length > 1 ? `${state.index + 1} de ${entries.length}` : null, formatBytes(entry.tamanho), entry.nota]
+      .filter(Boolean).join(" · ");
+    fill(body, h("p", { class: "vazio" }, "Carregando…"));
+    try {
+      const blob = await entry.load();
+      if (generation !== state.generation) return;
+      const mime = PREVIEW_MIME[attachmentExt(entry.nome)];
+      state.blob = blob;
+      state.url = mime ? URL.createObjectURL(new Blob([blob], { type: mime })) : null;
+      fill(body, kind ? previewContent(kind, kind === "pdf" || kind === "imagem" ? null : await blob.arrayBuffer(), state.url, entry.nome)
+        : h("div", { class: "visualizador-vazio" }, h("p", {}, "Este formato não tem visualização no navegador."),
+          h("button", { type: "button", class: "botao pequeno", onclick: () => saveBlob(blob, entry.nome) }, "Baixar arquivo")));
+    } catch (error) {
+      if (generation === state.generation) fill(body, h("p", { class: "aviso erro" }, "Não foi possível abrir o anexo: " + error.message));
+    }
+  };
+  prev.addEventListener("click", () => show(state.index - 1));
+  next.addEventListener("click", () => show(state.index + 1));
+  close.addEventListener("click", () => dialog.close());
+  download.addEventListener("click", async () => {
+    const entry = entries[state.index];
+    try { saveBlob(state.blob || await entry.load(), entry.nome); } catch (error) { announce("Falha ao baixar anexo: " + error.message); }
+  });
+  dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener("keydown", event => {
+    if (entries.length < 2 || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.target instanceof Element && event.target.closest("input, textarea, select")) return;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); show(state.index + (event.key === "ArrowLeft" ? -1 : 1)); }
+  });
+  dialog.addEventListener("close", () => {
+    state.generation++;
+    release();
+    dialog.remove();
+    if (app.visualizador === state) app.visualizador = null;
+  });
+  document.body.append(dialog);
+  dialog.showModal();
+  show(index);
+}
+
+function closePreview() {
+  if (app.visualizador?.dialog.open) app.visualizador.dialog.close();
 }
 
 function taskMaterials(detail, editable) {
@@ -580,7 +747,7 @@ function taskMaterials(detail, editable) {
   }
 
   function fileForm() {
-    const file = h("input", { type: "file", required: true, accept: ".pdf,.docx,.xlsx,.pptx,.odt,.ods,.txt,.md,.csv,.png,.jpg,.jpeg" });
+    const file = h("input", { type: "file", required: true, accept: ATTACHMENT_ACCEPT });
     const name = h("input", { maxlength: 145 });
     const storage = h("select", { required: true }, h("option", { value: "" }, "Escolha onde guardar"),
       h("option", { value: "local", disabled: !app.estado.base_confidencial }, "Base confidencial local"),
@@ -616,13 +783,25 @@ function taskMaterials(detail, editable) {
   function renderFiles() {
     const files = data.anexos || [];
     const staged = editable ? pending()?.items || [] : [];
+    // Navegação do visualizador: anexos salvos e do rascunho que o navegador consegue exibir.
+    const viewable = [
+      ...files.map(item => ({ item, nome: item.nome, tamanho: item.tamanho, nota: item.local ? "só nesta máquina" : null,
+        load: () => fetchAttachment(id, item) })),
+      ...staged.map(item => ({ item, nome: item.nome, tamanho: item.file.size, nota: "no rascunho", load: async () => item.file })),
+    ].filter(entry => previewKind(entry.nome));
+    const viewButton = item => {
+      const index = viewable.findIndex(entry => entry.item === item);
+      return index < 0 ? null : h("button", { type: "button", class: "botao pequeno", onclick: () => openPreview(viewable, index) }, "Visualizar");
+    };
     fill(filesPanel, h("header", {}, h("h3", {}, "Anexos")),
       h("div", { class: "comentario-corpo material-lista" },
         files.map(item => h("div", { class: "material-arquivo" },
           h("span", {}, item.nome, item.local ? " · só nesta máquina" : ""),
+          viewButton(item),
           h("button", { type: "button", class: "botao pequeno", onclick: () => downloadAttachment(id, item) }, "Baixar"))),
         staged.map((item, index) => h("div", { class: "material-arquivo" },
           h("span", {}, item.nome + " · no rascunho"),
+          viewButton(item),
           h("button", { type: "button", class: "botao pequeno", onclick: () => {
             if (!app.editando || app.salvando) return;
             pending().items.splice(index, 1);
@@ -801,6 +980,7 @@ function focusPanel() {
 }
 
 function closePanel(restoreFocus = true) {
+  closePreview();
   const panel = document.getElementById("painel");
   if (panel.hidden || panel.classList.contains("fechando")) return;
   app.painelRequest = (app.painelRequest || 0) + 1;
@@ -1888,6 +2068,8 @@ function showShortcuts() {
 
 document.addEventListener("keydown", (event) => {
   if (event.defaultPrevented || event.isComposing) return;
+  // Com o visualizador aberto, o próprio <dialog> trata Esc e as setas; o painel por trás fica intacto.
+  if (app.visualizador) return;
   if (event.key === "Escape" && app.menuOpen) { event.preventDefault(); setMenuOpen(false, true); return; }
   if (event.key === "Escape" && !document.getElementById("painel").hidden) { event.preventDefault(); closePanel(); return; }
   const target = event.target instanceof Element ? event.target : null;
@@ -1908,6 +2090,7 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("click", (event) => {
   const panel = document.getElementById("painel");
   if (app.abrindoPainel) { app.abrindoPainel = false; return; }
+  if (app.visualizador || event.composedPath().some(node => node instanceof Element && node.matches("dialog.visualizador"))) return;
   if (!panel.hidden && !event.composedPath().includes(panel)) closePanel(false);
 });
 document.addEventListener("DOMContentLoaded", () => {

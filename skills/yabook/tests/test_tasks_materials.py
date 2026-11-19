@@ -93,6 +93,22 @@ class TaskMaterialsTest(unittest.TestCase):
             self.assertEqual(self.store.get(self.task), current)
             self.assertFalse((self.store.root / "anexos-tasks").exists())
 
+    def test_viewable_formats_are_accepted_and_new_text_formats_are_checked(self):
+        self.edit(anexos=[self.upload("dados.json", b'{"a": 1}'), self.upload("saida.log", b"ok"),
+                          self.upload("tela.webp", b"RIFF"), self.upload("fluxo.gif", b"GIF89a")])
+        self.assertEqual({f["nome"] for f in self.store.get(self.task)["data"]["anexos"]},
+                         {"dados.json", "saida.log", "tela.webp", "fluxo.gif"})
+        for name in ("erro.log", "erro.json"):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "termo confidencial"):
+                self.edit(anexos=[self.upload(name, b"falha em ambiente-interno")])
+        with self.assertRaisesRegex(ValueError, "UTF-8"):
+            self.edit(anexos=[self.upload("latin.log", "ação".encode("latin-1"))])
+
+    def test_site_accept_list_matches_allowed_extensions(self):
+        site = (Path(materials.__file__).parent / "site" / "app.js").read_text(encoding="utf-8")
+        accept = site.split('const ATTACHMENT_ACCEPT = "', 1)[1].split('"', 1)[0]
+        self.assertEqual(set(accept.split(",")), set(materials.EXTENSIONS))
+
     def test_agent_commands_preserve_the_other_notes_and_download_to_a_new_file(self):
         config = self.private / "cfg.json"
         config.write_text(json.dumps({"tasks": dict(self.cfg, root=str(self.store.root))}), encoding="utf-8")

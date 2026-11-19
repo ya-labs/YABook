@@ -11,8 +11,9 @@ from .precommit_hook import find_terms
 MAX_FILE = 1_000_000
 MAX_NOTES = 100
 MAX_ATTACHMENTS = 30
-EXTENSIONS = frozenset(".pdf .docx .xlsx .pptx .odt .ods .txt .md .csv .png .jpg .jpeg".split())
-TEXT_EXTENSIONS = frozenset((".txt", ".md", ".csv"))
+# Manter em sincronia com ATTACHMENT_ACCEPT no site.
+EXTENSIONS = frozenset(".pdf .docx .xlsx .pptx .odt .ods .txt .md .csv .json .log .png .jpg .jpeg .gif .webp".split())
+TEXT_EXTENSIONS = frozenset((".txt", ".md", ".csv", ".json", ".log"))
 ID = re.compile(r"[0-9a-f]{64}")
 
 
