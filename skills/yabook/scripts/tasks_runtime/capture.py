@@ -1,12 +1,13 @@
 """Captura do YABook Tasks pelos hooks do plugin (Claude Code e Codex).
 
 - SessionStart: pull rápido, tarefa ativa sugerida, perguntas, prazos e eventos.
-- UserPromptSubmit: marca a janela de 15 minutos da tarefa ativa, só local.
+- UserPromptSubmit: marca a janela de 15 minutos, pendente até a primeira tarefa da sessão.
 - Stop: commit local idempotente; push em lote, em segundo plano.
 
 Nada aqui pode bloquear o prompt: o despachante captura qualquer erro.
 """
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -23,14 +24,13 @@ WINDOW_MINUTES = 15
 PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
 REASK_AFTER = 8
-RULES = ("Antes de trabalhar ou mudar de assunto, rode task start na tarefa correspondente; geral fica no épico. "
-         "Reuse a escolha da sessão; pergunte só se ambíguo. Mantenha tarefas sem pedido: conclusão vira "
-         "task edit --append e próximo passo; dúvida vira task ask, resposta vira task answer; prazo vai à tarefa; espera fora de QA usa "
-         "--aguardando (retorno: --unset aguardando); fase move coluna. Criação leva --size da issue. "
-         "Conversa sem registro: task capture. Na política automatic, nada disso pede do nem confirmação.")
+RULES = ("Use task start na tarefa escolhida; geral fica no épico. Pergunte só se ambíguo. "
+         "Conclusão: task edit --append e próximo passo. Use task ask/answer, prazo, --aguardando fora de QA "
+         "(remova no retorno), fase e --size da issue. Informação nova confirmada: atualize descrição, anotação ou anexo. "
+         "Conversa sem registro: task capture. Em automatic, grave sem pedir autorização.")
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
-                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando)\b")
+                    r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando|escopo|decidimos|ficou definido|lista de fontes|inventario|anexo)\b")
 COMMIT_MESSAGE = "chore: registra atividade do YABook Tasks"
 _GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="true")
 
@@ -63,20 +63,94 @@ def active(store, session):
     return chosen or _read(store.root / "local" / "ativa.json", {}).get("id")
 
 
-def recent(stamp, seconds=300):
-    try:
-        moment = datetime.datetime.fromisoformat(stamp)
-    except (TypeError, ValueError):
-        return False
-    return abs((datetime.datetime.now().astimezone() - moment).total_seconds()) <= seconds
-
-
-def set_active(store, session, identifier):
-    store.get(identifier)
-    path = _session_file(store, session)
-    state = dict(_read(path, {}), ativa=identifier, desde=now())
+def _write_session(path, state):
     atomic_write(path, json.dumps(state, ensure_ascii=False) + "\n")
-    return state
+
+
+def _pending_today(state, when):
+    day = window(when)[0]
+    return sorted({start for date, start in state.get("pendentes", []) if date == day})
+
+
+def _retroactive_notice(plan, *, manual=False):
+    starts = plan["janelas"] if manual else plan["atribuidas"]
+    if not starts:
+        return ""
+    interval = starts[0] if len(starts) == 1 else starts[0] + "–" + starts[-1]
+    if manual:
+        return ("YABook Tasks: %d janela(s) anterior(es) desta sessão (%s) pendente(s) para %s. "
+                "Mostre a prévia com task retroativo --sessao %s e só aplique após do task retroativo."
+                % (len(starts), interval, plan["tarefa"], plan["sessao"]))
+    return ("YABook Tasks: %d janela(s) anterior(es) desta sessão (%s) atribuída(s) a %s. "
+            "Informe a pessoa. As janelas aparecem como Capturado na Ficha."
+            % (len(starts), interval, plan["tarefa"]))
+
+
+def retroactive(store, cfg, session, *, apply=False, approval_hash=None, when=None):
+    """Prévia ou atribuição das janelas guardadas para a primeira escolha."""
+    if not re.fullmatch(r"[a-zA-Z0-9_-]+", session):
+        raise ValueError("Identificador de sessão inválido")
+    when = when or datetime.datetime.now().astimezone()
+    path = _session_file(store, session)
+    with store.lock():
+        state = _read(path, {})
+        target = state.get("retroativo_para")
+        enabled = cfg.get("retroativo", True)
+        starts = _pending_today(state, when) if target and enabled else []
+        plan = dict(sessao=session, tarefa=target, data=window(when)[0], janelas=starts)
+        expected = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
+        if not apply:
+            return dict(plan, approval_hash=expected)
+        if cfg.get("policy") == "manual" and not approval_hash:
+            raise ValueError("Política manual: apresente a prévia e aplique com --approval-hash após do task retroativo")
+        if approval_hash is not None and approval_hash != expected:
+            raise ValueError("Prévia desatualizada. Confira novamente as janelas pendentes.")
+        attributed = []
+        if starts:
+            from .sheet import window_records
+
+            store.get(target)
+            day = plan["data"]
+            existing = {(row["janela"], row.get("origem", row["tarefa"]))
+                        for row in window_records(store.root, day)[0]}
+            for start in starts:
+                if (start, target) not in existing:
+                    moment = datetime.datetime.fromisoformat(day + "T" + start)
+                    if mark(store, cfg.get("machine"), target, moment):
+                        attributed.append(start)
+        if target:
+            state.pop("pendentes", None)
+            state.pop("retroativo_para", None)
+            _write_session(path, state)
+        return dict(plan, atribuidas=attributed)
+
+
+def set_active(store, session, identifier, cfg=None, *, when=None, only_first=False):
+    cfg = cfg or {}
+    when = when or datetime.datetime.now().astimezone()
+    path = _session_file(store, session)
+    with store.lock():
+        state = _read(path, {})
+        first = not state.get("ativa")
+        if only_first and not first:
+            return ""
+        task = store.get(identifier)["data"]
+        closed = {column["id"] for column in store.columns() if column["papel"] in ("concluido", "arquivado")}
+        if task["tipo"] == "pergunta" or task["coluna"] in closed:
+            return ""
+        if first:
+            starts = _pending_today(state, when) if cfg.get("retroativo", True) else []
+            state.pop("pendentes", None)
+            if starts:
+                day = window(when)[0]
+                state["pendentes"] = [[day, start] for start in starts]
+                state["retroativo_para"] = identifier
+        state.update(ativa=identifier, desde=now())
+        _write_session(path, state)
+        if not first or not state.get("retroativo_para"):
+            return ""
+        manual = cfg.get("policy") == "manual"
+        return _retroactive_notice(retroactive(store, cfg, session, apply=not manual, when=when), manual=manual)
 
 
 def follow_edit(store, cfg, session, identifier):
@@ -84,7 +158,7 @@ def follow_edit(store, cfg, session, identifier):
 
     Evita horas de uma história presas no épico quando o agente registra o andamento
     com `edit --append` sem rodar `start`."""
-    current = active(store, session)
+    current = _read(_session_file(store, session), {}).get("ativa")
     if not current or not identifier or identifier == current or not store.exists(current):
         return ""
     index = {t["data"]["id"]: t["data"] for t in store.list()}
@@ -103,7 +177,7 @@ def follow_edit(store, cfg, session, identifier):
     if current in chain(identifier) and roles.get(task.get("coluna")) not in ("concluido", "arquivado"):
         from .commands import Tasks
         Tasks(store, cfg).start(identifier, store.root / "local" / "ativa.json")
-        set_active(store, session, identifier)
+        set_active(store, session, identifier, cfg)
         return ("YABook Tasks: tarefa ativa trocada de %s para %s (registro abaixo da ativa); as próximas janelas vão para ela."
                 % (current, identifier))
     if identifier in chain(current):
@@ -190,7 +264,9 @@ def _plain(text):
 
 # Somente comandos inequivocamente administrativos são ignorados. Mensagens
 # mistas ou desconhecidas continuam elegíveis após a escolha na sessão.
-ADMIN_COMMAND = re.compile(r"^\s*(?:\$?yabook(?:[:/]yabook)?\s+)?(?:commit\s+(?:msg|mensagem)|task\s+(?:review|show|search|recent|board|summary|edit|move|analyze|sync|events|sheet|start|ask|answer|capture|log|add|forget|clean|policy))\b", re.I)
+ADMIN_COMMAND = re.compile(r"^\s*(?:\$?yabook(?:[:/]yabook)?\s+)?(?:commit\s+(?:msg|mensagem)|(?:do\s+)?task\s+"
+                           r"(?:review|show|search|recent|board|summary|edit|move|analyze|sync|events|sheet|start|ask|answer|"
+                           r"capture|retroativo|log|add|forget|clean|policy|anotacao|anexar|baixar-anexo))\b", re.I)
 ADMIN_NATURAL = re.compile(r"^\s*(?:pode\s+)?(?:consulte|consultar|mostre|mostrar|revise|revisar|atualize|atualizar|registre|registrar|mova|mover)\b.*\b(?:quadro|tarefas?|registros?|qa|ficha)\b", re.I)
 WORK_REQUEST = re.compile(r"\b(?:implemente|implementar|desenvolva|desenvolver|corrija|corrigir|altere|alterar|crie|criar|teste|testar|investigue|investigar)\b", re.I)
 
@@ -281,44 +357,62 @@ def prompt(cfg, session, when=None, text=""):
     if store is None:
         return ""
     when = when or datetime.datetime.now().astimezone()
-    current = active(store, session)
-    chosen = _read(_session_file(store, session), {}).get("ativa")
-    focus_lines = []
+    with store.lock():
+        return _prompt(store, tasks_cfg, session, when, text)
+
+
+def _prompt(store, tasks_cfg, session, when, text):
+    path = _session_file(store, session)
+    state = _read(path, {})
+    chosen = current = state.get("ativa")
+    lines = []
+    if state.get("retroativo_para") and tasks_cfg.get("policy") != "manual":
+        result = retroactive(store, tasks_cfg, session, apply=True, when=when)
+        notice = _retroactive_notice(result)
+        if notice:
+            lines.append(notice)
+        state = _read(path, {})
+    admin = administrative(text)
     blocked = False
     if chosen:
         target, blocked = prompt_focus(store, text)
         if target and target != current:
-            set_active(store, session, target)
+            set_active(store, session, target, tasks_cfg, when=when)
             current = chosen = target
-            focus_lines.append("YABook Tasks: tarefa ativa da sessão alterada para %s antes da captura." % target)
+            state = _read(path, {})
+            lines.append("YABook Tasks: tarefa ativa da sessão alterada para %s antes da captura." % target)
         elif blocked:
-            focus_lines.append("YABook Tasks: pedido com referência ambígua, ausente ou encerrada; "
-                               "não foi capturada janela. Resolva a tarefa e rode task start antes de trabalhar.")
+            lines.append("YABook Tasks: pedido com referência ambígua, ausente ou encerrada; "
+                         "não foi capturada janela. Resolva a tarefa e rode task start antes de trabalhar.")
     if current and store.exists(current):
         task = store.get(current)["data"]
         roles = {c["id"]: c["papel"] for c in store.columns()}
         if roles.get(task.get("coluna")) in ("concluido", "arquivado"):
             current = None
-        elif chosen == current and not blocked and not administrative(text):
+        elif not blocked and not admin:
             mark(store, tasks_cfg.get("machine"), current, when)
     else:
         current = None
-    path = _session_file(store, session)
-    state = _read(path, {})
-    changed, lines = False, focus_lines
+    changed = False
+    if not chosen and (text or "").strip() and not admin and tasks_cfg.get("retroativo", True):
+        day, start = window(when)
+        pending = _pending_today(state, when)
+        pending = [[day, entry] for entry in sorted(set(pending) | {start})]
+        if pending != state.get("pendentes"):
+            state["pendentes"], changed = pending, True
     if current is None:
         # Sem escolha na sessão: pergunta de novo uma vez, depois de algumas mensagens.
         state["sem_ativa"] = state.get("sem_ativa", 0) + 1
         changed = True
         if state["sem_ativa"] == REASK_AFTER:
-            lines.append("YABook Tasks: sessão ainda sem tarefa ativa e as horas não estão contando; pergunte de novo "
+            lines.append("YABook Tasks: sessão ainda sem tarefa ativa e as horas ainda não foram atribuídas; pergunte de novo "
                          "a qual tarefa ela pertence (task start, task add ou task capture).")
     if text and SIGNAL.search(_plain(text)):
         start = window(when)[1]
         if state.get("lembrete") != start:
             state["lembrete"], changed = start, True
-            lines.append("YABook Tasks: a mensagem cita prazo, código ou conclusão; ao responder, atualize a tarefa "
-                         "correspondente (task edit, add ou ask) conforme a política.")
+            lines.append("YABook Tasks: a mensagem cita prazo, código, escopo, decisão ou entrega; ao responder, atualize a tarefa "
+                         "correspondente (descrição, anotação, anexo ou registro) conforme a política.")
     answered = answer_candidates(store, text)
     if answered:
         lines.append("YABook Tasks: a mensagem pode responder pergunta aberta: " + "; ".join(answered)
@@ -330,7 +424,7 @@ def prompt(cfg, session, when=None, text=""):
         lines.append("YABook Tasks: %d nova(s) ação(ões) do quadro não analisada(s): %s." % (
             len(fresh), "; ".join(_event_line(e) for e in fresh[:3])))
     if changed:
-        atomic_write(path, json.dumps(state, ensure_ascii=False) + "\n")
+        _write_session(path, state)
     return "\n".join(lines)
 
 

@@ -71,7 +71,7 @@ def build_parser():
         command.add_argument("--issue", action="append", help="dono/repo#n, repetível")
         command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
         command.add_argument("--proximo-passo")
-        command.add_argument("--descricao", help="O que é a tarefa: objetivo e escopo em 1 a 3 linhas")
+        command.add_argument("--descricao", help="Objetivo e escopo vigente em Markdown")
         command.add_argument("--size", type=int, choices=range(1, 6), metavar="1-5",
                              help="Tamanho na escala de Size das issues (entrega com agentes)")
         command.add_argument("--ficha", help="Texto curto do item na observação da ficha de horas")
@@ -82,6 +82,25 @@ def build_parser():
         command.add_argument("--pai", help="Id do épico ou da história acima")
         command.add_argument("--pessoal", choices=["sim", "nao"], help="Sem a opção, vem calculado; --unset pessoal volta ao cálculo")
     add.add_argument("--body", default="")
+    annotations = sub.add_parser("anotacao", help="Cria, edita ou exclui uma anotação numerada")
+    annotations.add_argument("id")
+    annotations.add_argument("acao", choices=("criar", "editar", "excluir"))
+    annotations.add_argument("--numero", type=int)
+    annotations.add_argument("--titulo")
+    annotations.add_argument("--texto")
+    annotations.add_argument("--revision", help="Revisão lida com task show")
+    attach = sub.add_parser("anexar", help="Anexa arquivo de até 1 MB à tarefa")
+    attach.add_argument("id")
+    attach.add_argument("arquivo")
+    attach.add_argument("--nome", help="Nome apresentado no card")
+    visibility = attach.add_mutually_exclusive_group(required=True)
+    visibility.add_argument("--local", action="store_true", help="Guarda na base confidencial local")
+    visibility.add_argument("--compartilhado", action="store_true", help="Versiona no repositório privado de tarefas")
+    attach.add_argument("--revision", help="Revisão lida com task show")
+    download = sub.add_parser("baixar-anexo", help="Copia um anexo para um caminho novo")
+    download.add_argument("id")
+    download.add_argument("anexo")
+    download.add_argument("--output", required=True)
     forget = sub.add_parser("forget", help="Arquiva sem apagar")
     forget.add_argument("id")
     forget.add_argument("--motivo")
@@ -115,6 +134,10 @@ def build_parser():
     capture.add_argument("--input", required=True, help="JSON com itens, perguntas, ativa e horas")
     capture.add_argument("--apply", action="store_true", help="Grava; na política manual exige --approval-hash")
     capture.add_argument("--approval-hash", help="Hash da prévia apresentada")
+    retroactive = sub.add_parser("retroativo", help="Consulta ou atribui janelas anteriores à primeira escolha da sessão")
+    retroactive.add_argument("--sessao", required=True, help="Identificador da sessão no aviso do hook")
+    retroactive.add_argument("--apply", action="store_true", help="Atribui as janelas pendentes na Ficha")
+    retroactive.add_argument("--approval-hash", help="Hash da prévia aprovada na política manual")
     board = sub.add_parser("board", help="Site local: --serve inicia o servidor; --output gera cópia estática")
     board.add_argument("--serve", action="store_true", help="Serve em 127.0.0.1 até Ctrl+C")
     board.add_argument("--port", type=int, help="Porta; padrão `tasks.port` ou 8765")
@@ -217,6 +240,36 @@ def run(args):
             if getattr(args, key):
                 changes[key] = getattr(args, key)
         return tasks.edit(args.id, changes, args.unset, args.append, args.revision)
+    if args.command == "anotacao":
+        if args.acao != "criar" and not args.revision:
+            raise ValueError("Leia a anotação com task show e informe a revisão com --revision")
+        op = dict(acao=args.acao, numero=args.numero, titulo=args.titulo, texto=args.texto)
+        return tasks.update_materials(args.id, operations=[op], expected_revision=args.revision)
+    if args.command == "anexar":
+        import base64
+        from tasks_runtime.materials import MAX_FILE
+
+        path = Path(args.arquivo).expanduser()
+        if not path.is_file():
+            raise ValueError("Anexo precisa ser um arquivo")
+        with path.open("rb") as file:
+            raw = file.read(MAX_FILE + 1)
+        if len(raw) > MAX_FILE:
+            raise ValueError("Cada anexo pode ter até 1 MB")
+        name = args.nome or ("Documento confidencial" + path.suffix if args.local else path.name)
+        item = dict(nome=name, local=args.local, base64=base64.b64encode(raw).decode("ascii"))
+        return tasks.update_materials(args.id, uploads=[item], expected_revision=args.revision)
+    if args.command == "baixar-anexo":
+        from tasks_runtime.materials import read_attachment
+
+        item, raw = read_attachment(store, cfg, args.id, args.anexo)
+        path = Path(args.output).expanduser()
+        try:
+            with path.open("xb") as file:
+                file.write(raw)
+        except FileExistsError as error:
+            raise ValueError("O caminho de saída já existe") from error
+        return dict(arquivo=str(path.resolve()), nome=item["nome"])
     if args.command == "forget":
         return tasks.forget(args.id, args.motivo)
     if args.command == "start":
@@ -288,6 +341,9 @@ def run(args):
         if cfg.get("policy") == "manual" and not args.approval_hash:
             raise ValueError("Política manual: apresente a prévia e aplique com --approval-hash após do task capture")
         return capture.apply(batch, args.approval_hash)
+    if args.command == "retroativo":
+        from tasks_runtime import capture
+        return capture.retroactive(store, cfg, args.sessao, apply=args.apply, approval_hash=args.approval_hash)
     if args.command == "clean":
         return tasks.clean(args.days, args.apply)
     raise ValueError("Comando desconhecido: " + args.command)

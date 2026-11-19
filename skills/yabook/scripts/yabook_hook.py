@@ -82,7 +82,8 @@ def normalize_event(event, protocol="native"):
                 agent=agent, cwd=event.get("workspace", os.getcwd()),
                 prompt=event.get("message", ""), source=event.get("source", "startup"),
                 tool_name=kinds.get(tool.get("kind"), tool.get("name", "")),
-                tool_input=tool.get("input", {}), stop_hook_active=event.get("stop_active", False))
+                tool_input=tool.get("input", {}), tool_response=tool.get("response"),
+                stop_hook_active=event.get("stop_active", False))
 
 
 def event_response(output, protocol="native"):
@@ -694,6 +695,7 @@ def tasks_issue_flow(event, session):
     if not (GIT_BRANCH.search(command) or PR_CREATE.search(command) or PR_MERGE.search(command)):
         return
     started = time.monotonic()
+    notice = ""
     try:
         cfg = config()
         if not cfg.get("tasks"):
@@ -722,6 +724,7 @@ def tasks_issue_flow(event, session):
             ref = issueflow.ref_from_branch(cwd, branch)
             if ref:
                 result = issueflow.advance(store, tasks_cfg, ref, "inicio", branch=branch, session=session)
+                notice = (result or {}).get("aviso_retroativo", "")
                 if result and not store.get(result["id"])["data"].get("size_manual"):  # Size do Project sem esperar a rede
                     script = Path(__file__).with_name("yabook_tasks.py")
                     spawn_background([sys.executable, str(script), "--config", str(config_path()), "issue", "--ref", ref,
@@ -729,6 +732,7 @@ def tasks_issue_flow(event, session):
         record_stats("tasks.issue", 0, result="ok", ms=round((time.monotonic() - started) * 1000, 1))
     except Exception as error:
         record_stats("tasks.issue", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+    return notice
 
 
 def tasks_followed(command, session):
@@ -752,35 +756,57 @@ def tasks_followed(command, session):
         return ""
 
 
-def tasks_started(command, session):
-    """`task start` ou `task capture --apply` pela CLI define a tarefa ativa desta sessão, conferida na máquina."""
+def task_tool_result(response):
+    if isinstance(response, dict):
+        if (response.get("interrupted") or response.get("is_error") or
+                response.get("exit_code", 0) not in (0, None)):
+            return {}
+        response = response.get("stdout", response.get("output", ""))
+    if not isinstance(response, str):
+        return {}
+    for output in (response, response.partition("\nFinal output:\n")[2], response.partition("\nOutput:\n")[2]):
+        try:
+            result = json.loads(output)
+        except ValueError:
+            continue
+        if isinstance(result, dict):
+            return result
+    return {}
+
+
+def tasks_started(event, session):
+    """Vincula à sessão a tarefa confirmada no resultado da chamada à CLI."""
+    command = shell_command(event)
     if not TASK_START.search(command):
-        return
+        return ""
     try:
-        parts = shlex.split(command)
-    except ValueError:
-        return
-    script = next((i for i, p in enumerate(parts) if Path(p).name == "yabook_tasks.py"), None)
-    rest = parts[script + 1:] if script is not None else []
-    if "start" in rest:
-        index = parts.index("start", script + 1)
-        identifier = parts[index + 1] if index + 1 < len(parts) else None
-    elif "capture" in rest and "--apply" in rest:
-        identifier = ""  # a tarefa ativa do lote fica em local/ativa.json com origem capture
-    else:
-        return
-    if identifier is None:
-        return
-    try:
+        rest = service_call(shlex.split(command), "yabook_tasks.py")
+        config_arg = None
+        if len(rest) >= 2 and rest[0] == "--config":
+            config_arg, rest = rest[1], rest[2:]
+        elif rest and rest[0].startswith("--config="):
+            config_arg, rest = rest[0].split("=", 1)[1], rest[1:]
+        action = cli_service(rest)
+        if action not in ("start", "add", "capture"):
+            return ""
+        if action == "capture" and "--apply" not in rest:
+            return ""
+        if config_arg and (Path(event.get("cwd") or os.getcwd()) / config_arg).resolve() != config_path().resolve():
+            return ""
+        result = task_tool_result(event.get("tool_response"))
+        identifier = result.get("ativa") if action == "capture" else result.get("id")
+        expected = {"start": "movida_para", "add": "revision", "capture": "criadas"}[action]
+        if not isinstance(identifier, str) or not identifier or expected not in result or "error" in result:
+            return ""
         from tasks_runtime import capture
-        store, _ = capture.open_store(config())
-        machine = capture._read(store.root / "local" / "ativa.json", {}) if store else {}
-        if identifier == "" and machine.get("origem") == "capture" and capture.recent(machine.get("desde")):
-            identifier = machine["id"]
-        if store and identifier and machine.get("id") == identifier:
-            capture.set_active(store, session, identifier)
+        store, cfg = capture.open_store(config())
+        if store:
+            if action == "start" and (len(rest) < 2 or store.resolve(rest[1]) != identifier):
+                return ""
+            return capture.set_active(store, session, identifier, cfg, only_first=action == "add")
     except Exception as error:
         record_stats("tasks.start", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+    return ""
 
 
 def run(event):
@@ -914,14 +940,15 @@ def run(event):
             if head and head != state.pop("pre_commit_head", None):
                 state["committed"] = True
             write_json(path, state)
-        tasks_started(command, path.stem)
-        tasks_issue_flow(event, path.stem)
+        activated = tasks_started(event, path.stem)
+        issue_notice = tasks_issue_flow(event, path.stem)
         followed = tasks_followed(command, path.stem)
         if LEARN.search(command):
             state["learned"] = True
             write_json(path, state)
             apply_learning_queue()
-        return context(event_name, followed) if followed else {}
+        notices = "\n".join(line for line in (activated, issue_notice, followed) if line)
+        return context(event_name, notices) if notices else {}
     if event_name == "Stop":
         if state.get("read_only"):
             return {}

@@ -448,6 +448,7 @@ input.horas { width: 70px; padding: 5px 8px; text-align: right; border: 1px soli
 .painel-topo { display: flex; align-items: flex-start; gap: 16px; padding: 30px 28px 18px; background: var(--bg); }
 .painel-topo h2 { flex: 1; margin: 0; font-size: 25px; line-height: 1.4; letter-spacing: -.7px; font-weight: 750; overflow-wrap: anywhere; }
 .painel-topo h2:focus { outline: none; }
+.painel-topo-acoes { display: flex; flex: none; align-items: center; gap: 4px; }
 .numero-issue { color: var(--texto-2); font-weight: 400; font-size: .8em; white-space: nowrap; }
 .faixa-estado { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 28px 22px; border-bottom: 1px solid var(--borda-suave); }
 .estado-grande { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; color: rgb(var(--c-green)); background: color-mix(in srgb, rgb(var(--c-green)) 10%, var(--bg));
@@ -1295,3 +1296,15 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .card-selos > .card-rodada { display: inline-flex; align-items: center; gap: 5px; width: fit-content; padding: 2px 8px; border-radius: 6px; font-size: 12px;
   line-height: 1.5; color: rgb(var(--c-purple)); background: color-mix(in srgb, rgb(var(--c-purple)) 16%, var(--bg)); }
 .card-selos > .card-rodada .icone svg { width: 12px; height: 12px; transform: scaleX(-1); }
+
+/* Materiais consultados e editados no painel da tarefa. */
+.task-materials h3 { margin: 0; font-size: inherit; }
+.material-lista, .material-form { display: grid; gap: 10px; min-width: 0; }
+.material-form { margin-top: 8px; }
+.material-form > button { justify-self: start; }
+.material-item { padding: 8px 10px; background: var(--bg-subtle); border-radius: 6px; }
+.material-item summary { cursor: pointer; overflow-wrap: anywhere; }
+.material-item[open] > summary { margin-bottom: 8px; }
+.material-acoes, .material-arquivo { display: flex; align-items: start; flex-wrap: wrap; gap: 8px; }
+.material-arquivo > span { flex: 1 1 125px; overflow-wrap: anywhere; }
+.material-form input, .material-form select { max-width: 100%; min-width: 0; }

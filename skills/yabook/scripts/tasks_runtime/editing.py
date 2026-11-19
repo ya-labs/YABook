@@ -6,7 +6,7 @@ com eventos de origem `quadro` (pendentes de análise), faz um commit no
 repositório de dados e devolve um resumo em Markdown para a pessoa copiar.
 
 Corpo de POST /api/salvar:
-  tarefas: [{id, revision, campos?: {...}, unset?: [...], registro?}]
+  tarefas: [{id, revision, campos?, unset?, registro?, anotacoes?, anexos?}]
   colunas: [{id, nome}]
   complementos: [{id, texto}]   # texto que vai para a base confidencial local
 """
@@ -16,7 +16,7 @@ import subprocess
 from http import HTTPStatus
 from pathlib import Path
 
-from . import events, fmt, sheet
+from . import events, fmt, materials, sheet
 from .commands import Tasks, _append_log, parse_date
 from .precommit_hook import find_terms
 from .store import NIVEIS, Conflict, atomic_write, validate_quadro
@@ -76,6 +76,7 @@ def save(store, cfg, body):
             _write_complement(cfg, entry["id"], entry["texto"])
             applied.append(dict(acao="complemento", id=entry["id"], titulo=entry["titulo"]))
         for item in plan["tarefas"]:
+            materials.write_blobs(item["blobs"])
             before = store.get(item["id"])["data"]
             result = tasks.edit(item["id"], item["campos"], item["unset"], item.get("registro"), item["revision"])
             applied.append(dict(acao="tarefa", id=item["id"], titulo=item["campos"].get("titulo", before["titulo"]),
@@ -108,7 +109,8 @@ def save(store, cfg, body):
 def _validate(store, cfg, tasks, changes, columns, complements):
     conflicts, hits, plan_tasks = [], [], []
     known_columns = {c["id"]: c for c in store.columns()}
-    for index, change in enumerate(changes):
+    seen = set()
+    for change in changes:
         identifier = change.get("id")
         try:
             current = store.get(identifier)
@@ -118,6 +120,10 @@ def _validate(store, cfg, tasks, changes, columns, complements):
         if change.get("revision") != current["revision"]:
             conflicts.append(identifier)
             continue
+        identifier = current["data"]["id"]
+        if identifier in seen:
+            raise ValueError("Tarefa repetida no salvamento")
+        seen.add(identifier)
         fields = dict(change.get("campos") or {})
         unknown = set(fields) - set(EDITABLE)
         if unknown:
@@ -168,8 +174,9 @@ def _validate(store, cfg, tasks, changes, columns, complements):
                     raise ValueError(("%s: a issue %s tem branch ou PR sem merge; integre o PR para concluir a tarefa" if state is False
                                       else "%s: não foi possível confirmar no GitHub o PR da issue %s; tente de novo com rede")
                                      % (identifier, ref))
-        plan_tasks.append(dict(id=identifier, revision=current["revision"], campos=fields, unset=sorted(set(unset)),
-                               registro=note or None))
+        material_fields, blobs = materials.prepare(store, cfg, current, change.get("anotacoes", []), change.get("anexos", []))
+        plan_tasks.append(dict(id=identifier, revision=current["revision"], campos=dict(fields, **material_fields),
+                               unset=sorted(set(unset)), registro=note or None, blobs=blobs))
     if conflicts:
         error = Conflict("Tarefas mudaram depois da leitura; a tela será recarregada: " + ", ".join(conflicts))
         error.ids = conflicts
