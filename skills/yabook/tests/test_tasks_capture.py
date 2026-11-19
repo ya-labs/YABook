@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import yabook_hook as hook
-from tasks_runtime import capture, events
+from tasks_runtime import capture, events, sheet
 from tasks_runtime.commands import Tasks
 from tasks_runtime.store import TaskStore, scaffold
 from test_tasks_store import GIT_ENV
@@ -145,6 +145,89 @@ class CaptureTest(unittest.TestCase):
         capture.set_active(self.store, "nova", "tarefa-b")
         self.assertEqual(capture.active(self.store, "nova"), "tarefa-b")
 
+    def test_first_choice_attributes_only_its_own_pending_windows(self):
+        self.tasks.add("demanda", "A", demanda="1001")
+        self.tasks.add("tarefa", "B")
+        self.tasks.start("tarefa-b", self.root / "local" / "ativa.json")
+        today = WHEN.replace(hour=14, minute=0)
+        capture.prompt(self.cfg, "s1", today - datetime.timedelta(days=1), "trabalho de ontem")
+        capture.prompt(self.cfg, "s1", today, "corrigir tela")
+        capture.prompt(self.cfg, "s1", today + datetime.timedelta(minutes=1), "continuação")
+        capture.prompt(self.cfg, "s1", today + datetime.timedelta(minutes=15), "$yabook task review")
+        capture.prompt(self.cfg, "s1", today + datetime.timedelta(minutes=30), "validar alterações")
+        capture.prompt(self.cfg, "s2", today + datetime.timedelta(minutes=15), "outra sessão")
+        self.assertEqual(self.hours(), [])
+        notice = capture.set_active(self.store, "s1", "demanda-1001", self.cfg["tasks"], when=WHEN)
+        self.assertIn("2 janela(s)", notice)
+        self.assertIn("14:00–14:30", notice)
+        self.assertIn("demanda-1001", notice)
+        capture.set_active(self.store, "s1", "demanda-1001", self.cfg["tasks"], when=WHEN)
+        capture.set_active(self.store, "s1", "tarefa-b", self.cfg["tasks"], when=WHEN)
+        self.assertEqual([(h["janela"], h["tarefa"], h["tipo"]) for h in self.hours()],
+                         [("14:00", "demanda-1001", "janela"), ("14:30", "demanda-1001", "janela")])
+        windows, manual, _ = sheet.window_records(self.root, WHEN.date().isoformat())
+        self.assertEqual(len(windows), 2)
+        self.assertEqual(manual, {})
+        other = capture._read(capture._session_file(self.store, "s2"), {})
+        self.assertEqual(other["pendentes"], [[WHEN.date().isoformat(), "14:15"]])
+        self.assertNotIn("ativa", other)
+
+    def test_old_or_disabled_pending_windows_are_not_attributed(self):
+        self.tasks.add("tarefa", "A")
+        capture.prompt(self.cfg, "s1", WHEN, "trabalho de ontem")
+        notice = capture.set_active(self.store, "s1", "tarefa-a", self.cfg["tasks"],
+                                    when=WHEN + datetime.timedelta(days=1))
+        self.assertEqual(notice, "")
+        disabled = dict(self.cfg["tasks"], retroativo=False)
+        capture.prompt(dict(tasks=disabled), "s2", WHEN, "continuar trabalho")
+        self.assertNotIn("pendentes", capture._read(capture._session_file(self.store, "s2"), {}))
+        self.assertEqual(capture.set_active(self.store, "s2", "tarefa-a", disabled, when=WHEN), "")
+        self.assertEqual(self.hours(), [])
+
+    def test_manual_approval_keeps_first_task_after_switch(self):
+        self.tasks.add("tarefa", "A")
+        self.tasks.add("tarefa", "B")
+        cfg = dict(self.cfg["tasks"], policy="manual")
+        capture.prompt(dict(tasks=cfg), "s1", WHEN, "corrigir tela")
+        notice = capture.set_active(self.store, "s1", "tarefa-a", cfg, when=WHEN)
+        self.assertIn("do task retroativo", notice)
+        self.assertEqual(self.hours(), [])
+        plan = capture.retroactive(self.store, cfg, "s1", when=WHEN)
+        self.assertEqual((plan["tarefa"], plan["janelas"]), ("tarefa-a", ["14:30"]))
+        for approval, match in ((None, "Política manual"), ("inválido", "Prévia desatualizada")):
+            with self.assertRaisesRegex(ValueError, match):
+                capture.retroactive(self.store, cfg, "s1", apply=True, approval_hash=approval, when=WHEN)
+        with self.assertRaisesRegex(ValueError, "Prévia desatualizada"):
+            capture.retroactive(self.store, cfg, "s1", apply=True, approval_hash=plan["approval_hash"],
+                                when=WHEN + datetime.timedelta(days=1))
+        self.assertEqual(self.hours(), [])
+        capture.set_active(self.store, "s1", "tarefa-b", cfg, when=WHEN)
+        result = capture.retroactive(self.store, cfg, "s1", apply=True, approval_hash=plan["approval_hash"], when=WHEN)
+        self.assertEqual(result["atribuidas"], ["14:30"])
+        self.assertEqual(capture.active(self.store, "s1"), "tarefa-b")
+        self.assertEqual([h["tarefa"] for h in self.hours()], ["tarefa-a"])
+        self.assertEqual(capture.retroactive(self.store, cfg, "s1", when=WHEN)["janelas"], [])
+
+    def test_retry_after_partial_transfer_does_not_duplicate_or_change_destination(self):
+        self.tasks.add("tarefa", "A")
+        self.tasks.add("tarefa", "B")
+        capture.prompt(self.cfg, "s1", WHEN - datetime.timedelta(minutes=15), "corrigir tela")
+        capture.prompt(self.cfg, "s1", WHEN, "validar")
+        mark = capture.mark
+
+        def interrupted(store, machine, identifier, when):
+            if when.minute == 30:
+                raise OSError("Interrompido após a primeira janela")
+            return mark(store, machine, identifier, when)
+
+        with patch.object(capture, "mark", side_effect=interrupted), self.assertRaises(OSError):
+            capture.set_active(self.store, "s1", "tarefa-a", self.cfg["tasks"], when=WHEN)
+        capture.set_active(self.store, "s1", "tarefa-b", self.cfg["tasks"], when=WHEN)
+        notice = capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=15), "continuar na segunda tarefa")
+        self.assertIn("atribuída(s) a tarefa-a", notice)
+        self.assertEqual([(h["janela"], h["tarefa"]) for h in self.hours()],
+                         [("14:15", "tarefa-a"), ("14:30", "tarefa-a"), ("14:45", "tarefa-b")])
+
     def test_pending_events_and_analysis_across_machines(self):
         self.tasks.add("tarefa", "A")
         self.assertEqual(events.pending(self.root), [])  # ação do agente nasce analisada
@@ -211,8 +294,9 @@ class HookIntegrationTest(unittest.TestCase):
         self.assertIn("tarefa-implementar", self.context(start))
         script = str(Path(hook.__file__).with_name("yabook_tasks.py"))
         command = "python3 %s --config %s start tarefa-implementar" % (script, hook.config_path())
-        subprocess.run(command.split(), check=True, capture_output=True)
-        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=command)))
+        completed = subprocess.run(command.split(), check=True, capture_output=True, text=True)
+        hook.run(dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=command),
+                      tool_response=dict(stdout=completed.stdout)))
         session = hook.state_path(self.event).stem
         self.assertEqual(capture.active(TaskStore(self.root), session), "tarefa-implementar")
         hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="continuar a implementação"))
@@ -221,6 +305,31 @@ class HookIntegrationTest(unittest.TestCase):
         self.assertEqual(hook.run(dict(self.event, hook_event_name="Stop")), {})
         log = subprocess.run(["git", "-C", str(self.root), "log", "--format=%s"], capture_output=True, text=True).stdout
         self.assertIn(capture.COMMIT_MESSAGE, log)
+
+    def test_add_after_prompt_uses_task_from_tool_result(self):
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="corrigir tela"))
+        script = str(Path(hook.__file__).with_name("yabook_tasks.py"))
+        command = "%s %s --config %s add --tipo demanda --titulo Ajuste --demanda 1234 --descricao Ajustar --size 1" % (
+            sys.executable, script, hook.config_path())
+        event = dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=command))
+        completed = subprocess.run(command.split(), check=True, capture_output=True, text=True)
+        response = dict(stdout=completed.stdout, exit_code=1)
+        self.assertEqual(hook.run(dict(event, tool_response=response)), {})
+        response = dict(stdout=completed.stdout)
+        notice = self.context(hook.run(dict(event, tool_response=response)))
+        self.assertIn("atribuída(s) a demanda-1234", notice)
+        session = hook.state_path(self.event).stem
+        self.assertEqual(capture.active(TaskStore(self.root), session), "demanda-1234")
+        self.assertEqual(hook.run(dict(event, tool_response=response)), {})
+        prompt = dict(self.event, hook_event_name="UserPromptSubmit", prompt="corrigir outra tela")
+        hook.run(prompt)
+        rows = [json.loads(line) for path in (self.root / "horas").glob("*.jsonl")
+                for line in path.read_text().splitlines()]
+        self.assertEqual({(row["tipo"], row["tarefa"]) for row in rows}, {("janela", "demanda-1234")})
+        after = command.replace("1234", "5678")
+        completed = subprocess.run(after.split(), check=True, capture_output=True, text=True)
+        hook.run(dict(event, tool_input=dict(command=after), tool_response=dict(output=completed.stdout, exit_code=0)))
+        self.assertEqual(capture.active(TaskStore(self.root), session), "demanda-1234")
 
     def test_broken_task_repository_never_blocks(self):
         hook.write_json(hook.config_path(), dict(tasks=dict(root=str(self.base / "inexistente"))))
