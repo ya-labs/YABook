@@ -85,7 +85,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 ## Informações da tarefa
 
 - Descrição mantém resumo, escopo vigente, restrições e validação em Markdown. Histórico registra o que ocorreu por rodada.
-- Use **Editar** no cabeçalho do card aberto para ativar o rascunho.
+- Use **Editar** no cabeçalho do card aberto para ativar o rascunho. **Sair** ou **Descartar** no mesmo lugar volta à leitura do card.
 - Anotações têm número por tarefa, título e texto. O site aplica criar, editar e excluir no rascunho e grava em Salvar. Número excluído não é reutilizado.
 - Ao receber informação nova e confirmada, abra a tarefa por `task show` e use a revisão lida. Se enriquecer uma nota do mesmo assunto, edite-a por número preservando o conteúdo válido. Se for assunto novo, crie uma nota. Exclua apenas a pedido da pessoa.
 - Quando mudar o escopo, atualize a descrição e registre a mudança e a origem em `edit --append`. Atualize o próximo passo se a decisão afetar a execução. Se o inventário estiver pendente, aguarde a fonte confirmada.
