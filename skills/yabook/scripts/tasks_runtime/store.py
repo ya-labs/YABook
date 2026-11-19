@@ -9,7 +9,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from . import fmt
+from . import fmt, materials
 from .precommit_hook import find_terms, load_terms
 
 FORMAT = 1
@@ -18,7 +18,7 @@ PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
 NIVEIS = ("epico", "historia", "tarefa")
 CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
 ORDER = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "size", "size_manual", "rodada", "pessoal",
-         "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "criada", "atualizada")
+         "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "anotacoes_seq", "anotacoes", "anexos", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
 _ISSUE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9_.-]+#\d+")
@@ -83,7 +83,9 @@ def atomic_write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".writing-")
     try:
-        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
+        binary = isinstance(text, bytes)
+        options = {} if binary else {"encoding": "utf-8", "newline": "\n"}
+        with os.fdopen(fd, "wb" if binary else "w", **options) as stream:
             stream.write(text)
             stream.flush()
             os.fsync(stream.fileno())
@@ -309,6 +311,7 @@ class TaskStore:
         return data
 
     def validate(self, data):
+        materials.validate(data)
         if not isinstance(data.get("id"), str):
             raise ValueError("Tarefa sem id")
         self.path(data["id"])
@@ -391,7 +394,17 @@ class TaskStore:
                 check_tree(index, [data["id"]] + [i for i, d in index.items() if d.get("pai") == data["id"]])
             self.validate(data)
             text = self.render(data, body)
-            hits = find_terms(text, self.terms)
+            def values(value):
+                if isinstance(value, dict):
+                    for item in value.values():
+                        yield from values(item)
+                elif isinstance(value, list):
+                    for item in value:
+                        yield from values(item)
+                elif isinstance(value, str):
+                    yield value
+
+            hits = find_terms("\n".join((text, body, *values(data))), self.terms)
             if hits:
                 raise ValueError("Texto com termo confidencial (%s); mova para o complemento confidencial"
                                  % ", ".join(hits))
