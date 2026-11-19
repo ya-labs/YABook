@@ -1128,6 +1128,15 @@ function summaryTime(value) {
   return whole ? `${whole}h ${String(rest).padStart(2, "0")}min` : `${rest}min`;
 }
 
+// Extras exibem o registrado: capturado nas janelas + informado à mão (task log), com recuo para respostas antigas.
+function extraRecorded(extra) {
+  return extra.registrado ?? (extra.capturado || 0) + (extra.informado || 0);
+}
+
+function extraDetail(extra) {
+  return extra.informado ? `${recordedTime(extra.capturado || 0)} capturado + ${recordedTime(extra.informado)} informado` : null;
+}
+
 function recordedTime(value) {
   if (value === undefined || value === null) return "—";
   const seconds = Math.round(value * 3600), whole = Math.floor(seconds / 3600);
@@ -1478,6 +1487,7 @@ const VIEWS = {
       const pendingWindows = (app.rascunho.correcoes || []).some((c) => c.data === day);
       const capturedSheet = rows.reduce((sum, row) => sum + (row.capturado || 0), 0);
       const capturedExtras = sheet.extras.reduce((sum, row) => sum + (row.capturado || 0), 0);
+      const registeredExtras = sheet.extras.reduce((sum, row) => sum + extraRecorded(row), 0);
       const registeredSheet = rows.reduce((sum, row) => sum + (row.registrado ?? row.capturado ?? 0), 0);
       const difference = sheet.horas_dia - registeredSheet;
       const hasManual = !!sheet.informado_total;
@@ -1531,10 +1541,10 @@ const VIEWS = {
               hasManual ? h("p", { class: "ficha-nota" }, `Informado: ${recordedTime(sheet.informado_total)} em lançamentos existentes.`) : null,
               h("p", { class: "ficha-nota" }, difference >= 0 ? `Saldo usando a base capturada/informada: ${recordedTime(difference)}` : `Base acima da jornada: ${recordedTime(-difference)}`))),
           h("details", { class: "ficha-detalhes" },
-            h("summary", {}, icon("laptop"), h("span", {}, "Extras"), h("span", { class: "ficha-detalhes-meta" }, `${sheet.extras.length} · ${recordedTime(capturedExtras)}`)),
+            h("summary", {}, icon("laptop"), h("span", {}, "Extras"), h("span", { class: "ficha-detalhes-meta" }, `${sheet.extras.length} · ${recordedTime(registeredExtras)}`)),
             h("div", { class: "ficha-detalhes-corpo" }, h("p", { class: "ficha-nota" }, "Atividades fora do total da ficha."),
               sheet.extras.length ? h("ul", { class: "ficha-lista-extras" }, sheet.extras.map((e) => h("li", {},
-                h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo), h("strong", {}, recordedTime(e.capturado)))))
+                h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo), h("strong", { title: extraDetail(e) }, recordedTime(extraRecorded(e))))))
                 : h("p", { class: "vazio" }, "Nenhum extra."))),
           h("details", { class: "ficha-detalhes ficha-janelas", open: app.editando || pendingWindows },
             h("summary", {}, icon("historico"), h("span", {}, "Janelas de atividade"), h("span", { class: "ficha-detalhes-meta" }, (sheet.janelas || []).length)),
