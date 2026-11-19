@@ -54,6 +54,18 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
     def deadlines(self, *tasks):
         return self.evaluate("deadlineTasks(tasks).map(t => t.id)", tasks)
 
+    def test_card_demand_prefers_own_then_nearest_parent(self):
+        tasks = [
+            self.task("avo", demanda="320100"),
+            self.task("pai", pai="avo", demanda="320200"),
+            self.task("filho", pai="pai", demanda="320300"),
+            self.task("herdada", pai="pai"),
+            self.task("apenas-projeto", projeto="5723"),
+            self.task("ciclo", pai="ciclo"),
+        ]
+        self.assertEqual(self.evaluate("tasks.map(task => cardDemand(task, tasks))", tasks),
+                         ["320100", "320200", "320300", "320200", None, None])
+
     def test_sheet_code_opens_owner_instead_of_child_with_inherited_code(self):
         tasks = [dict(id="epico", tipo="projeto", projeto="1001"),
                  dict(id="historia", tipo="issue", pai="epico", projeto="1001", demanda="2001"),

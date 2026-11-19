@@ -271,7 +271,10 @@ function refreshChangeTimes() {
 function card(task, options = {}) {
   const editable = app.editando && task.tipo !== "pergunta";
   const signal = (name, title, text) => h("span", { class: "sinal", role: "img", "aria-label": title, title }, icon(name), text || null);
-  const parent = task.pai ? effectiveState().tarefas.find((t) => t.id === task.pai) : null;
+  const tasks = effectiveState().tarefas;
+  const parent = task.pai ? tasks.find((t) => t.id === task.pai) : null;
+  const issue = issueRef(task);
+  const demand = cardDemand(task, tasks);
   return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
     title: [task.titulo, task.descricao, changeText(changeStamp(task))].filter(Boolean).join("\n\n"),
     draggable: editable ? "true" : null,
@@ -280,13 +283,16 @@ function card(task, options = {}) {
     onclick: () => openTask(task.id), onkeydown: (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(task.id); }
     } },
-    // Card compacto no padrão de quadro Kanban: título, uma linha de metadados e rodapé com chave e tamanho.
+    // Card compacto com título, metadados e rodapé com identificadores e tamanho.
     // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
     h("div", { class: "card-titulo" }, task.titulo),
     cardMeta(task, parent, options),
     task.nivel === "epico" ? epicProgress(task) : null,
     h("footer", { class: "card-rodape" },
-      h("span", { class: "card-chave" }, stateIcon(task), cardKey(task)),
+      h("span", { class: "card-identificadores" },
+        h("span", { class: "card-chave" }, stateIcon(task), cardKey(task, issue)),
+        demand && (issue || String(demand) !== String(task.codigo))
+          ? h("span", { class: "card-demanda" }, "Demanda ", h("strong", {}, demand)) : null),
       h("span", { class: "card-sinais" },
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
@@ -308,13 +314,24 @@ function fullDate(day) {
   return FULL_DATE.format(new Date(day + "T12:00:00Z"));
 }
 
-// Chave do card: o código usado no trabalho em destaque e o @n como referência secundária.
-function cardKey(task) {
-  const ref = issueRef(task);
+function cardDemand(task, tasks) {
+  const seen = new Set();
+  let current = task;
+  while (current && !seen.has(current.id)) {
+    if (current.demanda) return current.demanda;
+    seen.add(current.id);
+    current = current.pai ? tasks.find((item) => item.id === current.pai) : null;
+  }
+  return null;
+}
+
+// Prioriza a issue vinculada e mantém o número interno como referência secundária.
+function cardKey(task, ref) {
   const code = ref ? ref.full.split("/").pop() : task.codigo;
   const number = task.numero ? `@${task.numero}` : null;
   if (!code) return h("span", { class: "card-codigo" }, number || label(task.tipo));
-  return [h("span", { class: "card-codigo" }, code), number ? h("span", { class: "card-numero" }, number) : null];
+  return [h("span", { class: "card-codigo", title: ref?.full || null }, code),
+    number ? h("span", { class: "card-numero" }, number) : null];
 }
 
 function cardMeta(task, parent, options) {
