@@ -41,7 +41,8 @@ class SizeTest(unittest.TestCase):
         config.write_text(json.dumps(dict(tasks=dict(root=str(self.root), machine="trabalho"))))
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            yabook_tasks.main(["--config", str(config), "add", "--tipo", "tarefa", "--titulo", "Pela CLI", "--size", "3"])
+            yabook_tasks.main(["--config", str(config), "add", "--tipo", "tarefa", "--titulo", "Pela CLI",
+                               "--descricao", "Verificar Size pela CLI", "--size", "3"])
         self.assertEqual(self.store.get(json.loads(out.getvalue())["id"])["data"]["size"], 3)
 
     def test_board_size_is_manual_and_wins_over_issue(self):
@@ -66,10 +67,13 @@ class SizeTest(unittest.TestCase):
 
     def test_capture_rejects_invalid_size(self):
         capture = Capture(self.store, self.cfg)
-        with self.assertRaises(ValueError):
-            capture.plan(dict(itens=[dict(tipo="tarefa", titulo="Lote", size=9)]))
-        plan = capture.plan(dict(itens=[dict(tipo="tarefa", titulo="Lote", size=2)]))
-        capture.apply(dict(itens=[dict(tipo="tarefa", titulo="Lote", size=2)]), plan.get("approval_hash"))
+        item = dict(tipo="tarefa", titulo="Lote", descricao="Verificar Size na captura")
+        for size in (None, 9, True, 2.0, "2"):
+            with self.subTest(size=size), self.assertRaisesRegex(ValueError, r"itens\[0\]\.size"):
+                capture.plan(dict(itens=[dict(item, size=size)]))
+        batch = dict(itens=[dict(item, size=2)])
+        plan = capture.plan(batch)
+        capture.apply(batch, plan["approval_hash"])
         self.assertEqual(self.tasks.search("Lote")["tarefas"][0]["size"], 2)
 
 

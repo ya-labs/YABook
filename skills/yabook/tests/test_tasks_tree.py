@@ -122,11 +122,13 @@ class TreeTest(unittest.TestCase):
         self.tasks.add("issue", "Agenda", issue=["org/app#12"], projeto="5723")
         capture = Capture(self.store, dict(machine="trabalho"))
         batch = dict(itens=[
-            dict(tipo="tarefa", titulo="Ajustar filtro", pai="agenda", chave="filtro"),
+            dict(tipo="tarefa", titulo="Ajustar filtro", descricao="Ajustar o filtro da agenda", size=1, pai="agenda", chave="filtro"),
             dict(tipo="issue", titulo="Agenda", issue="org/app#12", pai="p", chave="agenda"),
             dict(tipo="projeto", titulo="Melhorias do aplicativo", projeto="5723", nivel="epico", chave="p"),
-            dict(tipo="issue", titulo="Implementar a V1", issue="org/yabook#156", nivel="epico", chave="v1"),
-            dict(tipo="issue", titulo="Captura", issue="org/yabook#167", pai="v1", estado="concluido"),
+            dict(tipo="issue", titulo="Implementar a V1", descricao="Entregar a primeira versão", size=3,
+                 issue="org/yabook#156", nivel="epico", chave="v1"),
+            dict(tipo="issue", titulo="Captura", descricao="Registrar tarefas da conversa", size=2,
+                 issue="org/yabook#167", pai="v1", estado="concluido"),
         ])
         plan = capture.plan(batch)
         order = [o["id"] for o in plan["operacoes"]]
@@ -139,7 +141,8 @@ class TreeTest(unittest.TestCase):
         self.assertEqual((self.data("issue-agenda")["pai"], self.data("issue-agenda")["nivel"]), ("projeto-5723", "historia"))
         self.assertEqual(self.data("tarefa-ajustar-filtro")["nivel"], "tarefa")
         self.assertEqual({o["acao"] for o in capture.plan(batch)["operacoes"]}, {"sem-alteracao"})
-        bad = dict(itens=[dict(tipo="tarefa", titulo="Quarto nível", pai="tarefa-ajustar-filtro")])
+        bad = dict(itens=[dict(tipo="tarefa", titulo="Quarto nível", descricao="Testar limite da árvore", size=1,
+                               pai="tarefa-ajustar-filtro")])
         with self.assertRaises(ValueError) as error:
             capture.plan(bad)
         self.assertIn("Hierarquia", str(error.exception))
@@ -154,8 +157,10 @@ class TreeTest(unittest.TestCase):
                 code = yabook_tasks.main(["--config", str(config), *argv])
             return code, json.loads(out.getvalue())
 
-        self.assertEqual(cli("add", "--tipo", "issue", "--titulo", "Épico", "--nivel", "epico", "--issue", "org/r#1")[0], 0)
-        code, added = cli("add", "--tipo", "tarefa", "--titulo", "Filha", "--pai", "issue-epico", "--pessoal", "nao")
+        self.assertEqual(cli("add", "--tipo", "issue", "--titulo", "Épico", "--descricao", "Escopo do épico",
+                             "--size", "3", "--nivel", "epico", "--issue", "org/r#1")[0], 0)
+        code, added = cli("add", "--tipo", "tarefa", "--titulo", "Filha", "--descricao", "Escopo da tarefa filha",
+                          "--size", "1", "--pai", "issue-epico", "--pessoal", "nao")
         self.assertEqual(code, 0)
         self.assertEqual((self.data(added["id"])["nivel"], self.data(added["id"])["pessoal"]), ("historia", False))
         self.assertEqual(cli("edit", added["id"], "--unset", "pessoal")[0], 0)

@@ -6,7 +6,7 @@ da lista local indicando o campo, conferir revisões e gravar tudo sob uma trava
 com um único evento.
 
 Lote (JSON):
-  itens: [{chave?, id?, tipo, titulo, demanda?, projeto?, issue?, prazo?,
+  itens: [{chave?, id?, tipo, titulo, descricao, size, demanda?, projeto?, issue?, prazo?,
            proximo_passo?, refs?, estado? (papel ou coluna), registro?, complemento?}]
   perguntas: [{texto, sobre? (chave ou id)}]
   ativa: chave ou id
@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 
 from . import events, tree
-from .commands import Tasks, _append_log, _plain, parse_date
+from .commands import Tasks, _append_log, _plain, parse_date, validate_task_details
 from .precommit_hook import find_terms
 from .store import PAPEIS, TIPOS, Conflict, atomic_write, check_tree, infer_level, now
 
@@ -149,10 +149,11 @@ class Capture:
             fields["prazo"] = parse_date(fields["prazo"])
         if "pessoal" in fields and not isinstance(fields["pessoal"], bool):
             raise ValueError(where + ".pessoal: use true ou false")
-        if "size" in fields and (isinstance(fields["size"], bool) or fields["size"] not in range(1, 6)):
-            raise ValueError(where + ".size: use inteiro de 1 a 5")
         column = self._column(item.get("estado"), where) if item.get("estado") else None
         task = self._match(item, tipo, fields, existing, where)
+        if task is None and not _text(fields.get("titulo")):
+            raise ValueError(where + ": item novo sem título")
+        validate_task_details(fields, required=task is None, location=where)
         if task:
             identifier = task["data"]["id"]
             if identifier in matched:
@@ -175,8 +176,6 @@ class Capture:
                       coluna=changes.get("coluna", current["coluna"]), campos=sorted(changes),
                       revision=task["revision"], mudancas=changes)
         else:
-            if not _text(fields.get("titulo")):
-                raise ValueError(where + ": item novo sem título")
             code = (fields.get("demanda") if tipo == "demanda" else fields.get("projeto") if tipo == "projeto"
                     else fields.get("demanda") or fields.get("projeto") if tipo == "especificacao" else None)
             marker = "%s:%s" % (tipo, code if code else _plain(fields["titulo"]))

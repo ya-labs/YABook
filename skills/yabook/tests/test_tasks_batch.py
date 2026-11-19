@@ -24,17 +24,21 @@ from test_tasks_store import GIT_ENV
 WHEN = datetime.datetime(2026, 11, 11, 14, 37, tzinfo=datetime.timezone(datetime.timedelta(hours=-3)))
 
 
+def new_item(tipo, titulo, **fields):
+    return dict(tipo=tipo, titulo=titulo, descricao="Escopo da tarefa de teste", size=1, **fields)
+
+
 def conversation():
     return dict(
         itens=[
-            dict(chave="p", tipo="projeto", titulo="Melhorias do aplicativo de vendas", projeto="5723", estado="ativo",
-                 registro="Levantamento dos itens concluído"),
-            dict(chave="a", tipo="demanda", titulo="Restrição de horário", demanda="1001", projeto="5723",
-                 issue="org/app#10", estado="concluido", registro="Publicado e validado"),
-            dict(chave="b", tipo="demanda", titulo="Boletos em PDF", demanda="1002", projeto="5723",
-                 estado="validacao", proximo_passo="Aguardar retorno do teste", complemento="Base de homologação X"),
-            dict(chave="c", tipo="issue", titulo="Relatório de agenda", projeto="5723", issue=["org/app#12"],
-                 estado="pronto", prazo="2026-11-27"),
+            new_item("projeto", "Melhorias do aplicativo de vendas", chave="p", projeto="5723", estado="ativo",
+                     registro="Levantamento dos itens concluído"),
+            new_item("demanda", "Restrição de horário", chave="a", demanda="1001", projeto="5723",
+                     issue="org/app#10", estado="concluido", registro="Publicado e validado"),
+            new_item("demanda", "Boletos em PDF", chave="b", demanda="1002", projeto="5723",
+                     estado="validacao", proximo_passo="Aguardar retorno do teste", complemento="Base de homologação X"),
+            new_item("issue", "Relatório de agenda", chave="c", projeto="5723", issue=["org/app#12"],
+                     estado="pronto", prazo="2026-11-27"),
         ],
         perguntas=[dict(texto="Qual layout usar no relatório de agenda?", sobre="c")],
         ativa="b",
@@ -73,7 +77,9 @@ class BatchTest(unittest.TestCase):
                          ("andamento", "concluido", "testes", "pronto"))
         question = next(t for t in self.store.list() if t["data"]["tipo"] == "pergunta")
         self.assertEqual(question["data"]["sobre"], "issue-relatorio-de-agenda")
-        self.assertIn("Publicado e validado", self.store.get("demanda-1001")["body"])
+        work = self.store.get("demanda-1001")
+        self.assertEqual(work["data"]["descricao"], "Escopo da tarefa de teste")
+        self.assertIn("Publicado e validado", work["body"])
         self.assertIn("Base de homologação X", (self.confidential / "tarefas" / "demanda-1002.md").read_text())
         self.assertNotIn("homologação X", self.store.get("demanda-1002")["body"])
         self.assertEqual(json.loads((self.root / "local" / "ativa.json").read_text())["id"], "demanda-1002")
@@ -133,14 +139,14 @@ class BatchTest(unittest.TestCase):
             dict(),
             dict(itens=[dict(tipo="pergunta", titulo="x")]),
             dict(itens=[dict(tipo="tarefa")]),
-            dict(itens=[dict(tipo="tarefa", titulo="x", estado="inexistente")]),
-            dict(itens=[dict(tipo="tarefa", titulo="x", proximoPasso="y")]),
-            dict(itens=[dict(tipo="tarefa", titulo="x")], ativa="nada"),
-            dict(itens=[dict(tipo="tarefa", titulo="x", chave="t", estado="concluido")], ativa="t"),
-            dict(itens=[dict(tipo="tarefa", titulo="x", chave="t")], horas=[dict(tarefa="t", horas=2)]),
-            dict(itens=[dict(tipo="demanda", titulo="a", demanda="1"), dict(tipo="demanda", titulo="b", demanda="1")]),
-            dict(itens=[dict(tipo="demanda", titulo="a", demanda="9"), dict(tipo="demanda", titulo="b", demanda="9")]),
-            dict(itens=[dict(tipo="tarefa", titulo="Igual"), dict(tipo="tarefa", titulo="igual")]),
+            dict(itens=[new_item("tarefa", "x", estado="inexistente")]),
+            dict(itens=[new_item("tarefa", "x", proximoPasso="y")]),
+            dict(itens=[new_item("tarefa", "x")], ativa="nada"),
+            dict(itens=[new_item("tarefa", "x", chave="t", estado="concluido")], ativa="t"),
+            dict(itens=[new_item("tarefa", "x", chave="t")], horas=[dict(tarefa="t", horas=2)]),
+            dict(itens=[new_item("demanda", "a", demanda="1"), new_item("demanda", "b", demanda="1")]),
+            dict(itens=[new_item("demanda", "a", demanda="9"), new_item("demanda", "b", demanda="9")]),
+            dict(itens=[new_item("tarefa", "Igual"), new_item("tarefa", "igual")]),
             dict(chamados=[]),
         ]
         Tasks(self.store, self.cfg).add("demanda", "Existente", demanda="1")
@@ -149,7 +155,7 @@ class BatchTest(unittest.TestCase):
                 self.capture.plan(batch)
         home = Capture(self.store, dict(machine="casa"))
         with self.assertRaises(ValueError):
-            home.plan(dict(itens=[dict(tipo="tarefa", titulo="x", complemento="y")]))
+            home.plan(dict(itens=[new_item("tarefa", "x", complemento="y")]))
 
     def test_stale_plan_is_refused(self):
         plan = self.capture.plan(conversation())
@@ -167,7 +173,7 @@ class CaptureCliTest(unittest.TestCase):
         scaffold(self.root)
         self.config = self.base / "cfg.json"
         self.batch = self.base / "lote.json"
-        self.batch.write_text(json.dumps(dict(itens=[dict(tipo="tarefa", titulo="Nova", chave="n")], ativa="n")))
+        self.batch.write_text(json.dumps(dict(itens=[new_item("tarefa", "Nova", chave="n")], ativa="n")))
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -192,6 +198,18 @@ class CaptureCliTest(unittest.TestCase):
     def test_automatic_policy_applies_directly(self):
         code, done = self.cli("automatic", "capture", "--input", str(self.batch), "--apply")
         self.assertEqual((code, done["criadas"]), (0, ["tarefa-nova"]))
+
+    def test_incomplete_new_item_rejects_the_batch_in_preview_and_apply(self):
+        incomplete = dict(tipo="tarefa", titulo="Nova", registro="Corrigir o filtro de vendas")
+        self.batch.write_text(json.dumps(dict(itens=[new_item("tarefa", "Válida"), incomplete])))
+        for flags in ((), ("--apply",)):
+            with self.subTest(flags=flags):
+                code, result = self.cli("automatic", "capture", "--input", str(self.batch), *flags)
+                self.assertEqual(code, 1)
+                self.assertIn("itens[1].descricao", result["error"])
+                self.assertIn("itens[1].size", result["error"])
+                self.assertEqual(TaskStore(self.root).list(), [])
+                self.assertEqual(events.read_all(self.root), [])
 
 
 class ReinforcementTest(unittest.TestCase):
@@ -256,7 +274,7 @@ class HookCaptureTest(unittest.TestCase):
 
     def test_capture_apply_binds_active_task_and_prompt_reaches_signal(self):
         batch = self.base / "lote.json"
-        batch.write_text(json.dumps(dict(itens=[dict(tipo="demanda", titulo="Ajuste", demanda="1001", chave="d")], ativa="d")))
+        batch.write_text(json.dumps(dict(itens=[new_item("demanda", "Ajuste", demanda="1001", chave="d")], ativa="d")))
         script = str(Path(hook.__file__).with_name("yabook_tasks.py"))
         command = "python3 %s --config %s capture --input %s --apply" % (script, hook.config_path(), batch)
         subprocess.run(command.split(), check=True, capture_output=True)
