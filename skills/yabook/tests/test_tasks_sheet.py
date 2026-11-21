@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import yabook_tasks
 from tasks_runtime import sheet
 from tasks_runtime.commands import Tasks
+from tasks_runtime.server import Board
 from tasks_runtime.store import TaskStore, scaffold
 
 DAY = "2026-11-11"
@@ -90,6 +91,30 @@ class SheetTest(unittest.TestCase):
         self.assertEqual(sheet.day_sheet(self.store, DAY)["linhas"][0]["estimado"], 0.25)
         with self.assertRaises(ValueError):
             sheet.correct_windows(self.store, "casa", DAY, [dict(correction, janela="09:00")])
+
+    def test_machine_filter_applies_to_day_week_manual_notes_and_corrections(self):
+        selected = "projeto-2001"
+        other = "issue-corrigir-sincronizacao"
+        self.windows("trabalho", selected, 2)
+        self.windows("casa", other, 3)
+        self.tasks.log(selected, 1, "nota do trabalho", day=DAY, machine="Trabalho")
+        self.tasks.log(selected, 2, "nota de casa", day=DAY, machine="casa")
+        config = self.root / "config.yml"
+        config.write_text(config.read_text(encoding="utf-8").replace("ficha:\n", "ficha:\n  maquina: Trabalho\n"),
+                          encoding="utf-8")
+        sheet.correct_windows(self.store, "casa", DAY, [dict(janela="08:15", tarefa=selected, ignorar=True)])
+
+        result = sheet.day_sheet(self.store, DAY)
+        self.assertEqual(result["capturado_total"], 0.25)
+        self.assertEqual(result["informado_total"], 1)
+        self.assertEqual(result["acumulado_total"], 1.25)
+        self.assertEqual([window["tarefa"] for window in result["janelas"]], [selected, selected])
+        self.assertEqual(result["linhas"][0]["tarefas"], [selected])
+        self.assertIn("nota do trabalho", result["linhas"][0]["observacao"])
+        self.assertNotIn("nota de casa", result["linhas"][0]["observacao"])
+        self.assertEqual(sheet.week_sheet(self.store, DAY)["dias"], [result])
+        board_day = next(day for day in Board(self.store).week(DAY)["dias"] if day["data"] == DAY)
+        self.assertEqual((board_day["horas"], board_day["informado"], board_day["acumulado"]), (0.25, 1, 1.25))
 
     def test_observation_uses_complement_only_when_available(self):
         self.windows("trabalho", "demanda-1001", 4)

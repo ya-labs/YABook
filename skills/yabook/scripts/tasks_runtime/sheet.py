@@ -14,6 +14,7 @@ import uuid
 from pathlib import Path
 
 from . import tree
+from .events import _machine
 
 WINDOW_HOURS = 0.25
 
@@ -34,10 +35,16 @@ def attribution(data, index=None):
     return found or ("trabalho", "")
 
 
-def window_records(root, day):
+def window_records(root, day, machine=None):
     """Janelas deduplicadas e correções ordenadas, inclusive entre máquinas."""
     windows, corrections, manual, notes = set(), {}, {}, {}
+    if machine is not None and not isinstance(machine, str):
+        raise ValueError("ficha.maquina precisa ser um identificador de máquina em texto")
+    # As janelas usam o identificador normalizado. Lançamentos manuais antigos
+    # podem estar em um arquivo com o identificador original.
+    selected = {f"{day[:7]}-{name}.jsonl" for name in {machine, _machine(machine)}} if machine else set()
     for path in sorted(Path(root, "horas").glob(day[:7] + "-*.jsonl")):
+        include_hours = not selected or path.name in selected
         for line in path.read_text(encoding="utf-8").splitlines():
             try:
                 entry = json.loads(line)
@@ -46,14 +53,14 @@ def window_records(root, day):
             if entry.get("data") != day or not entry.get("tarefa"):
                 continue
             kind = entry.get("tipo")
-            if kind == "janela" and entry.get("janela"):
+            if kind == "janela" and include_hours and entry.get("janela"):
                 windows.add((entry["janela"], entry["tarefa"]))
             elif kind == "correcao" and entry.get("janela") and isinstance(entry.get("ignorar"), bool):
                 key = (entry["janela"], entry["tarefa"])
                 order = (entry.get("ts", ""), entry.get("id", ""))
                 if key not in corrections or order > corrections[key][0]:
                     corrections[key] = (order, entry["ignorar"], entry.get("para") or None)
-            elif kind == "manual":
+            elif kind == "manual" and include_hours:
                 manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
                 if entry.get("obs"):
                     notes.setdefault(entry["tarefa"], []).append(entry["obs"])
@@ -74,19 +81,23 @@ def window_records(root, day):
 def activity(root, day):
     """Horas estimadas por tarefa, respeitando correções sem apagar o histórico."""
     windows, manual, notes = window_records(root, day)
+    return accumulated_activity(windows, manual), notes
+
+
+def accumulated_activity(windows, manual):
     hours = dict(manual)
     for entry in windows:
         if not entry["ignorar"]:
             task = entry["tarefa"]
             hours[task] = hours.get(task, 0) + WINDOW_HOURS
-    return hours, notes
+    return hours
 
 
 def correct_windows(store, machine, day, corrections):
     """Acrescenta correções reversíveis; a chave representa a janela entre máquinas."""
-    from .events import _machine
     with store.lock():
-        available = {(r["janela"], r["tarefa"]): r for r in window_records(store.root, day)[0]}
+        selected = store.config().get("ficha", {}).get("maquina")
+        available = {(r["janela"], r["tarefa"]): r for r in window_records(store.root, day, selected)[0]}
         seen, entries = set(), []
         for item in corrections:
             key = (item.get("janela"), item.get("tarefa"))
@@ -116,7 +127,9 @@ def move_windows(store, machine, day, source, target, starts=None):
     if source == target:
         raise ValueError("Origem e destino são a mesma tarefa")
     store.get(target)
-    rows = [r for r in window_records(store.root, day)[0] if r["tarefa"] == source and (not starts or r["janela"] in starts)]
+    selected = store.config().get("ficha", {}).get("maquina")
+    rows = [r for r in window_records(store.root, day, selected)[0]
+            if r["tarefa"] == source and (not starts or r["janela"] in starts)]
     if not rows:
         raise ValueError("Nenhuma janela de %s em %s" % (source, day))
     correct_windows(store, machine, day, [dict(janela=r["janela"], tarefa=source, para=target) for r in rows])
@@ -181,11 +194,12 @@ def _round_step(value, step):
 def day_sheet(store, day, complement=None):
     cfg = store.config()
     ficha = cfg.get("ficha", {})
+    machine = ficha.get("maquina")
     labels = cfg.get("rotulos", {})
     per_day, step = float(ficha.get("horas_dia", 8)), float(ficha.get("arredondamento", 1))
-    windows, manual, notes = window_records(store.root, day)
+    windows, manual, notes = window_records(store.root, day, machine)
     captured = captured_activity(windows)
-    hours, _ = activity(store.root, day)
+    hours = accumulated_activity(windows, manual)
     tasks = {t["data"]["id"]: t for t in store.list()}
     index = {k: t["data"] for k, t in tasks.items()}
     for entry in windows:
@@ -209,8 +223,10 @@ def day_sheet(store, day, complement=None):
         group["informado"] += informed
         group["tarefas"].append(identifier)
 
-    touched = [d for d in index.values() if (d.get("atualizada") or "")[:10] == day and d.get("tipo") != "pergunta"
-               and d["id"] not in hours]
+    # A data da última edição é compartilhada e não identifica a máquina de origem.
+    touched = [] if machine else [d for d in index.values()
+                                  if (d.get("atualizada") or "")[:10] == day
+                                  and d.get("tipo") != "pergunta" and d["id"] not in hours]
     for data in touched:
         key = attribution(data, index)
         if key not in groups and key and key[0] == "demanda" and any(

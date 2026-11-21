@@ -64,10 +64,11 @@ def save(store, cfg, body):
         plan = _validate(store, cfg, tasks, changes, columns, complements)
         tasks.merge_confirmed = True  # a validação acima já conferiu o PR de cada conclusão
         by_day = {}
+        machine = store.config().get("ficha", {}).get("maquina") if corrections else None
         for item in corrections:
             day = parse_date(item["data"])
             key = (item.get("janela"), item.get("tarefa"))
-            available = {(r["janela"], r["tarefa"]) for r in sheet.window_records(store.root, day)[0]}
+            available = {(r["janela"], r["tarefa"]) for r in sheet.window_records(store.root, day, machine)[0]}
             if key not in available or not isinstance(item.get("ignorar", False), bool) or any((x["janela"], x["tarefa"]) == key for x in by_day.get(day, [])):
                 raise ValueError("Correção de janela inválida ou desatualizada")
             by_day.setdefault(day, []).append(item)
