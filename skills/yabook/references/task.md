@@ -153,6 +153,13 @@ captura também na configuração global do host, ou ela roda duas vezes.
 
 ## Ficha de horas
 
+- Para usar só as horas de uma máquina na Ficha e na visão Semana, adicione
+  `maquina: trabalho` à seção `ficha` do `config.yml` do repositório de dados.
+  Use o valor de `tasks.machine` da máquina de trabalho. A configuração seleciona
+  janelas e lançamentos manuais. Correções feitas em qualquer máquina continuam
+  valendo. Sem `ficha.maquina`, a ficha usa as horas de todas as máquinas.
+  Com o filtro ativo, a observação usa tarefas com horas da máquina selecionada,
+  pois a data da última edição de uma tarefa não identifica sua origem.
 - Código do próprio tipo ou do ancestral mais próximo; especificação sem código e
   tarefa pessoal são extras; trabalho sem código vira linha `trabalho`. Horas do
   épico ficam no projeto; eventos ou tamanho não comprovam horas de filhos.

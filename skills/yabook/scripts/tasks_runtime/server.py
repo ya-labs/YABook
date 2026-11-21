@@ -153,11 +153,12 @@ class Board:
         date = datetime.date.fromisoformat(day or today().isoformat())
         monday = date - datetime.timedelta(days=date.weekday())
         titles = {t["data"]["id"]: t["data"]["titulo"] for t in self.store.list()}
+        machine = self.store.config().get("ficha", {}).get("maquina")
         days = []
         for offset in range(7):
             current = (monday + datetime.timedelta(days=offset)).isoformat()
-            hours, _ = sheet.activity(self.store.root, current)
-            windows, manual, _ = sheet.window_records(self.store.root, current)
+            windows, manual, _ = sheet.window_records(self.store.root, current, machine)
+            hours = sheet.accumulated_activity(windows, manual)
             captured = sheet.captured_activity(windows)
             entries = [dict(tarefa=k, titulo=titles.get(k, k), horas=round(captured.get(k, 0), 6),
                             informado=round(manual.get(k, 0), 6), acumulado=round(hours[k], 6))
