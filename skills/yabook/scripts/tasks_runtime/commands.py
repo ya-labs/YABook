@@ -103,6 +103,7 @@ class Tasks:
         keys = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "pai", "projeto", "demanda", "issue", "size", "rodada", "prazo", "proximo_passo", "ficha",
                 "aguardando", "aguardando_desde")
         result = {k: data[k] for k in keys if k in data}
+        result["maquina"] = data.get("maquina", "trabalho")
         if data.get("tipo") != "pergunta":
             index = index if index is not None else {data["id"]: data}
             result["codigo"] = tree.code(data, index)
@@ -230,6 +231,7 @@ class Tasks:
         identifier = fields.pop("id", None) or self.store.new_id(tipo, code, titulo)
         column = coluna or self.first_column("entrada")
         data = dict(fields, id=identifier, tipo=tipo, titulo=titulo, coluna=column, ordem=self.next_order(column))
+        data.setdefault("maquina", events._machine(self.cfg.get("machine")))
         if prazo:
             data["prazo"] = parse_date(prazo)
         revision = self.store.save(data, body)

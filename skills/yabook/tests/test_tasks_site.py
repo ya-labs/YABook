@@ -31,6 +31,17 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
                                 check=True, capture_output=True, text=True)
         return json.loads(result.stdout)
 
+    def test_board_machine_options_and_saved_filter(self):
+        result = self.evaluate("""
+            globalThis.localStorage = {getItem: () => "casa"};
+            const machines = boardMachines({tarefas: tasks});
+            [machines, boardMachineFilter(machines), boardMachineFilter(["trabalho"])]
+        """, [{"tipo": "tarefa", "maquina": "trabalho"},
+              {"tipo": "tarefa", "maquina": "casa"},
+              {"tipo": "tarefa", "maquina": "casa"},
+              {"tipo": "pergunta", "maquina": "outra"}])
+        self.assertEqual(result, [["casa", "trabalho"], "casa", ""])
+
     def test_recorded_time_preserves_fractional_minutes_from_concurrent_windows(self):
         self.assertEqual(self.evaluate("[.125, .375, 1.125, 0, null].map(recordedTime)", []),
                          ["7min 30s", "22min 30s", "1h 07min 30s", "0min", "—"])

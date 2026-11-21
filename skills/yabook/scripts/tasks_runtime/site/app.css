@@ -110,7 +110,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --rotulo-fundo: .1; --rotulo-borda: .55; color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #14243a; --bg-card: #000000; --bg-inset: #070f1c; --bg-subtle: #101d30; --bg-hover: #213b5c;
+  --bg: #14243a; --bg-card: #121212; --bg-inset: #070f1c; --bg-subtle: #101d30; --bg-hover: #213b5c;
   --bg-coluna: #0c1829; --bg-navegacao: #0b1728;
   --scrollbar-trilho: #0b1728; --scrollbar-thumb: #7c9cbe; --scrollbar-hover: #acccff;
   --borda: #6788ad; --borda-suave: #36516f; --texto: #f2f6ff; --texto-2: #bfcee4;

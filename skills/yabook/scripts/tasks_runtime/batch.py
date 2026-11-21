@@ -186,6 +186,7 @@ class Capture:
             column = column or self.tasks.first_column("entrada")
             orders.setdefault(column, self.tasks.next_order(column))
             data = dict(fields, id=identifier, tipo=tipo, coluna=column, ordem=orders[column])
+            data["maquina"] = events._machine(self.cfg.get("machine"))
             orders[column] += 1
             op = dict(acao="criar", id=identifier, tipo=tipo, titulo=fields["titulo"], coluna=column,
                       campos=sorted(fields), dados=data)
@@ -312,6 +313,7 @@ class Capture:
                 column = self.tasks.first_column("entrada")
                 data = dict(id=question["id"], tipo="pergunta", titulo=question["texto"], coluna=column,
                             ordem=self.tasks.next_order(column), sobre=question["sobre"])
+                data["maquina"] = events._machine(self.cfg.get("machine"))
                 self.store.save(data)
                 asked.append(question["id"])
             for entry in plan["horas"]:

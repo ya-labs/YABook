@@ -312,6 +312,8 @@ class TaskStore:
 
     def validate(self, data):
         materials.validate(data)
+        if "maquina" in data and (not isinstance(data["maquina"], str) or not re.fullmatch(r"[a-z0-9]+(?:-+[a-z0-9]+)*", data["maquina"])):
+            raise ValueError("Identificador de máquina inválido")
         if not isinstance(data.get("id"), str):
             raise ValueError("Tarefa sem id")
         self.path(data["id"])

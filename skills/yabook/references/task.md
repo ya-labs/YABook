@@ -23,6 +23,8 @@ separado da memória. Execute `python3 scripts/yabook_tasks.py <serviço>` relat
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
 aceito nos comandos; `numerar [--corrigir]`), `descricao` (objetivo e escopo
 vigente em Markdown, obrigatória ao criar uma tarefa pelo agente),
+`maquina` (identificador da máquina na criação, de `tasks.machine`; cards
+anteriores sem o campo aparecem como `trabalho`),
 `size` (1–5 na escala das issues, obrigatório ao criar: o da issue ou estimado;
 reestime só com mudança de escopo; `size_manual` prevalece), `rodada` (sobe ao voltar da
 validação; com ajustes, vá à coluna Ajustes), `tipo` (`demanda`,
@@ -85,6 +87,9 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 - `clean` sem `--apply` só lista; duplicatas nunca são removidas sozinhas.
 
 ## Informações da tarefa
+
+- O card exibe a máquina de origem. O filtro **Máquina** no Quadro vale para as
+  apresentações Quadro e Lista e pode ser combinado com os demais filtros.
 
 - Descrição mantém resumo, escopo vigente, restrições e validação em Markdown. Histórico registra o que ocorreu por rodada.
 - Use **Editar** no cabeçalho do card aberto para ativar o rascunho. **Sair** ou **Descartar** no mesmo lugar volta à leitura do card.
