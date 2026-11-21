@@ -292,6 +292,7 @@ function card(task, options = {}) {
       h("span", { class: "card-identificadores" },
         h("span", { class: "card-chave" }, stateIcon(task), cardKey(task, issue))),
       h("span", { class: "card-sinais" },
+        task.maquina ? h("span", { class: "sinal", title: "Máquina da tarefa" }, task.maquina) : null,
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
         task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null,
@@ -1082,6 +1083,15 @@ function closedPreview(column, cards) {
   return cards.filter((t) => recent.has(t.id));
 }
 
+function boardMachines(estado) {
+  return [...new Set(work(estado).map((task) => task.maquina).filter(Boolean))].sort();
+}
+
+function boardMachineFilter(machines) {
+  const selected = pref("quadro.maquina", "");
+  return machines.includes(selected) ? selected : "";
+}
+
 function filtered(tasks) {
   const text = (app.busca || "").trim().toLowerCase();
   if (!text) return tasks;
@@ -1218,7 +1228,12 @@ const VIEWS = {
       const epicFilter = pref("quadro.epico", "");
       const levelFilter = pref("quadro.nivel", "");
       const showArchived = pref("quadro.arquivadas", "0") === "1";
+      const machines = boardMachines(estado);
+      const machineFilter = boardMachineFilter(machines);
       return [
+        h("select", { "aria-label": "Máquina", onchange: (e) => { setPref("quadro.maquina", e.target.value); render(); } },
+          h("option", { value: "", selected: !machineFilter }, "Máquina: todas"),
+          machines.map((machine) => h("option", { value: machine, selected: machine === machineFilter }, machine))),
         h("select", { title: "Épico", onchange: (e) => { setPref("quadro.epico", e.target.value); render(); } },
           h("option", { value: "" }, "Épico: todos"), h("option", { value: "-", selected: epicFilter === "-" }, "Sem épico"),
           estado.epicos.map((e) => h("option", { value: e.id, selected: e.id === epicFilter }, e.titulo))),
@@ -1242,7 +1257,9 @@ const VIEWS = {
       const levelFilter = pref("quadro.nivel", "");
       const showArchived = pref("quadro.arquivadas", "0") === "1";
       const onlyWaiting = pref("quadro.aguardando", "0") === "1";
+      const machineFilter = boardMachineFilter(boardMachines(estado));
       const visible = filtered(work(estado)).filter((t) => (!onlyWaiting || t.aguardando) &&
+        (!machineFilter || t.maquina === machineFilter) &&
         (!epicFilter || (epicFilter === "-" ? !epicOf(t, map) : epicOf(t, map) === epicFilter)) &&
         (!levelFilter || (levelFilter === "-" ? !t.nivel : t.nivel === levelFilter)));
       const columns = estado.colunas.filter((c) => showArchived || c.papel !== "arquivado");
