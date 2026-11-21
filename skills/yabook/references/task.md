@@ -88,7 +88,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 
 ## Informações da tarefa
 
-- O card exibe a máquina de origem. O filtro **Máquina** no Quadro vale para as
+- A máquina de origem aparece em **Campos** ao abrir o card. O filtro **Máquina** no Quadro vale para as
   apresentações Quadro e Lista e pode ser combinado com os demais filtros.
 
 - Descrição mantém resumo, escopo vigente, restrições e validação em Markdown. Histórico registra o que ocorreu por rodada.
