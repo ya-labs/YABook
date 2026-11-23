@@ -1095,18 +1095,40 @@ button.selo { cursor: pointer; text-align: left; }
 body, body * { font-weight: 400 !important; }
 h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-topo h2 { font-weight: 500 !important; }
 
-/* Revisão #248 (P1): tokens comuns, paleta neutra opcional, atenção na Visão geral, épicos e celular. */
+/* Tokens comuns e paleta Grafite. */
 :root { --esp-1: 4px; --esp-2: 8px; --esp-3: 12px; --esp-4: 16px; --esp-5: 24px; --raio-controle: 6px; --raio-card: 8px; --raio-painel: 12px; }
-:root[data-palette="neutro"] { --bg: #ffffff; --bg-inset: #f7f6fb; --bg-subtle: #f1eff8; --bg-hover: #e9e5f5; --bg-coluna: #f3f2f7; --bg-navegacao: #ffffff;
-  --scrollbar-trilho: #f1eff8; --scrollbar-thumb: #8f86a8; --scrollbar-hover: #6a5aa8; --borda: #c9c4d8; --borda-suave: #e3e0ec; --texto: #1f1d24; --texto-2: #5a5666;
-  --link: #5b47b0; --primario: #5b47b0; --primario-hover: #4a3896; --primario-texto: #ffffff; --botao: #ffffff; --botao-borda: #c9c4d8; --botao-hover: #f1eff8; --acento-suave: #ece7fb; }
-:root[data-palette="neutro"][data-theme="dark"] { --bg: #262626; --bg-inset: #181818; --bg-subtle: #202020; --bg-hover: #303030; --bg-coluna: #202020; --bg-navegacao: #202020;
-  --scrollbar-trilho: #202020; --scrollbar-thumb: #4a4a4a; --scrollbar-hover: #b9a3f5; --borda: #383838; --borda-suave: #2e2e2e; --texto: #f2f2f2; --texto-2: #b8b8b8;
-  --link: #b9a3f5; --primario: #b9a3f5; --primario-hover: #cbb9f8; --primario-texto: #181818; --botao: #262626; --botao-borda: #383838; --botao-hover: #303030; --acento-suave: #2f2a3d; }
-@media (prefers-color-scheme: dark) { :root[data-palette="neutro"]:not([data-theme="light"]) { --bg: #262626; --bg-inset: #181818; --bg-subtle: #202020; --bg-hover: #303030;
-  --bg-coluna: #202020; --bg-navegacao: #202020; --scrollbar-trilho: #202020; --scrollbar-thumb: #4a4a4a; --scrollbar-hover: #b9a3f5; --borda: #383838; --borda-suave: #2e2e2e;
-  --texto: #f2f2f2; --texto-2: #b8b8b8; --link: #b9a3f5; --primario: #b9a3f5; --primario-hover: #cbb9f8; --primario-texto: #181818; --botao: #262626; --botao-borda: #383838;
-  --botao-hover: #303030; --acento-suave: #2f2a3d; } }
+:root[data-palette="neutro"] {
+  --bg: #ffffff; --bg-card: #ffffff; --bg-card-size: #e1e7ef;
+  --bg-inset: #f4f5f7; --bg-subtle: #eff1f4; --bg-hover: #e2e7ef;
+  --bg-coluna: #e6e9ed; --bg-navegacao: #ffffff;
+  --scrollbar-trilho: #e6e9ed; --scrollbar-thumb: #747f90; --scrollbar-hover: #2453a7;
+  --borda: #778294; --borda-suave: #d9dee5; --texto: #26303c; --texto-2: #515c6c;
+  --link: #2453a7; --primario: #2453a7; --primario-hover: #193f87; --primario-texto: #ffffff;
+  --botao: #ffffff; --botao-borda: var(--borda); --botao-hover: var(--bg-hover); --acento-suave: #e1ecff;
+}
+:root[data-palette="neutro"][data-theme="dark"] {
+  --bg: #292c31; --bg-card: #2b2e33; --bg-card-size: #35404f;
+  --bg-inset: #202226; --bg-subtle: #25282d; --bg-hover: #363b43;
+  --bg-coluna: #17191c; --bg-navegacao: #232529;
+  --scrollbar-trilho: #17191c; --scrollbar-thumb: #69727f; --scrollbar-hover: #8fb8fc;
+  --borda: #7d8796; --borda-suave: #41464e; --texto: #eef1f5; --texto-2: #b6beca;
+  --link: #8fb8fc; --primario: #86acf0; --primario-hover: #a0c2ff; --primario-texto: #111b2b;
+  --botao: #2e3239; --botao-borda: var(--borda); --botao-hover: var(--bg-hover); --acento-suave: #293b54;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="neutro"]:not([data-theme="light"]) {
+    --bg: #292c31; --bg-card: #2b2e33; --bg-card-size: #35404f;
+    --bg-inset: #202226; --bg-subtle: #25282d; --bg-hover: #363b43;
+    --bg-coluna: #17191c; --bg-navegacao: #232529;
+    --scrollbar-trilho: #17191c; --scrollbar-thumb: #69727f; --scrollbar-hover: #8fb8fc;
+    --borda: #7d8796; --borda-suave: #41464e; --texto: #eef1f5; --texto-2: #b6beca;
+    --link: #8fb8fc; --primario: #86acf0; --primario-hover: #a0c2ff; --primario-texto: #111b2b;
+    --botao: #2e3239; --botao-borda: var(--borda); --botao-hover: var(--bg-hover); --acento-suave: #293b54;
+  }
+}
+:root[data-palette="neutro"] .abas button[aria-current="page"] { background: var(--acento-suave); color: var(--link); }
+:root[data-palette="neutro"] .abas button[aria-current="page"] .contador { color: inherit; }
+:root[data-palette="neutro"] .card .size-numero { color: var(--texto); }
 
 /* Faixa de atenção no topo da Visão geral. */
 .faixa-atencao { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin-bottom: var(--esp-2); }
