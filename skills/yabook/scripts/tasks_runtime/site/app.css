@@ -1121,8 +1121,6 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
 .card-titulo { font-size: 14px; font-weight: 600; line-height: 1.4; letter-spacing: 0; }
 .card-meta { display: grid; gap: 4px; min-width: 0; font-size: 12px; line-height: 1.4; color: var(--texto-2); }
 .card-meta > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-data.proxima { color: rgb(var(--c-orange)); }
-.card-data.vencida { color: rgb(var(--c-red)); font-weight: 600; }
 .card-espera { color: var(--texto-2); }
 .card-espera.longa { color: rgb(var(--c-orange)); }
 .card-meta .card-pai { font-size: 12px; }
@@ -1130,6 +1128,14 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
 .card-chave { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--texto-2); font-size: 12px; font-weight: 600; }
 .card-chave > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-rodape .card-sinais { margin-left: auto; gap: 6px; }
+.card-rodape .card-sinais:empty { display: none; }
+.card-prazo {
+  display: inline-flex; align-items: center; align-self: flex-end; gap: 4px; flex: none;
+  margin-left: auto; color: var(--texto-2); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.card-prazo .icone svg { width: 12px; height: 12px; }
+.card-prazo.proxima { color: rgb(var(--c-orange)); }
+.card-prazo.vencida { color: rgb(var(--c-red)); }
 .card .progresso { font-size: 11px; }
 .card-selos {
   --cor-selo: var(--paleta-selo-card, var(--link));
