@@ -1,3 +1,4 @@
+import datetime
 import json
 import sys
 import tempfile
@@ -61,6 +62,33 @@ class ActiveAndHoursTest(unittest.TestCase):
         self.assertEqual((moved["tarefa"], moved["origem"]), (story, "projeto-5723"))
         sheet.correct_windows(self.store, "trabalho", DAY, [dict(janela="09:00", tarefa=story, para="projeto-5723")])
         self.assertEqual(sheet.activity(self.root, DAY)[0].get("projeto-5723"), 0.25)  # desfazer devolve à origem
+
+    def test_mixed_durations_share_only_the_overlapping_time(self):
+        story = "demanda-320321"
+        self.windows("projeto-5723", ["09:00", "09:15"])
+        when = datetime.datetime.fromisoformat(DAY + "T09:12:00")
+        capture.mark(self.store, "trabalho", story, when)
+        capture.mark(self.store, "trabalho", story, when, minutes=15)
+        capture.mark(self.store, "trabalho", "projeto-5723", when.replace(hour=10))
+        windows, manual, _ = sheet.window_records(self.root, DAY)
+        self.assertEqual(sheet.captured_activity(windows), {"projeto-5723": .75, story: .25})
+        self.assertEqual(sheet.accumulated_activity(windows, manual), {"projeto-5723": 1., story: .5})
+        # A correção de uma janela antiga alcança seus 15 minutos, e não toda a meia hora.
+        sheet.correct_windows(self.store, "trabalho", DAY,
+                              [dict(janela="09:15", tarefa="projeto-5723", ignorar=True)])
+        day = sheet.day_sheet(self.store, DAY)
+        self.assertEqual(day["capturado_total"], 1.)
+        self.assertEqual(sheet.captured_activity(day["janelas"]), {"projeto-5723": .625, story: .375})
+        self.assertEqual(sheet.activity(self.root, DAY)[0]["projeto-5723"], .75)
+
+    def test_moving_longer_window_to_legacy_window_keeps_coverage(self):
+        story = "demanda-320321"
+        self.windows(story, ["09:00"])
+        capture.mark(self.store, "trabalho", "projeto-5723", datetime.datetime.fromisoformat(DAY + "T09:05:00"))
+        sheet.move_windows(self.store, "trabalho", DAY, "projeto-5723", story)
+        self.assertEqual(sheet.activity(self.root, DAY)[0], {story: .5})
+        sheet.correct_windows(self.store, "trabalho", DAY, [dict(janela="09:00", tarefa=story, para="projeto-5723")])
+        self.assertEqual(sheet.activity(self.root, DAY)[0], {story: .25, "projeto-5723": .5})
 
     def test_move_rejects_missing_windows_and_same_task(self):
         with self.assertRaises(ValueError):

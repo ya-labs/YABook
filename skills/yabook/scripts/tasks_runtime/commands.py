@@ -74,7 +74,7 @@ def parse_date(text, base=None):
 class Tasks:
     def __init__(self, store, cfg=None, origem="agente", merge_checker=None):
         self.store, self.cfg, self.origem = store, cfg or {}, origem
-        # Concluir tarefa com issue que tem branch ou PR exige PR integrado; o fluxo de issue já confirma o merge.
+        # Para itens que não são épicos, o fluxo de issue confirma o merge antes da conclusão.
         if merge_checker is None:
             from .merge_check import can_conclude as merge_checker
         self.merge_checker = merge_checker
@@ -256,6 +256,7 @@ class Tasks:
                 data.pop("size_manual", None)
             roles = self.roles()
             if (roles.get(data.get("coluna")) == "concluido" and roles.get(task["data"].get("coluna")) != "concluido"
+                    and (data.get("nivel") != "epico" or "nivel" in unset)
                     and data.get("issue") and not self.merge_confirmed):
                 for ref in data["issue"]:
                     state = self.merge_checker(ref)

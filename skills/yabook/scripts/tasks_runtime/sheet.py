@@ -16,7 +16,9 @@ from pathlib import Path
 from . import tree
 from .events import _machine
 
-WINDOW_HOURS = 0.25
+LEGACY_WINDOW_MINUTES = 15
+WINDOW_MINUTES = 30
+SLOT_HOURS = LEGACY_WINDOW_MINUTES / 60
 
 
 def attribution(data, index=None):
@@ -37,7 +39,7 @@ def attribution(data, index=None):
 
 def window_records(root, day, machine=None):
     """Janelas deduplicadas e correções ordenadas, inclusive entre máquinas."""
-    windows, corrections, manual, notes = set(), {}, {}, {}
+    windows, corrections, manual, notes = {}, {}, {}, {}
     if machine is not None and not isinstance(machine, str):
         raise ValueError("ficha.maquina precisa ser um identificador de máquina em texto")
     # As janelas usam o identificador normalizado. Lançamentos manuais antigos
@@ -54,7 +56,10 @@ def window_records(root, day, machine=None):
                 continue
             kind = entry.get("tipo")
             if kind == "janela" and include_hours and entry.get("janela"):
-                windows.add((entry["janela"], entry["tarefa"]))
+                key = (entry["janela"], entry["tarefa"])
+                minutes = entry.get("minutos", LEGACY_WINDOW_MINUTES)
+                if isinstance(minutes, int) and minutes in (LEGACY_WINDOW_MINUTES, WINDOW_MINUTES):
+                    windows[key] = max(windows.get(key, 0), minutes)
             elif kind == "correcao" and entry.get("janela") and isinstance(entry.get("ignorar"), bool):
                 key = (entry["janela"], entry["tarefa"])
                 order = (entry.get("ts", ""), entry.get("id", ""))
@@ -64,18 +69,21 @@ def window_records(root, day, machine=None):
                 manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
                 if entry.get("obs"):
                     notes.setdefault(entry["tarefa"], []).append(entry["obs"])
-    # Correção "mover" leva a janela para outra tarefa sem duplicar: se o destino já tem
-    # a mesma janela, a de origem some. `origem` guarda a tarefa bruta para novas correções.
-    rows, seen = [], set()
-    for start, task in sorted(windows, key=lambda w: (w[0], (w[0], w[1]) in corrections and bool(corrections[w][2]), w[1])):
+    # Chaves iguais no destino representam uma única janela. Prefira a janela
+    # vigente mais longa e, na mesma duração, a que já estava no destino.
+    rows = {}
+    for (start, task), minutes in sorted(windows.items()):
         _, ignored, target = corrections.get((start, task), (None, False, None))
-        effective = target or task
-        if (start, effective) in seen or (target and (start, target) in windows):
+        if target and windows.get((start, target), 0) >= minutes:
             continue
-        seen.add((start, effective))
-        rows.append(dict(janela=start, tarefa=effective, ignorar=ignored, **({"origem": task} if target else {})))
-    rows.sort(key=lambda r: (r["janela"], r["tarefa"]))
-    return rows, manual, notes
+        key = (start, target or task)
+        previous = rows.get(key)
+        priority = (not ignored, minutes, not target)
+        if previous and priority <= (not previous["ignorar"], previous["minutos"], "origem" not in previous):
+            continue
+        rows[key] = dict(janela=start, tarefa=key[1], minutos=minutes, ignorar=ignored,
+                         **({"origem": task} if target else {}))
+    return [rows[key] for key in sorted(rows)], manual, notes
 
 
 def activity(root, day):
@@ -86,10 +94,9 @@ def activity(root, day):
 
 def accumulated_activity(windows, manual):
     hours = dict(manual)
-    for entry in windows:
-        if not entry["ignorar"]:
-            task = entry["tarefa"]
-            hours[task] = hours.get(task, 0) + WINDOW_HOURS
+    for identifiers in _active_slots(windows).values():
+        for task in identifiers:
+            hours[task] = hours.get(task, 0) + SLOT_HOURS
     return hours
 
 
@@ -136,16 +143,29 @@ def move_windows(store, machine, day, source, target, starts=None):
     return dict(data=day, de=source, para=target, janelas=[r["janela"] for r in rows])
 
 
-def captured_activity(windows):
-    """Uma janela vale 15 min no dia, repartida entre tarefas simultâneas."""
+def _active_slots(windows):
+    """Fatia os intervalos para descontar sobreposições, inclusive de durações diferentes."""
     slots = {}
     for entry in windows:
-        if not entry["ignorar"]:
-            slots.setdefault(entry["janela"], set()).add(entry["tarefa"])
+        if entry["ignorar"]:
+            continue
+        try:
+            time = datetime.time.fromisoformat(entry["janela"])
+        except (TypeError, ValueError):
+            continue
+        start = time.hour * 60 + time.minute
+        end = start + entry.get("minutos", LEGACY_WINDOW_MINUTES)
+        for slot in range(start, end, LEGACY_WINDOW_MINUTES):
+            slots.setdefault(slot, set()).add(entry["tarefa"])
+    return slots
+
+
+def captured_activity(windows):
+    """Reparte o tempo simultâneo entre as tarefas de cada intervalo."""
     result = {}
-    for identifiers in slots.values():
+    for identifiers in _active_slots(windows).values():
         for identifier in identifiers:
-            result[identifier] = result.get(identifier, 0) + WINDOW_HOURS / len(identifiers)
+            result[identifier] = result.get(identifier, 0) + SLOT_HOURS / len(identifiers)
     return result
 
 
