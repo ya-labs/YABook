@@ -1161,7 +1161,7 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .barra-progresso > i { display: block; height: 100%; border-radius: inherit; background: var(--link); }
 
 /* Épicos concluídos recolhidos, em linhas baixas. */
-.epicos-concluidos > summary { cursor: pointer; color: var(--texto-2); font-size: 13px; }
+.epicos-concluidos > summary { padding: var(--esp-3); cursor: pointer; color: var(--texto-2); font-size: 13px; }
 .epicos-concluidos[open] > summary { margin-bottom: var(--esp-2); }
 .epico-concluido { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(120px, 200px); align-items: center; gap: var(--esp-2); }
 .epico-concluido .link { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
