@@ -1113,30 +1113,35 @@ button.selo { cursor: pointer; text-align: left; }
 .card-chave > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-rodape .card-sinais { margin-left: auto; gap: 6px; }
 .card .progresso { font-size: 11px; }
-.card-selos { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
-.card-selos > :is(.card-espera, .card-pai, .card-anexos), .card .size-numero { display: inline-flex; align-items: center; gap: 5px; width: fit-content;
-  padding: 2px 8px; border: 0; border-radius: 6px; font-size: 12px; line-height: 1.5; }
-.card .size-numero { min-width: 0; }
-.card-selos .icone svg { width: 12px; height: 12px; flex: none; }
+.card-selos {
+  --bg-selo: color-mix(in srgb, var(--texto) 18%, var(--bg-card));
+  display: flex; flex-wrap: wrap; gap: 6px; min-width: 0;
+}
+.card-selos > :is(.size-numero, .card-anexos, .card-pai, .card-demanda, .card-espera, .card-rodada) {
+  display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0;
+  padding: 4px 9px; border: 0; border-radius: 6px; background: var(--bg-selo); color: var(--texto);
+  font-family: inherit; font-size: 13px; font-weight: 500 !important; line-height: 1.4;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.card-selos > * > span { font-weight: inherit !important; }
+.card-selos > * > .icone { color: inherit; }
+.card-selos .icone svg { width: 14px; height: 14px; }
 .card-selos > .card-espera { --cor-selo: rgb(var(--c-orange)); }
 .card-selos > .card-espera.longa { --cor-selo: rgb(var(--c-red)); }
 .card-selos > .card-rodada { --cor-selo: rgb(var(--c-purple)); }
 .card-selos > :is(.card-espera, .card-rodada) {
-  color: color-mix(in srgb, var(--cor-selo) 86%, var(--texto));
-  background: color-mix(in srgb, var(--cor-selo) 19%, var(--bg));
+  background: color-mix(in srgb, var(--cor-selo) 16%, var(--bg-selo));
 }
-.card-selos > :is(.card-pai, .card-demanda, .card-anexos, .size-numero) {
-  color: color-mix(in srgb, var(--link) 86%, var(--texto));
-  background: color-mix(in srgb, #5b5b5b 19%, var(--bg));
+.card-selos > :is(.card-espera, .card-rodada) > .icone {
+  color: color-mix(in srgb, var(--cor-selo) 75%, var(--texto));
 }
-.card-selos > :is(.card-pai, .card-demanda) .icone, .card-selos .card-pai-numero { color: inherit; }
-.card-selos > :is(.card-pai, button.card-demanda):hover { background: color-mix(in srgb, #5b5b5b 35%, var(--bg)); }
-/* Demanda: mesmo selo do pai (fundo, cor e tamanho); clicável quando a dona é um ancestral. */
-.card-selos > .card-demanda { display: inline-flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; min-width: 0;
-  padding: 2px 8px; border: 0; border-radius: 6px; font: inherit; font-size: 12px; line-height: 1.5; white-space: nowrap; }
-.card-selos > .card-demanda .card-pai-numero { overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-.card-selos > button.card-demanda { cursor: pointer; }
-.card-selos > button.card-demanda:hover .card-pai-numero { text-decoration: underline; }
+.card-selos > .card-rodada .icone svg { transform: scaleX(-1); }
+.card-selos .card-pai-numero {
+  color: inherit; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+}
+.card-selos > button { cursor: pointer; }
+.card-selos > button:hover { background: color-mix(in srgb, var(--texto) 25%, var(--bg-card)); }
+.card-selos > button:hover .card-pai-numero { text-decoration: underline; }
 
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
 body, body * { font-weight: 400 !important; }
@@ -1338,11 +1343,6 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
   .epico-ativo > summary .direita { min-width: 0; width: 100%; }
 }
 .dia-card > p.vazio { margin: 0; font-size: 12px; }
-/* Rodada de ajuste: mesmo desenho discreto dos selos de espera e do pai. */
-.card-selos > .card-rodada { display: inline-flex; align-items: center; gap: 5px; width: fit-content; padding: 2px 8px; border-radius: 6px; font-size: 12px;
-  line-height: 1.5; }
-.card-selos > .card-rodada .icone svg { width: 12px; height: 12px; transform: scaleX(-1); }
-
 /* Materiais consultados e editados no painel da tarefa. */
 .task-materials h3 { margin: 0; font-size: inherit; }
 .material-lista, .material-form { display: grid; gap: 10px; min-width: 0; }
