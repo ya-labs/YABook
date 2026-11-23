@@ -152,6 +152,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 :root[data-palette="verde"] { --paleta-matiz: 153; --paleta-clara: #2e623d; --paleta-escura: #a0d8b7; }
 :root[data-palette="violeta"] { --paleta-matiz: 301; --paleta-clara: #5f3ba1; --paleta-escura: #c3b4e8; }
 :root[data-palette="rosa"] { --paleta-matiz: 352; --paleta-clara: #8a3858; --paleta-escura: #e6b1c9; }
+:root[data-palette="vermelho"] { --paleta-matiz: 26; --paleta-clara: #8d352c; --paleta-escura: #ecaaa2; }
 :root[data-palette="ambar"] { --paleta-matiz: 76; --paleta-clara: #78542b; --paleta-escura: #e8cd9c; }
 :root[data-palette="turquesa"] { --paleta-matiz: 187; --paleta-clara: #2a5b57; --paleta-escura: #97d2ca; }
 :root[data-palette="preto"] {
@@ -1118,20 +1119,24 @@ button.selo { cursor: pointer; text-align: left; }
   padding: 2px 8px; border: 0; border-radius: 6px; font-size: 12px; line-height: 1.5; }
 .card .size-numero { min-width: 0; }
 .card-selos .icone svg { width: 12px; height: 12px; flex: none; }
-/* Fundo opaco e discreto: a cor de destaque misturada ao fundo do card, texto na própria cor. */
-.card-selos > .card-espera { color: rgb(var(--c-orange)); background: color-mix(in srgb, rgb(var(--c-orange)) 16%, var(--bg)); }
-.card-selos > .card-espera.longa { color: rgb(var(--c-red)); background: color-mix(in srgb, rgb(var(--c-red)) 16%, var(--bg)); }
-.card-selos > .card-pai .icone, .card-selos .card-pai-numero { color: var(--link); }
-.card-selos > .card-pai, .card .size-numero { color: var(--link); background: color-mix(in srgb, #5b5b5b 14%, var(--bg)); }
-.card-selos > .card-pai:hover { background: color-mix(in srgb, #5b5b5b 22%, var(--bg)); }
+.card-selos > .card-espera { --cor-selo: rgb(var(--c-orange)); }
+.card-selos > .card-espera.longa { --cor-selo: rgb(var(--c-red)); }
+.card-selos > .card-rodada { --cor-selo: rgb(var(--c-purple)); }
+.card-selos > :is(.card-espera, .card-rodada) {
+  color: color-mix(in srgb, var(--cor-selo) 86%, var(--texto));
+  background: color-mix(in srgb, var(--cor-selo) 19%, var(--bg));
+}
+.card-selos > :is(.card-pai, .card-demanda, .size-numero) {
+  color: color-mix(in srgb, var(--link) 86%, var(--texto));
+  background: color-mix(in srgb, #5b5b5b 19%, var(--bg));
+}
+.card-selos > :is(.card-pai, .card-demanda) .icone, .card-selos .card-pai-numero { color: inherit; }
+.card-selos > :is(.card-pai, button.card-demanda):hover { background: color-mix(in srgb, #5b5b5b 27%, var(--bg)); }
 /* Demanda: mesmo selo do pai (fundo, cor e tamanho); clicável quando a dona é um ancestral. */
 .card-selos > .card-demanda { display: inline-flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; min-width: 0;
-  padding: 2px 8px; border: 0; border-radius: 6px; font: inherit; font-size: 12px; line-height: 1.5; white-space: nowrap;
-  color: var(--link); background: color-mix(in srgb, #5b5b5b 14%, var(--bg)); }
-.card-selos > .card-demanda .icone { color: var(--link); }
+  padding: 2px 8px; border: 0; border-radius: 6px; font: inherit; font-size: 12px; line-height: 1.5; white-space: nowrap; }
 .card-selos > .card-demanda .card-pai-numero { overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .card-selos > button.card-demanda { cursor: pointer; }
-.card-selos > button.card-demanda:hover { background: color-mix(in srgb, #5b5b5b 22%, var(--bg)); }
 .card-selos > button.card-demanda:hover .card-pai-numero { text-decoration: underline; }
 
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
@@ -1336,7 +1341,7 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .dia-card > p.vazio { margin: 0; font-size: 12px; }
 /* Rodada de ajuste: mesmo desenho discreto dos selos de espera e do pai. */
 .card-selos > .card-rodada { display: inline-flex; align-items: center; gap: 5px; width: fit-content; padding: 2px 8px; border-radius: 6px; font-size: 12px;
-  line-height: 1.5; color: rgb(var(--c-purple)); background: color-mix(in srgb, rgb(var(--c-purple)) 16%, var(--bg)); }
+  line-height: 1.5; }
 .card-selos > .card-rodada .icone svg { width: 12px; height: 12px; transform: scaleX(-1); }
 
 /* Materiais consultados e editados no painel da tarefa. */

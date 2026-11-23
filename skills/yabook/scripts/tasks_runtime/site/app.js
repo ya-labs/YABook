@@ -2004,6 +2004,7 @@ const PALETTES = [
   ["verde", "Verde", "#82db9c"],
   ["violeta", "Violeta", "#c2a3ff"],
   ["rosa", "Rosa", "#f59ac5"],
+  ["vermelho", "Vermelho", "#db867a"],
   ["ambar", "Âmbar", "#e8bf71"],
   ["turquesa", "Turquesa", "#78d7cc"],
   ["preto", "Preto", "#111111"],
