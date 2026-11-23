@@ -55,6 +55,22 @@ class ConclusionRuleTest(unittest.TestCase):
         self.tasks.edit("issue-com-pr", dict(coluna="concluido"))
         self.assertEqual(self.store.get("issue-com-pr")["data"]["coluna"], "concluido")
 
+    def test_epics_with_issues_conclude_without_checking_github(self):
+        from unittest.mock import Mock, patch
+        from tasks_runtime import editing
+
+        cli = self.tasks.add("issue", "Épico na CLI", nivel="epico", issue=["dono/repo#2"], coluna="testes")["id"]
+        web = self.tasks.add("issue", "Épico no quadro", nivel="epico", issue=["dono/repo#3"], coluna="testes")
+        checker = Mock(side_effect=AssertionError("Épico não deve consultar o GitHub"))
+        self.tasks.merge_checker = checker
+        self.tasks.edit(cli, dict(coluna="concluido"))
+        with patch("tasks_runtime.merge_check.can_conclude", checker):
+            editing.save(self.store, dict(machine="trabalho"),
+                         dict(tarefas=[dict(id=web["id"], revision=web["revision"], campos=dict(coluna="concluido"))]))
+        checker.assert_not_called()
+        self.assertEqual(self.store.get(cli)["data"]["coluna"], "concluido")
+        self.assertEqual(self.store.get(web["id"])["data"]["coluna"], "concluido")
+
     def test_site_save_refuses_before_writing_anything(self):
         from unittest.mock import patch
         from tasks_runtime import editing

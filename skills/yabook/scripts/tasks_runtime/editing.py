@@ -165,10 +165,12 @@ def _validate(store, cfg, tasks, changes, columns, complements):
             found = find_terms(note, store.terms)
             if found:
                 hits.append(dict(id=identifier, campo="registro", termos=found, texto=note))
-        # Concluir tarefa com issue exige PR integrado: confere antes de gravar qualquer mudança do salvamento.
+        # Confere a integração dos itens com código antes de gravar o salvamento.
         target = fields.get("coluna")
+        level = fields.get("nivel", current["data"].get("nivel"))
         if (target and known_columns.get(target, {}).get("papel") == "concluido"
-                and known_columns.get(current["data"].get("coluna"), {}).get("papel") != "concluido"):
+                and known_columns.get(current["data"].get("coluna"), {}).get("papel") != "concluido"
+                and (level != "epico" or "nivel" in unset)):
             for ref in fields.get("issue") or current["data"].get("issue") or []:
                 state = tasks.merge_checker(ref)
                 if state is not True:

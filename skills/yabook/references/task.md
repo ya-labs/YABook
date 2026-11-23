@@ -136,10 +136,12 @@ captura também na configuração global do host, ou ela roda duas vezes.
   `@n`, `dono/repo#n`, `issue #n`) troca a tarefa antes da janela; várias
   referências ou tarefa inexistente/encerrada suspendem a marca. Menção incidental
   e consulta administrativa não trocam. Sessões são isoladas.
-- `UserPromptSubmit` marca a janela de 15 min da tarefa da sessão em
+- `UserPromptSubmit` marca a janela de 30 min da tarefa da sessão em
   `horas/AAAA-MM-<maquina>.jsonl`, sem rede; comandos administrativos (`task
   review`, `commit msg`) não geram janela. Prazo, código ou conclusão gera um
   lembrete por janela; sem tarefa ativa, a pergunta volta após algumas mensagens.
+  Cada nova marca grava a duração em minutos. Registros antigos sem duração
+  valem 15 minutos, inclusive os pendentes de atribuição.
 - Antes da primeira escolha, o hook guarda as janelas elegíveis em
   `local/sessoes/<sessão>.json`. As janelas do mesmo dia local são atribuídas
   à primeira tarefa da sessão por `start`, `add` ou `capture --apply` com
@@ -155,6 +157,10 @@ captura também na configuração global do host, ou ela roda duas vezes.
 - Salvar no site grava pela mesma biblioteca, com commit e ações do quadro
   pendentes até `analyze`: analise no fim da resposta, aplique os ajustes conforme
   a política e registre em texto genérico. Ações do agente já entram analisadas.
+
+- Épicos podem ir a Concluído diretamente no quadro ou na CLI, inclusive com
+  uma issue vinculada. Para histórias e tarefas com branch ou PR vinculado,
+  o merge continua sendo exigido antes da conclusão.
 
 ## Ficha de horas
 

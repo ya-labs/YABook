@@ -1,7 +1,7 @@
 """Captura do YABook Tasks pelos hooks do plugin (Claude Code e Codex).
 
 - SessionStart: pull rápido, tarefa ativa sugerida, perguntas, prazos e eventos.
-- UserPromptSubmit: marca a janela de 15 minutos, pendente até a primeira tarefa da sessão.
+- UserPromptSubmit: marca a janela de 30 minutos, pendente até a primeira tarefa da sessão.
 - Stop: commit local idempotente; push em lote, em segundo plano.
 
 Nada aqui pode bloquear o prompt: o despachante captura qualquer erro.
@@ -18,9 +18,9 @@ import time
 from pathlib import Path
 
 from . import events
+from .sheet import LEGACY_WINDOW_MINUTES, WINDOW_MINUTES, window_records
 from .store import TaskStore, atomic_write, now
 
-WINDOW_MINUTES = 15
 PUSH_INTERVAL = 30 * 60
 MAX_EVENTS = 10
 REASK_AFTER = 8
@@ -69,7 +69,12 @@ def _write_session(path, state):
 
 def _pending_today(state, when):
     day = window(when)[0]
-    return sorted({start for date, start in state.get("pendentes", []) if date == day})
+    pending = {}
+    for date, start, *duration in state.get("pendentes", []):
+        if date == day:
+            minutes = duration[0] if duration else LEGACY_WINDOW_MINUTES
+            pending[start] = max(pending.get(start, 0), minutes)
+    return sorted(pending.items())
 
 
 def _retroactive_notice(plan, *, manual=False):
@@ -96,9 +101,9 @@ def retroactive(store, cfg, session, *, apply=False, approval_hash=None, when=No
         state = _read(path, {})
         target = state.get("retroativo_para")
         enabled = cfg.get("retroativo", True)
-        starts = _pending_today(state, when) if target and enabled else []
-        plan = dict(sessao=session, tarefa=target, data=window(when)[0], janelas=starts)
-        expected = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
+        pending = _pending_today(state, when) if target and enabled else []
+        plan = dict(sessao=session, tarefa=target, data=window(when)[0], janelas=[start for start, _ in pending])
+        expected = hashlib.sha256(json.dumps(dict(plan, minutos=dict(pending)), sort_keys=True).encode()).hexdigest()
         if not apply:
             return dict(plan, approval_hash=expected)
         if cfg.get("policy") == "manual" and not approval_hash:
@@ -106,17 +111,15 @@ def retroactive(store, cfg, session, *, apply=False, approval_hash=None, when=No
         if approval_hash is not None and approval_hash != expected:
             raise ValueError("Prévia desatualizada. Confira novamente as janelas pendentes.")
         attributed = []
-        if starts:
-            from .sheet import window_records
-
+        if pending:
             store.get(target)
             day = plan["data"]
-            existing = {(row["janela"], row.get("origem", row["tarefa"]))
+            existing = {(row["janela"], row.get("origem", row["tarefa"])): row["minutos"]
                         for row in window_records(store.root, day)[0]}
-            for start in starts:
-                if (start, target) not in existing:
+            for start, minutes in pending:
+                if existing.get((start, target), 0) < minutes:
                     moment = datetime.datetime.fromisoformat(day + "T" + start)
-                    if mark(store, cfg.get("machine"), target, moment):
+                    if mark(store, cfg.get("machine"), target, moment, minutes=minutes):
                         attributed.append(start)
         if target:
             state.pop("pendentes", None)
@@ -139,11 +142,11 @@ def set_active(store, session, identifier, cfg=None, *, when=None, only_first=Fa
         if task["tipo"] == "pergunta" or task["coluna"] in closed:
             return ""
         if first:
-            starts = _pending_today(state, when) if cfg.get("retroativo", True) else []
+            pending = _pending_today(state, when) if cfg.get("retroativo", True) else []
             state.pop("pendentes", None)
-            if starts:
+            if pending:
                 day = window(when)[0]
-                state["pendentes"] = [[day, start] for start in starts]
+                state["pendentes"] = [[day, start, minutes] for start, minutes in pending]
                 state["retroativo_para"] = identifier
         state.update(ativa=identifier, desde=now())
         _write_session(path, state)
@@ -396,8 +399,9 @@ def _prompt(store, tasks_cfg, session, when, text):
     changed = False
     if not chosen and (text or "").strip() and not admin and tasks_cfg.get("retroativo", True):
         day, start = window(when)
-        pending = _pending_today(state, when)
-        pending = [[day, entry] for entry in sorted(set(pending) | {start})]
+        durations = dict(_pending_today(state, when))
+        durations[start] = WINDOW_MINUTES
+        pending = [[day, slot, minutes] for slot, minutes in sorted(durations.items())]
         if pending != state.get("pendentes"):
             state["pendentes"], changed = pending, True
     if current is None:
@@ -428,27 +432,28 @@ def _prompt(store, tasks_cfg, session, when, text):
     return "\n".join(lines)
 
 
-def window(when):
-    minute = when.minute - when.minute % WINDOW_MINUTES
+def window(when, minutes=WINDOW_MINUTES):
+    minute = when.minute - when.minute % minutes
     return when.strftime("%Y-%m-%d"), "%02d:%02d" % (when.hour, minute)
 
 
-def mark(store, machine, identifier, when):
-    """Marca a janela uma vez por tarefa; repetir o hook não duplica a marca."""
-    day, start = window(when)
+def mark(store, machine, identifier, when, *, minutes=WINDOW_MINUTES):
+    """Marca a janela uma vez por tarefa e duração."""
+    day, start = window(when, minutes)
     cache = store.root / "local" / "janelas.json"
     with store.lock():
         seen = _read(cache, {})
         if seen.get("data") != day:
             seen = dict(data=day, marcas=[])
-        key = start + " " + identifier
-        if key in seen["marcas"]:
+        legacy_key = start + " " + identifier
+        key = f"{legacy_key} {minutes}"
+        if key in seen["marcas"] or (minutes == LEGACY_WINDOW_MINUTES and legacy_key in seen["marcas"]):
             return False
         machine = events._machine(machine)
         path = store.root / "horas" / ("%s-%s.jsonl" % (day[:7], machine))
         path.parent.mkdir(exist_ok=True)
         with path.open("a", encoding="utf-8", newline="\n") as stream:
-            stream.write(json.dumps(dict(tipo="janela", data=day, janela=start, tarefa=identifier),
+            stream.write(json.dumps(dict(tipo="janela", data=day, janela=start, minutos=minutes, tarefa=identifier),
                                     ensure_ascii=False, separators=(",", ":")) + "\n")
         seen["marcas"].append(key)
         atomic_write(cache, json.dumps(seen, ensure_ascii=False) + "\n")

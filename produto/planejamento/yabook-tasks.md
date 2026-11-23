@@ -68,7 +68,7 @@ Arquivos do repositório de dados:
 | `quadro.yml` | Colunas com nome livre e papel fixo. |
 | `tarefas/<id>.md` | Uma tarefa por arquivo. |
 | `eventos/AAAA-MM-<maquina>.jsonl` | Histórico de ações, somente acréscimo. |
-| `horas/AAAA-MM-<maquina>.jsonl` | Janelas de atividade de 15 minutos por tarefa. |
+| `horas/AAAA-MM-<maquina>.jsonl` | Janelas de atividade de 30 minutos por tarefa, com duração registrada. As marcas anteriores sem duração valem 15 minutos. |
 | `fichas/AAAA-MM.jsonl` | Confirmações históricas preservadas, sem uso nos cálculos atuais. |
 | `.githooks/pre-commit` | Trava de termos proibidos. |
 
@@ -94,7 +94,7 @@ Regras do agente por papel:
 
 - a tarefa ativa é sugerida entre `ativo` e `pronto`, respeitando a ordem;
 - o fim de `dev` leva a tarefa para `validacao`;
-- PR integrado leva a tarefa para `concluido`;
+- PR integrado leva a tarefa para `concluido`. Épicos podem ser concluídos sem PR.
 - alertas de prazo ignoram `concluido` e `arquivado`.
 
 Renomear uma coluna não altera o comportamento do agente. Criar, remover ou
@@ -168,7 +168,7 @@ os eventos existentes:
 | Evento | Ação |
 | --- | --- |
 | `SessionStart` | `pull` rápido sem bloquear; sugestão da tarefa ativa; regras de manutenção das tarefas; perguntas abertas, prazos atrasados ou em até 2 dias e eventos não analisados. |
-| `UserPromptSubmit` | Marca a janela de 15 minutos da tarefa ativa em arquivo local, sem rede e de forma idempotente; lembra de atualizar a tarefa quando a mensagem cita prazo, código ou conclusão e repete uma vez a pergunta da tarefa ativa. |
+| `UserPromptSubmit` | Marca a janela de 30 minutos da tarefa ativa em arquivo local, sem rede e de forma idempotente; lembra de atualizar a tarefa quando a mensagem cita prazo, código ou conclusão e repete uma vez a pergunta da tarefa ativa. |
 | `Stop` | Commit local idempotente quando houver mudança, com proteção contra concorrência. |
 
 - A pessoa confirma ou troca a tarefa ativa no início da sessão.

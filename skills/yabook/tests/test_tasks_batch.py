@@ -234,8 +234,10 @@ class ReinforcementTest(unittest.TestCase):
         self.assertEqual(capture.prompt(self.cfg, "s1", WHEN, "continuar a implementação"), "")
         self.assertIn("cita prazo", capture.prompt(self.cfg, "s1", WHEN, "terminei, o prazo é sexta"))
         self.assertEqual(capture.prompt(self.cfg, "s1", WHEN, "chamado 1001 ficou pendente"), "")
-        later = WHEN + datetime.timedelta(minutes=15)
-        self.assertIn("cita prazo", capture.prompt(self.cfg, "s1", later, "ver issue #12"))
+        same_window = WHEN + datetime.timedelta(minutes=15)
+        self.assertEqual(capture.prompt(self.cfg, "s1", same_window, "ver issue #12"), "")
+        next_window = WHEN + datetime.timedelta(minutes=30)
+        self.assertIn("cita prazo", capture.prompt(self.cfg, "s1", next_window, "ver issue #12"))
 
     def test_reasks_once_without_active_task(self):
         texts = [capture.prompt(self.cfg, "s2", WHEN, "seguir") for _ in range(capture.REASK_AFTER + 3)]

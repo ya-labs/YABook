@@ -60,8 +60,8 @@ class CaptureTest(unittest.TestCase):
         capture.prompt(self.cfg, "s1", WHEN, "corrija o chamado 1001")
         self.assertEqual(self.hours()[0]["tarefa"], "demanda-1001")
         self.assertEqual(capture.active(self.store, "s2"), "projeto-9001")
-        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=15), "teste org/repo#10")
-        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=30), "retome o projeto 9001")
+        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=30), "teste org/repo#10")
+        capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=60), "retome o projeto 9001")
         self.assertEqual([h["tarefa"] for h in self.hours()], ["demanda-1001", "demanda-1001", "projeto-9001"])
 
     def test_ambiguous_missing_closed_and_unconfirmed_do_not_capture(self):
@@ -117,7 +117,10 @@ class CaptureTest(unittest.TestCase):
         for _ in range(3):
             capture.prompt(self.cfg, "s1", WHEN)
         capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=10))
-        self.assertEqual([(h["janela"], h["tarefa"]) for h in self.hours()], [("14:30", "tarefa-implementar"), ("14:45", "tarefa-implementar")])
+        self.assertEqual(len(self.hours()), 1)
+        capture.prompt(self.cfg, "s1", WHEN.replace(hour=15, minute=0))
+        self.assertEqual([(h["janela"], h["minutos"], h["tarefa"]) for h in self.hours()],
+                         [("14:30", 30, "tarefa-implementar"), ("15:00", 30, "tarefa-implementar")])
         self.tasks.add("tarefa", "Outra", coluna="pronto")
         capture.set_active(self.store, "s2", "tarefa-outra")
         capture.prompt(self.cfg, "s2", WHEN)
@@ -169,8 +172,17 @@ class CaptureTest(unittest.TestCase):
         self.assertEqual(len(windows), 2)
         self.assertEqual(manual, {})
         other = capture._read(capture._session_file(self.store, "s2"), {})
-        self.assertEqual(other["pendentes"], [[WHEN.date().isoformat(), "14:15"]])
+        self.assertEqual(other["pendentes"], [[WHEN.date().isoformat(), "14:00", 30]])
         self.assertNotIn("ativa", other)
+
+    def test_pending_windows_keep_their_original_duration(self):
+        self.tasks.add("tarefa", "A")
+        path = capture._session_file(self.store, "s1")
+        capture._write_session(path, {"pendentes": [[WHEN.date().isoformat(), "14:15"]]})
+        capture.prompt(self.cfg, "s1", WHEN, "validar mudanças")
+        capture.set_active(self.store, "s1", "tarefa-a", self.cfg["tasks"], when=WHEN)
+        self.assertEqual([(h["janela"], h["minutos"]) for h in self.hours()], [("14:15", 15), ("14:30", 30)])
+        self.assertEqual(sheet.activity(self.root, WHEN.date().isoformat())[0], {"tarefa-a": .75})
 
     def test_old_or_disabled_pending_windows_are_not_attributed(self):
         self.tasks.add("tarefa", "A")
@@ -211,22 +223,22 @@ class CaptureTest(unittest.TestCase):
     def test_retry_after_partial_transfer_does_not_duplicate_or_change_destination(self):
         self.tasks.add("tarefa", "A")
         self.tasks.add("tarefa", "B")
-        capture.prompt(self.cfg, "s1", WHEN - datetime.timedelta(minutes=15), "corrigir tela")
+        capture.prompt(self.cfg, "s1", WHEN.replace(minute=5), "corrigir tela")
         capture.prompt(self.cfg, "s1", WHEN, "validar")
         mark = capture.mark
 
-        def interrupted(store, machine, identifier, when):
+        def interrupted(store, machine, identifier, when, **kwargs):
             if when.minute == 30:
                 raise OSError("Interrompido após a primeira janela")
-            return mark(store, machine, identifier, when)
+            return mark(store, machine, identifier, when, **kwargs)
 
         with patch.object(capture, "mark", side_effect=interrupted), self.assertRaises(OSError):
             capture.set_active(self.store, "s1", "tarefa-a", self.cfg["tasks"], when=WHEN)
         capture.set_active(self.store, "s1", "tarefa-b", self.cfg["tasks"], when=WHEN)
-        notice = capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=15), "continuar na segunda tarefa")
+        notice = capture.prompt(self.cfg, "s1", WHEN + datetime.timedelta(minutes=30), "continuar na segunda tarefa")
         self.assertIn("atribuída(s) a tarefa-a", notice)
         self.assertEqual([(h["janela"], h["tarefa"]) for h in self.hours()],
-                         [("14:15", "tarefa-a"), ("14:30", "tarefa-a"), ("14:45", "tarefa-b")])
+                         [("14:00", "tarefa-a"), ("14:30", "tarefa-a"), ("15:00", "tarefa-b")])
 
     def test_pending_events_and_analysis_across_machines(self):
         self.tasks.add("tarefa", "A")

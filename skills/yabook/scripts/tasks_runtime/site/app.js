@@ -1460,7 +1460,7 @@ const VIEWS = {
         h("div", { class: "semana-resumo" },
           h("div", { class: "semana-totais" },
             h("div", { class: "numero" }, h("b", { title: recordedTime(total) }, summaryTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)")),
-            h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas; capturado conta cada janela uma vez.`)),
+            h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas; capturado conta o tempo sobreposto uma vez.`)),
           h("section", { class: "totais-semana" }, h("h2", {}, "Rateio sugerido na semana"),
             !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
               : sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
@@ -1551,7 +1551,7 @@ const VIEWS = {
             h("summary", {}, icon("livro"), h("span", {}, "Como ler os tempos")),
             h("div", { class: "ficha-detalhes-corpo" },
               h("dl", { class: "ficha-definicoes" },
-                h("div", {}, h("dt", {}, "Capturado"), h("dd", {}, "Estimativa por janelas de 15 minutos. Frentes simultâneas compartilham a mesma janela, sem multiplicar o dia.")),
+                h("div", {}, h("dt", {}, "Capturado"), h("dd", {}, "Estimativa por janelas de 30 minutos. Janelas antigas valem 15 minutos. Frentes simultâneas dividem o tempo sobreposto.")),
                 h("div", {}, h("dt", {}, "Rateado"), h("dd", {}, "Sugestão com até 50% de margem, limitada a 1h por código e ao saldo da jornada. Você decide o que apontar.")),
                 h("div", {}, h("dt", {}, "Acumulado"), h("dd", {}, `${recordedTime(sheet.acumulado_total)} somando frentes simultâneas e lançamentos existentes.`))),
               h("p", { class: "ficha-nota" }, `Capturado na ficha: ${recordedTime(capturedSheet)} · Extras: ${recordedTime(capturedExtras)}`),
@@ -1573,7 +1573,7 @@ const VIEWS = {
                   const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
                   const ignored = pending && "ignorar" in pending ? pending.ignorar : j.ignorar;
                   const target = pending && pending.para ? windowTargets().find((t) => t.id === pending.para) : null;
-                  return h("tr", {}, h("td", {}, j.janela), h("td", {}, target ? `${j.titulo} → ${target.titulo}` : j.titulo),
+                  return h("tr", {}, h("td", {}, `${j.janela} · ${j.minutos ?? 15} min`), h("td", {}, target ? `${j.titulo} → ${target.titulo}` : j.titulo),
                     h("td", {}, h("span", { class: "selo neutro" }, ignored ? "Desconsiderada" : "Considerada")),
                     app.editando ? h("td", { class: "janela-acoes" },
                       h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) }, ignored ? "Considerar" : "Desconsiderar"),
