@@ -106,6 +106,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --bg: var(--base-painel); --bg-card: var(--base-card); --bg-inset: var(--base-fundo);
   --bg-subtle: var(--base-sutil); --bg-hover: var(--base-hover);
   --bg-coluna: var(--base-coluna); --bg-navegacao: var(--base-nav);
+  --bg-pagina: var(--bg-coluna); --bg-etapa: var(--bg-inset);
   --scrollbar-trilho: var(--bg-coluna); --scrollbar-thumb: #747f90; --scrollbar-hover: var(--link);
   --borda: #778294; --borda-suave: #d9dee5; --texto: #26303c; --texto-2: #515c6c;
   --link: var(--paleta-clara, #294f9d); --primario: var(--link);
@@ -164,6 +165,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --base-sutil: light-dark(#ebebeb, #202020);
   --base-hover: light-dark(#e2e2e2, #3a3a3a);
   --base-coluna: light-dark(#dddddd, #2d2d2d);
+  --bg-pagina: light-dark(var(--bg-coluna), var(--bg-inset));
+  --bg-etapa: light-dark(var(--bg-inset), var(--bg-coluna));
   --base-nav: light-dark(#f9f9f9, #101010);
   --base-botao: light-dark(#e9e9e9, #2c2c2c);
   --texto: light-dark(#252525, #f2f2f2); --texto-2: light-dark(#535353, #bfbfbf);
@@ -225,7 +228,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 html, body { margin: 0; height: 100%; }
 body { height: 100dvh; display: grid; grid-template-columns: 248px minmax(0, 1fr); overflow: hidden;
-  background: var(--bg-inset); color: var(--texto); font: 14px/1.55 "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg-pagina); color: var(--texto); font: 14px/1.55 "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { color: inherit; font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
@@ -419,14 +422,14 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .atencao .linha-caixa > .selo { margin-left: 24px; max-width: calc(100% - 24px); }
 
 /* Quadro: largura estável e espaço para ler cada card. */
-.quadro { display: flex; align-items: flex-start; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
+.quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
 .coluna { display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%; border: 1px solid var(--borda);
-  border-radius: 14px; background: var(--bg-coluna); }
+  border-radius: 14px; background: var(--bg-etapa); }
 .coluna > header { display: flex; flex: none; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
 .coluna > header .nome { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .coluna > header .acoes { margin-left: auto; display: flex; flex: none; }
 .coluna > header .acoes button { width: 30px; height: 30px; color: var(--link); border-color: var(--borda); }
-.coluna .itens { flex: 0 1 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 0 10px 12px; overflow-y: auto; }
+.coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 0 10px 12px; overflow-y: auto; }
 .coluna .itens > .vazio { margin: 0; padding: 24px 12px; border: 1px dashed var(--borda); border-radius: 10px; font-size: 11px; }
 .coluna.alvo { border-color: var(--link); background: var(--acento-suave); }
 .card.arrastando { opacity: .4; }
@@ -820,9 +823,8 @@ button.selo { cursor: pointer; text-align: left; }
 .navegacao { background: var(--bg-navegacao); }
 .projeto { border-bottom: 1px solid var(--borda-suave); margin-bottom: 18px; }
 .visao-hoje > .titulo-secao { margin: 10px 0 0; font-size: 13px; }
-.coluna { background: var(--bg-coluna); }
 .card { box-shadow: none; }
-.navegacao, .visao-icone, .card, .card-epico, .numero, .caixa, .coluna,
+.visao-icone, .card, .card-epico, .numero, .caixa, .coluna,
 .tabela-rolagem, .dia-card, .prazo-item, .pergunta-card, .evento-corpo,
 .evento-icone > .icone, .painel, .projeto-caixa, .documento-metadados,
 .documento-confidencial, .registros .registro-entrada, .registro, .feedback,
@@ -1043,12 +1045,13 @@ button.selo { cursor: pointer; text-align: left; }
 
 /* Separação por superfícies: mantém o layout e os indicadores de foco. */
 .projeto { border-bottom-color: transparent; background: var(--bg-navegacao); }
-.navegacao, .navegacao-acoes { border-color: transparent; }
+.navegacao { border-color: color-mix(in srgb, var(--borda-suave) 60%, var(--bg-navegacao)); }
+.navegacao-acoes { border-color: transparent; }
 @media (min-width: 761px) {
   :root[data-nav="compacta"] .nav-grupo + .nav-grupo { border-top-color: transparent; }
 }
 @media (max-width: 760px) {
-  .navegacao, .abas { border-color: transparent; }
+  .abas { border-color: transparent; }
 }
 .filtro, .botao, .botao-icone, .opcoes select, .filtros select, .switch,
 .campo input, .campo select, .campo textarea, kbd { border-color: transparent; }
@@ -1194,7 +1197,7 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .coluna.coluna-vazia > header .nome { writing-mode: vertical-rl; transform: rotate(180deg); flex: 0 0 auto; }
 /* Quadro em lista: etapas recolhíveis. */
 .quadro-lista { display: grid; gap: var(--esp-2); }
-.lista-etapa { border: 1px solid var(--borda-suave); border-radius: var(--raio-painel); background: var(--bg-coluna); }
+.lista-etapa { border: 1px solid var(--borda-suave); border-radius: var(--raio-painel); background: var(--bg-etapa); }
 .lista-etapa > summary { display: flex; align-items: center; gap: var(--esp-2); min-height: 44px; padding: 0 var(--esp-3); cursor: pointer; font-size: 14px; }
 .lista-etapa > summary .contador { color: var(--texto-2); background: none; border: 0; padding: 0; }
 .lista-itens { display: grid; gap: var(--esp-2); padding: 0 var(--esp-2) var(--esp-2); }
@@ -1258,7 +1261,10 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 
 /* #250 — rodada de ajustes para 1366×768 a 75% (≈1821×877 CSS px). */
 /* Quadro: épicos separados à esquerda; chave com código em destaque e @n secundário; rodapé sem estouro. */
-.coluna.coluna-epicos { background: color-mix(in srgb, var(--link) 9%, var(--bg-coluna)); border-color: color-mix(in srgb, var(--link) 22%, var(--bg-coluna)); }
+.coluna.coluna-epicos {
+  background: light-dark(color-mix(in srgb, var(--link) 4%, var(--bg-etapa)), color-mix(in srgb, var(--link) 9%, var(--bg-etapa)));
+  border-color: color-mix(in srgb, var(--link) 22%, var(--bg-etapa));
+}
 .coluna.coluna-epicos > header .nome, .coluna.coluna-epicos > header .status { color: var(--link); }
 .coluna.coluna-epicos > header .status { border-color: var(--link); }
 .card-identificadores { display: flex; flex: 1 1 0; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
