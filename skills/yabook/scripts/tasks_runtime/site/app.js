@@ -335,7 +335,7 @@ function cardKey(task, ref) {
 }
 
 function cardMeta(task, parent, options, demand = null, tasks = []) {
-  const lines = [], selos = [];
+  const lines = [], selos = [], avisos = [];
   if (task.size) selos.push(sizeNumber(task, true));
   const attachments = task.anexos_total;
   if (attachments > 0) {
@@ -352,12 +352,12 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
   }
   // Rodada de ajuste a partir da segunda (a primeira entrega é a rodada 1).
   if (task.rodada > 1 && !CLOSED.includes(task.papel)) {
-    selos.push(h("span", { class: "card-rodada", title: `Rodada ${task.rodada} de ajuste: ${task.rodada - 1} retorno(s) da validação` },
+    avisos.push(h("span", { class: "card-rodada", title: `Rodada ${task.rodada} de ajuste: ${task.rodada - 1} retorno(s) da validação` },
       icon("seta"), h("span", {}, `Rodada ${task.rodada}`)));
   }
   if (task.aguardando && !CLOSED.includes(task.papel)) {
     const days = waitingDays(task);
-    selos.push(h("span", { class: "card-espera" + (days >= 3 ? " longa" : ""),
+    avisos.push(h("span", { class: "card-espera" + (days >= 3 ? " longa" : ""),
       title: `Aguardando: ${task.aguardando} (desde ${fmtDate(task.aguardando_desde || app.estado.hoje)})` },
       icon("ficha"), h("span", {}, `Aguardando${days ? ` · ${days}d` : ""}`)));
   }
@@ -379,6 +379,7 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
       : h("span", { class: "card-demanda", title: "Demanda " + demand }, content));
   }
   if (selos.length) lines.push(h("div", { class: "card-selos" }, selos));
+  if (avisos.length) lines.push(h("div", { class: "card-selos" }, avisos));
   return lines.length ? h("div", { class: "card-meta" }, lines) : null;
 }
 

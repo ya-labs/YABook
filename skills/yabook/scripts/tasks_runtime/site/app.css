@@ -177,6 +177,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 :root[data-palette="ya-labs"] {
   --paleta-clara: #785108; --paleta-escura: #e8ac39;
+  --paleta-selo-card: light-dark(#af531b, #ff914d);
   --base-painel: light-dark(#ffffff, #141d30);
   --base-card: light-dark(#ffffff, #192338);
   --base-fundo: light-dark(#f3f5f8, #0b1221);
@@ -1114,33 +1115,24 @@ button.selo { cursor: pointer; text-align: left; }
 .card-rodape .card-sinais { margin-left: auto; gap: 6px; }
 .card .progresso { font-size: 11px; }
 .card-selos {
-  --bg-selo: color-mix(in srgb, var(--texto) 18%, var(--bg-card));
-  display: flex; flex-wrap: wrap; gap: 6px; min-width: 0;
+  --cor-selo: var(--paleta-selo-card, var(--link));
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px;
+  overflow: visible;
 }
 .card-selos > :is(.size-numero, .card-anexos, .card-pai, .card-demanda, .card-espera, .card-rodada) {
   display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0;
-  padding: 4px 9px; border: 0; border-radius: 6px; background: var(--bg-selo); color: var(--texto);
+  min-height: 24px; padding: 2px 0; border: 0; background: none; color: var(--texto);
   font-family: inherit; font-size: 13px; font-weight: 500 !important; line-height: 1.4;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .card-selos > * > span { font-weight: inherit !important; }
-.card-selos > * > .icone { color: inherit; }
+.card-selos > * > .icone { color: color-mix(in srgb, var(--cor-selo) 80%, var(--texto)); }
 .card-selos .icone svg { width: 14px; height: 14px; }
-.card-selos > .card-espera { --cor-selo: rgb(var(--c-orange)); }
-.card-selos > .card-espera.longa { --cor-selo: rgb(var(--c-red)); }
-.card-selos > .card-rodada { --cor-selo: rgb(var(--c-purple)); }
-.card-selos > :is(.card-espera, .card-rodada) {
-  background: color-mix(in srgb, var(--cor-selo) 16%, var(--bg-selo));
-}
-.card-selos > :is(.card-espera, .card-rodada) > .icone {
-  color: color-mix(in srgb, var(--cor-selo) 75%, var(--texto));
-}
 .card-selos > .card-rodada .icone svg { transform: scaleX(-1); }
 .card-selos .card-pai-numero {
   color: inherit; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
 }
 .card-selos > button { cursor: pointer; }
-.card-selos > button:hover { background: color-mix(in srgb, var(--texto) 25%, var(--bg-card)); }
 .card-selos > button:hover .card-pai-numero { text-decoration: underline; }
 
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
