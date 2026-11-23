@@ -142,6 +142,8 @@ class Board:
         result["referencias"] = refs
         children = [t for t in self.store.list() if t["data"].get("pai") == identifier]
         result["filhos"] = [self.tasks.brief(t, index) for t in children]
+        if task["data"].get("tipo") != "pergunta":
+            result["horas"] = sheet.recorded_hours_by_task(self.store.root).get(task["data"]["id"], {})
         return result
 
     def sheet(self, day=None, week=False):
@@ -182,7 +184,8 @@ class Board:
         html = (SITE / "index.html").read_text(encoding="utf-8")
         css = (SITE / "app.css").read_text(encoding="utf-8")
         js = (SITE / "app.js").read_text(encoding="utf-8")
-        snapshot = dict(estado=self.state(), semana=self.week(), ficha=self.sheet(), historico=self.history())
+        snapshot = dict(estado=self.state(), semana=self.week(), ficha=self.sheet(), historico=self.history(),
+                        horas_por_tarefa=sheet.recorded_hours_by_task(self.store.root))
         payload = json.dumps(snapshot, ensure_ascii=False).replace("</", "<\\/")
         html = html.replace('<link rel="stylesheet" href="app.css">', "<style>\n%s\n</style>" % css)
         html = html.replace('<script src="app.js" defer></script>',

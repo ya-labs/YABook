@@ -55,7 +55,8 @@ async function api(path) {
 
 function snapshotTask(id) {
   const resumo = app.estado.tarefas.find((t) => t.id === id);
-  return { data: resumo, body: "", resumo, referencias: {}, filhos: app.estado.tarefas.filter((t) => t.pai === id) };
+  return { data: resumo, body: "", resumo, referencias: {}, filhos: app.estado.tarefas.filter((t) => t.pai === id),
+    horas: SNAPSHOT.horas_por_tarefa && (SNAPSHOT.horas_por_tarefa[id] ?? {}) };
 }
 
 // Componentes compartilhados --------------------------------------------------
@@ -877,6 +878,11 @@ async function openTask(id, detail = null) {
     const parentRef = parent ? issueRef(parent) : null;
     const epic = (app.estado.epicos || []).find((e) => e.id === (data.nivel === "epico" ? data.id : data.pai));
     const field = (name, value) => value ? h("div", { class: "campo-lateral" }, h("span", {}, name), h("span", {}, value)) : null;
+    const { capturado = 0, informado = 0 } = detail.horas ?? {};
+    const taskHours = data.tipo !== "pergunta" && detail.horas
+      ? h("span", { title: `${recordedTime(capturado)} capturado + ${recordedTime(informado)} informado` },
+          recordedTime(capturado + informado))
+      : null;
     const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
     let editAction = null;
     if (editing) {
@@ -941,6 +947,7 @@ async function openTask(id, detail = null) {
             field("Máquina", data.maquina),
             field("Nível", data.nivel ? LEVEL[data.nivel][0] : null),
             field("Código", task.codigo),
+            field("Horas", taskHours),
             field("Rodada", data.rodada > 1 ? `${data.rodada} (${data.rodada - 1} retorno${data.rodada > 2 ? "s" : ""} da validação)` : null),
             field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null),
             field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null))),
