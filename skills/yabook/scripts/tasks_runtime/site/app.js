@@ -77,7 +77,7 @@ const ICONS = {
   desfazer: '<path d="M5.5 3 2 6.5 5.5 10M2 6.5h7a4 4 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
   etiqueta: '<path d="M2 2h5l7 7-5 5-7-7z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="5" r="1" fill="currentColor"/>',
   clipe: '<path d="m6.1 8.9 4.2-4.3a1.4 1.4 0 0 1 2 2l-5.5 5.5a2.7 2.7 0 1 1-3.8-3.8l5.8-5.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
-  regua: '<path d="m2.2 9.6 7.4-7.4 4.2 4.2-7.4 7.4zM7.5 4.3l1.6 1.6M5.7 6.1l1.2 1.2M3.9 7.9l1.6 1.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  escala: '<path d="M3.5 13V9M8 13V6M12.5 13V3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
   campos: '<path d="M2 4h12M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="5" y="2" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="10" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/>',
   relacoes: '<path d="M8 5v3M3 11V8h10v3" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="6" y="1" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>',
   aberto: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.75" fill="currentColor"/>',
@@ -383,7 +383,7 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
 
 function sizeNumber(task, withIcon = false) {
   return h("span", { class: `size-numero size-${task.size}`, title: sizeTitle(task), "aria-label": sizeTitle(task) },
-    withIcon ? icon("regua") : null, String(task.size));
+    withIcon ? icon("escala") : null, String(task.size));
 }
 
 function sizeTitle(task) {
