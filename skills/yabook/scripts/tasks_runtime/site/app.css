@@ -111,7 +111,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --link: var(--paleta-clara, #294f9d); --primario: var(--link);
   --primario-hover: var(--paleta-hover-claro, color-mix(in srgb, var(--primario) 82%, #000)); --primario-texto: #ffffff;
   --acento-suave: var(--paleta-selecao-clara, color-mix(in srgb, var(--link) 12%, var(--bg)));
-  --bg-card-size: var(--paleta-size-claro, color-mix(in srgb, var(--link) 16%, var(--bg-card)));
   --botao: var(--base-botao); --botao-borda: var(--borda); --botao-hover: var(--bg-hover);
   --sombra: none; --sombra-painel: -8px 0 32px #14233d26;
   --c-gray: 67, 83, 109; --c-blue: 29, 82, 194; --c-green: 17, 104, 68; --c-yellow: 139, 85, 0;
@@ -127,7 +126,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --link: var(--paleta-escura, #a7c2ee); --primario: var(--paleta-acao-escura, var(--link));
   --primario-hover: var(--paleta-hover-escuro, color-mix(in srgb, var(--primario) 82%, #fff)); --primario-texto: #111b2b;
   --acento-suave: var(--paleta-selecao-escura, color-mix(in srgb, var(--link) 18%, var(--bg-inset)));
-  --bg-card-size: var(--paleta-size-escuro, color-mix(in srgb, var(--link) 20%, var(--bg-card)));
   --sombra-painel: -8px 0 32px #00000066;
   --c-gray: 191, 206, 228; --c-blue: 150, 195, 255; --c-green: 120, 224, 179; --c-yellow: 241, 202, 113;
   --c-orange: 244, 183, 123; --c-red: 255, 157, 175; --c-pink: 241, 181, 222; --c-purple: 198, 179, 255;
@@ -143,7 +141,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     --link: var(--paleta-escura, #a7c2ee); --primario: var(--paleta-acao-escura, var(--link));
     --primario-hover: var(--paleta-hover-escuro, color-mix(in srgb, var(--primario) 82%, #fff)); --primario-texto: #111b2b;
     --acento-suave: var(--paleta-selecao-escura, color-mix(in srgb, var(--link) 18%, var(--bg-inset)));
-    --bg-card-size: var(--paleta-size-escuro, color-mix(in srgb, var(--link) 20%, var(--bg-card)));
     --sombra-painel: -8px 0 32px #00000066;
     --c-gray: 191, 206, 228; --c-blue: 150, 195, 255; --c-green: 120, 224, 179; --c-yellow: 241, 202, 113;
     --c-orange: 244, 183, 123; --c-red: 255, 157, 175; --c-pink: 241, 181, 222; --c-purple: 198, 179, 255;
@@ -160,7 +157,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 :root[data-palette="preto"] {
   --paleta-clara: #262626; --paleta-escura: #f5f5f5;
   --paleta-selecao-clara: #e0e0e0; --paleta-selecao-escura: #383838;
-  --paleta-size-escuro: #292929;
   --base-painel: light-dark(#fafafa, #242424);
   --base-card: light-dark(#ffffff, #000000);
   --base-fundo: light-dark(#f1f1f1, #161616);
@@ -177,7 +173,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --paleta-clara: #2453a7; --paleta-escura: #8fb8fc; --paleta-acao-escura: #86acf0;
   --paleta-hover-claro: #193f87; --paleta-hover-escuro: #a0c2ff;
   --paleta-selecao-clara: #e1ecff; --paleta-selecao-escura: #293b54;
-  --paleta-size-claro: #e1e7ef; --paleta-size-escuro: #35404f;
 }
 :root[data-palette="ya-labs"] {
   --paleta-clara: #785108; --paleta-escura: #e8ac39;
@@ -1034,10 +1029,8 @@ button.selo { cursor: pointer; text-align: left; }
 .card .card-origem, .card .card-sinais { color: var(--texto); font-size: 12px; font-weight: 650; }
 .card .card-titulo { font-size: 15px; font-weight: 800; line-height: 1.5; }
 .card .rotulos { gap: 7px; }
-.card .selo, .card .size-numero { color: var(--texto); background: var(--bg-inset); border: 1px solid var(--borda); font-size: 12px; font-weight: 750; padding: 4px 8px; }
+.card .selo { color: var(--texto); background: var(--bg-inset); border: 1px solid var(--borda); font-size: 12px; font-weight: 750; padding: 4px 8px; }
 .card .selo .icone { color: rgb(var(--lc, var(--c-gray))); }
-.card .size-numero { gap: 5px; background: var(--bg-card-size); }
-.card .size-numero::before { content: "Size"; font-weight: 600; }
 .card .card-pai { color: var(--texto); font-size: 12px; line-height: 1.6; }
 .card .card-pai-numero { color: var(--link); }
 .card .card-passo { color: var(--texto); background: var(--bg-inset); border: 1px solid var(--borda-suave); padding: 10px 12px; font-size: 13px; line-height: 1.6; }
@@ -1062,7 +1055,7 @@ button.selo { cursor: pointer; text-align: left; }
 .campo input, .campo select, .campo textarea { background: var(--bg-inset); }
 .switch-trilho { border-color: transparent; background: color-mix(in srgb, var(--texto-2) 28%, var(--bg-inset)); }
 .switch input:checked + .switch-trilho { border-color: transparent; }
-.card .selo, .card .size-numero, .card .card-passo { border-color: transparent; }
+.card .selo, .card .card-passo { border-color: transparent; }
 .card-rodape { border-top-color: transparent; background: var(--bg-subtle); padding: 8px 10px; border-radius: 6px; }
 .paletas-opcoes, .paletas-opcoes button[aria-pressed="true"] { border-color: transparent; }
 .paletas-opcoes { background: var(--bg-hover); }
@@ -1071,7 +1064,7 @@ button.selo { cursor: pointer; text-align: left; }
 @media (forced-colors: active) {
   .filtro, .botao, .botao-icone, .opcoes select, .filtros select,
   .campo input, .campo select, .campo textarea, .switch-trilho,
-  .card .selo, .card .size-numero, .card .card-passo, .paletas-opcoes { border-color: ButtonText; }
+  .card .selo, .card .card-passo, .paletas-opcoes { border-color: ButtonText; }
   .paletas-opcoes button[aria-pressed="true"] { outline: 2px solid Highlight; }
 }
 
@@ -1116,20 +1109,20 @@ button.selo { cursor: pointer; text-align: left; }
 .card-espera.longa { color: rgb(var(--c-orange)); }
 .card-meta .card-pai { font-size: 12px; }
 .card-rodape { display: flex; align-items: center; gap: 8px; min-width: 0; margin-top: 0; padding: 0; border: 0; border-radius: 0; background: none; }
-.card .card-rodape .size-numero { padding: 1px 7px; font-size: 11px; font-weight: 700; }
 .card-chave { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--texto-2); font-size: 12px; font-weight: 600; }
 .card-chave > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-rodape .card-sinais { margin-left: auto; gap: 6px; }
 .card .progresso { font-size: 11px; }
 .card-selos { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
-.card-selos > .card-espera, .card-selos > .card-pai { display: inline-flex; align-items: center; gap: 5px; width: fit-content;
+.card-selos > .card-espera, .card-selos > .card-pai, .card .size-numero { display: inline-flex; align-items: center; gap: 5px; width: fit-content;
   padding: 2px 8px; border: 0; border-radius: 6px; font-size: 12px; line-height: 1.5; }
+.card .size-numero { min-width: 0; }
 .card-selos .icone svg { width: 12px; height: 12px; flex: none; }
 /* Fundo opaco e discreto: a cor de destaque misturada ao fundo do card, texto na própria cor. */
 .card-selos > .card-espera { color: rgb(var(--c-orange)); background: color-mix(in srgb, rgb(var(--c-orange)) 16%, var(--bg)); }
 .card-selos > .card-espera.longa { color: rgb(var(--c-red)); background: color-mix(in srgb, rgb(var(--c-red)) 16%, var(--bg)); }
-.card-selos > .card-pai, .card-selos > .card-pai .icone, .card-selos .card-pai-numero { color: var(--link); }
-.card-selos > .card-pai { background: color-mix(in srgb, #5b5b5b 14%, var(--bg)); }
+.card-selos > .card-pai .icone, .card-selos .card-pai-numero { color: var(--link); }
+.card-selos > .card-pai, .card .size-numero { color: var(--link); background: color-mix(in srgb, #5b5b5b 14%, var(--bg)); }
 .card-selos > .card-pai:hover { background: color-mix(in srgb, #5b5b5b 22%, var(--bg)); }
 /* Demanda: mesmo selo do pai (fundo, cor e tamanho); clicável quando a dona é um ancestral. */
 .card-selos > .card-demanda { display: inline-flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; min-width: 0;

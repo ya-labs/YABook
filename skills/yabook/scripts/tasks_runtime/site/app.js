@@ -378,7 +378,7 @@ function sizeNumber(task) {
 }
 
 function sizeTitle(task) {
-  return `Size ${task.size}: ${["", "menos de uma hora com agente", "uma sessão longa ou duas curtas", "cerca de um dia ou validação fora do código",
+  return `Tamanho ${task.size}: ${["", "menos de uma hora com agente", "uma sessão longa ou duas curtas", "cerca de um dia ou validação fora do código",
     "vários dias, outra equipe, QA ou retrabalho", "semana ou mais; dividir"][task.size]}` + (task.size_manual ? " · marcado no quadro" : " · estimado pelo agente");
 }
 
@@ -897,7 +897,7 @@ async function openTask(id, detail = null) {
           stateIcon(parent), `Faz parte de: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
         task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
         ref ? h("span", { class: "selo neutro forte grande" }, icon("repo"), ref.full.split("#")[0]) : null,
-        task.size ? h("span", { class: "selo neutro forte grande" }, sizeNumber(task), "Size") : null,
+        task.size ? h("span", { class: "selo neutro forte grande" }, "Tamanho ", sizeNumber(task)) : null,
         task.pessoal ? h("span", { class: "selo cor-pink grande" }, "pessoal") : null),
       h("div", { class: "painel-colunas" },
         h("div", { class: "painel-principal" },
@@ -2384,7 +2384,7 @@ function editForm(id) {
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     h("div", { class: "campos-linha" },
       field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
-      field("size", "Size (entrega com agentes)", h("select", { name: "size" }, h("option", { value: "" }, "Sem tamanho"),
+      field("size", "Tamanho (entrega com agentes)", h("select", { name: "size" }, h("option", { value: "" }, "Sem tamanho"),
         [1, 2, 3, 4, 5].map((n) => h("option", { value: String(n), selected: task.size === n }, String(n)))))),
     field("proximo_passo", "Próximo passo", h("textarea", { name: "proximo_passo", rows: 2 }, task.proximo_passo || "")),
     field("ficha", "Texto na observação da ficha (curto, ex.: tela de clientes em atraso)", h("input", { name: "ficha", value: task.ficha || "" })),
