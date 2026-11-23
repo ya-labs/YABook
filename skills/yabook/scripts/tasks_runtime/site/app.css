@@ -102,13 +102,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --base-sutil: #eff1f4; --base-hover: #e2e7ef; --base-coluna: #e6e9ed; --base-nav: #ffffff;
   --base-botao: var(--base-painel);
   /* A margem no modo claro deixa a cor visível nas superfícies próximas do branco. */
-  --paleta-matiz: 255; --paleta-croma: .035; --paleta-ajuste-luminosidade: .029;
+  --paleta-matiz: 255; --paleta-croma: .016; --paleta-ajuste-luminosidade: .013;
   --bg: var(--base-painel); --bg-card: var(--base-card); --bg-inset: var(--base-fundo);
   --bg-subtle: var(--base-sutil); --bg-hover: var(--base-hover);
   --bg-coluna: var(--base-coluna); --bg-navegacao: var(--base-nav);
   --scrollbar-trilho: var(--bg-coluna); --scrollbar-thumb: #747f90; --scrollbar-hover: var(--link);
   --borda: #778294; --borda-suave: #d9dee5; --texto: #26303c; --texto-2: #515c6c;
-  --link: var(--paleta-clara, #1749b4); --primario: var(--link);
+  --link: var(--paleta-clara, #294f9d); --primario: var(--link);
   --primario-hover: var(--paleta-hover-claro, color-mix(in srgb, var(--primario) 82%, #000)); --primario-texto: #ffffff;
   --acento-suave: var(--paleta-selecao-clara, color-mix(in srgb, var(--link) 12%, var(--bg)));
   --bg-card-size: var(--paleta-size-claro, color-mix(in srgb, var(--link) 16%, var(--bg-card)));
@@ -121,10 +121,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 :root[data-theme="dark"] {
   --base-painel: #292c31; --base-card: #2b2e33; --base-fundo: #202226;
   --base-sutil: #25282d; --base-hover: #363b43; --base-coluna: #17191c; --base-nav: #232529;
-  --base-botao: #2e3239; --paleta-croma: .052; --paleta-ajuste-luminosidade: 0;
+  --base-botao: #2e3239; --paleta-croma: .023; --paleta-ajuste-luminosidade: 0;
   --scrollbar-thumb: #69727f; --borda: #7d8796; --borda-suave: #41464e;
   --texto: #eef1f5; --texto-2: #b6beca;
-  --link: var(--paleta-escura, #9cc2ff); --primario: var(--paleta-acao-escura, var(--link));
+  --link: var(--paleta-escura, #a7c2ee); --primario: var(--paleta-acao-escura, var(--link));
   --primario-hover: var(--paleta-hover-escuro, color-mix(in srgb, var(--primario) 82%, #fff)); --primario-texto: #111b2b;
   --acento-suave: var(--paleta-selecao-escura, color-mix(in srgb, var(--link) 18%, var(--bg-inset)));
   --bg-card-size: var(--paleta-size-escuro, color-mix(in srgb, var(--link) 20%, var(--bg-card)));
@@ -137,10 +137,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   :root:not([data-theme="light"]) {
     --base-painel: #292c31; --base-card: #2b2e33; --base-fundo: #202226;
     --base-sutil: #25282d; --base-hover: #363b43; --base-coluna: #17191c; --base-nav: #232529;
-    --base-botao: #2e3239; --paleta-croma: .052; --paleta-ajuste-luminosidade: 0;
+    --base-botao: #2e3239; --paleta-croma: .023; --paleta-ajuste-luminosidade: 0;
     --scrollbar-thumb: #69727f; --borda: #7d8796; --borda-suave: #41464e;
     --texto: #eef1f5; --texto-2: #b6beca;
-    --link: var(--paleta-escura, #9cc2ff); --primario: var(--paleta-acao-escura, var(--link));
+    --link: var(--paleta-escura, #a7c2ee); --primario: var(--paleta-acao-escura, var(--link));
     --primario-hover: var(--paleta-hover-escuro, color-mix(in srgb, var(--primario) 82%, #fff)); --primario-texto: #111b2b;
     --acento-suave: var(--paleta-selecao-escura, color-mix(in srgb, var(--link) 18%, var(--bg-inset)));
     --bg-card-size: var(--paleta-size-escuro, color-mix(in srgb, var(--link) 20%, var(--bg-card)));
@@ -152,11 +152,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 
 /* Matiz das superfícies e cores de destaque de cada paleta. */
-:root[data-palette="verde"] { --paleta-matiz: 153; --paleta-clara: #166534; --paleta-escura: #8cdeb0; }
-:root[data-palette="violeta"] { --paleta-matiz: 301; --paleta-clara: #6427b8; --paleta-escura: #c5aff8; }
-:root[data-palette="rosa"] { --paleta-matiz: 352; --paleta-clara: #972658; --paleta-escura: #f2a9cb; }
-:root[data-palette="ambar"] { --paleta-matiz: 76; --paleta-clara: #80500f; --paleta-escura: #f1cb85; }
-:root[data-palette="turquesa"] { --paleta-matiz: 187; --paleta-clara: #115e59; --paleta-escura: #80d7cc; }
+:root[data-palette="verde"] { --paleta-matiz: 153; --paleta-clara: #2e623d; --paleta-escura: #a0d8b7; }
+:root[data-palette="violeta"] { --paleta-matiz: 301; --paleta-clara: #5f3ba1; --paleta-escura: #c3b4e8; }
+:root[data-palette="rosa"] { --paleta-matiz: 352; --paleta-clara: #8a3858; --paleta-escura: #e6b1c9; }
+:root[data-palette="ambar"] { --paleta-matiz: 76; --paleta-clara: #78542b; --paleta-escura: #e8cd9c; }
+:root[data-palette="turquesa"] { --paleta-matiz: 187; --paleta-clara: #2a5b57; --paleta-escura: #97d2ca; }
 :root[data-palette="preto"] {
   --paleta-clara: #262626; --paleta-escura: #f5f5f5;
   --paleta-selecao-clara: #e0e0e0; --paleta-selecao-escura: #383838;
