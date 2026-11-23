@@ -1114,7 +1114,7 @@ button.selo { cursor: pointer; text-align: left; }
 .card-rodape .card-sinais { margin-left: auto; gap: 6px; }
 .card .progresso { font-size: 11px; }
 .card-selos { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
-.card-selos > .card-espera, .card-selos > .card-pai, .card .size-numero { display: inline-flex; align-items: center; gap: 5px; width: fit-content;
+.card-selos > :is(.card-espera, .card-pai, .card-anexos), .card .size-numero { display: inline-flex; align-items: center; gap: 5px; width: fit-content;
   padding: 2px 8px; border: 0; border-radius: 6px; font-size: 12px; line-height: 1.5; }
 .card .size-numero { min-width: 0; }
 .card-selos .icone svg { width: 12px; height: 12px; flex: none; }
@@ -1125,7 +1125,7 @@ button.selo { cursor: pointer; text-align: left; }
   color: color-mix(in srgb, var(--cor-selo) 86%, var(--texto));
   background: color-mix(in srgb, var(--cor-selo) 19%, var(--bg));
 }
-.card-selos > :is(.card-pai, .card-demanda, .size-numero) {
+.card-selos > :is(.card-pai, .card-demanda, .card-anexos, .size-numero) {
   color: color-mix(in srgb, var(--link) 86%, var(--texto));
   background: color-mix(in srgb, #5b5b5b 19%, var(--bg));
 }
