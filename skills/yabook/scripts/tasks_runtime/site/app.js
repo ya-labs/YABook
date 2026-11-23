@@ -283,7 +283,7 @@ function card(task, options = {}) {
     onclick: () => openTask(task.id), onkeydown: (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(task.id); }
     } },
-    // Card compacto com título, metadados e rodapé com identificadores e tamanho.
+    // Card compacto com título, rótulos e rodapé com identificadores.
     // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
     h("div", { class: "card-titulo" }, task.titulo),
     cardMeta(task, parent, options, demand && (issue || String(demand) !== String(task.codigo)) ? demand : null, tasks),
@@ -294,8 +294,7 @@ function card(task, options = {}) {
       h("span", { class: "card-sinais" },
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
-        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null,
-        task.size ? sizeNumber(task) : null)));
+        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)));
 }
 
 const CARD_DATE = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: "UTC" });
@@ -334,6 +333,7 @@ function cardKey(task, ref) {
 
 function cardMeta(task, parent, options, demand = null, tasks = []) {
   const lines = [], selos = [];
+  if (task.size) selos.push(sizeNumber(task));
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.prazo && !CLOSED.includes(task.papel)) {
     const days = daysUntil(task.prazo);
@@ -378,7 +378,7 @@ function sizeNumber(task) {
 }
 
 function sizeTitle(task) {
-  return `Size ${task.size}: ${["", "menos de uma hora com agente", "uma sessão longa ou duas curtas", "cerca de um dia ou validação fora do código",
+  return `Tamanho ${task.size}: ${["", "menos de uma hora com agente", "uma sessão longa ou duas curtas", "cerca de um dia ou validação fora do código",
     "vários dias, outra equipe, QA ou retrabalho", "semana ou mais; dividir"][task.size]}` + (task.size_manual ? " · marcado no quadro" : " · estimado pelo agente");
 }
 
@@ -897,7 +897,7 @@ async function openTask(id, detail = null) {
           stateIcon(parent), `Faz parte de: ${parent.titulo}${parentRef ? " #" + parentRef.number : ""}`) : null,
         task.codigo && (!ref || task.codigo !== ref.full) ? h("span", { class: "selo neutro forte grande" }, icon("repo"), task.codigo) : null,
         ref ? h("span", { class: "selo neutro forte grande" }, icon("repo"), ref.full.split("#")[0]) : null,
-        task.size ? h("span", { class: "selo neutro forte grande" }, sizeNumber(task), "Size") : null,
+        task.size ? h("span", { class: "selo neutro forte grande" }, "Tamanho ", sizeNumber(task)) : null,
         task.pessoal ? h("span", { class: "selo cor-pink grande" }, "pessoal") : null),
       h("div", { class: "painel-colunas" },
         h("div", { class: "painel-principal" },
@@ -1999,7 +1999,18 @@ function renderNavigation() {
   if (!matchMedia("(max-width: 760px)").matches) setMenuOpen(false);
 }
 
-const PALETTES = [["azul", "Azul", "#8bb5ff"], ["verde", "Verde", "#82db9c"], ["violeta", "Violeta", "#c2a3ff"], ["rosa", "Rosa", "#f59ac5"], ["ambar", "Âmbar", "#e8bf71"], ["turquesa", "Turquesa", "#78d7cc"], ["preto", "Preto", "#111111"], ["neutro", "Neutro", "#b9a3f5"]];
+const PALETTES = [
+  ["azul", "Azul", "#8bb5ff"],
+  ["verde", "Verde", "#82db9c"],
+  ["violeta", "Violeta", "#c2a3ff"],
+  ["rosa", "Rosa", "#f59ac5"],
+  ["vermelho", "Vermelho", "#db867a"],
+  ["ambar", "Âmbar", "#e8bf71"],
+  ["turquesa", "Turquesa", "#78d7cc"],
+  ["preto", "Preto", "#111111"],
+  ["neutro", "Grafite", "#5e6775"],
+  ["ya-labs", "YA LABS", "#e8ac39"],
+];
 
 function renderPalettes() {
   const saved = pref("paleta", "azul");
@@ -2374,7 +2385,7 @@ function editForm(id) {
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     h("div", { class: "campos-linha" },
       field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),
-      field("size", "Size (entrega com agentes)", h("select", { name: "size" }, h("option", { value: "" }, "Sem tamanho"),
+      field("size", "Tamanho (entrega com agentes)", h("select", { name: "size" }, h("option", { value: "" }, "Sem tamanho"),
         [1, 2, 3, 4, 5].map((n) => h("option", { value: String(n), selected: task.size === n }, String(n)))))),
     field("proximo_passo", "Próximo passo", h("textarea", { name: "proximo_passo", rows: 2 }, task.proximo_passo || "")),
     field("ficha", "Texto na observação da ficha (curto, ex.: tela de clientes em atraso)", h("input", { name: "ficha", value: task.ficha || "" })),
