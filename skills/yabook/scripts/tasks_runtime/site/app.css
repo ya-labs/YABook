@@ -1133,14 +1133,20 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
 .card .progresso { font-size: 11px; }
 .card-selos {
   --cor-selo: var(--paleta-selo-card, var(--link));
-  display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
   overflow: visible;
 }
 .card-selos > :is(.size-numero, .card-anexos, .card-pai, .card-demanda, .card-espera, .card-rodada) {
   display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0;
-  min-height: 24px; padding: 2px 0; border: 0; background: none; color: var(--texto);
+  min-height: 24px; padding: 2px 6px; border: 0; border-radius: 4px; color: var(--texto);
+  background: color-mix(in srgb, var(--cor-selo) 9%, transparent);
   font-family: inherit; font-size: 13px; font-weight: 500 !important; line-height: 1.4;
   font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.card-selos > .size-numero {
+  --cor-selo: rgb(var(--lc));
+  color: color-mix(in srgb, var(--cor-selo) 85%, var(--texto));
+  background: color-mix(in srgb, var(--cor-selo) 16%, transparent);
 }
 .card-selos > * > span { font-weight: inherit !important; }
 .card-selos > * > .icone { color: color-mix(in srgb, var(--cor-selo) 80%, var(--texto)); }
@@ -1275,12 +1281,25 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 
 /* #250 — rodada de ajustes para 1366×768 a 75% (≈1821×877 CSS px). */
 /* Quadro: épicos separados à esquerda; chave com código em destaque e @n secundário; rodapé sem estouro. */
-.coluna.coluna-epicos {
-  --fundo-coluna: light-dark(color-mix(in srgb, var(--link) 4%, var(--bg-etapa)), color-mix(in srgb, var(--link) 9%, var(--bg-etapa)));
-  border-color: color-mix(in srgb, var(--link) 22%, var(--bg-etapa));
+/* Etapas com destaque mantêm a mesma intensidade de cor no quadro e na lista. */
+:root:is([data-palette="verde"], [data-palette="turquesa"]) { --cor-concluido-quadro: rgb(var(--c-blue)); }
+:root[data-palette="vermelho"] { --cor-concluido-quadro: rgb(var(--c-yellow)); }
+:root[data-palette="ambar"] { --cor-concluido-quadro: light-dark(#9b412f, #f2a18a); }
+:root[data-palette="rosa"] { --cor-concluido-quadro: rgb(var(--c-orange)); }
+:is(.coluna.coluna-epicos, .lista-etapa.lista-epicos) { --cor-destaque-etapa: var(--link); }
+:is(.coluna.papel-concluido, .lista-etapa.papel-concluido) {
+  --cor-destaque-etapa: var(--cor-concluido-quadro, rgb(var(--c-green)));
 }
-.coluna.coluna-epicos > header .nome, .coluna.coluna-epicos > header .status { color: var(--link); }
-.coluna.coluna-epicos > header .status { border-color: var(--link); }
+:is(.coluna.coluna-epicos, .coluna.papel-concluido:not(.alvo), .lista-etapa.lista-epicos, .lista-etapa.papel-concluido) {
+  --fundo-coluna: light-dark(color-mix(in srgb, var(--cor-destaque-etapa) 4%, var(--bg-etapa)),
+    color-mix(in srgb, var(--cor-destaque-etapa) 9%, var(--bg-etapa)));
+  border-color: color-mix(in srgb, var(--cor-destaque-etapa) 22%, var(--bg-etapa));
+}
+.lista-etapa:is(.lista-epicos, .papel-concluido) { background: var(--fundo-coluna); }
+.coluna:is(.coluna-epicos, .papel-concluido) > header .nome,
+.lista-etapa:is(.lista-epicos, .papel-concluido) > summary .nome { color: var(--cor-destaque-etapa); }
+.coluna:is(.coluna-epicos, .papel-concluido) > header .status,
+.lista-etapa:is(.lista-epicos, .papel-concluido) > summary .status { border-color: var(--cor-destaque-etapa); }
 .card-identificadores { display: flex; flex: 1 1 0; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
 .card-chave { flex: 0 1 auto; min-width: 0; max-width: 100%; overflow: hidden; }
 .card-chave .card-codigo { color: var(--texto); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
