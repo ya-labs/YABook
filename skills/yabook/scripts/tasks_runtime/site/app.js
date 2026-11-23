@@ -126,8 +126,8 @@ function pill(text, color, extra = {}) {
 }
 
 function switchInput(text, checked, onchange) {
-  return h("label", { class: "switch" }, h("input", { type: "checkbox", role: "switch", checked, onchange }),
-    h("span", { class: "switch-trilho", "aria-hidden": "true" }), h("span", {}, text));
+  return h("label", { class: "switch" }, h("span", {}, text), h("input", { type: "checkbox", role: "switch", checked, onchange }),
+    h("span", { class: "switch-trilho", "aria-hidden": "true" }));
 }
 
 function issueRef(task) {

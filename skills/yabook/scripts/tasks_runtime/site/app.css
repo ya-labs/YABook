@@ -295,14 +295,14 @@ kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid 
 .filtro input::placeholder { color: var(--texto-2); opacity: 1; }
 .opcoes, .edicao { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .edicao { margin-left: auto; }
-.opcoes label { display: inline-flex; align-items: center; gap: 5px; color: var(--texto-2); font-size: 11px; }
+.opcoes label:not(.switch) { display: inline-flex; align-items: center; gap: 5px; color: var(--texto-2); font-size: 11px; }
 .opcoes select { max-width: 170px; text-overflow: ellipsis; }
 .edicao-ajuda { flex-basis: 100%; font-size: 11px; color: var(--texto-2); }
 .barra-filtro.editando { padding: 12px; border: 1px solid rgb(var(--c-orange)); border-radius: 11px; background: var(--bg); }
-.botao, .opcoes select { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 7px 11px;
+.botao, .opcoes select, .switch { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 7px 11px;
   border: 1px solid var(--botao-borda); border-radius: 8px; background: var(--botao); color: var(--texto); font-size: 11px;
   font-weight: 700; cursor: pointer; white-space: nowrap; }
-.botao:hover, .opcoes select:hover { background: var(--botao-hover); }
+.botao:hover, .opcoes select:hover, .switch:hover { background: var(--botao-hover); }
 .botao.primario { background: var(--primario); color: var(--primario-texto); border-color: var(--primario); }
 .botao.primario:hover { background: var(--primario-hover); }
 .botao:disabled:hover { background: var(--botao); } .botao.primario:disabled:hover { background: var(--primario); }
@@ -448,7 +448,7 @@ tbody tr:hover td { background: var(--bg-subtle); }
 .filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; color: var(--texto-2); font-size: 11px; }
 .filtros strong { color: var(--texto); font-size: 13px; }
 .filtros label { display: inline-flex; align-items: center; gap: 7px; }
-.filtros select { padding: 6px 10px; min-height: 34px; border: 1px solid var(--borda); border-radius: 8px; background: var(--bg); font-size: 11px; }
+.filtros select, .filtros :where(.switch) { padding: 6px 10px; min-height: 34px; border: 1px solid var(--borda); border-radius: 8px; background: var(--bg); font-size: 11px; }
 input.horas { width: 70px; padding: 5px 8px; text-align: right; border: 1px solid var(--borda); border-radius: 7px; background: var(--bg); }
 .semana-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; margin-bottom: 28px; }
 .dia-card { display: flex; flex-direction: column; min-width: 0; min-height: 220px; padding: 13px 12px; background: var(--bg); border: 1px solid var(--borda); border-radius: 11px; }
@@ -688,9 +688,8 @@ button.selo { cursor: pointer; text-align: left; }
   .filtro input { font-size: 12px; }
   .opcoes { flex: 1; min-width: 0; gap: 6px; }
   .opcoes:empty { display: none; }
-  .opcoes select { flex: 1 0 calc(50% - 6px); min-width: 0; max-width: none; font-size: 11px; }
-  .opcoes label { flex-basis: 100%; }
-  .opcoes .switch { flex-basis: auto; }
+  .opcoes select, .opcoes .switch { flex: 1 0 calc(50% - 6px); min-width: 0; max-width: none; font-size: 11px; }
+  .opcoes label:not(.switch) { flex-basis: 100%; }
   .botao, .botao-icone { min-height: 38px; }
   .conteudo { padding: 0 18px 24px; }
   .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 26px; }
@@ -806,14 +805,14 @@ button.selo { cursor: pointer; text-align: left; }
   .numero b { font-size: 24px; }
 }
 
-/* Preferências binárias com o mesmo contorno dos campos da interface. */
-.switch { position: relative; cursor: pointer; min-height: 36px; gap: 8px !important; }
+/* Caixa e área de clique do switch. */
+.switch { position: relative; justify-content: space-between; text-align: left; white-space: normal; }
 .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .switch-trilho { display: inline-flex; align-items: center; flex: none; width: 32px; height: 19px; padding: 2px; border: 1px solid var(--botao-borda); border-radius: 12px; background: var(--bg-hover); }
 .switch-trilho::after { content: ""; width: 13px; height: 13px; border-radius: 50%; background: var(--texto-2); transition: transform 180ms ease; }
 .switch input:checked + .switch-trilho { background: var(--primario); border-color: var(--primario); }
 .switch input:checked + .switch-trilho::after { transform: translateX(13px); background: var(--primario-texto); }
-.switch input:focus-visible + .switch-trilho { outline: 2px solid var(--link); outline-offset: 3px; }
+.switch:has(> input:focus-visible) { outline: 2px solid var(--link); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .switch-trilho::after { transition: none; } }
 
 /* Superfícies sólidas: fundo profundo, conteúdo destacado e controles com foco nítido. */
@@ -1050,9 +1049,9 @@ button.selo { cursor: pointer; text-align: left; }
 @media (max-width: 760px) {
   .navegacao, .abas { border-color: transparent; }
 }
-.filtro, .botao, .botao-icone, .opcoes select, .filtros select,
+.filtro, .botao, .botao-icone, .opcoes select, .filtros select, .switch,
 .campo input, .campo select, .campo textarea, kbd { border-color: transparent; }
-.filtro, .opcoes select, .filtros select { background: var(--bg); }
+.filtro, .opcoes select, .filtros select, .switch { background: var(--bg); }
 .campo input, .campo select, .campo textarea { background: var(--bg-inset); }
 .switch-trilho { border-color: transparent; background: color-mix(in srgb, var(--texto-2) 28%, var(--bg-inset)); }
 .switch input:checked + .switch-trilho { border-color: transparent; }
@@ -1063,7 +1062,7 @@ button.selo { cursor: pointer; text-align: left; }
 .paletas-opcoes button[aria-pressed="true"] { background: var(--primario); color: var(--primario-texto); }
 /* Contornos continuam disponíveis no modo de alto contraste do sistema. */
 @media (forced-colors: active) {
-  .filtro, .botao, .botao-icone, .opcoes select, .filtros select,
+  .filtro, .botao, .botao-icone, .opcoes select, .filtros select, .switch,
   .campo input, .campo select, .campo textarea, .switch-trilho,
   .card .selo, .card .card-passo, .paletas-opcoes { border-color: ButtonText; }
   .paletas-opcoes button[aria-pressed="true"] { outline: 2px solid Highlight; }
@@ -1131,7 +1130,7 @@ button.selo { cursor: pointer; text-align: left; }
   background: color-mix(in srgb, #5b5b5b 19%, var(--bg));
 }
 .card-selos > :is(.card-pai, .card-demanda) .icone, .card-selos .card-pai-numero { color: inherit; }
-.card-selos > :is(.card-pai, button.card-demanda):hover { background: color-mix(in srgb, #5b5b5b 27%, var(--bg)); }
+.card-selos > :is(.card-pai, button.card-demanda):hover { background: color-mix(in srgb, #5b5b5b 35%, var(--bg)); }
 /* Demanda: mesmo selo do pai (fundo, cor e tamanho); clicável quando a dona é um ancestral. */
 .card-selos > .card-demanda { display: inline-flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; min-width: 0;
   padding: 2px 8px; border: 0; border-radius: 6px; font: inherit; font-size: 12px; line-height: 1.5; white-space: nowrap; }
