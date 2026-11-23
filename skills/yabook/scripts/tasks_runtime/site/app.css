@@ -418,14 +418,14 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .atencao .linha-caixa > .selo { margin-left: 24px; max-width: calc(100% - 24px); }
 
 /* Quadro: largura estável e espaço para ler cada card. */
-.quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
+.quadro { display: flex; align-items: flex-start; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
 .coluna { display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%; border: 1px solid var(--borda);
   border-radius: 14px; background: var(--bg-coluna); }
-.coluna > header { display: flex; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
+.coluna > header { display: flex; flex: none; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
 .coluna > header .nome { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .coluna > header .acoes { margin-left: auto; display: flex; flex: none; }
 .coluna > header .acoes button { width: 30px; height: 30px; color: var(--link); border-color: var(--borda); }
-.coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 80px; padding: 0 10px 12px; overflow-y: auto; }
+.coluna .itens { flex: 0 1 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 0 10px 12px; overflow-y: auto; }
 .coluna .itens > .vazio { margin: 0; padding: 24px 12px; border: 1px dashed var(--borda); border-radius: 10px; font-size: 11px; }
 .coluna.alvo { border-color: var(--link); background: var(--acento-suave); }
 .card.arrastando { opacity: .4; }
@@ -1193,7 +1193,7 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 /* Revisão #248 (P2/P3). */
 /* Quadro: coluna vazia em faixa estreita, nome na vertical. */
 .coluna.coluna-vazia { flex: 0 0 48px; min-width: 48px; }
-.coluna.coluna-vazia > header { flex-direction: column; align-items: center; gap: var(--esp-2); padding: var(--esp-3) 0; height: 100%; }
+.coluna.coluna-vazia > header { flex-direction: column; align-items: center; gap: var(--esp-2); padding: var(--esp-3) 0; }
 .coluna.coluna-vazia > header .nome { writing-mode: vertical-rl; transform: rotate(180deg); flex: 0 0 auto; }
 /* Quadro em lista: etapas recolhíveis. */
 .quadro-lista { display: grid; gap: var(--esp-2); }
