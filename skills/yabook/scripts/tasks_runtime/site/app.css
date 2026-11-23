@@ -179,10 +179,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --paleta-selecao-clara: #e1ecff; --paleta-selecao-escura: #293b54;
   --paleta-size-claro: #e1e7ef; --paleta-size-escuro: #35404f;
 }
+:root[data-palette="ya-labs"] {
+  --paleta-clara: #785108; --paleta-escura: #e8ac39;
+  --base-painel: light-dark(#ffffff, #141d30);
+  --base-card: light-dark(#ffffff, #192338);
+  --base-fundo: light-dark(#f3f5f8, #0b1221);
+  --base-sutil: light-dark(#edf0f5, #101929);
+  --base-hover: light-dark(#e2e8f1, #25324a);
+  --base-coluna: light-dark(#e5eaf2, #060b16);
+  --base-nav: light-dark(#fafbff, #050a17);
+  --base-botao: light-dark(#ffffff, #1a263d);
+  --texto: light-dark(#172236, #f5f5ef); --texto-2: light-dark(#49586f, #bdc8db);
+  --borda: light-dark(#72809a, #72819c); --borda-suave: light-dark(#d7dfea, #33425c);
+  --scrollbar-thumb: light-dark(#748298, #61718d);
+}
 
 /* A matiz muda com a paleta; a distância de luminosidade entre camadas vem do Grafite. */
 @supports (color: oklch(from white l c h)) {
-  :root:not([data-palette="neutro"], [data-palette="preto"]) {
+  :root:not([data-palette="neutro"], [data-palette="preto"], [data-palette="ya-labs"]) {
     --bg: oklch(from var(--base-painel) calc(l - var(--paleta-ajuste-luminosidade)) var(--paleta-croma) var(--paleta-matiz));
     --bg-card: oklch(from var(--base-card) calc(l - var(--paleta-ajuste-luminosidade)) var(--paleta-croma) var(--paleta-matiz));
     --bg-inset: oklch(from var(--base-fundo) calc(l - var(--paleta-ajuste-luminosidade)) var(--paleta-croma) var(--paleta-matiz));

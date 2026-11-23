@@ -1999,7 +1999,17 @@ function renderNavigation() {
   if (!matchMedia("(max-width: 760px)").matches) setMenuOpen(false);
 }
 
-const PALETTES = [["azul", "Azul", "#8bb5ff"], ["verde", "Verde", "#82db9c"], ["violeta", "Violeta", "#c2a3ff"], ["rosa", "Rosa", "#f59ac5"], ["ambar", "Âmbar", "#e8bf71"], ["turquesa", "Turquesa", "#78d7cc"], ["preto", "Preto", "#111111"], ["neutro", "Grafite", "#5e6775"]];
+const PALETTES = [
+  ["azul", "Azul", "#8bb5ff"],
+  ["verde", "Verde", "#82db9c"],
+  ["violeta", "Violeta", "#c2a3ff"],
+  ["rosa", "Rosa", "#f59ac5"],
+  ["ambar", "Âmbar", "#e8bf71"],
+  ["turquesa", "Turquesa", "#78d7cc"],
+  ["preto", "Preto", "#111111"],
+  ["neutro", "Grafite", "#5e6775"],
+  ["ya-labs", "YA LABS", "#e8ac39"],
+];
 
 function renderPalettes() {
   const saved = pref("paleta", "azul");
