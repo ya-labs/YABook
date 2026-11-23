@@ -106,6 +106,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --bg: var(--base-painel); --bg-card: var(--base-card); --bg-inset: var(--base-fundo);
   --bg-subtle: var(--base-sutil); --bg-hover: var(--base-hover);
   --bg-coluna: var(--base-coluna); --bg-navegacao: var(--base-nav);
+  --bg-pagina: var(--bg-coluna);
+  --bg-etapa-clara: color-mix(in srgb, var(--bg-pagina) 5%, var(--bg-inset));
+  --bg-etapa: light-dark(var(--bg-etapa-clara), var(--bg-inset));
   --scrollbar-trilho: var(--bg-coluna); --scrollbar-thumb: #747f90; --scrollbar-hover: var(--link);
   --borda: #778294; --borda-suave: #d9dee5; --texto: #26303c; --texto-2: #515c6c;
   --link: var(--paleta-clara, #294f9d); --primario: var(--link);
@@ -118,7 +121,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --rotulo-fundo: .1; --rotulo-borda: .55; color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --base-painel: #292c31; --base-card: #2b2e33; --base-fundo: #202226;
+  --base-painel: #292c31; --base-card: #31343a; --base-fundo: #202226;
   --base-sutil: #25282d; --base-hover: #363b43; --base-coluna: #17191c; --base-nav: #232529;
   --base-botao: #2e3239; --paleta-croma: .023; --paleta-ajuste-luminosidade: 0;
   --scrollbar-thumb: #69727f; --borda: #7d8796; --borda-suave: #41464e;
@@ -133,7 +136,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --base-painel: #292c31; --base-card: #2b2e33; --base-fundo: #202226;
+    --base-painel: #292c31; --base-card: #31343a; --base-fundo: #202226;
     --base-sutil: #25282d; --base-hover: #363b43; --base-coluna: #17191c; --base-nav: #232529;
     --base-botao: #2e3239; --paleta-croma: .023; --paleta-ajuste-luminosidade: 0;
     --scrollbar-thumb: #69727f; --borda: #7d8796; --borda-suave: #41464e;
@@ -163,7 +166,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   --base-fundo: light-dark(#f1f1f1, #161616);
   --base-sutil: light-dark(#ebebeb, #202020);
   --base-hover: light-dark(#e2e2e2, #3a3a3a);
-  --base-coluna: light-dark(#dddddd, #2d2d2d);
+  --base-coluna: light-dark(#dddddd, #2a2a2a);
+  --bg-pagina: light-dark(var(--bg-coluna), var(--bg-inset));
+  --bg-etapa: light-dark(var(--bg-etapa-clara), var(--bg-coluna));
   --base-nav: light-dark(#f9f9f9, #101010);
   --base-botao: light-dark(#e9e9e9, #2c2c2c);
   --texto: light-dark(#252525, #f2f2f2); --texto-2: light-dark(#535353, #bfbfbf);
@@ -177,8 +182,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 :root[data-palette="ya-labs"] {
   --paleta-clara: #785108; --paleta-escura: #e8ac39;
+  --paleta-selo-card: light-dark(#af531b, #ff914d);
   --base-painel: light-dark(#ffffff, #141d30);
-  --base-card: light-dark(#ffffff, #192338);
+  --base-card: light-dark(#ffffff, #1e283e);
   --base-fundo: light-dark(#f3f5f8, #0b1221);
   --base-sutil: light-dark(#edf0f5, #101929);
   --base-hover: light-dark(#e2e8f1, #25324a);
@@ -224,7 +230,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 html, body { margin: 0; height: 100%; }
 body { height: 100dvh; display: grid; grid-template-columns: 248px minmax(0, 1fr); overflow: hidden;
-  background: var(--bg-inset); color: var(--texto); font: 14px/1.55 "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg-pagina); color: var(--texto); font: 14px/1.55 "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { color: inherit; font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
@@ -295,14 +301,14 @@ kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid 
 .filtro input::placeholder { color: var(--texto-2); opacity: 1; }
 .opcoes, .edicao { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .edicao { margin-left: auto; }
-.opcoes label { display: inline-flex; align-items: center; gap: 5px; color: var(--texto-2); font-size: 11px; }
+.opcoes label:not(.switch) { display: inline-flex; align-items: center; gap: 5px; color: var(--texto-2); font-size: 11px; }
 .opcoes select { max-width: 170px; text-overflow: ellipsis; }
 .edicao-ajuda { flex-basis: 100%; font-size: 11px; color: var(--texto-2); }
 .barra-filtro.editando { padding: 12px; border: 1px solid rgb(var(--c-orange)); border-radius: 11px; background: var(--bg); }
-.botao, .opcoes select { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 7px 11px;
+.botao, .opcoes select, .switch { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 7px 11px;
   border: 1px solid var(--botao-borda); border-radius: 8px; background: var(--botao); color: var(--texto); font-size: 11px;
   font-weight: 700; cursor: pointer; white-space: nowrap; }
-.botao:hover, .opcoes select:hover { background: var(--botao-hover); }
+.botao:hover, .opcoes select:hover, .switch:hover { background: var(--botao-hover); }
 .botao.primario { background: var(--primario); color: var(--primario-texto); border-color: var(--primario); }
 .botao.primario:hover { background: var(--primario-hover); }
 .botao:disabled:hover { background: var(--botao); } .botao.primario:disabled:hover { background: var(--primario); }
@@ -332,7 +338,10 @@ h2:first-child { margin-top: 0; }
 
 /* Cards: origem discreta, título dominante, detalhes sem competir entre si. */
 .card { position: relative; display: grid; gap: 10px; width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--borda); border-radius: 12px;
-  background: var(--bg-card, var(--bg)); box-shadow: var(--sombra); text-align: left; cursor: pointer; }
+  background-color: var(--bg-card, var(--bg));
+  background-image: linear-gradient(180deg, light-dark(transparent, rgb(255 255 255 / 2.5%)),
+    light-dark(rgb(0 0 0 / 1.5%), transparent));
+  box-shadow: var(--sombra); text-align: left; cursor: pointer; }
 .card:hover { background: var(--bg-subtle); border-color: var(--link); }
 .card:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
 .card.editado { background: var(--acento-suave); }
@@ -419,13 +428,18 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 
 /* Quadro: largura estável e espaço para ler cada card. */
 .quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
-.coluna { display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%; border: 1px solid var(--borda);
-  border-radius: 14px; background: var(--bg-coluna); }
-.coluna > header { display: flex; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
+.coluna {
+  --fundo-coluna: var(--bg-etapa);
+  display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%;
+  border: 1px solid var(--borda); border-radius: 14px; background-color: var(--fundo-coluna);
+  background-image: linear-gradient(180deg, color-mix(in srgb, white 1.5%, var(--fundo-coluna)),
+    color-mix(in srgb, var(--bg-pagina) 20%, var(--fundo-coluna)));
+}
+.coluna > header { display: flex; flex: none; align-items: center; gap: 8px; padding: 16px 14px; font-size: 12px; font-weight: 800; }
 .coluna > header .nome { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .coluna > header .acoes { margin-left: auto; display: flex; flex: none; }
 .coluna > header .acoes button { width: 30px; height: 30px; color: var(--link); border-color: var(--borda); }
-.coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 80px; padding: 0 10px 12px; overflow-y: auto; }
+.coluna .itens { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 0 10px 12px; overflow-y: auto; }
 .coluna .itens > .vazio { margin: 0; padding: 24px 12px; border: 1px dashed var(--borda); border-radius: 10px; font-size: 11px; }
 .coluna.alvo { border-color: var(--link); background: var(--acento-suave); }
 .card.arrastando { opacity: .4; }
@@ -448,7 +462,7 @@ tbody tr:hover td { background: var(--bg-subtle); }
 .filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; color: var(--texto-2); font-size: 11px; }
 .filtros strong { color: var(--texto); font-size: 13px; }
 .filtros label { display: inline-flex; align-items: center; gap: 7px; }
-.filtros select { padding: 6px 10px; min-height: 34px; border: 1px solid var(--borda); border-radius: 8px; background: var(--bg); font-size: 11px; }
+.filtros select, .filtros :where(.switch) { padding: 6px 10px; min-height: 34px; border: 1px solid var(--borda); border-radius: 8px; background: var(--bg); font-size: 11px; }
 input.horas { width: 70px; padding: 5px 8px; text-align: right; border: 1px solid var(--borda); border-radius: 7px; background: var(--bg); }
 .semana-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; margin-bottom: 28px; }
 .dia-card { display: flex; flex-direction: column; min-width: 0; min-height: 220px; padding: 13px 12px; background: var(--bg); border: 1px solid var(--borda); border-radius: 11px; }
@@ -688,9 +702,8 @@ button.selo { cursor: pointer; text-align: left; }
   .filtro input { font-size: 12px; }
   .opcoes { flex: 1; min-width: 0; gap: 6px; }
   .opcoes:empty { display: none; }
-  .opcoes select { flex: 1 0 calc(50% - 6px); min-width: 0; max-width: none; font-size: 11px; }
-  .opcoes label { flex-basis: 100%; }
-  .opcoes .switch { flex-basis: auto; }
+  .opcoes select, .opcoes .switch { flex: 1 0 calc(50% - 6px); min-width: 0; max-width: none; font-size: 11px; }
+  .opcoes label:not(.switch) { flex-basis: 100%; }
   .botao, .botao-icone { min-height: 38px; }
   .conteudo { padding: 0 18px 24px; }
   .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 26px; }
@@ -806,28 +819,31 @@ button.selo { cursor: pointer; text-align: left; }
   .numero b { font-size: 24px; }
 }
 
-/* Preferências binárias com o mesmo contorno dos campos da interface. */
-.switch { position: relative; cursor: pointer; min-height: 36px; gap: 8px !important; }
+/* Caixa e área de clique do switch. */
+.switch { position: relative; justify-content: space-between; text-align: left; white-space: normal; }
 .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .switch-trilho { display: inline-flex; align-items: center; flex: none; width: 32px; height: 19px; padding: 2px; border: 1px solid var(--botao-borda); border-radius: 12px; background: var(--bg-hover); }
 .switch-trilho::after { content: ""; width: 13px; height: 13px; border-radius: 50%; background: var(--texto-2); transition: transform 180ms ease; }
 .switch input:checked + .switch-trilho { background: var(--primario); border-color: var(--primario); }
 .switch input:checked + .switch-trilho::after { transform: translateX(13px); background: var(--primario-texto); }
-.switch input:focus-visible + .switch-trilho { outline: 2px solid var(--link); outline-offset: 3px; }
+.switch:has(> input:focus-visible) { outline: 2px solid var(--link); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .switch-trilho::after { transition: none; } }
 
 /* Superfícies sólidas: fundo profundo, conteúdo destacado e controles com foco nítido. */
 .navegacao { background: var(--bg-navegacao); }
 .projeto { border-bottom: 1px solid var(--borda-suave); margin-bottom: 18px; }
 .visao-hoje > .titulo-secao { margin: 10px 0 0; font-size: 13px; }
-.coluna { background: var(--bg-coluna); }
 .card { box-shadow: none; }
-.navegacao, .visao-icone, .card, .card-epico, .numero, .caixa, .coluna,
+.visao-icone, .card, .card-epico, .numero, .caixa, .coluna,
 .tabela-rolagem, .dia-card, .prazo-item, .pergunta-card, .evento-corpo,
 .evento-icone > .icone, .painel, .projeto-caixa, .documento-metadados,
 .documento-confidencial, .registros .registro-entrada, .registro, .feedback,
 .esqueleto, .estado-vazio, .foco-vazio, .markdown .documento-codigo { border-color: transparent; }
-.card:hover, button.numero:hover { border-color: transparent; background: var(--bg-hover); }
+button.numero:hover { border-color: transparent; background: var(--bg-hover); }
+.card:hover {
+  border-color: transparent;
+  background: light-dark(var(--bg-hover), color-mix(in srgb, var(--texto) 9%, var(--bg-card)));
+}
 .card.editado { background: var(--acento-suave); }
 .estado-vazio, .foco-vazio { background: var(--bg); }
 .coluna .itens > .vazio { border-color: transparent; background: var(--bg-subtle); }
@@ -1043,16 +1059,17 @@ button.selo { cursor: pointer; text-align: left; }
 
 /* Separação por superfícies: mantém o layout e os indicadores de foco. */
 .projeto { border-bottom-color: transparent; background: var(--bg-navegacao); }
-.navegacao, .navegacao-acoes { border-color: transparent; }
+.navegacao { border-color: color-mix(in srgb, var(--borda-suave) 60%, var(--bg-navegacao)); }
+.navegacao-acoes { border-color: transparent; }
 @media (min-width: 761px) {
   :root[data-nav="compacta"] .nav-grupo + .nav-grupo { border-top-color: transparent; }
 }
 @media (max-width: 760px) {
-  .navegacao, .abas { border-color: transparent; }
+  .abas { border-color: transparent; }
 }
-.filtro, .botao, .botao-icone, .opcoes select, .filtros select,
+.filtro, .botao, .botao-icone, .opcoes select, .filtros select, .switch,
 .campo input, .campo select, .campo textarea, kbd { border-color: transparent; }
-.filtro, .opcoes select, .filtros select { background: var(--bg); }
+.filtro, .opcoes select, .filtros select, .switch { background: var(--bg); }
 .campo input, .campo select, .campo textarea { background: var(--bg-inset); }
 .switch-trilho { border-color: transparent; background: color-mix(in srgb, var(--texto-2) 28%, var(--bg-inset)); }
 .switch input:checked + .switch-trilho { border-color: transparent; }
@@ -1063,7 +1080,7 @@ button.selo { cursor: pointer; text-align: left; }
 .paletas-opcoes button[aria-pressed="true"] { background: var(--primario); color: var(--primario-texto); }
 /* Contornos continuam disponíveis no modo de alto contraste do sistema. */
 @media (forced-colors: active) {
-  .filtro, .botao, .botao-icone, .opcoes select, .filtros select,
+  .filtro, .botao, .botao-icone, .opcoes select, .filtros select, .switch,
   .campo input, .campo select, .campo textarea, .switch-trilho,
   .card .selo, .card .card-passo, .paletas-opcoes { border-color: ButtonText; }
   .paletas-opcoes button[aria-pressed="true"] { outline: 2px solid Highlight; }
@@ -1114,30 +1131,32 @@ button.selo { cursor: pointer; text-align: left; }
 .card-chave > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-rodape .card-sinais { margin-left: auto; gap: 6px; }
 .card .progresso { font-size: 11px; }
-.card-selos { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
-.card-selos > .card-espera, .card-selos > .card-pai, .card .size-numero { display: inline-flex; align-items: center; gap: 5px; width: fit-content;
-  padding: 2px 8px; border: 0; border-radius: 6px; font-size: 12px; line-height: 1.5; }
-.card .size-numero { min-width: 0; }
-.card-selos .icone svg { width: 12px; height: 12px; flex: none; }
-.card-selos > .card-espera { --cor-selo: rgb(var(--c-orange)); }
-.card-selos > .card-espera.longa { --cor-selo: rgb(var(--c-red)); }
-.card-selos > .card-rodada { --cor-selo: rgb(var(--c-purple)); }
-.card-selos > :is(.card-espera, .card-rodada) {
-  color: color-mix(in srgb, var(--cor-selo) 86%, var(--texto));
-  background: color-mix(in srgb, var(--cor-selo) 19%, var(--bg));
+.card-selos {
+  --cor-selo: var(--paleta-selo-card, var(--link));
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
+  overflow: visible;
 }
-.card-selos > :is(.card-pai, .card-demanda, .size-numero) {
-  color: color-mix(in srgb, var(--link) 86%, var(--texto));
-  background: color-mix(in srgb, #5b5b5b 19%, var(--bg));
+.card-selos > :is(.size-numero, .card-anexos, .card-pai, .card-demanda, .card-espera, .card-rodada) {
+  display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0;
+  min-height: 24px; padding: 2px 6px; border: 0; border-radius: 4px; color: var(--texto);
+  background: color-mix(in srgb, var(--cor-selo) 9%, transparent);
+  font-family: inherit; font-size: 13px; font-weight: 500 !important; line-height: 1.4;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.card-selos > :is(.card-pai, .card-demanda) .icone, .card-selos .card-pai-numero { color: inherit; }
-.card-selos > :is(.card-pai, button.card-demanda):hover { background: color-mix(in srgb, #5b5b5b 27%, var(--bg)); }
-/* Demanda: mesmo selo do pai (fundo, cor e tamanho); clicável quando a dona é um ancestral. */
-.card-selos > .card-demanda { display: inline-flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; min-width: 0;
-  padding: 2px 8px; border: 0; border-radius: 6px; font: inherit; font-size: 12px; line-height: 1.5; white-space: nowrap; }
-.card-selos > .card-demanda .card-pai-numero { overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-.card-selos > button.card-demanda { cursor: pointer; }
-.card-selos > button.card-demanda:hover .card-pai-numero { text-decoration: underline; }
+.card-selos > .size-numero {
+  --cor-selo: rgb(var(--lc));
+  color: color-mix(in srgb, var(--cor-selo) 85%, var(--texto));
+  background: color-mix(in srgb, var(--cor-selo) 16%, transparent);
+}
+.card-selos > * > span { font-weight: inherit !important; }
+.card-selos > * > .icone { color: color-mix(in srgb, var(--cor-selo) 80%, var(--texto)); }
+.card-selos .icone svg { width: 14px; height: 14px; }
+.card-selos > .card-rodada .icone svg { transform: scaleX(-1); }
+.card-selos .card-pai-numero {
+  color: inherit; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+}
+.card-selos > button { cursor: pointer; }
+.card-selos > button:hover .card-pai-numero { text-decoration: underline; }
 
 /* Tipografia sem negrito no site inteiro: títulos e destaques em peso médio. */
 body, body * { font-weight: 400 !important; }
@@ -1162,7 +1181,7 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 .barra-progresso > i { display: block; height: 100%; border-radius: inherit; background: var(--link); }
 
 /* Épicos concluídos recolhidos, em linhas baixas. */
-.epicos-concluidos > summary { cursor: pointer; color: var(--texto-2); font-size: 13px; }
+.epicos-concluidos > summary { padding: var(--esp-3); cursor: pointer; color: var(--texto-2); font-size: 13px; }
 .epicos-concluidos[open] > summary { margin-bottom: var(--esp-2); }
 .epico-concluido { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(120px, 200px); align-items: center; gap: var(--esp-2); }
 .epico-concluido .link { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1194,11 +1213,11 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 /* Revisão #248 (P2/P3). */
 /* Quadro: coluna vazia em faixa estreita, nome na vertical. */
 .coluna.coluna-vazia { flex: 0 0 48px; min-width: 48px; }
-.coluna.coluna-vazia > header { flex-direction: column; align-items: center; gap: var(--esp-2); padding: var(--esp-3) 0; height: 100%; }
+.coluna.coluna-vazia > header { flex-direction: column; align-items: center; gap: var(--esp-2); padding: var(--esp-3) 0; }
 .coluna.coluna-vazia > header .nome { writing-mode: vertical-rl; transform: rotate(180deg); flex: 0 0 auto; }
 /* Quadro em lista: etapas recolhíveis. */
 .quadro-lista { display: grid; gap: var(--esp-2); }
-.lista-etapa { border: 1px solid var(--borda-suave); border-radius: var(--raio-painel); background: var(--bg-coluna); }
+.lista-etapa { border: 1px solid var(--borda-suave); border-radius: var(--raio-painel); background: var(--bg-etapa); }
 .lista-etapa > summary { display: flex; align-items: center; gap: var(--esp-2); min-height: 44px; padding: 0 var(--esp-3); cursor: pointer; font-size: 14px; }
 .lista-etapa > summary .contador { color: var(--texto-2); background: none; border: 0; padding: 0; }
 .lista-itens { display: grid; gap: var(--esp-2); padding: 0 var(--esp-2) var(--esp-2); }
@@ -1262,9 +1281,25 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 
 /* #250 — rodada de ajustes para 1366×768 a 75% (≈1821×877 CSS px). */
 /* Quadro: épicos separados à esquerda; chave com código em destaque e @n secundário; rodapé sem estouro. */
-.coluna.coluna-epicos { background: color-mix(in srgb, var(--link) 9%, var(--bg-coluna)); border-color: color-mix(in srgb, var(--link) 22%, var(--bg-coluna)); }
-.coluna.coluna-epicos > header .nome, .coluna.coluna-epicos > header .status { color: var(--link); }
-.coluna.coluna-epicos > header .status { border-color: var(--link); }
+/* Etapas com destaque mantêm a mesma intensidade de cor no quadro e na lista. */
+:root:is([data-palette="verde"], [data-palette="turquesa"]) { --cor-concluido-quadro: rgb(var(--c-blue)); }
+:root[data-palette="vermelho"] { --cor-concluido-quadro: rgb(var(--c-yellow)); }
+:root[data-palette="ambar"] { --cor-concluido-quadro: light-dark(#9b412f, #f2a18a); }
+:root[data-palette="rosa"] { --cor-concluido-quadro: rgb(var(--c-orange)); }
+:is(.coluna.coluna-epicos, .lista-etapa.lista-epicos) { --cor-destaque-etapa: var(--link); }
+:is(.coluna.papel-concluido, .lista-etapa.papel-concluido) {
+  --cor-destaque-etapa: var(--cor-concluido-quadro, rgb(var(--c-green)));
+}
+:is(.coluna.coluna-epicos, .coluna.papel-concluido:not(.alvo), .lista-etapa.lista-epicos, .lista-etapa.papel-concluido) {
+  --fundo-coluna: light-dark(color-mix(in srgb, var(--cor-destaque-etapa) 4%, var(--bg-etapa)),
+    color-mix(in srgb, var(--cor-destaque-etapa) 9%, var(--bg-etapa)));
+  border-color: color-mix(in srgb, var(--cor-destaque-etapa) 22%, var(--bg-etapa));
+}
+.lista-etapa:is(.lista-epicos, .papel-concluido) { background: var(--fundo-coluna); }
+.coluna:is(.coluna-epicos, .papel-concluido) > header .nome,
+.lista-etapa:is(.lista-epicos, .papel-concluido) > summary .nome { color: var(--cor-destaque-etapa); }
+.coluna:is(.coluna-epicos, .papel-concluido) > header .status,
+.lista-etapa:is(.lista-epicos, .papel-concluido) > summary .status { border-color: var(--cor-destaque-etapa); }
 .card-identificadores { display: flex; flex: 1 1 0; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
 .card-chave { flex: 0 1 auto; min-width: 0; max-width: 100%; overflow: hidden; }
 .card-chave .card-codigo { color: var(--texto); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -1339,11 +1374,6 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
   .epico-ativo > summary .direita { min-width: 0; width: 100%; }
 }
 .dia-card > p.vazio { margin: 0; font-size: 12px; }
-/* Rodada de ajuste: mesmo desenho discreto dos selos de espera e do pai. */
-.card-selos > .card-rodada { display: inline-flex; align-items: center; gap: 5px; width: fit-content; padding: 2px 8px; border-radius: 6px; font-size: 12px;
-  line-height: 1.5; }
-.card-selos > .card-rodada .icone svg { width: 12px; height: 12px; transform: scaleX(-1); }
-
 /* Materiais consultados e editados no painel da tarefa. */
 .task-materials h3 { margin: 0; font-size: inherit; }
 .material-lista, .material-form { display: grid; gap: 10px; min-width: 0; }

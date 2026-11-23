@@ -76,6 +76,17 @@ class RecordedTimeTest(unittest.TestCase):
         self.assertEqual((day["horas"], day["informado"], day["acumulado"]), (.25, .5, 1))
         self.assertEqual(sum(t["horas"] for t in day["tarefas"]), .25)
 
+    def test_task_detail_sums_captured_and_manual_hours_across_days(self):
+        for task in ("issue-chamado", "tarefa-pessoal", "issue-chamado"):
+            self.window(task)
+        self.window("issue-chamado", "09:00")
+        sheet.correct_windows(self.store, "teste", DAY, [dict(janela="09:00", tarefa="issue-chamado", ignorar=True)])
+        self.tasks.log("issue-chamado", .5, day="2026-10-30", machine="outra")
+        board = Board(self.store)
+        self.assertEqual(board.task("issue-chamado")["horas"], dict(capturado=.125, informado=.5))
+        self.assertEqual(board.task("tarefa-pessoal")["horas"], dict(capturado=.125, informado=0))
+        self.assertEqual(board.task("projeto-1001")["horas"], {})
+
     def test_margin_caps_small_and_long_work_without_forcing_eight_hours(self):
         self.assertEqual(sheet.bounded_rateio(dict(short=.25, normal=1, long=3, unknown=0), 8),
                          dict(short=.375, normal=1.5, long=4, unknown=0))

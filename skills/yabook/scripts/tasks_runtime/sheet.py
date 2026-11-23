@@ -39,36 +39,52 @@ def attribution(data, index=None):
 
 def window_records(root, day, machine=None):
     """Janelas deduplicadas e correções ordenadas, inclusive entre máquinas."""
-    windows, corrections, manual, notes = {}, {}, {}, {}
     if machine is not None and not isinstance(machine, str):
         raise ValueError("ficha.maquina precisa ser um identificador de máquina em texto")
     # As janelas usam o identificador normalizado. Lançamentos manuais antigos
     # podem estar em um arquivo com o identificador original.
     selected = {f"{day[:7]}-{name}.jsonl" for name in {machine, _machine(machine)}} if machine else set()
-    for path in sorted(Path(root, "horas").glob(day[:7] + "-*.jsonl")):
-        include_hours = not selected or path.name in selected
-        for line in path.read_text(encoding="utf-8").splitlines():
-            try:
-                entry = json.loads(line)
-            except ValueError:
-                continue
-            if entry.get("data") != day or not entry.get("tarefa"):
-                continue
-            kind = entry.get("tipo")
-            if kind == "janela" and include_hours and entry.get("janela"):
-                key = (entry["janela"], entry["tarefa"])
-                minutes = entry.get("minutos", LEGACY_WINDOW_MINUTES)
-                if isinstance(minutes, int) and minutes in (LEGACY_WINDOW_MINUTES, WINDOW_MINUTES):
-                    windows[key] = max(windows.get(key, 0), minutes)
-            elif kind == "correcao" and entry.get("janela") and isinstance(entry.get("ignorar"), bool):
-                key = (entry["janela"], entry["tarefa"])
-                order = (entry.get("ts", ""), entry.get("id", ""))
-                if key not in corrections or order > corrections[key][0]:
-                    corrections[key] = (order, entry["ignorar"], entry.get("para") or None)
-            elif kind == "manual" and include_hours:
-                manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
-                if entry.get("obs"):
-                    notes.setdefault(entry["tarefa"], []).append(entry["obs"])
+    entries = (
+        (entry, not selected or path.name in selected)
+        for path in sorted(Path(root, "horas").glob(day[:7] + "-*.jsonl"))
+        for entry in _hour_entries(path)
+        if entry.get("data") == day
+    )
+    return _resolve_windows(entries)
+
+
+def _hour_entries(path):
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return
+    for line in lines:
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(entry, dict) and entry.get("tarefa"):
+            yield entry
+
+
+def _resolve_windows(entries):
+    windows, corrections, manual, notes = {}, {}, {}, {}
+    for entry, include_hours in entries:
+        kind = entry.get("tipo")
+        if kind == "janela" and include_hours and entry.get("janela"):
+            key = (entry["janela"], entry["tarefa"])
+            minutes = entry.get("minutos", LEGACY_WINDOW_MINUTES)
+            if isinstance(minutes, int) and minutes in (LEGACY_WINDOW_MINUTES, WINDOW_MINUTES):
+                windows[key] = max(windows.get(key, 0), minutes)
+        elif kind == "correcao" and entry.get("janela") and isinstance(entry.get("ignorar"), bool):
+            key = (entry["janela"], entry["tarefa"])
+            order = (entry.get("ts", ""), entry.get("id", ""))
+            if key not in corrections or order > corrections[key][0]:
+                corrections[key] = (order, entry["ignorar"], entry.get("para") or None)
+        elif kind == "manual" and include_hours:
+            manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
+            if entry.get("obs"):
+                notes.setdefault(entry["tarefa"], []).append(entry["obs"])
     # Chaves iguais no destino representam uma única janela. Prefira a janela
     # vigente mais longa e, na mesma duração, a que já estava no destino.
     rows = {}
@@ -167,6 +183,26 @@ def captured_activity(windows):
         for identifier in identifiers:
             result[identifier] = result.get(identifier, 0) + SLOT_HOURS / len(identifiers)
     return result
+
+
+def recorded_hours_by_task(root):
+    """Soma a captura repartida e o tempo informado de cada tarefa ao longo dos dias."""
+    days = {}
+    for path in sorted(Path(root, "horas").glob("*.jsonl")):
+        for entry in _hour_entries(path):
+            day = entry.get("data")
+            if isinstance(day, str) and path.name.startswith(day[:7] + "-"):
+                days.setdefault(day, []).append((entry, True))
+
+    totals = {}
+    for entries in days.values():
+        windows, manual, _ = _resolve_windows(entries)
+        captured = captured_activity(windows)
+        for identifier in captured.keys() | manual.keys():
+            total = totals.setdefault(identifier, dict(capturado=0.0, informado=0.0))
+            total["capturado"] += captured.get(identifier, 0)
+            total["informado"] += manual.get(identifier, 0)
+    return totals
 
 
 def distribute(weights, total, step):

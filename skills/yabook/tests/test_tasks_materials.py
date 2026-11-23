@@ -72,7 +72,12 @@ class TaskMaterialsTest(unittest.TestCase):
         self.assertFalse((self.store.root / "anexos-tasks" / self.task / key).exists())
         self.assertEqual((self.private / "anexos-tasks" / self.task / key).read_bytes(), b"ambiente-interno")
         board = Board(self.store, self.cfg)
-        self.assertNotIn("Lista confidencial", json.dumps(board.state()))
+        state = board.state()
+        by_task = {item["id"]: item for item in state["tarefas"]}
+        self.assertEqual(by_task[self.task]["anexos_total"], 2)
+        self.assertEqual(by_task[self.other]["anexos_total"], 0)
+        self.assertNotIn("anexos", by_task[self.task])
+        self.assertNotIn("Lista confidencial", json.dumps(state))
         output = self.private / "copia.html"
         board.export(output)
         page = output.read_text(encoding="utf-8")

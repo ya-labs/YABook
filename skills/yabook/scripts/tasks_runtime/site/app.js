@@ -55,7 +55,8 @@ async function api(path) {
 
 function snapshotTask(id) {
   const resumo = app.estado.tarefas.find((t) => t.id === id);
-  return { data: resumo, body: "", resumo, referencias: {}, filhos: app.estado.tarefas.filter((t) => t.pai === id) };
+  return { data: resumo, body: "", resumo, referencias: {}, filhos: app.estado.tarefas.filter((t) => t.pai === id),
+    horas: SNAPSHOT.horas_por_tarefa && (SNAPSHOT.horas_por_tarefa[id] ?? {}) };
 }
 
 // Componentes compartilhados --------------------------------------------------
@@ -76,6 +77,8 @@ const ICONS = {
   salvar: '<path d="M2 2h10l2 2v10H2zM5 2v4h6V2M5 14V9h6v5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
   desfazer: '<path d="M5.5 3 2 6.5 5.5 10M2 6.5h7a4 4 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
   etiqueta: '<path d="M2 2h5l7 7-5 5-7-7z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="5" r="1" fill="currentColor"/>',
+  clipe: '<path d="m6.1 8.9 4.2-4.3a1.4 1.4 0 0 1 2 2l-5.5 5.5a2.7 2.7 0 1 1-3.8-3.8l5.8-5.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  escala: '<path d="M3.5 13V9M8 13V6M12.5 13V3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
   campos: '<path d="M2 4h12M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="5" y="2" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="10" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/>',
   relacoes: '<path d="M8 5v3M3 11V8h10v3" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="6" y="1" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>',
   aberto: '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.75" fill="currentColor"/>',
@@ -126,8 +129,8 @@ function pill(text, color, extra = {}) {
 }
 
 function switchInput(text, checked, onchange) {
-  return h("label", { class: "switch" }, h("input", { type: "checkbox", role: "switch", checked, onchange }),
-    h("span", { class: "switch-trilho", "aria-hidden": "true" }), h("span", {}, text));
+  return h("label", { class: "switch" }, h("span", {}, text), h("input", { type: "checkbox", role: "switch", checked, onchange }),
+    h("span", { class: "switch-trilho", "aria-hidden": "true" }));
 }
 
 function issueRef(task) {
@@ -332,8 +335,14 @@ function cardKey(task, ref) {
 }
 
 function cardMeta(task, parent, options, demand = null, tasks = []) {
-  const lines = [], selos = [];
-  if (task.size) selos.push(sizeNumber(task));
+  const lines = [], selos = [], avisos = [];
+  if (task.size) selos.push(sizeNumber(task, true));
+  const attachments = task.anexos_total;
+  if (attachments > 0) {
+    const title = attachments === 1 ? "1 anexo" : `${attachments} anexos`;
+    selos.push(h("span", { class: "card-anexos", role: "img", title, "aria-label": title },
+      icon("clipe"), String(attachments)));
+  }
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.prazo && !CLOSED.includes(task.papel)) {
     const days = daysUntil(task.prazo);
@@ -343,12 +352,12 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
   }
   // Rodada de ajuste a partir da segunda (a primeira entrega é a rodada 1).
   if (task.rodada > 1 && !CLOSED.includes(task.papel)) {
-    selos.push(h("span", { class: "card-rodada", title: `Rodada ${task.rodada} de ajuste: ${task.rodada - 1} retorno(s) da validação` },
+    avisos.push(h("span", { class: "card-rodada", title: `Rodada ${task.rodada} de ajuste: ${task.rodada - 1} retorno(s) da validação` },
       icon("seta"), h("span", {}, `Rodada ${task.rodada}`)));
   }
   if (task.aguardando && !CLOSED.includes(task.papel)) {
     const days = waitingDays(task);
-    selos.push(h("span", { class: "card-espera" + (days >= 3 ? " longa" : ""),
+    avisos.push(h("span", { class: "card-espera" + (days >= 3 ? " longa" : ""),
       title: `Aguardando: ${task.aguardando} (desde ${fmtDate(task.aguardando_desde || app.estado.hoje)})` },
       icon("ficha"), h("span", {}, `Aguardando${days ? ` · ${days}d` : ""}`)));
   }
@@ -370,11 +379,13 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
       : h("span", { class: "card-demanda", title: "Demanda " + demand }, content));
   }
   if (selos.length) lines.push(h("div", { class: "card-selos" }, selos));
+  if (avisos.length) lines.push(h("div", { class: "card-selos" }, avisos));
   return lines.length ? h("div", { class: "card-meta" }, lines) : null;
 }
 
-function sizeNumber(task) {
-  return h("span", { class: `size-numero size-${task.size}`, title: sizeTitle(task), "aria-label": sizeTitle(task) }, String(task.size));
+function sizeNumber(task, withIcon = false) {
+  return h("span", { class: `size-numero size-${task.size}`, title: sizeTitle(task), "aria-label": sizeTitle(task) },
+    withIcon ? icon("escala") : null, String(task.size));
 }
 
 function sizeTitle(task) {
@@ -868,6 +879,11 @@ async function openTask(id, detail = null) {
     const parentRef = parent ? issueRef(parent) : null;
     const epic = (app.estado.epicos || []).find((e) => e.id === (data.nivel === "epico" ? data.id : data.pai));
     const field = (name, value) => value ? h("div", { class: "campo-lateral" }, h("span", {}, name), h("span", {}, value)) : null;
+    const { capturado = 0, informado = 0 } = detail.horas ?? {};
+    const taskHours = data.tipo !== "pergunta" && detail.horas
+      ? h("span", { title: `${recordedTime(capturado)} capturado + ${recordedTime(informado)} informado` },
+          recordedTime(capturado + informado))
+      : null;
     const goTo = (target, text) => h("button", { class: "link", type: "button", onclick: () => openTask(target.id) }, text || target.titulo);
     let editAction = null;
     if (editing) {
@@ -932,6 +948,7 @@ async function openTask(id, detail = null) {
             field("Máquina", data.maquina),
             field("Nível", data.nivel ? LEVEL[data.nivel][0] : null),
             field("Código", task.codigo),
+            field("Horas", taskHours),
             field("Rodada", data.rodada > 1 ? `${data.rodada} (${data.rodada - 1} retorno${data.rodada > 2 ? "s" : ""} da validação)` : null),
             field("Concluída", task.papel === "concluido" && data.atualizada ? fmtDate(data.atualizada) : null),
             field("Pessoal", task.pessoal ? (("pessoal_marcado" in task) ? "sim (marcado)" : "sim (calculado)") : (("pessoal_marcado" in task) ? "não (marcado)" : null))),
