@@ -701,7 +701,7 @@ Os exemplos abaixo são para diagnóstico ou automação do agente após as apro
 pertinentes. Substitua os paths; `SCRIPT` aponta para a cópia instalada:
 
 ```bash
-SCRIPT="$HOME/.local/share/yabook/plugins/0.1.0/skills/yabook/scripts/yabook_memory.py"
+SCRIPT="$HOME/.local/share/yabook/plugins/0.2.0/skills/yabook/scripts/yabook_memory.py"
 BASE="$HOME/.local/share/yabook/memory"
 
 python3 "$SCRIPT" --root "$BASE" list

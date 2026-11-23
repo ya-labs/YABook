@@ -23,7 +23,7 @@ No checkout do YABook, gere uma pasta fora do repositório:
 
 ```bash
 python3 skills/yabook/scripts/yabook_plugin.py build \
-  --output "$HOME/.local/share/yabook/plugins/0.1.0"
+  --output "$HOME/.local/share/yabook/plugins/0.2.0"
 ```
 
 O destino deve ser novo. O empacotador copia `.codex-plugin/`, `.claude-plugin/`,
@@ -74,7 +74,7 @@ arquivo ainda não existir, use:
       "name": "yabook",
       "source": {
         "source": "local",
-        "path": "./.local/share/yabook/plugins/0.1.0"
+        "path": "./.local/share/yabook/plugins/0.2.0"
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -122,7 +122,7 @@ e [hooks do Codex](https://developers.openai.com/codex/hooks).
 Para testar a instalação local em uma nova sessão:
 
 ```bash
-claude --plugin-dir "$HOME/.local/share/yabook/plugins/0.1.0"
+claude --plugin-dir "$HOME/.local/share/yabook/plugins/0.2.0"
 ```
 
 O manifesto específico fica em `.claude-plugin/plugin.json`; a skill e os hooks
@@ -135,7 +135,7 @@ que o agente deve encaminhar à skill.
 Se a sua versão disponibilizar o validador:
 
 ```bash
-claude plugin validate "$HOME/.local/share/yabook/plugins/0.1.0"
+claude plugin validate "$HOME/.local/share/yabook/plugins/0.2.0"
 ```
 
 Consulte a [referência de plugins do Claude Code](https://code.claude.com/docs/en/plugins-reference)
@@ -261,7 +261,7 @@ para avaliar comandos indiretos, scripts, MCP e regras locais.
 Só depois dessa verificação migre o bloco global canônico:
 
 ```bash
-python3 "$HOME/.local/share/yabook/plugins/0.1.0/skills/yabook/scripts/yabook_plugin.py" \
+python3 "$HOME/.local/share/yabook/plugins/0.2.0/skills/yabook/scripts/yabook_plugin.py" \
   migrate-guardrails --agents /CAMINHO/AGENTS.md \
   --receipt /CAMINHO/recibo-da-sessao.json
 ```

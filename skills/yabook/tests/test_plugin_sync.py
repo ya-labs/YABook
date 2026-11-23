@@ -53,6 +53,8 @@ class PluginSyncTest(unittest.TestCase):
         old = self.home / "old"
         shutil.copytree(self.source, old)
         shutil.rmtree(old / ".codex-plugin")
+        claude_manifest = old / ".claude-plugin/plugin.json"
+        write_json(claude_manifest, dict(read_json(claude_manifest), version="0.1.0"))
         write_json(old / "plugin.json", {"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
                                          "name": "yabook", "version": "0.1.0",
                                          "extensions": {"com.openai": {"hooks": "./hooks/hooks.json"}}})
