@@ -278,7 +278,9 @@ function card(task, options = {}) {
   const parent = task.pai ? tasks.find((t) => t.id === task.pai) : null;
   const issue = issueRef(task);
   const demand = cardDemand(task, tasks);
-  return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (task.prazo && daysUntil(task.prazo) < 0 && !CLOSED.includes(task.papel) ? " prazo-vencido" : "") + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
+  const deadline = CLOSED.includes(task.papel) ? null : task.prazo;
+  const remaining = deadline ? daysUntil(deadline) : null;
+  return h("div", { class: `card papel-${task.papel}` + (task.nivel === "epico" ? " card-epico" : "") + (deadline && remaining < 0 ? " prazo-vencido" : "") + (task.editado ? " editado" : ""), role: "button", tabindex: "0", "data-id": task.id,
     title: [task.titulo, task.descricao, changeText(changeStamp(task))].filter(Boolean).join("\n\n"),
     draggable: editable ? "true" : null,
     ondragstart: editable ? (e) => { app.dragId = task.id; e.dataTransfer.setData("text/plain", task.id); e.dataTransfer.effectAllowed = "move"; e.currentTarget.classList.add("arrastando"); } : null,
@@ -297,7 +299,10 @@ function card(task, options = {}) {
       h("span", { class: "card-sinais" },
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
-        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null)));
+        task.perguntas_abertas ? signal("pergunta", `${task.perguntas_abertas} perguntas abertas`, String(task.perguntas_abertas)) : null),
+      deadline ? h("time", { class: "card-prazo" + (remaining < 0 ? " vencida" : remaining <= 2 ? " proxima" : ""),
+        datetime: deadline, title: "Prazo: " + fullDate(deadline) },
+        icon("ficha"), `${deadline.slice(8, 10)}/${deadline.slice(5, 7)}`) : null));
 }
 
 const CARD_DATE = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: "UTC" });
@@ -344,10 +349,7 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
       icon("clipe"), String(attachments)));
   }
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
-  if (task.prazo && !CLOSED.includes(task.papel)) {
-    const days = daysUntil(task.prazo);
-    lines.push(h("span", { class: "card-data" + (days < 0 ? " vencida" : days <= 2 ? " proxima" : ""), title: "Prazo: " + fullDate(task.prazo) }, cardDate(task.prazo)));
-  } else if (task.papel === "concluido" && task.atualizada) {
+  if (task.papel === "concluido" && task.atualizada) {
     lines.push(h("span", { class: "card-data", title: "Concluída em " + fullDate(task.atualizada.slice(0, 10)) }, "Concluída em " + cardDate(task.atualizada.slice(0, 10))));
   }
   // Rodada de ajuste a partir da segunda (a primeira entrega é a rodada 1).
