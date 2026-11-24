@@ -726,13 +726,20 @@ function taskLinks(detail, editable) {
   const id = detail.data.id;
   let links = (editable ? app.rascunho.tarefas[id]?.campos.links : null) ?? detail.data.links ?? [];
   const list = h("div", { class: "material-lista" });
+  const linkAddress = entry => typeof entry === "string" ? entry : entry?.url;
+  const namedLink = (url, nome) => nome ? { url, nome } : url;
+  const nameField = (input) => h("label", { class: "campo" }, h("span", {}, "Nome do link (opcional)"), input);
   const showLinks = () => fill(list, links.length
-    ? links.map((address, index) => {
+    ? links.map((entry, index) => {
+      const address = linkAddress(entry);
       const url = taskLinkUrl(address);
-      return h("div", { class: "material-arquivo" },
-        url ? h("a", { href: url.href, target: "_blank", rel: "noopener noreferrer" }, address) : h("span", {}, address),
-        editable ? h("button", { type: "button", class: "botao pequeno", "aria-label": "Remover link " + address,
-          onclick: () => stageLinks(links.filter((_, position) => position !== index)) }, "Remover") : null);
+      const label = entry?.nome || address;
+      return h("div", { class: "material-link" },
+        h("div", { class: "material-arquivo" },
+          url ? h("a", { href: url.href, title: address, target: "_blank", rel: "noopener noreferrer" }, label) : h("span", {}, label),
+          editable ? h("button", { type: "button", class: "botao pequeno", "aria-label": "Remover link " + label,
+            onclick: () => stageLinks(links.filter((_, position) => position !== index)) }, "Remover") : null),
+        editable && url ? nameForm(address, entry?.nome, index) : null);
     })
     : h("p", { class: "vazio" }, "Nenhum link."));
   function stageLinks(next) {
@@ -743,26 +750,36 @@ function taskLinks(detail, editable) {
     renderToolbar();
     announce("Links atualizados no rascunho.");
   }
-  showLinks();
+  function nameForm(address, currentName, index) {
+    const name = h("input", { value: currentName || "", maxlength: 160 });
+    const form = h("form", { class: "material-form", onsubmit: event => {
+      event.preventDefault();
+      stageLinks(links.map((link, position) => position === index ? namedLink(address, name.value.trim()) : link));
+    } }, nameField(name), h("button", { type: "submit", class: "botao pequeno" }, "Aplicar nome ao rascunho"));
+    return h("details", { class: "material-item" }, h("summary", {}, "Editar nome"), form);
+  }
   function linkForm() {
     const address = h("input", { type: "url", required: true, placeholder: "https://", autocomplete: "off" });
+    const name = h("input", { maxlength: 160 });
     const error = h("p", { class: "vazio", role: "status", hidden: true });
     const form = h("form", { class: "material-form", onsubmit: event => {
       event.preventDefault();
       if (!app.editando || app.salvando) return;
       const url = taskLinkUrl(address.value.trim());
       const message = !url ? "Informe um endereço HTTP ou HTTPS válido, sem credenciais na URL."
-        : links.some(link => taskLinkUrl(link)?.href === url.href) ? "Este link já está na tarefa." : "";
+        : links.some(link => taskLinkUrl(linkAddress(link))?.href === url.href) ? "Este link já está na tarefa." : "";
       error.textContent = message;
       error.hidden = !message;
       if (message) return;
-      stageLinks([...links, url.href]);
+      stageLinks([...links, namedLink(url.href, name.value.trim())]);
       address.value = "";
+      name.value = "";
       address.focus();
-    } }, h("label", { class: "campo" }, h("span", {}, "Endereço do link"), address), error,
+    } }, h("label", { class: "campo" }, h("span", {}, "Endereço do link"), address), nameField(name), error,
     h("button", { type: "submit", class: "botao pequeno" }, "Adicionar ao rascunho"));
     return h("details", { class: "material-item material-form" }, h("summary", {}, "Adicionar link"), form);
   }
+  showLinks();
   return sideSection("Links", list, editable ? linkForm() : null);
 }
 

@@ -39,7 +39,14 @@ def validate_links(links):
     if not isinstance(links, list):
         raise ValueError("Links precisam estar em uma lista")
     seen = set()
-    for link in links:
+    for entry in links:
+        if isinstance(entry, dict):
+            if set(entry) != {"url", "nome"}:
+                raise ValueError("Metadados do link inválidos")
+            _text(entry["nome"], 160, "Nome do link")
+            link = entry["url"]
+        else:
+            link = entry
         if not isinstance(link, str) or not link or any(ch.isspace() or ord(ch) < 32 or ch == "\\" for ch in link):
             raise ValueError("Informe um link HTTP ou HTTPS válido")
         try:

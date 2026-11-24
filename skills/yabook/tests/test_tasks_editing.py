@@ -150,11 +150,12 @@ class EditingTest(unittest.TestCase):
     def test_links_are_saved_and_can_be_removed(self):
         identifier = "issue-agenda"
         address = "https://example.org/docs?q=1#secao"
+        named = dict(url="https://example.org/apresentacao", nome="Guia: apresentação, seção #1")
         editing.save(self.store, self.cfg, dict(tarefas=[
-            dict(id=identifier, revision=self.rev(identifier), campos=dict(links=[address])),
+            dict(id=identifier, revision=self.rev(identifier), campos=dict(links=[address, named])),
         ]))
         detail = server.Board(self.store, self.cfg).task(identifier)
-        self.assertEqual(detail["data"]["links"], [address])
+        self.assertEqual(detail["data"]["links"], [address, named])
         editing.save(self.store, self.cfg, dict(tarefas=[
             dict(id=identifier, revision=detail["revision"], campos=dict(links=[])),
         ]))
@@ -163,7 +164,8 @@ class EditingTest(unittest.TestCase):
     def test_invalid_links_refuse_the_entire_draft(self):
         before = self.store.get("tarefa-revisar-layout")
         for invalid in (["mailto:teste@example.org"], ["https://"], ["https://user:secret@example.org"],
-                        ["https://example.org", "https://example.org"], "https://example.org"):
+                        ["https://example.org", dict(url="https://example.org", nome="Duplicado")],
+                        [dict(url="https://example.org", nome=" ")], "https://example.org"):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 editing.save(self.store, self.cfg, dict(tarefas=[
                     dict(id="tarefa-revisar-layout", revision=before["revision"], campos=dict(titulo="Não gravar")),
