@@ -1142,7 +1142,7 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
   overflow: visible;
 }
-.card-selos > :is(.size-numero, .card-anexos, .card-pai, .card-demanda, .card-espera, .card-rodada) {
+.card-selos > :is(.size-numero, .card-anexos, .card-links, .card-pai, .card-demanda, .card-espera, .card-rodada) {
   display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0;
   min-height: 24px; padding: 2px 6px; border: 0; border-radius: 4px; color: var(--texto);
   background: color-mix(in srgb, var(--cor-selo) 9%, transparent);
@@ -1381,11 +1381,11 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
 }
 .dia-card > p.vazio { margin: 0; font-size: 12px; }
 /* Materiais consultados e editados no painel da tarefa. */
-.task-materials h3 { margin: 0; font-size: inherit; }
 .material-lista, .material-form { display: grid; gap: 10px; min-width: 0; }
 .material-form { margin-top: 8px; }
 .material-form > button { justify-self: start; }
 .material-item { padding: 8px 10px; background: var(--bg-subtle); border-radius: 6px; }
+.lateral-secao .material-item { background: var(--bg); }
 .material-item summary { cursor: pointer; overflow-wrap: anywhere; }
 .material-item[open] > summary { margin-bottom: 8px; }
 .material-acoes, .material-arquivo { display: flex; align-items: start; flex-wrap: wrap; gap: 8px; }
@@ -1422,10 +1422,10 @@ dialog.visualizador::backdrop { background: rgba(4, 10, 22, .62); }
   dialog.visualizador { width: 100vw; height: 100dvh; border-radius: 0; border: 0; }
   .visualizador-corpo { padding: 12px; }
 }
-.material-arquivo > span { flex: 1 1 125px; overflow-wrap: anywhere; }
+.material-arquivo > :is(span, a) { flex: 1 1 125px; overflow-wrap: anywhere; }
 /* Edição de anexos no rascunho: formulário recolhido sob cada anexo salvo. */
-.material-anexo { display: grid; gap: 6px; min-width: 0; }
-.material-anexo > .material-item { margin-left: 2px; }
+.material-anexo, .material-link { display: grid; gap: 6px; min-width: 0; }
+:is(.material-anexo, .material-link) > .material-item { margin-left: 2px; }
 .material-excluido > span { color: var(--texto-2); text-decoration: line-through; }
 .material-texto { min-height: 180px; resize: vertical; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 4; }
 .botao.perigo { color: rgb(var(--c-red)); }

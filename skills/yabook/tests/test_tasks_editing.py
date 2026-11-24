@@ -147,6 +147,38 @@ class EditingTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             editing.save(self.store, self.cfg, dict(tarefas=[dict(id="issue-agenda", revision=self.rev("issue-agenda"), campos=dict(criada="x"))]))
 
+    def test_links_are_saved_and_can_be_removed(self):
+        identifier = "issue-agenda"
+        address = "https://example.org/docs?q=1#secao"
+        named = dict(url="https://example.org/apresentacao", nome="Guia: apresentação, seção #1")
+        editing.save(self.store, self.cfg, dict(tarefas=[
+            dict(id=identifier, revision=self.rev(identifier), campos=dict(links=[address, named])),
+        ]))
+        board = server.Board(self.store, self.cfg)
+        detail = board.task(identifier)
+        self.assertEqual(detail["data"]["links"], [address, named])
+        card = next(item for item in board.state()["tarefas"] if item["id"] == identifier)
+        self.assertEqual(card["links_total"], 2)
+        self.assertNotIn("links", card)
+        editing.save(self.store, self.cfg, dict(tarefas=[
+            dict(id=identifier, revision=detail["revision"], campos=dict(links=[])),
+        ]))
+        self.assertNotIn("links", self.store.get(identifier)["data"])
+        card = next(item for item in board.state()["tarefas"] if item["id"] == identifier)
+        self.assertEqual(card["links_total"], 0)
+
+    def test_invalid_links_refuse_the_entire_draft(self):
+        before = self.store.get("tarefa-revisar-layout")
+        for invalid in (["mailto:teste@example.org"], ["https://"], ["https://user:secret@example.org"],
+                        ["https://example.org", dict(url="https://example.org", nome="Duplicado")],
+                        [dict(url="https://example.org", nome=" ")], "https://example.org"):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                editing.save(self.store, self.cfg, dict(tarefas=[
+                    dict(id="tarefa-revisar-layout", revision=before["revision"], campos=dict(titulo="Não gravar")),
+                    dict(id="issue-agenda", revision=self.rev("issue-agenda"), campos=dict(links=invalid)),
+                ]))
+            self.assertEqual(self.store.get("tarefa-revisar-layout")["revision"], before["revision"])
+
     def test_http_save_flow(self):
         srv = server.make_server(self.store, self.cfg, port=0, poll_seconds=0.1, writer=editing.handle)
         server.start_background(srv)

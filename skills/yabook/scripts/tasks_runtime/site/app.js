@@ -78,6 +78,7 @@ const ICONS = {
   desfazer: '<path d="M5.5 3 2 6.5 5.5 10M2 6.5h7a4 4 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
   etiqueta: '<path d="M2 2h5l7 7-5 5-7-7z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="5" r="1" fill="currentColor"/>',
   clipe: '<path d="m6.1 8.9 4.2-4.3a1.4 1.4 0 0 1 2 2l-5.5 5.5a2.7 2.7 0 1 1-3.8-3.8l5.8-5.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  corrente: '<path d="M6 5H4a3 3 0 0 0 0 6h2m4-6h2a3 3 0 0 1 0 6h-2M5 8h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   escala: '<path d="M3.5 13V9M8 13V6M12.5 13V3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
   campos: '<path d="M2 4h12M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="5" y="2" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="10" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/>',
   relacoes: '<path d="M8 5v3M3 11V8h10v3" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="6" y="1" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>',
@@ -342,11 +343,14 @@ function cardKey(task, ref) {
 function cardMeta(task, parent, options, demand = null, tasks = []) {
   const lines = [], selos = [], avisos = [];
   if (task.size) selos.push(sizeNumber(task, true));
-  const attachments = task.anexos_total;
-  if (attachments > 0) {
-    const title = attachments === 1 ? "1 anexo" : `${attachments} anexos`;
-    selos.push(h("span", { class: "card-anexos", role: "img", title, "aria-label": title },
-      icon("clipe"), String(attachments)));
+  for (const [amount, label, symbol] of [
+    [task.anexos_total, "anexo", "clipe"], [task.links_total, "link", "corrente"],
+  ]) {
+    if (amount > 0) {
+      const title = `${amount} ${label}${amount === 1 ? "" : "s"}`;
+      selos.push(h("span", { class: `card-${label}s`, role: "img", title, "aria-label": title },
+        icon(symbol), String(amount)));
+    }
   }
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.papel === "concluido" && task.atualizada) {
@@ -514,7 +518,7 @@ function stateLabel(task) {
 
 function sideSection(title, ...content) {
   const body = content.flat(Infinity).filter(Boolean);
-  const symbols = { "Rótulos": "etiqueta", "Campos": "campos", "Projeto": "quadro", "Relacionamentos": "relacoes" };
+  const symbols = { "Campos": "campos", "Relacionamentos": "relacoes", "Anexos": "clipe", "Links": "corrente", "Anotações": "livro" };
   return h("section", { class: "lateral-secao" }, h("h4", {}, icon(symbols[title] || "mais"), title), body.length ? body : h("p", { class: "vazio" }, "Nenhum"));
 }
 
@@ -712,10 +716,81 @@ function closePreview() {
   if (app.visualizador?.dialog.open) app.visualizador.dialog.close();
 }
 
+function taskLinkUrl(value) {
+  if (typeof value !== "string" || !/^https?:\/\/[^/?#]/i.test(value) || /[\s\\]/.test(value)) return null;
+  try {
+    const url = new URL(value);
+    return url.username || url.password || url.port === "0" ? null : url;
+  } catch {
+    return null;
+  }
+}
+
+function taskLinks(detail, editable) {
+  const id = detail.data.id;
+  let links = (editable ? app.rascunho.tarefas[id]?.campos.links : null) ?? detail.data.links ?? [];
+  const list = h("div", { class: "material-lista" });
+  const linkAddress = entry => typeof entry === "string" ? entry : entry?.url;
+  const namedLink = (url, nome) => nome ? { url, nome } : url;
+  const nameField = (input) => h("label", { class: "campo" }, h("span", {}, "Nome do link (opcional)"), input);
+  const showLinks = () => fill(list, links.length
+    ? links.map((entry, index) => {
+      const address = linkAddress(entry);
+      const url = taskLinkUrl(address);
+      const label = entry?.nome || address;
+      return h("div", { class: "material-link" },
+        h("div", { class: "material-arquivo" },
+          url ? h("a", { href: url.href, title: address, target: "_blank", rel: "noopener noreferrer" }, label) : h("span", {}, label),
+          editable ? h("button", { type: "button", class: "botao pequeno", "aria-label": "Remover link " + label,
+            onclick: () => stageLinks(links.filter((_, position) => position !== index)) }, "Remover") : null),
+        editable && url ? nameForm(address, entry?.nome, index) : null);
+    })
+    : h("p", { class: "vazio" }, "Nenhum link."));
+  function stageLinks(next) {
+    if (!app.editando || app.salvando) return;
+    draftTask(id, { links: next }, { revision: app.rascunho.tarefas[id]?.revision || detail.revision });
+    links = next;
+    showLinks();
+    renderToolbar();
+    announce("Links atualizados no rascunho.");
+  }
+  function nameForm(address, currentName, index) {
+    const name = h("input", { value: currentName || "", maxlength: 160 });
+    const form = h("form", { class: "material-form", onsubmit: event => {
+      event.preventDefault();
+      stageLinks(links.map((link, position) => position === index ? namedLink(address, name.value.trim()) : link));
+    } }, nameField(name), h("button", { type: "submit", class: "botao pequeno" }, "Aplicar nome ao rascunho"));
+    return h("details", { class: "material-item" }, h("summary", {}, "Editar nome"), form);
+  }
+  function linkForm() {
+    const address = h("input", { type: "url", required: true, placeholder: "https://", autocomplete: "off" });
+    const name = h("input", { maxlength: 160 });
+    const error = h("p", { class: "vazio", role: "status", hidden: true });
+    const form = h("form", { class: "material-form", onsubmit: event => {
+      event.preventDefault();
+      if (!app.editando || app.salvando) return;
+      const url = taskLinkUrl(address.value.trim());
+      const message = !url ? "Informe um endereço HTTP ou HTTPS válido, sem credenciais na URL."
+        : links.some(link => taskLinkUrl(linkAddress(link))?.href === url.href) ? "Este link já está na tarefa." : "";
+      error.textContent = message;
+      error.hidden = !message;
+      if (message) return;
+      stageLinks([...links, namedLink(url.href, name.value.trim())]);
+      address.value = "";
+      name.value = "";
+      address.focus();
+    } }, h("label", { class: "campo" }, h("span", {}, "Endereço do link"), address), nameField(name), error,
+    h("button", { type: "submit", class: "botao pequeno" }, "Adicionar ao rascunho"));
+    return h("details", { class: "material-item material-form" }, h("summary", {}, "Adicionar link"), form);
+  }
+  showLinks();
+  return sideSection("Links", list, editable ? linkForm() : null);
+}
+
 function taskMaterials(detail, editable) {
   const data = detail.data, id = data.id;
-  const notesPanel = h("section", { class: "comentario task-materials" });
-  const filesPanel = h("section", { class: "comentario task-materials" });
+  const notesPanel = h("div", { class: "material-lista" });
+  const filesPanel = h("div", { class: "material-lista" });
   const pending = () => app.anexosRascunho[id];
   const label = (field, text) => h("label", { class: "campo" }, h("span", {}, text), field);
 
@@ -747,16 +822,15 @@ function taskMaterials(detail, editable) {
 
   function renderNotes() {
     const notes = draftAnnotations(data, editable ? app.rascunho.tarefas[id]?.anotacoes : []);
-    fill(notesPanel, h("header", {}, h("h3", {}, "Anotações")),
-      h("div", { class: "comentario-corpo material-lista" },
-        notes.length ? notes.map(note => h("details", { class: "material-item" },
-          h("summary", {}, "Nota " + String(note.numero).padStart(2, "0") + " · " + note.titulo),
-          h("div", { class: "markdown" }, markdown(note.texto)),
-          editable ? h("div", { class: "material-acoes" },
-            h("details", {}, h("summary", {}, "Editar anotação"), noteForm(note)),
-            h("button", { type: "button", class: "botao pequeno", onclick: () => stageNote({ acao: "excluir", numero: note.numero }) }, "Excluir anotação")) : null))
-          : h("p", { class: "vazio" }, "Nenhuma anotação."),
-        editable ? h("details", { class: "material-item" }, h("summary", {}, "Nova anotação"), noteForm()) : null));
+    fill(notesPanel,
+      notes.length ? notes.map(note => h("details", { class: "material-item" },
+        h("summary", {}, "Nota " + String(note.numero).padStart(2, "0") + " · " + note.titulo),
+        h("div", { class: "markdown" }, markdown(note.texto)),
+        editable ? h("div", { class: "material-acoes" },
+          h("details", {}, h("summary", {}, "Editar anotação"), noteForm(note)),
+          h("button", { type: "button", class: "botao pequeno", onclick: () => stageNote({ acao: "excluir", numero: note.numero }) }, "Excluir anotação")) : null))
+        : h("p", { class: "vazio" }, "Nenhuma anotação."),
+      editable ? h("details", { class: "material-item" }, h("summary", {}, "Nova anotação"), noteForm()) : null);
   }
 
   function fileForm() {
@@ -904,26 +978,25 @@ function taskMaterials(detail, editable) {
           edit ? undo(item) : null),
         editable ? editForm(item, edit || {}) : null);
     };
-    fill(filesPanel, h("header", {}, h("h3", {}, "Anexos")),
-      h("div", { class: "comentario-corpo material-lista" },
-        files.map(savedRow),
-        staged.map((item, index) => h("div", { class: "material-arquivo" },
-          h("span", {}, item.nome + " · no rascunho"),
-          viewButton(item),
-          h("button", { type: "button", class: "botao pequeno", onclick: () => {
-            if (!app.editando || app.salvando) return;
-            const current = pendingEntry();
-            current.items.splice(index, 1);
-            commitEntry(current);
-          } }, "Remover do rascunho"))),
-        !files.length && !staged.length ? h("p", { class: "vazio" }, "Nenhum anexo.") : null,
-        editable ? h("details", { class: "material-item" }, h("summary", {}, "Anexar arquivo"),
-          h("p", { class: "vazio" }, "Até 1 MB por arquivo. Use a base local para material interno. Salve antes de recarregar."),
-          fileForm()) : null));
+    fill(filesPanel,
+      files.map(savedRow),
+      staged.map((item, index) => h("div", { class: "material-arquivo" },
+        h("span", {}, item.nome + " · no rascunho"),
+        viewButton(item),
+        h("button", { type: "button", class: "botao pequeno", onclick: () => {
+          if (!app.editando || app.salvando) return;
+          const current = pendingEntry();
+          current.items.splice(index, 1);
+          commitEntry(current);
+        } }, "Remover do rascunho"))),
+      !files.length && !staged.length ? h("p", { class: "vazio" }, "Nenhum anexo.") : null,
+      editable ? h("details", { class: "material-item" }, h("summary", {}, "Anexar arquivo"),
+        h("p", { class: "vazio" }, "Até 1 MB por arquivo. Use a base local para material interno. Salve antes de recarregar."),
+        fileForm()) : null);
   }
   renderNotes();
   renderFiles();
-  return [notesPanel, filesPanel];
+  return [sideSection("Anexos", filesPanel), taskLinks(detail, editable), sideSection("Anotações", notesPanel)];
 }
 
 // Bytes pendentes no rascunho de anexos (envios novos e substituições), limitados por salvamento.
@@ -1037,7 +1110,6 @@ async function openTask(id, detail = null) {
               epic && data.nivel === "epico" ? h("span", { class: "direita" }, segments(epic.concluidas, epic.historias)) : null),
             detail.filhos.map((child) => h("div", { class: "linha-caixa" }, stateIcon(child), goTo(child),
               h("span", { class: "selo neutro" }, h("span", { class: `status papel-${roleOf(child.coluna)}` }), columnName(child.coluna))))) : null,
-          !SNAPSHOT && task.tipo !== "pergunta" ? taskMaterials(detail, editing) : null,
           detail.complemento ? h("section", { class: "comentario documento-confidencial" }, h("header", {}, icon("cadeado"), h("strong", {}, "Complemento confidencial"), h("span", { class: "vazio" }, " · só nesta máquina")),
             h("div", { class: "comentario-corpo markdown" }, markdown(detail.complemento))) : null,
           Object.entries(detail.referencias || {}).map(([refName, text]) => h("section", { class: "comentario documento-confidencial" },
@@ -1048,7 +1120,6 @@ async function openTask(id, detail = null) {
             ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
           editing ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
         h("aside", { class: "painel-lateral" },
-          sideSection("Rótulos", h("div", { class: "rotulos" }, badges(task, { semPai: true, semCodigo: true, semData: true, semPrazo: true }))),
           sideSection("Campos",
             field("Status", h("span", { class: "selo neutro forte" }, h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna))),
             field("Tipo", label(data.tipo)),
@@ -1067,7 +1138,8 @@ async function openTask(id, detail = null) {
               const asked = (effectiveState().tarefas || []).filter((t) => t.tipo === "pergunta" && t.sobre === data.id && !t.resposta);
               return asked.length ? [h("span", { class: "vazio" }, "Perguntas abertas"),
                 asked.map((q) => h("div", { class: "relacao" }, icon("pergunta"), goTo(q)))] : null;
-            })()))));
+            })()),
+          !SNAPSHOT && task.tipo !== "pergunta" ? taskMaterials(detail, editing) : null)));
     panel.setAttribute("aria-busy", "false");
     focusPanel();
   } catch (error) {
@@ -2483,6 +2555,8 @@ function editForm(id) {
     compare("demanda", values.demanda.trim(), original.demanda);
     compare("nivel", values.nivel, original.nivel);
     compare("pai", values.pai, original.pai);
+    const draftLinks = app.rascunho.tarefas[id]?.campos.links;
+    if (draftLinks !== undefined) campos.links = draftLinks;
     const issues = values.issue.split(",").map((i) => i.trim()).filter(Boolean);
     if (issues.join(",") !== (original.issue || []).join(",")) campos.issue = issues.length ? issues : null;
     const before = "pessoal_marcado" in original ? (original.pessoal_marcado ? "sim" : "nao") : "auto";
@@ -2651,13 +2725,13 @@ async function saveDraft() {
   if (response.status === 409) {
     announce("Conflito ao salvar. Revise as tarefas alteradas em outro lugar.");
     const lost = (result.conflitos || []).map((id) => [id, d.tarefas[id]]);
-    const materials = lost.some(([id, e]) => e?.anotacoes?.length || app.anexosRascunho[id]);
+    const materials = lost.some(([id, e]) => e?.anotacoes?.length || e?.campos?.links !== undefined || app.anexosRascunho[id]);
     if (materials) {
       app.pendente = false;
       await refresh();
       return showPanel(h("h2", {}, "Tarefa alterada em outro lugar"),
         h("p", { class: "aviso erro" }, result.error),
-        h("p", {}, "O rascunho foi mantido. Confira ou copie suas anotações no card antes de descartar e refazer sobre a versão atual."));
+        h("p", {}, "O rascunho foi mantido. Confira os materiais no card antes de descartar e refazer sobre a versão atual."));
     }
     for (const [id] of lost) delete d.tarefas[id];
     persistDraft();
@@ -2674,7 +2748,7 @@ async function saveDraft() {
       h("p", { class: "aviso erro" }, result.error + ". Nada foi gravado."),
       h("ul", { class: "perguntas" }, (result.termos || []).map((hit) => h("li", {},
         h("strong", {}, `${hit.id} · ${hit.campo}: `), hit.termos.join(", "), h("div", { class: "passo" }, hit.texto),
-        result.base_confidencial && hit.campo !== "titulo" && hit.campo !== "coluna"
+        result.base_confidencial && !["titulo", "coluna", "links"].includes(hit.campo)
           ? h("button", { class: "botao", type: "button", onclick: () => moveToComplement(hit) }, "Mover para o complemento confidencial")
           : h("div", { class: "passo" }, "Reescreva este texto sem o termo.")))));
   }

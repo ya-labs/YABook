@@ -108,6 +108,7 @@ class Board:
                     item[key + ("_marcado" if key == "pessoal" else "")] = data[key]
             item["perguntas_abertas"] = open_questions.get(data["id"], 0)
             item["anexos_total"] = len(data.get("anexos", []))
+            item["links_total"] = len(data.get("links", []))
             confidential = self.confidential_state(data)
             if confidential:
                 item["confidencial"] = confidential

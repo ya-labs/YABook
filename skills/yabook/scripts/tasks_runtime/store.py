@@ -18,7 +18,7 @@ PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
 NIVEIS = ("epico", "historia", "tarefa")
 CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
 ORDER = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "size", "size_manual", "rodada", "pessoal",
-         "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "anotacoes_seq", "anotacoes", "anexos", "criada", "atualizada")
+         "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "links", "anotacoes_seq", "anotacoes", "anexos", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
 _ISSUE = re.compile(r"[A-Za-z0-9-]+/[A-Za-z0-9_.-]+#\d+")
