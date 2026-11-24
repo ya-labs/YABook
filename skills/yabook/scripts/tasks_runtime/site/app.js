@@ -154,6 +154,10 @@ function stateIcon(task) {
   return node;
 }
 
+function completedTitleIcon(task) {
+  return task.papel === "concluido" && task.tipo !== "pergunta" ? icon("fechado", "titulo-concluido") : null;
+}
+
 function origin(task) {
   const tag = task.numero ? `@${task.numero} · ` : "";
   return tag + originText(task);
@@ -292,7 +296,7 @@ function card(task, options = {}) {
     } },
     // Card compacto com título, rótulos e rodapé com identificadores.
     // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
-    h("div", { class: "card-titulo" }, task.titulo),
+    h("div", { class: "card-titulo" }, completedTitleIcon(task), task.titulo),
     cardMeta(task, parent, options, demand && (issue || String(demand) !== String(task.codigo)) ? demand : null, tasks),
     task.nivel === "epico" ? epicProgress(task) : null,
     h("footer", { class: "card-rodape" },
@@ -1086,6 +1090,7 @@ async function openTask(id, detail = null) {
     }
     fill(panel,
       panelHeader([
+        completedTitleIcon(task),
         data.numero ? h("span", { class: "numero-issue" }, `@${data.numero} `) : null,
         data.titulo,
         ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null,
