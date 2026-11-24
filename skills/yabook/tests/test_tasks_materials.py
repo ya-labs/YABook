@@ -1,4 +1,6 @@
 import base64
+import contextlib
+import io
 import json
 import sys
 import tempfile
@@ -108,6 +110,74 @@ class TaskMaterialsTest(unittest.TestCase):
                 self.edit(anexos=[self.upload(name, b"falha em ambiente-interno")])
         with self.assertRaisesRegex(ValueError, "UTF-8"):
             self.edit(anexos=[self.upload("latin.log", "ação".encode("latin-1"))])
+
+    def attachments(self):
+        return self.store.get(self.task)["data"].get("anexos", [])
+
+    def blob(self, item):
+        return materials.blob_path(self.store, self.cfg, self.task, item)
+
+    def test_edit_renames_replaces_and_deletes_keeping_position_and_removing_old_files(self):
+        self.edit(anexos=[self.upload("roteiro.md", b"# Passos"), self.upload("dados.csv", b"a;b"),
+                          self.upload("tela.png", b"PNG")])
+        first, csv, image = self.attachments()
+        self.edit(anexos=[dict(acao="editar", id=first["id"], nome="Roteiro final.md"),
+                          dict(acao="editar", id=csv["id"], base64=base64.b64encode(b"a;b\n1;2").decode()),
+                          dict(acao="excluir", id=image["id"])])
+        renamed, replaced = self.attachments()
+        self.assertEqual((renamed["nome"], replaced["nome"]), ("Roteiro final.md", "dados.csv"))
+        self.assertEqual(materials.read_attachment(self.store, self.cfg, self.task, renamed["id"])[1], b"# Passos")
+        self.assertEqual(materials.read_attachment(self.store, self.cfg, self.task, replaced["id"])[1], b"a;b\n1;2")
+        for old in (first, csv, image):
+            self.assertFalse(self.blob(old).exists(), old["nome"])
+        self.edit(anexos=[dict(acao="excluir", id=renamed["id"]), dict(acao="excluir", id=replaced["id"])])
+        self.assertEqual(self.attachments(), [])
+        self.assertFalse((self.store.root / "anexos-tasks" / self.task).exists())
+
+    def test_invalid_edit_changes_nothing(self):
+        self.edit(anexos=[self.upload("roteiro.md", b"# Passos"), self.upload("Lista.csv", b"x", local=True)])
+        shared, local = self.attachments()
+        current = self.store.get(self.task)
+        encoded = lambda raw: base64.b64encode(raw).decode()
+        cases = [dict(acao="editar", id=shared["id"], nome="roteiro.txt"),
+                 dict(acao="editar", id=shared["id"], base64=encoded(b"cita ambiente-interno")),
+                 dict(acao="editar", id=shared["id"], nome="ambiente-interno.md"),
+                 dict(acao="editar", id=shared["id"]),
+                 dict(acao="editar", id=shared["id"], base64=encoded(b"x" * (materials.MAX_FILE + 1))),
+                 dict(acao="excluir", id="0" * 64),
+                 dict(acao="mover", id=shared["id"])]
+        for op in cases:
+            with self.subTest(op=op.get("nome") or op["acao"]), self.assertRaises(ValueError):
+                self.edit(anexos=[dict(acao="excluir", id=local["id"]), op])
+            self.assertEqual(self.store.get(self.task), current)
+            self.assertTrue(self.blob(shared).exists() and self.blob(local).exists())
+        # Arquivo local de outra máquina não pode ser renomeado sem o conteúdo.
+        self.blob(local).unlink()
+        with self.assertRaisesRegex(ValueError, "indisponível nesta máquina"):
+            self.edit(anexos=[dict(acao="editar", id=local["id"], nome="Outro nome.csv")])
+        self.edit(anexos=[dict(acao="excluir", id=local["id"])])
+        self.assertEqual([a["id"] for a in self.attachments()], [shared["id"]])
+
+    def test_cli_edits_and_deletes_with_revision(self):
+        config = self.private / "cfg.json"
+        config.write_text(json.dumps({"tasks": dict(self.cfg, root=str(self.store.root))}), encoding="utf-8")
+        parser = build_parser()
+        cli = lambda *args: run(parser.parse_args(["--config", str(config), *args]))
+        self.edit(anexos=[self.upload("roteiro.md", b"# Passos")])
+        key = self.attachments()[0]["id"]
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            parser.parse_args(["editar-anexo", self.task, key, "--excluir"])
+        revision = self.store.get(self.task)["revision"]
+        with self.assertRaisesRegex(ValueError, "--excluir sozinho"):
+            cli("editar-anexo", self.task, key, "--excluir", "--nome", "x.md", "--revision", revision)
+        source = self.private / "novo.md"
+        source.write_bytes(b"# Novo")
+        result = cli("editar-anexo", self.task, key, "--nome", "Roteiro.md", "--arquivo", str(source), "--revision", revision)
+        self.assertEqual(result["anexos"][0]["nome"], "Roteiro.md")
+        with self.assertRaises(Conflict):
+            cli("editar-anexo", self.task, result["anexos"][0]["id"], "--excluir", "--revision", revision)
+        cli("editar-anexo", self.task, result["anexos"][0]["id"], "--excluir", "--revision", self.store.get(self.task)["revision"])
+        self.assertEqual(self.attachments(), [])
 
     def test_site_accept_list_matches_allowed_extensions(self):
         site = (Path(materials.__file__).parent / "site" / "app.js").read_text(encoding="utf-8")

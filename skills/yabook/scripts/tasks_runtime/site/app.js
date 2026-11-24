@@ -778,9 +778,8 @@ function taskMaterials(detail, editable) {
       const local = storage.value === "local";
       const nome = name.value.trim() ? name.value.trim() + ext
         : local ? "Documento confidencial" + ext : selected.name;
-      const entry = pending() || { revision: detail.revision, items: [] };
-      const bytes = Object.values(app.anexosRascunho).flatMap(entry => entry.items).reduce((sum, item) => sum + item.file.size, 0);
-      if (bytes + selected.size > 1300000) {
+      const entry = pendingEntry();
+      if (draftBytes() + selected.size > 1300000) {
         error.textContent = "Salve os anexos atuais antes de incluir mais arquivos.";
         return;
       }
@@ -793,34 +792,129 @@ function taskMaterials(detail, editable) {
     h("button", { type: "submit", class: "botao pequeno" }, "Adicionar ao rascunho"));
   }
 
+  // Rascunho de anexos da tarefa: `items` são envios novos; `edits[chave]` guarda nome, arquivo/texto novo ou exclusão.
+  function pendingEntry() {
+    const entry = pending() || { revision: detail.revision, items: [], edits: {} };
+    entry.edits ??= {};
+    return entry;
+  }
+
+  function commitEntry(entry, message) {
+    if (entry.items.length || Object.keys(entry.edits).length) app.anexosRascunho[id] = entry;
+    else delete app.anexosRascunho[id];
+    renderFiles();
+    renderToolbar();
+    if (message) announce(message);
+  }
+
+  function editForm(item, edit) {
+    const ext = attachmentExt(item.nome);
+    const kind = previewKind(item.nome);
+    const textual = ["markdown", "texto", "json", "csv"].includes(kind);
+    const name = h("input", { maxlength: 160, value: edit.nome || item.nome, required: true });
+    const file = h("input", { type: "file", accept: ext });
+    const text = textual ? h("textarea", { rows: 12, class: "material-texto", spellcheck: "false", placeholder: "Carregando o conteúdo…", disabled: true }) : null;
+    const error = h("p", { class: "vazio", role: "status" });
+    // Base de comparação: o texto do rascunho, se já houver, ou o salvo.
+    let baseline = null;
+    const loadText = async () => {
+      if (!text || baseline !== null) return;
+      try {
+        baseline = decodeText(await (edit.file || await fetchAttachment(id, item)).arrayBuffer());
+        text.value = baseline;
+        text.disabled = false;
+        text.placeholder = "";
+      } catch (err) {
+        text.placeholder = "Não foi possível carregar o texto: " + err.message;
+      }
+    };
+    const form = h("form", { class: "material-form", onsubmit: event => {
+      event.preventDefault();
+      if (!app.editando || app.salvando) return;
+      const entry = pendingEntry();
+      const next = { ...entry.edits[item.id] };
+      const newName = name.value.trim();
+      if (attachmentExt(newName) !== ext) { error.textContent = `Mantenha a extensão ${ext} no nome.`; return; }
+      const chosen = file.files[0];
+      const textChanged = !!text && !text.disabled && text.value !== baseline;
+      if (chosen && textChanged) { error.textContent = "Escolha um arquivo novo ou edite o texto, não os dois."; return; }
+      const replacement = chosen || (textChanged ? new Blob([text.value], { type: "text/plain;charset=utf-8" }) : null);
+      if (replacement && (!replacement.size || replacement.size > 1000000)) { error.textContent = "O anexo deve ter entre 1 byte e 1 MB."; return; }
+      if (replacement && draftBytes() - (next.file?.size || 0) + replacement.size > 1300000) {
+        error.textContent = "Salve os anexos atuais antes de incluir mais arquivos."; return;
+      }
+      if (newName !== item.nome) next.nome = newName; else delete next.nome;
+      if (replacement) next.file = replacement;
+      if (!next.nome && !next.file) { error.textContent = "Nada mudou neste anexo."; return; }
+      entry.edits[item.id] = next;
+      commitEntry(entry, "Edição do anexo incluída no rascunho.");
+    } }, label(name, "Nome no card"), label(file, "Substituir arquivo (" + ext + ")"),
+      text ? label(text, "Conteúdo") : null, error,
+      h("div", { class: "material-acoes" },
+        h("button", { type: "submit", class: "botao pequeno" }, "Aplicar no rascunho"),
+        h("button", { type: "button", class: "botao pequeno perigo", onclick: () => {
+          if (!app.editando || app.salvando) return;
+          const entry = pendingEntry();
+          entry.edits[item.id] = { excluir: true };
+          commitEntry(entry, "Exclusão do anexo incluída no rascunho.");
+        } }, "Excluir anexo")));
+    const box = h("details", { class: "material-item" }, h("summary", {}, "Editar"), form);
+    box.addEventListener("toggle", () => { if (box.open) loadText(); });
+    return box;
+  }
+
   function renderFiles() {
     const files = data.anexos || [];
-    const staged = editable ? pending()?.items || [] : [];
-    // Navegação do visualizador: anexos salvos e do rascunho que o navegador consegue exibir.
+    const entry = editable ? pending() : null;
+    const staged = entry?.items || [];
+    const edits = entry?.edits || {};
+    const shownName = item => edits[item.id]?.nome || item.nome;
+    // Navegação do visualizador: anexos salvos (com a edição do rascunho) e novos que o navegador consegue exibir.
     const viewable = [
-      ...files.map(item => ({ item, nome: item.nome, tamanho: item.tamanho, nota: item.local ? "só nesta máquina" : null,
-        load: () => fetchAttachment(id, item) })),
+      ...files.filter(item => !edits[item.id]?.excluir).map(item => {
+        const edit = edits[item.id];
+        return { item, nome: shownName(item), tamanho: edit?.file?.size ?? item.tamanho,
+          nota: edit ? "editado no rascunho" : item.local ? "só nesta máquina" : null,
+          load: () => edit?.file ? Promise.resolve(edit.file) : fetchAttachment(id, item) };
+      }),
       ...staged.map(item => ({ item, nome: item.nome, tamanho: item.file.size, nota: "no rascunho", load: async () => item.file })),
     ].filter(entry => previewKind(entry.nome));
     const viewButton = item => {
       const index = viewable.findIndex(entry => entry.item === item);
       return index < 0 ? null : h("button", { type: "button", class: "botao pequeno", onclick: () => openPreview(viewable, index) }, "Visualizar");
     };
+    const undo = item => h("button", { type: "button", class: "botao pequeno", onclick: () => {
+      if (!app.editando || app.salvando) return;
+      const current = pendingEntry();
+      delete current.edits[item.id];
+      commitEntry(current, "Edição do anexo desfeita.");
+    } }, "Desfazer");
+    const savedRow = item => {
+      const edit = edits[item.id];
+      if (edit?.excluir) {
+        return h("div", { class: "material-arquivo material-excluido" },
+          h("span", {}, item.nome + " · será excluído ao salvar"), undo(item));
+      }
+      const marks = [edit?.nome ? "renomeado" : null, edit?.file ? "conteúdo novo" : null].filter(Boolean);
+      return h("div", { class: "material-anexo" },
+        h("div", { class: "material-arquivo" },
+          h("span", {}, shownName(item), item.local ? " · só nesta máquina" : "", marks.length ? ` · ${marks.join(" e ")} no rascunho` : ""),
+          viewButton(item),
+          h("button", { type: "button", class: "botao pequeno", onclick: () => downloadAttachment(id, item) }, "Baixar"),
+          edit ? undo(item) : null),
+        editable ? editForm(item, edit || {}) : null);
+    };
     fill(filesPanel, h("header", {}, h("h3", {}, "Anexos")),
       h("div", { class: "comentario-corpo material-lista" },
-        files.map(item => h("div", { class: "material-arquivo" },
-          h("span", {}, item.nome, item.local ? " · só nesta máquina" : ""),
-          viewButton(item),
-          h("button", { type: "button", class: "botao pequeno", onclick: () => downloadAttachment(id, item) }, "Baixar"))),
+        files.map(savedRow),
         staged.map((item, index) => h("div", { class: "material-arquivo" },
           h("span", {}, item.nome + " · no rascunho"),
           viewButton(item),
           h("button", { type: "button", class: "botao pequeno", onclick: () => {
             if (!app.editando || app.salvando) return;
-            pending().items.splice(index, 1);
-            if (!pending().items.length) delete app.anexosRascunho[id];
-            renderFiles();
-            renderToolbar();
+            const current = pendingEntry();
+            current.items.splice(index, 1);
+            commitEntry(current);
           } }, "Remover do rascunho"))),
         !files.length && !staged.length ? h("p", { class: "vazio" }, "Nenhum anexo.") : null,
         editable ? h("details", { class: "material-item" }, h("summary", {}, "Anexar arquivo"),
@@ -830,6 +924,13 @@ function taskMaterials(detail, editable) {
   renderNotes();
   renderFiles();
   return [notesPanel, filesPanel];
+}
+
+// Bytes pendentes no rascunho de anexos (envios novos e substituições), limitados por salvamento.
+function draftBytes() {
+  return Object.values(app.anexosRascunho).reduce((sum, entry) => sum
+    + entry.items.reduce((total, item) => total + item.file.size, 0)
+    + Object.values(entry.edits || {}).reduce((total, edit) => total + (edit.file?.size || 0), 0), 0);
 }
 
 function fileBase64(file) {
@@ -849,8 +950,12 @@ async function draftChanges(draft, files) {
     // Envie a revisão de cada edição. Mesmo um anexo isolado pode ficar desatualizado.
     const revisions = [entry.revision, pending?.revision].filter(Boolean);
     const revision = new Set(revisions).size === 1 ? revisions[0] : null;
-    const anexos = await Promise.all((pending?.items || []).map(async x =>
-      ({ nome: x.nome, local: x.local, base64: await fileBase64(x.file) })));
+    // Edições e exclusões primeiro (por chave do anexo salvo), depois os envios novos.
+    const edits = await Promise.all(Object.entries(pending?.edits || {}).map(async ([key, edit]) => edit.excluir
+      ? { acao: "excluir", id: key }
+      : { acao: "editar", id: key, ...(edit.nome ? { nome: edit.nome } : {}), ...(edit.file ? { base64: await fileBase64(edit.file) } : {}) }));
+    const anexos = edits.concat(await Promise.all((pending?.items || []).map(async x =>
+      ({ nome: x.nome, local: x.local, base64: await fileBase64(x.file) }))));
     return { id, revision, campos: entry.campos, unset: entry.unset || [], registro: entry.registro,
       anotacoes: entry.anotacoes || [], anexos };
   }));

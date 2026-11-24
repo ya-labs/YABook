@@ -312,6 +312,7 @@ class Tasks:
             fields, blobs = materials.prepare(self.store, self.cfg, task, list(operations), list(uploads))
             materials.write_blobs(blobs)
             result = self.edit(identifier, fields, expected_revision=task["revision"])
+            materials.drop_blobs(blobs)
             return dict(result, anotacoes=fields.get("anotacoes", []), anexos=fields.get("anexos", []))
 
     def move(self, identifier, papel, note=None):

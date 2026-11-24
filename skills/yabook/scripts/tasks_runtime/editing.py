@@ -80,6 +80,7 @@ def save(store, cfg, body):
             materials.write_blobs(item["blobs"])
             before = store.get(item["id"])["data"]
             result = tasks.edit(item["id"], item["campos"], item["unset"], item.get("registro"), item["revision"])
+            materials.drop_blobs(item["blobs"])
             applied.append(dict(acao="tarefa", id=item["id"], titulo=item["campos"].get("titulo", before["titulo"]),
                                 de=before.get("coluna"), para=result["coluna"],
                                 campos=sorted(set(item["campos"]) | set(item["unset"]) - {"coluna", "ordem"}),

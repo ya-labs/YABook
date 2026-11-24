@@ -134,45 +134,104 @@ def prepare(store, cfg, task, operations, uploads):
             raise ValueError("Anotação contém termo confidencial. Use o complemento local.")
         notes[number] = dict(numero=number, titulo=title, texto=text)
 
+    # Anexo novo (sem `acao`), `editar` (nome e/ou conteúdo, mesma extensão) ou `excluir`, por id.
+    # O id é o hash de nome, armazenamento e conteúdo: editar gera id e arquivo novos e o antigo
+    # entra em `blobs` com valor None, para ser removido só depois de gravar a tarefa.
+    order = list(items)
     for upload in uploads:
-        if not isinstance(upload, dict) or type(upload.get("local")) is not bool:
-            raise ValueError("Informe se o anexo é confidencial")
-        local = upload["local"]
-        name = _name(upload.get("nome"))
-        encoded = upload.get("base64")
-        if not isinstance(encoded, str) or len(encoded) > 4 * ((MAX_FILE + 2) // 3):
-            raise ValueError("Cada anexo pode ter até 1 MB")
-        try:
-            raw = base64.b64decode(encoded, validate=True)
-        except (ValueError, binascii.Error) as error:
-            raise ValueError("Conteúdo do anexo inválido") from error
-        if not 1 <= len(raw) <= MAX_FILE:
-            raise ValueError("O anexo deve ter entre 1 byte e 1 MB")
-        if find_terms(name, store.terms):
-            raise ValueError("Use um nome genérico no card para o anexo confidencial")
-        if not local and Path(name).suffix.lower() in TEXT_EXTENSIONS:
-            try:
-                content = raw.decode("utf-8-sig")
-            except UnicodeDecodeError as error:
-                raise ValueError("Anexo compartilhado de texto precisa estar em UTF-8") from error
-            if find_terms(content, store.terms):
-                raise ValueError("Anexo contém termo confidencial. Use armazenamento local.")
+        if not isinstance(upload, dict):
+            raise ValueError("Operação de anexo inválida")
+        action = upload.get("acao")
+        if action is None:
+            if type(upload.get("local")) is not bool:
+                raise ValueError("Informe se o anexo é confidencial")
+            local, name = upload["local"], _name(upload.get("nome"))
+            raw = _content(store, name, local, upload.get("base64"))
+            old = None
+        elif action in ("editar", "excluir"):
+            old = items.get(upload.get("id")) if isinstance(upload.get("id"), str) else None
+            if old is None:
+                raise ValueError("Operação refere-se a um anexo inexistente")
+            blobs[blob_path(store, cfg, current["id"], old)] = None
+            del items[old["id"]]
+            if action == "excluir":
+                continue
+            local = old["local"]
+            name = _name(upload["nome"]) if upload.get("nome") is not None else old["nome"]
+            if Path(name).suffix.lower() != Path(old["nome"]).suffix.lower():
+                raise ValueError("Renomeie o anexo mantendo a extensão " + Path(old["nome"]).suffix.lower())
+            if upload.get("base64") is not None:
+                raw = _content(store, name, local, upload["base64"])
+            elif name == old["nome"]:
+                raise ValueError("Informe um nome novo ou um conteúdo novo para o anexo")
+            else:
+                try:
+                    raw = read_attachment(store, cfg, current["id"], old["id"])[1]
+                except KeyError as error:
+                    raise ValueError("Arquivo do anexo indisponível nesta máquina; não é possível renomear") from error
+                _check(store, name, local, raw)
+        else:
+            raise ValueError("Ação de anexo inválida: %s" % action)
         key = _attachment_id(name, local, raw)
+        if key in items:
+            raise ValueError("Já existe um anexo igual nesta tarefa: " + name)
         item = dict(id=key, nome=name, local=local, tamanho=len(raw))
         path = blob_path(store, cfg, current["id"], item)
         items[key] = item
+        if old is not None:
+            order[order.index(old["id"])] = key  # mantém a posição do anexo editado
+        else:
+            order.append(key)
         blobs[path] = raw
 
     if operations:
         fields.update(anotacoes=list(notes.values()), anotacoes_seq=seq)
     if uploads:
-        fields["anexos"] = list(items.values())
+        fields["anexos"] = [items[key] for key in order if key in items]
     validate(dict(current, **fields))
     return fields, blobs
 
 
+def _content(store, name, local, encoded):
+    if not isinstance(encoded, str) or len(encoded) > 4 * ((MAX_FILE + 2) // 3):
+        raise ValueError("Cada anexo pode ter até 1 MB")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+    except (ValueError, binascii.Error) as error:
+        raise ValueError("Conteúdo do anexo inválido") from error
+    _check(store, name, local, raw)
+    return raw
+
+
+def _check(store, name, local, raw):
+    if not 1 <= len(raw) <= MAX_FILE:
+        raise ValueError("O anexo deve ter entre 1 byte e 1 MB")
+    if find_terms(name, store.terms):
+        raise ValueError("Use um nome genérico no card para o anexo confidencial")
+    if not local and Path(name).suffix.lower() in TEXT_EXTENSIONS:
+        try:
+            content = raw.decode("utf-8-sig")
+        except UnicodeDecodeError as error:
+            raise ValueError("Anexo compartilhado de texto precisa estar em UTF-8") from error
+        if find_terms(content, store.terms):
+            raise ValueError("Anexo contém termo confidencial. Use armazenamento local.")
+
+
 def write_blobs(blobs):
+    """Grava os arquivos novos; os marcados com None são removidos depois, por drop_blobs."""
     from .store import atomic_write
 
     for path, raw in blobs.items():
-        atomic_write(path, raw)
+        if raw is not None:
+            atomic_write(path, raw)
+
+
+def drop_blobs(blobs):
+    """Remove arquivos substituídos ou excluídos, depois que a tarefa já aponta para os novos."""
+    for path, raw in blobs.items():
+        if raw is None:
+            Path(path).unlink(missing_ok=True)
+            try:
+                Path(path).parent.rmdir()  # pasta da tarefa vazia
+            except OSError:
+                pass

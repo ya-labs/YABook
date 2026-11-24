@@ -295,6 +295,33 @@ vm.runInContext('app.estado={hoje:"2026-11-19"}; app.rascunho=emptyDraft(); app.
         self.assertEqual(actual["captured"], ["Capturado na ficha: 0min · Extras: 30min"])
         self.assertEqual(actual["legacy"], .75)
 
+    def test_attachment_draft_sends_edits_before_new_uploads(self):
+        script = r"""
+const fs = require("node:fs"), vm = require("node:vm");
+class FileReader {
+  readAsDataURL(blob) { blob.arrayBuffer().then(buf => { this.result = "data:x;base64," + Buffer.from(buf).toString("base64"); this.onload(); }); }
+}
+const ctx = vm.createContext({Blob, FileReader, TextDecoder, window:{addEventListener(){}},
+  document:{querySelector(){return null;}, addEventListener(){}, createElement(){return {style:{}, setAttribute(){}};}}});
+vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),ctx);
+vm.runInContext(`app.anexosRascunho = {t1: {revision: "r1", items: [{nome: "novo.txt", local: false, file: new Blob(["novo"])}],
+  edits: {a: {excluir: true}, b: {nome: "Outro.md"}, c: {file: new Blob(["oi"])}, d: {nome: "x.csv", file: new Blob(["1;2"])}}}};`, ctx);
+(async () => {
+  const changes = await vm.runInContext('draftChanges({tarefas: {}}, app.anexosRascunho)', ctx);
+  process.stdout.write(JSON.stringify({changes, bytes: vm.runInContext("draftBytes()", ctx)}));
+})().catch(e => { console.error(e); process.exit(1); });
+"""
+        result = subprocess.run(["node", "-e", script, str(SITE)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        actual = json.loads(result.stdout)
+        change = actual["changes"][0]
+        self.assertEqual((change["id"], change["revision"]), ("t1", "r1"))
+        self.assertEqual(change["anexos"], [
+            dict(acao="excluir", id="a"), dict(acao="editar", id="b", nome="Outro.md"),
+            dict(acao="editar", id="c", base64="b2k="), dict(acao="editar", id="d", nome="x.csv", base64="MTsy"),
+            dict(nome="novo.txt", local=False, base64="bm92bw==")])
+        self.assertEqual(actual["bytes"], 9)
+
     def test_same_date_only_shows_parent(self):
         self.assertEqual(self.deadlines(self.task("epico", "2026-12-18"),
                                         self.task("historia", "2026-12-18", "epico")), ["epico"])
