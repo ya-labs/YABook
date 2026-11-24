@@ -142,7 +142,8 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task ask <pergunta>` | `ask [--sobre <id>]`; resposta dada na conversa: o agente grava `answer <id> <resposta>` |
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task retroativo` | `retroativo --sessao <id-do-aviso>` mostra as janelas. Após `do task retroativo`, use `--apply --approval-hash <hash-da-previa>` |
-| `task log <id> <horas> [obs]` | `log [--data]`: horas manuais em `horas/AAAA-MM-<maquina>.jsonl` |
+| `task log <id> <horas> [obs]` | `log [--data]`: duração manual sem horário |
+| `task log <id>` com início e fim | `log <id> --inicio HH:MM --fim HH:MM [--data] [--observacao]`: calcula a duração do intervalo |
 | `task horas mover` | `horas mover --data --de --para [--janelas]`: janelas do dia para outra tarefa |
 | `task board` | `board --serve [--port]`: site em `127.0.0.1` (porta `tasks.port` ou 8765), com modo Editar; `--output <arquivo>`: cópia estática |
 | `task issue` | `issue --fase inicio\|revisao\|integrado [--ref] [--registro] [--pr]`: tarefa da issue; o hook aplica na branch (e copia o `Size` por `--size-da-issue`), no PR e no merge |
@@ -188,7 +189,8 @@ resumo), da base confidencial, das issues e das tarefas. Lote JSON no scratchpad
   (histórico do que já foi feito), `complemento` (detalhe
   confidencial, só onde há base) e `chave` local.
 - `perguntas` (`texto`, `sobre`), `ativa` (chave) e `horas` (`tarefa`, `data`,
-  `horas`, `obs`) só quando a conversa informar dia e quantidade.
+  `obs` opcional). Em `horas`, use `inicio` e `fim` se a pessoa informar
+  o horário. Use o campo `horas` se ela informar só a duração.
 
 Sem `--apply`, devolve a prévia. A captura casa por `id`, issue, código ou título
 e aceita atualizações parciais de tarefas existentes. A prévia e a aplicação
@@ -259,9 +261,18 @@ captura também na configuração global do host, ou ela roda duas vezes.
 - Na Ficha, em Editar, cada janela pode ser desconsiderada, considerada de novo ou
   movida para outra tarefa (`task horas mover --data --de --para [--janelas]`).
   Correções preservam o histórico, valem entre máquinas e não duplicam tempo.
-- `Capturado` = janelas diretas, sem sobreposição (janela simultânea é dividida);
-  `Acumulado` soma frentes simultâneas e lançamentos (`Informado`) e pode passar
-  do dia. São estimativas, não cronômetro; Semana e Ficha usam o mesmo capturado.
+- Em lançamentos manuais, registre o intervalo exato se informado, por exemplo
+  `task log @129 --inicio 10:40 --fim 12:00 --data 2026-11-24`. A duração é
+  calculada no mesmo dia. Use `24:00` como fim de um intervalo que termina
+  à meia-noite e dois lançamentos para atravessar a virada.
+- Na linha do tempo, intervalos manuais aparecem como **Informado**. Seus minutos
+  têm prioridade sobre a captura automática. Intervalos manuais simultâneos
+  dividem o minuto entre as tarefas e repetições da mesma tarefa contam uma vez.
+  Lançamentos só com duração aparecem em Informado, sem posição na linha do tempo.
+- **Tempo com horário** soma a captura efetiva e os minutos informados com horário.
+  **Acumulado** soma as frentes automáticas simultâneas onde não há horário
+  informado e inclui lançamentos sem horário. A Ficha, a Semana e o card usam
+  a mesma prioridade. Esses tempos são estimativas a partir dos registros.
 - `Rateado` sugere até +50% sobre a base, no máximo 1 h por código, limitado ao
   saldo de `ficha.horas_dia` (8), proporcional; não força a jornada nem reduz
   bases maiores; `ficha.arredondamento` não se aplica ao rateio. A pessoa escolhe

@@ -122,9 +122,12 @@ def build_parser():
     answer.add_argument("resposta")
     log = sub.add_parser("log", help="Lança horas manuais")
     log.add_argument("id")
-    log.add_argument("horas")
+    log.add_argument("horas", nargs="?")
     log.add_argument("obs", nargs="?")
     log.add_argument("--data")
+    log.add_argument("--inicio", help="Início do intervalo em HH:MM")
+    log.add_argument("--fim", help="Fim do intervalo em HH:MM")
+    log.add_argument("--observacao", help="Observação para lançamento com horário")
     sub.add_parser("sync", help="Commit local, pull com rebase e push")
     clean = sub.add_parser("clean", help="Faxina: concluídas antigas e duplicatas")
     clean.add_argument("--days", type=int, default=30)
@@ -306,7 +309,7 @@ def run(args):
     if args.command == "answer":
         return tasks.answer(args.id, args.resposta)
     if args.command == "log":
-        return tasks.log(args.id, args.horas, args.obs, args.data)
+        return tasks.log(args.id, args.horas, args.observacao or args.obs, args.data, inicio=args.inicio, fim=args.fim)
     if args.command == "sync":
         return sync(store.root)
     if args.command == "sheet":

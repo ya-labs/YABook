@@ -10,7 +10,7 @@ Lote (JSON):
            proximo_passo?, relatorio_conclusao?, refs?, estado? (papel ou coluna), registro?, complemento?}]
   perguntas: [{texto, sobre? (chave ou id)}]
   ativa: chave ou id
-  horas: [{tarefa (chave ou id), data, horas, obs?}]
+  horas: [{tarefa (chave ou id), data, horas ou inicio/fim, obs?}]
 """
 import hashlib
 import json
@@ -19,6 +19,7 @@ from pathlib import Path
 from . import events, tree
 from .commands import Tasks, _append_log, _plain, parse_date, validate_task_details
 from .precommit_hook import find_terms
+from .sheet import manual_time
 from .store import PAPEIS, TIPOS, Conflict, atomic_write, check_tree, infer_level, now
 
 FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha", "aguardando", "descricao", "relatorio_conclusao", "size")
@@ -79,12 +80,13 @@ class Capture:
         for index, entry in enumerate(batch.get("horas") or []):
             where = "horas[%d]" % index
             target = self._resolve(entry.get("tarefa"), keys, where + ".tarefa")
-            value = float(str(entry.get("horas", "")).replace(",", ".").rstrip("hH") or 0)
-            if not 0 < value <= 24:
-                raise ValueError(where + ": horas fora do intervalo do dia")
+            try:
+                duration = manual_time(entry.get("horas"), entry.get("inicio"), entry.get("fim"))
+            except ValueError as error:
+                raise ValueError(where + ": " + str(error)) from error
             if not entry.get("data"):
                 raise ValueError(where + ": informe o dia; horas passadas exigem data explícita")
-            hours.append(dict(tarefa=target, data=parse_date(entry["data"]), horas=value, obs=_text(entry.get("obs"))))
+            hours.append(dict(tarefa=target, data=parse_date(entry["data"]), obs=_text(entry.get("obs")), **duration))
         if any(o.get("complemento") for o in ops) and not self.cfg.get("confidential"):
             raise ValueError("Complemento sem base confidencial nesta máquina; omita `complemento` ou configure a base")
         current = {t["data"]["id"]: t["data"] for t in self.store.list()}
@@ -338,9 +340,7 @@ class Capture:
 
     def _write_hours(self, entry):
         machine = events._machine(self.cfg.get("machine"))
-        line = dict(tipo="manual", data=entry["data"], tarefa=entry["tarefa"], horas=entry["horas"], ts=now())
-        if entry.get("obs"):
-            line["obs"] = entry["obs"]
+        line = dict(tipo="manual", ts=now(), **{k: v for k, v in entry.items() if v is not None})
         path = self.store.root / "horas" / ("%s-%s.jsonl" % (entry["data"][:7], machine))
         path.parent.mkdir(exist_ok=True)
         with path.open("a", encoding="utf-8", newline="\n") as stream:

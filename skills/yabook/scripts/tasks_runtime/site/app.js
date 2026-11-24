@@ -1663,23 +1663,25 @@ const VIEWS = {
     async render(estado) {
       const ref = app.semana || estado.hoje;
       const [week, sheetWeek] = await Promise.all([api("/api/semana?data=" + ref), api("/api/ficha?semana=1&data=" + ref)]);
-      const total = week.dias.reduce((sum, d) => sum + d.horas, 0);
+      const withTime = (day) => day.horas + (day.informado_com_horario || 0);
+      const hasTimed = week.dias.some((day) => day.informado_com_horario > 0);
+      const total = week.dias.reduce((sum, day) => sum + withTime(day), 0);
       const accumulated = week.dias.reduce((sum, d) => sum + (d.acumulado ?? d.horas), 0);
-      const peak = Math.max(1, ...week.dias.map((d) => d.horas));
+      const peak = Math.max(1, ...week.dias.map(withTime));
       return h("section", {},
         dayNav("semana", ref, 7, `Semana de ${fmtDate(week.inicio)}`),
         // Resumo e rateio lado a lado, antes dos dias: o total e a divisão por código ficam juntos.
         h("div", { class: "semana-resumo" },
           h("div", { class: "semana-totais" },
-            h("div", { class: "numero" }, h("b", { title: recordedTime(total) }, summaryTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, "Capturado (estimativa)")),
-            h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas; capturado conta o tempo sobreposto uma vez.`)),
+            h("div", { class: "numero" }, h("b", { title: recordedTime(total) }, summaryTime(total)), h("span", { class: "numero-icone" }, icon("ficha")), h("span", { class: "numero-nome" }, hasTimed ? "Tempo com horário" : "Capturado (estimativa)")),
+            h("p", { class: "vazio" }, `Acumulado ${summaryTime(accumulated)}: soma as frentes simultâneas e os lançamentos sem horário.`)),
           h("section", { class: "totais-semana" }, h("h2", {}, "Rateio sugerido na semana"),
             !Array.isArray(sheetWeek.totais) ? h("p", { class: "vazio" }, "Totais semanais disponíveis no painel local.")
               : sheetWeek.totais.length ? h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Tipo"), h("th", {}, "Código"), h("th", { class: "num" }, "Total"))),
               h("tbody", {}, sheetWeek.totais.map((r) => h("tr", {}, h("td", {}, label(r.tipo)), h("td", {}, r.codigo || "Sem código"), h("td", { class: "num" }, summaryTime(r.total))))))
               : h("p", { class: "vazio" }, "Sem horas que contam na ficha nesta semana."))),
         h("h2", {}, "Por dia", h("span", { class: "legenda-barra" }, "barra: atividade em relação ao dia mais ativo")),
-        h("div", { class: "semana-grade" }, week.dias.map((day) => day.data > estado.hoje && !day.horas
+        h("div", { class: "semana-grade" }, week.dias.map((day) => day.data > estado.hoje && !withTime(day) && !day.informado
           ? h("article", { class: "dia-card futuro" },  // dia futuro compacto
             h("div", { class: "dia-topo" }, h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10))),
             h("p", { class: "dia-vazio" }, "Ainda não chegou"))
@@ -1691,12 +1693,12 @@ const VIEWS = {
               title: SNAPSHOT && day.data !== SNAPSHOT.ficha.data ? "Ficha deste dia disponível no painel local" : "Abrir ficha de " + fmtDate(day.data),
               onclick: () => { app.ficha = day.data; location.hash = "ficha"; } },
               h("span", {}, weekday(day.data)), h("strong", {}, day.data.slice(8, 10)))),
-          h("div", { class: "dia-horas" }, h("strong", { title: recordedTime(day.horas) }, summaryTime(day.horas)), h("span", {}, "capturadas")),
+          h("div", { class: "dia-horas" }, h("strong", { title: recordedTime(withTime(day)) }, summaryTime(withTime(day))), h("span", {}, day.informado_com_horario ? "com horário" : "capturadas")),
           h("p", { class: "vazio" }, `Acumulado: ${summaryTime(day.acumulado ?? day.horas)}`),
           day.informado ? h("p", { class: "vazio" }, `Informado: ${recordedTime(day.informado)}`) : null,
-          h("div", { class: "dia-barra", "aria-hidden": "true", title: "Atividade em relação ao dia mais ativo da semana" }, h("i", { style: `width:${Math.round(day.horas / peak * 100)}%` })),
+          h("div", { class: "dia-barra", "aria-hidden": "true", title: "Atividade em relação ao dia mais ativo da semana" }, h("i", { style: `width:${Math.round(withTime(day) / peak * 100)}%` })),
           day.tarefas.length ? h("ul", { class: "dia-tarefas" }, day.tarefas.slice(0, 3).map((task) =>
-            h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, recordedTime(task.horas)))))
+            h("li", {}, h("button", { class: "link", type: "button", title: task.titulo, onclick: () => openTask(task.tarefa) }, task.titulo), h("span", {}, recordedTime(task.horas + (task.informado || 0))))))
             : h("p", { class: "dia-vazio" }, day.data > estado.hoje ? "Ainda não chegou" : "Sem atividade"),
           day.tarefas.length > 3 ? h("button", { class: "link dia-mais", type: "button", disabled: !!SNAPSHOT && day.data !== SNAPSHOT.ficha.data,
             onclick: () => { app.ficha = day.data; location.hash = "ficha"; } }, `+${day.tarefas.length - 3} tarefas na ficha`) : null))));
@@ -1720,6 +1722,9 @@ const VIEWS = {
       const registeredSheet = rows.reduce((sum, row) => sum + (row.registrado ?? row.capturado ?? 0), 0);
       const difference = sheet.horas_dia - registeredSheet;
       const hasManual = !!sheet.informado_total;
+      const timedManual = sheet.informado_com_horario || 0;
+      const timeline = [...(sheet.janelas || []), ...(sheet.intervalos_informados || [])]
+        .sort((a, b) => a.janela.localeCompare(b.janela));
       const balance = sheet.horas_dia - sheet.total;
       const metric = (name, value, detail, symbol) => h("div", { class: "ficha-metrica" },
         h("span", { class: "ficha-metrica-nome" }, icon(symbol), name),
@@ -1730,7 +1735,9 @@ const VIEWS = {
           h("span", { class: "ficha-jornada" }, `Jornada de ${recordedTime(sheet.horas_dia)}`)),
         h("div", { class: "ficha-indicadores", "aria-label": "Resumo do dia" },
           // Composição com segundos: as parcelas somam exatamente o total, sem parecer divergência de arredondamento.
-          metric("Capturado", sheet.capturado_total, `${recordedTime(capturedSheet)} na ficha + ${recordedTime(capturedExtras)} extras`, "ficha"),
+          timedManual ? metric("Tempo com horário", sheet.atividade_com_horario,
+            `${recordedTime(sheet.capturado_total)} capturado + ${recordedTime(timedManual)} informado`, "ficha")
+            : metric("Capturado", sheet.capturado_total, `${recordedTime(capturedSheet)} na ficha + ${recordedTime(capturedExtras)} extras`, "ficha"),
           metric("Rateio sugerido", sheet.total, "Demandas e projetos", "camadas"),
           metric(balance >= 0 ? "Saldo após rateio" : "Acima da jornada", Math.abs(balance),
             balance >= 0 ? "Para completar a jornada" : "Revise os tempos do dia", "alvo")),
@@ -1765,9 +1772,10 @@ const VIEWS = {
               h("dl", { class: "ficha-definicoes" },
                 h("div", {}, h("dt", {}, "Capturado"), h("dd", {}, "Estimativa por janelas de 30 minutos. Janelas antigas valem 15 minutos. Frentes simultâneas dividem o tempo sobreposto.")),
                 h("div", {}, h("dt", {}, "Rateado"), h("dd", {}, "Sugestão com até 50% de margem, limitada a 1h por código e ao saldo da jornada. Você decide o que apontar.")),
+                h("div", {}, h("dt", {}, "Informado"), h("dd", {}, "Lançamento manual. Com início e fim, tem prioridade nos minutos sobrepostos à captura.")),
                 h("div", {}, h("dt", {}, "Acumulado"), h("dd", {}, `${recordedTime(sheet.acumulado_total)} somando frentes simultâneas e lançamentos existentes.`))),
               h("p", { class: "ficha-nota" }, `Capturado na ficha: ${recordedTime(capturedSheet)} · Extras: ${recordedTime(capturedExtras)}`),
-              hasManual ? h("p", { class: "ficha-nota" }, `Informado: ${recordedTime(sheet.informado_total)} em lançamentos existentes.`) : null,
+              hasManual ? h("p", { class: "ficha-nota" }, `Informado: ${recordedTime(timedManual)} com horário · ${recordedTime(Math.max(0, sheet.informado_total - timedManual))} sem horário`) : null,
               h("p", { class: "ficha-nota" }, difference >= 0 ? `Saldo usando a base capturada/informada: ${recordedTime(difference)}` : `Base acima da jornada: ${recordedTime(-difference)}`))),
           h("details", { class: "ficha-detalhes" },
             h("summary", {}, icon("laptop"), h("span", {}, "Extras"), h("span", { class: "ficha-detalhes-meta" }, `${sheet.extras.length} · ${recordedTime(registeredExtras)}`)),
@@ -1776,17 +1784,22 @@ const VIEWS = {
                 h("button", { class: "link", type: "button", onclick: () => openTask(e.tarefa) }, e.titulo), h("strong", { title: extraDetail(e) }, recordedTime(extraRecorded(e))))))
                 : h("p", { class: "vazio" }, "Nenhum extra."))),
           h("details", { class: "ficha-detalhes ficha-janelas", open: app.editando || pendingWindows },
-            h("summary", {}, icon("historico"), h("span", {}, "Janelas de atividade"), h("span", { class: "ficha-detalhes-meta" }, (sheet.janelas || []).length)),
+            h("summary", {}, icon("historico"), h("span", {}, "Janelas de atividade"), h("span", { class: "ficha-detalhes-meta" }, timeline.length)),
             h("div", { class: "ficha-detalhes-corpo" },
               h("p", { class: "ficha-nota" }, app.editando ? "Desconsidere as janelas que não representam trabalho e salve as alterações." : "Use Editar para revisar quais janelas entram nos tempos do dia."),
-              sheet.janelas && sheet.janelas.length ? h("div", { class: "ficha-tabela-apoio" }, h("table", {},
+              timeline.length ? h("div", { class: "ficha-tabela-apoio" }, h("table", {},
                 h("thead", {}, h("tr", {}, ["Horário", "Tarefa", "Estado", ...(app.editando ? ["Ação"] : [])].map((c) => h("th", { scope: "col" }, c)))),
-                h("tbody", {}, sheet.janelas.map((j) => {
+                h("tbody", {}, timeline.map((j) => {
+                  if (j.fim) return h("tr", {},
+                    h("td", {}, `${j.janela}–${j.fim} · ${recordedTime(j.minutos / 60)}`),
+                    h("td", {}, h("button", { class: "link", type: "button", onclick: () => openTask(j.tarefa) }, j.titulo)),
+                    h("td", {}, h("span", { class: "selo neutro" }, "Informado")), app.editando ? h("td", {}) : null);
                   const pending = (app.rascunho.correcoes || []).find((c) => c.data === day && c.janela === j.janela && c.tarefa === j.tarefa);
                   const ignored = pending && "ignorar" in pending ? pending.ignorar : j.ignorar;
                   const target = pending && pending.para ? windowTargets().find((t) => t.id === pending.para) : null;
                   return h("tr", {}, h("td", {}, `${j.janela} · ${j.minutos ?? 15} min`), h("td", {}, target ? `${j.titulo} → ${target.titulo}` : j.titulo),
-                    h("td", {}, h("span", { class: "selo neutro" }, ignored ? "Desconsiderada" : "Considerada")),
+                    h("td", {}, h("span", { class: "selo neutro" }, ignored ? "Desconsiderada" :
+                      j.minutos_cobertos ? `${j.minutos_cobertos} min cobertos por informado` : "Considerada")),
                     app.editando ? h("td", { class: "janela-acoes" },
                       h("button", { class: "botao", type: "button", onclick: () => toggleWindow(day, j, !ignored) }, ignored ? "Considerar" : "Desconsiderar"),
                       h("select", { "aria-label": "Mover janela para outra tarefa", onchange: (e) => moveWindow(day, j, e.target.value) },

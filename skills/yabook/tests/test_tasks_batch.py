@@ -89,6 +89,17 @@ class BatchTest(unittest.TestCase):
         self.assertEqual(len(captured), 1)
         self.assertTrue(captured[0]["analisado"])
 
+    def test_capture_persists_manual_time_range(self):
+        batch = conversation()
+        batch["horas"][0].pop("horas")
+        batch["horas"][0].update(inicio="10:40", fim="12:00")
+        plan = self.capture.plan(batch)
+        self.assertEqual(plan["horas"][0]["horas"], 80 / 60)
+        self.capture.apply(batch, plan["approval_hash"])
+        line = (self.root / "horas" / "2026-11-trabalho.jsonl").read_text().splitlines()[0]
+        entry = json.loads(line)
+        self.assertEqual((entry["inicio"], entry["fim"], entry["horas"]), ("10:40", "12:00", 80 / 60))
+
     def test_repeating_the_batch_does_not_duplicate(self):
         self.capture.apply(conversation())
         before = self.ids()
