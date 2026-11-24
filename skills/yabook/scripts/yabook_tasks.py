@@ -72,6 +72,7 @@ def build_parser():
         command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
         command.add_argument("--proximo-passo")
         command.add_argument("--descricao", help="Objetivo e escopo vigente em Markdown")
+        command.add_argument("--relatorio-conclusao", help="Resumo da entrega, mudanças e validações em Markdown")
         command.add_argument("--size", type=int, choices=range(1, 6), metavar="1-5",
                              help="Tamanho na escala de Size das issues (entrega com agentes)")
         command.add_argument("--ficha", help="Texto curto do item na observação da ficha de horas")
@@ -174,7 +175,7 @@ def build_parser():
     return parser
 
 
-FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai", "ficha", "aguardando", "descricao", "size")
+FIELDS = ("coluna", "prazo", "projeto", "demanda", "sobre", "ordem", "nivel", "pai", "ficha", "aguardando", "descricao", "relatorio_conclusao", "size")
 
 
 def fields(args, existing=None):
@@ -337,7 +338,9 @@ def run(args):
             merged = issueflow.merged_pr(args.repo_dir, args.pr)
             if not merged:
                 return dict(id=None, motivo="PR não integrado ou sem issue na branch")
-            return issueflow.advance(store, cfg, merged[0], "integrado", args.registro, "#%s" % args.pr) or dict(id=None, ref=merged[0])
+            ref, report = merged
+            return issueflow.advance(store, cfg, ref, "integrado", args.registro, "#%s" % args.pr,
+                                     relatorio=report) or dict(id=None, ref=ref)
         ref = args.ref or issueflow.ref_from_branch(args.repo_dir)
         if ref and args.size_da_issue:
             return issueflow.sync_size(store, cfg, ref)

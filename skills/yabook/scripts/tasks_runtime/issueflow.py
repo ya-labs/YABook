@@ -13,6 +13,7 @@ import subprocess
 from pathlib import Path
 
 from .commands import Tasks
+from .precommit_hook import find_terms
 from .store import atomic_write, now
 
 PHASES = ("inicio", "revisao", "integrado")
@@ -55,7 +56,7 @@ def find(store, ref):
     return None
 
 
-def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=None):
+def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=None, relatorio=None):
     """Aplica a fase à tarefa da issue; devolve None quando não há tarefa para a referência."""
     if fase not in PHASES:
         raise ValueError("Fase inválida: %s; use %s" % (fase, ", ".join(PHASES)))
@@ -71,8 +72,11 @@ def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=
         changes["coluna"] = tasks.first_column(target)
     if fase == "revisao" and changes:
         changes["proximo_passo"] = "Revisar e integrar o PR" if pr else "Revisar a implementação e abrir o PR"
-    if fase == "integrado" and role != "concluido":
-        unset = [k for k in ("proximo_passo", "aguardando") if k in data]
+    if fase == "integrado":
+        if role != "concluido":
+            unset = [k for k in ("proximo_passo", "aguardando") if k in data]
+        if relatorio and not (data.get("relatorio_conclusao") or "").strip() and not find_terms(relatorio, store.terms):
+            changes["relatorio_conclusao"] = relatorio
     note = registro or {"inicio": "Desenvolvimento iniciado%s." % (" na branch " + branch if branch else ""),
                         "revisao": "PR aberto: %s." % pr if pr else "Desenvolvimento concluído; aguardando revisão.",
                         "integrado": "Integrado no PR %s." % pr if pr else "Integrado."}[fase]
@@ -93,10 +97,21 @@ def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=
     return result
 
 
+def _report_from_pr(info):
+    body = (info.get("body") or "").replace("\r\n", "\n").strip()
+    body = re.sub(r"^<details>[^\S\n]*\n<summary>Informações para IA</summary>(.*?)^</details>[^\S\n]*$",
+                  lambda block: "## Informações para IA\n\n" + block[1].strip(), body, flags=re.M | re.S)
+    link = "[PR #%s](%s)" % (info["number"], info["url"])
+    if re.match(r"^## Resumo rápido[^\S\n]*(?:\n|$)", body):
+        return body + "\n\nPR integrado — " + link
+    report = "## Resumo rápido\n\n- **Entrega** — %s\n- **PR integrado** — %s" % (info["title"], link)
+    return report + "\n\n## O que mudou\n\n" + body if body else report
+
+
 def merged_pr(cwd, number):
-    """Referência da issue e URL de um PR integrado, consultando o GitHub; None se não integrado."""
+    """Referência da issue e relatório de um PR integrado; None se não integrado."""
     try:
-        result = subprocess.run(["gh", "pr", "view", str(number), "--json", "state,headRefName,url"],
+        result = subprocess.run(["gh", "pr", "view", str(number), "--json", "state,headRefName,url,number,title,body"],
                                 cwd=str(cwd), capture_output=True, text=True, timeout=20)
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -106,7 +121,7 @@ def merged_pr(cwd, number):
     if info.get("state") != "MERGED":
         return None
     ref = ref_from_branch(cwd, info.get("headRefName"))
-    return (ref, info.get("url")) if ref else None
+    return (ref, _report_from_pr(info)) if ref else None
 
 
 _SIZE_QUERY = """query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){

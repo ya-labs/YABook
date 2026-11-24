@@ -531,6 +531,12 @@ input.horas { width: 70px; padding: 5px 8px; text-align: right; border: 1px soli
 .painel-topo h2 { flex: 1; margin: 0; font-size: 25px; line-height: 1.4; letter-spacing: -.7px; font-weight: 750; overflow-wrap: anywhere; }
 .painel-topo h2:focus { outline: none; }
 .painel-topo-acoes { display: flex; flex: none; align-items: center; gap: 4px; }
+.titulo-concluido {
+  color: var(--cor-concluido-quadro, rgb(var(--c-green)));
+  margin-inline-end: .35em;
+  vertical-align: -.12em;
+}
+.titulo-concluido svg { width: 1em; height: 1em; }
 .numero-issue { color: var(--texto-2); font-weight: 400; font-size: .8em; white-space: nowrap; }
 .faixa-estado { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 28px 22px; border-bottom: 1px solid var(--borda-suave); }
 .estado-grande { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; color: rgb(var(--c-green)); background: color-mix(in srgb, rgb(var(--c-green)) 10%, var(--bg));
@@ -894,7 +900,32 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
 .linha-epico .titulo { flex-basis: calc(100% - 70px); }
 .linha-epico .progresso { margin-left: 25px; min-width: 0; flex: 1 1 calc(100% - 25px); }
 .numero-tarefa { color: var(--texto-2); font-size: 12px; font-variant-numeric: tabular-nums; flex: none; }
-.descricao-tarefa { font-size: 14px; margin: 0 0 12px; }
+.tarefa-texto {
+  --tarefa-texto-acento: var(--link);
+  margin-bottom: 12px;
+  padding: 16px clamp(12px, 2.4vw, 20px);
+  border-radius: 10px;
+  background: var(--bg-inset);
+  color: var(--texto);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.tarefa-texto > h3 {
+  display: flex; align-items: center; gap: 9px;
+  margin: 0 0 11px; font-size: 15px; font-weight: 780;
+}
+.tarefa-texto > h3 .icone {
+  flex: none; padding: 5px; border-radius: 7px;
+  color: var(--tarefa-texto-acento);
+  background: color-mix(in srgb, var(--tarefa-texto-acento) 13%, var(--bg-inset));
+}
+.relatorio-conclusao {
+  --tarefa-texto-acento: var(--cor-concluido-quadro, rgb(var(--c-green)));
+  background: color-mix(in srgb, var(--tarefa-texto-acento) 5%, var(--bg-inset));
+}
+.tarefa-texto > .markdown > :first-child { margin-top: 0; }
+.tarefa-texto > .markdown > :last-child, .tarefa-texto > .vazio { margin-bottom: 0; }
+.tarefa-texto > .vazio { margin-top: 0; }
 .historico-agente { margin-top: 12px; border-top: 1px solid var(--borda-suave); padding-top: 8px; }
 .historico-agente > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--texto-2); font-size: 12px; font-weight: 600; }
 @media (max-width: 1000px) { .hoje-colunas, .numeros.compactos { grid-template-columns: 1fr; } .hoje-itens { max-height: none; } }

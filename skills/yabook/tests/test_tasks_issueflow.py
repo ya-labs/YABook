@@ -86,11 +86,30 @@ class IssueFlowTest(unittest.TestCase):
         args = popen.call_args[0][0]
         self.assertEqual(args[args.index("--pr") + 1], "30")
         with patch("tasks_runtime.issueflow.subprocess.run") as run:
-            run.return_value = subprocess.CompletedProcess([], 0, json.dumps(dict(state="MERGED", headRefName="12-agenda", url="u")), "")
+            url = "https://github.com/org/app/pull/30"
+            body = ("## Resumo rápido\n\nEntrega confirmada.\n\n"
+                    "<details>\n<summary>Informações para IA</summary>\n\nValidação realizada.\n</details>")
+            run.return_value = subprocess.CompletedProcess([], 0, json.dumps(dict(
+                state="MERGED", headRefName="12-agenda", url=url, number=30, title="Entregar agenda", body=body)), "")
             with patch("tasks_runtime.issueflow.repo_of", return_value="org/app"):
-                self.assertEqual(issueflow.merged_pr(self.repo, 30), ("org/app#12", "u"))
+                ref, report = issueflow.merged_pr(self.repo, 30)
+            self.assertEqual(ref, "org/app#12")
+            self.assertIn("## Informações para IA\n\nValidação realizada.", report)
+            self.assertIn(f"[PR #30]({url})", report)
+            self.assertNotIn("<details>", report)
+            issueflow.advance(self.store, self.cfg, ref, "integrado", pr="#30", relatorio=report)
+            self.assertEqual(self.data()["data"]["relatorio_conclusao"], report)
+            revision = self.data()["revision"]
+            issueflow.advance(self.store, self.cfg, ref, "integrado", pr="#30", relatorio="Outro relatório")
+            self.assertEqual(self.data()["revision"], revision)
             run.return_value = subprocess.CompletedProcess([], 0, json.dumps(dict(state="OPEN", headRefName="12-agenda")), "")
             self.assertIsNone(issueflow.merged_pr(self.repo, 30))
+
+    def test_confidential_report_is_not_copied_and_task_still_concludes(self):
+        self.store.terms = ["TermoReservado"]
+        issueflow.advance(self.store, self.cfg, "org/app#12", "integrado", pr="#30", relatorio="TermoReservado")
+        self.assertEqual(self.data()["data"]["coluna"], "concluido")
+        self.assertNotIn("relatorio_conclusao", self.data()["data"])
 
     def test_hook_ignores_other_branches_and_missing_config(self):
         self.run_hook("git switch main")

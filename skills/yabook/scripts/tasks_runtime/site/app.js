@@ -55,7 +55,8 @@ async function api(path) {
 
 function snapshotTask(id) {
   const resumo = app.estado.tarefas.find((t) => t.id === id);
-  return { data: resumo, body: "", resumo, referencias: {}, filhos: app.estado.tarefas.filter((t) => t.pai === id),
+  const data = { ...resumo, relatorio_conclusao: SNAPSHOT.relatorios_conclusao?.[id] };
+  return { data, body: "", resumo, referencias: {}, filhos: app.estado.tarefas.filter((t) => t.pai === id),
     horas: SNAPSHOT.horas_por_tarefa && (SNAPSHOT.horas_por_tarefa[id] ?? {}) };
 }
 
@@ -151,6 +152,10 @@ function stateIcon(task) {
   node.setAttribute("aria-label", title);
   node.setAttribute("title", title);
   return node;
+}
+
+function completedTitleIcon(task) {
+  return task.papel === "concluido" && task.tipo !== "pergunta" ? icon("fechado", "titulo-concluido") : null;
 }
 
 function origin(task) {
@@ -291,7 +296,7 @@ function card(task, options = {}) {
     } },
     // Card compacto com título, rótulos e rodapé com identificadores.
     // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
-    h("div", { class: "card-titulo" }, task.titulo),
+    h("div", { class: "card-titulo" }, completedTitleIcon(task), task.titulo),
     cardMeta(task, parent, options, demand && (issue || String(demand) !== String(task.codigo)) ? demand : null, tasks),
     task.nivel === "epico" ? epicProgress(task) : null,
     h("footer", { class: "card-rodape" },
@@ -1034,6 +1039,13 @@ async function draftChanges(draft, files) {
   }));
 }
 
+function taskTextSection(id, title, iconName, text, empty) {
+  const heading = id + "-titulo";
+  return h("section", { class: "tarefa-texto " + id, "aria-labelledby": heading },
+    h("h3", { id: heading }, icon(iconName), title),
+    text?.trim() ? h("div", { class: "markdown" }, markdown(text)) : h("p", { class: "vazio" }, empty));
+}
+
 async function openTask(id, detail = null) {
   const panel = document.getElementById("painel");
   const request = beginPanel();
@@ -1078,6 +1090,7 @@ async function openTask(id, detail = null) {
     }
     fill(panel,
       panelHeader([
+        completedTitleIcon(task),
         data.numero ? h("span", { class: "numero-issue" }, `@${data.numero} `) : null,
         data.titulo,
         ref ? [" ", h("span", { class: "numero-issue" }, `#${ref.number}`)] : null,
@@ -1101,10 +1114,13 @@ async function openTask(id, detail = null) {
             h("header", {}, h("strong", {}, label(data.tipo)),
               data.atualizada ? h("span", { class: "vazio" }, ` · atualizada ${when(data.atualizada)}`) : null,
               h("details", { class: "detalhes-tecnicos" }, h("summary", {}, "Detalhes técnicos"), h("code", {}, data.id))),
-            h("div", { class: "comentario-corpo markdown" },
-              data.descricao ? h("div", { class: "descricao-tarefa markdown" }, markdown(data.descricao)) : h("p", { class: "vazio" }, "Sem descrição."),
+            h("div", { class: "comentario-corpo" },
+              taskTextSection("descricao-tarefa", "Descrição", "livro", data.descricao, "Sem descrição."),
+              data.tipo !== "pergunta" && task.papel === "concluido"
+                ? taskTextSection("relatorio-conclusao", "Relatório de conclusão", "fechado",
+                    data.relatorio_conclusao, "Nenhum relatório registrado.") : null,
               data.proximo_passo ? h("div", { class: "proximo-destaque" }, h("h3", {}, icon("seta"), "Próximo passo"), h("p", {}, data.proximo_passo)) : null,
-              detail.body ? h("details", { class: "historico-agente" }, h("summary", {}, icon("historico"), "Histórico do agente"), taskDocument(detail.body)) : null)),
+              detail.body ? h("details", { class: "historico-agente" }, h("summary", {}, icon("historico"), "Histórico do agente"), h("div", { class: "markdown" }, taskDocument(detail.body))) : null)),
           detail.filhos && detail.filhos.length ? h("div", { class: "caixa" },
             h("header", {}, h("h3", {}, data.nivel === "epico" ? "Histórias" : "Itens"),
               epic && data.nivel === "epico" ? h("span", { class: "direita" }, segments(epic.concluidas, epic.historias)) : null),
@@ -1118,7 +1134,7 @@ async function openTask(id, detail = null) {
             h("div", { class: "comentario-corpo markdown" }, text ? markdown(text) : h("p", { class: "vazio" }, "Referência indisponível: arquivo não encontrado na base confidencial ou acesso fora da base.")))),
           detail.confidencial === "bloqueado" && !Object.keys(detail.referencias || {}).length
             ? h("p", { class: "vazio" }, "Complemento confidencial só na máquina que possui a base.") : null,
-          editing ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(id))) : null),
+          editing ? h("div", { class: "comentario" }, h("div", { class: "comentario-corpo" }, editForm(data, detail.data.relatorio_conclusao))) : null),
         h("aside", { class: "painel-lateral" },
           sideSection("Campos",
             field("Status", h("span", { class: "selo neutro forte" }, h("span", { class: `status papel-${roleOf(data.coluna)}` }), columnName(data.coluna))),
@@ -2531,8 +2547,8 @@ function renameColumn(column) {
   input.select();
 }
 
-function editForm(id) {
-  const task = effectiveState().tarefas.find((t) => t.id === id);
+function editForm(task, originalReport) {
+  const id = task.id;
   const original = app.estado.tarefas.find((t) => t.id === id);
   const parents = app.estado.tarefas.filter((t) => t.id !== id && ["epico", "historia"].includes(t.nivel));
   const marked = "pessoal_marcado" in task ? (task.pessoal_marcado ? "sim" : "nao") : "auto";
@@ -2545,6 +2561,7 @@ function editForm(id) {
     const compare = (key, value, before) => { if ((value ?? "") !== (before ?? "")) campos[key] = value === "" ? null : value; };
     compare("titulo", values.titulo.trim(), original.titulo);
     compare("descricao", values.descricao.trim(), original.descricao);
+    compare("relatorio_conclusao", values.relatorio_conclusao.trim(), originalReport);
     compare("coluna", values.coluna, original.coluna);
     compare("prazo", values.prazo, original.prazo);
     compare("size", values.size, original.size ? String(original.size) : "");
@@ -2580,6 +2597,8 @@ function editForm(id) {
     h("p", { class: "vazio", style: "margin:0" }, "Aplique as mudanças ao rascunho e depois use Salvar na barra de filtros."),
     field("titulo", "Título", h("input", { name: "titulo", value: task.titulo, required: true })),
     field("descricao", "Descrição (objetivo e escopo em Markdown)", h("textarea", { name: "descricao", rows: 5 }, task.descricao || "")),
+    field("relatorio_conclusao", "Relatório de conclusão", h("textarea", { name: "relatorio_conclusao", rows: 6,
+      placeholder: "O que foi entregue, como foi feito e o que foi validado." }, task.relatorio_conclusao || "")),
     field("coluna", "Coluna", h("select", { name: "coluna" }, effectiveState().colunas.map((c) => h("option", { value: c.id, selected: c.id === task.coluna }, c.nome)))),
     h("div", { class: "campos-linha" },
       field("prazo", "Prazo", h("input", { name: "prazo", type: "date", value: task.prazo || "" })),

@@ -29,7 +29,7 @@ anteriores sem o campo aparecem como `trabalho`),
 reestime só com mudança de escopo; `size_manual` prevalece), `rodada` (sobe ao voltar da
 validação; com ajustes, vá à coluna Ajustes), `tipo` (`demanda`,
 `projeto`, `especificacao`, `issue`, `tarefa`, `pergunta`), `titulo`, `coluna`
-e, quando houver, `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
+e, quando houver, `relatorio_conclusao` (Markdown), `ordem`, `projeto`, `demanda`, `issue` (`dono/repo#n`),
 `prazo` (`AAAA-MM-DD`), `proximo_passo`, `aguardando` (de quem ou do quê; a
 gravação mantém `aguardando_desde`), `sobre`, `resposta` e `refs`
 (`confidencial:`, `yabook:` ou `github:`). `config.yml` guarda rótulos e a
@@ -84,6 +84,42 @@ mudarem as decisões, o escopo ou o aceite. Registre a mudança relevante e sua
 origem no histórico (`edit --append`). Mantenha referências detalhadas que
 ajudam a retomar o trabalho em anotações, como um inventário confirmado de
 fontes ou uma regra de negócio.
+
+## Contrato do relatório de conclusão
+
+Ao concluir uma tarefa, preencha `relatorio_conclusao` com fatos confirmados
+da entrega. Use a estrutura do [corpo de um PR do YABook](artefatos/pr-release.md):
+
+```md
+## Resumo rápido
+
+- **Objetivo** — O resultado que se pretendia alcançar.
+- **Entrega** — O resultado que foi efetivamente entregue.
+- **Issue ou PR** — Referência, se houver.
+
+## O que mudou
+
+- O que foi feito e como a entrega foi implementada.
+
+## Observações
+
+- Validações executadas, resultados e pendências relevantes.
+
+## Informações para IA
+
+- Decisões, restrições e pontos úteis para retomar o trabalho, quando houver.
+```
+
+O card exibe o relatório logo abaixo da descrição enquanto a tarefa estiver em
+Concluído. A descrição continua explicando o objetivo e o escopo da tarefa.
+Acrescente ou revise o relatório pelo modo Editar do card ou com
+`task edit --relatorio-conclusao`. Na conclusão manual, grave o relatório junto
+com a nova coluna. Se a tarefa for reaberta, revise o relatório na próxima entrega.
+
+Ao concluir pela integração de um PR, o fluxo usa o título ou o corpo do PR e
+inclui o vínculo quando o card ainda estiver sem relatório. O conteúdo segue
+as mesmas regras de confidencialidade da descrição. Em tarefas concluídas
+com informação insuficiente, deixe o relatório pendente de preenchimento.
 
 ## Comandos
 
@@ -148,7 +184,8 @@ resumo), da base confidencial, das issues e das tarefas. Lote JSON no scratchpad
   e `size` (inteiro de 1 a 5, da issue ou estimado). Inclua, quando
   couber, códigos, `issue`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
   disser, `estado` (papel ou coluna conforme a fase), `prazo`,
-  `proximo_passo`, `registro` (histórico do que já foi feito), `complemento` (detalhe
+  `proximo_passo`, `relatorio_conclusao` (entrega final em Markdown), `registro`
+  (histórico do que já foi feito), `complemento` (detalhe
   confidencial, só onde há base) e `chave` local.
 - `perguntas` (`texto`, `sobre`), `ativa` (chave) e `horas` (`tarefa`, `data`,
   `horas`, `obs`) só quando a conversa informar dia e quantidade.
