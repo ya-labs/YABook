@@ -62,6 +62,8 @@ function snapshotTask(id) {
 
 // Componentes compartilhados --------------------------------------------------
 const ICONS = {
+  busca: '<circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  ajuda: '<g fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M6.3 5.7a1.8 1.8 0 0 1 3.5.6c0 1.4-1.8 1.4-1.8 2.8M8 11v1" stroke-linecap="round"/></g>',
   painel: '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 2.5v10.5M3.5 5v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
   usuario: '<circle cx="8" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 14v-1a5 5 0 0 1 10 0v1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   camadas: '<path d="m8 1.5 6.5 3.8L8 9 1.5 5.3zM2 8.5 8 12l6-3.5M2 11.5 8 15l6-3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>',
@@ -297,11 +299,11 @@ function card(task, options = {}) {
     // Card compacto com título, rótulos e rodapé com identificadores.
     // Próximo passo, descrição e última alteração ficam no painel (e no título ao passar o mouse).
     h("div", { class: "card-titulo" }, completedTitleIcon(task), task.titulo),
-    cardMeta(task, parent, options, demand && (issue || String(demand) !== String(task.codigo)) ? demand : null, tasks),
+    cardMeta(task, parent, options, demand, tasks),
     task.nivel === "epico" ? epicProgress(task) : null,
     h("footer", { class: "card-rodape" },
       h("span", { class: "card-identificadores" },
-        h("span", { class: "card-chave" }, stateIcon(task), cardKey(task, issue))),
+        h("span", { class: "card-chave" }, stateIcon(task), cardKey(task, issue, demand))),
       h("span", { class: "card-sinais" },
         task.pessoal ? signal("usuario", "Pessoal") : null,
         task.confidencial ? signal("cadeado", task.confidencial === "disponivel" ? "Referência confidencial disponível nesta máquina" : "Base confidencial ausente nesta máquina") : null,
@@ -336,9 +338,9 @@ function cardDemand(task, tasks) {
   return null;
 }
 
-// Prioriza a issue vinculada e mantém o número interno como referência secundária.
-function cardKey(task, ref) {
-  const code = ref ? ref.full.split("/").pop() : task.codigo;
+// A demanda tem rótulo próprio. O rodapé reserva a chave para issue, projeto ou @n.
+function cardKey(task, ref, demand) {
+  const code = ref ? ref.full.split("/").pop() : (String(task.codigo) === String(demand) ? null : task.codigo);
   const number = task.numero ? `@${task.numero}` : null;
   if (!code) return h("span", { class: "card-codigo" }, number || label(task.tipo));
   return [h("span", { class: "card-codigo", title: ref?.full || null }, code),
@@ -372,22 +374,24 @@ function cardMeta(task, parent, options, demand = null, tasks = []) {
       title: `Aguardando: ${task.aguardando} (desde ${fmtDate(task.aguardando_desde || app.estado.hoje)})` },
       icon("ficha"), h("span", {}, `Aguardando${days ? ` · ${days}d` : ""}`)));
   }
-  const parentCode = parent && !options.semPai ? parent.codigo || parent.projeto || parent.demanda : null;
   if (parent && !options.semPai) {
-    // Só o código do pai (@n e projeto/demanda); o título fica no texto ao passar o mouse.
+    const code = parent.codigo || parent.projeto || parent.demanda;
+    const parentCode = String(code) === String(demand) ? null : code;
+    const parentLabel = [parent.numero ? `@${parent.numero}` : null, parentCode].filter(Boolean).join(" · ") || parent.titulo;
     selos.push(h("button", { class: "card-pai", type: "button", title: "Abrir " + parent.titulo,
       onclick: (e) => { e.stopPropagation(); openTask(parent.id); }, onkeydown: (e) => e.stopPropagation() },
       icon(parent.nivel === "epico" ? "epicos" : "relacoes"),
-      h("span", { class: "card-pai-numero" }, [parent.numero ? `@${parent.numero}` : null, parentCode].filter(Boolean).join(" · "))));
+      h("span", { class: "card-pai-numero" }, parentLabel)));
   }
-  // Demanda própria ou herdada no mesmo desenho do pai; omitida quando o selo do pai já mostra o código.
-  if (demand && String(parentCode ?? "") !== String(demand)) {
+  if (demand) {
     const owner = sheetTask({ tipo: "demanda", codigo: demand, tarefas: [task.id] }, tasks);
-    const content = [icon("etiqueta"), h("span", { class: "card-pai-numero" }, `Demanda ${demand}`)];
+    const title = `Demanda ${demand}`;
+    const content = [icon("etiqueta"), h("span", { class: "card-pai-numero" }, String(demand))];
     selos.push(owner && owner.id !== task.id
-      ? h("button", { class: "card-demanda", type: "button", title: "Abrir " + owner.titulo,
+      ? h("button", { class: "card-demanda", type: "button", title: `${title} · Abrir ${owner.titulo}`,
+        "aria-label": `${title} · Abrir ${owner.titulo}`,
         onclick: (e) => { e.stopPropagation(); openTask(owner.id); }, onkeydown: (e) => e.stopPropagation() }, content)
-      : h("span", { class: "card-demanda", title: "Demanda " + demand }, content));
+      : h("span", { class: "card-demanda", role: "img", title, "aria-label": title }, content));
   }
   if (selos.length) lines.push(h("div", { class: "card-selos" }, selos));
   if (avisos.length) lines.push(h("div", { class: "card-selos" }, avisos));
@@ -2307,6 +2311,46 @@ function listen() {
 }
 
 window.addEventListener("hashchange", render);
+
+function shortcutIconLegend() {
+  const cards = [
+    ["usuario", "Pessoal"], ["escala", "Tamanho"], ["etiqueta", "Código da demanda"],
+    ["clipe", "Anexos"], ["corrente", "Links"], [LEVEL.epico[2], "Épico"],
+    [LEVEL.historia[2], "História, descrição ou anotação"], [LEVEL.tarefa[2], "Tarefa"],
+    ["relacoes", "Pai ou tarefa relacionada"], ["repo", "Código ou repositório"],
+    ["cadeado", "Informação confidencial"], ["pergunta", "Pergunta ou pendência"],
+    ["seta", "Próximo passo"], ["seta", "Rodada de ajustes", "legenda-retorno"],
+    ["ficha", "Prazo no card ou tempo de espera"], ["calendario", "Data ou prazo"],
+  ];
+  const states = [
+    ["aberto", "Aberta", "estado-aberto"], ["fechado", "Concluída", "titulo-concluido"],
+    ["arquivado", "Arquivada", "estado-arquivado"], ["alerta", "Prazo em atraso"],
+    [h("span", { class: "status papel-ativo" }), "Etapa no quadro"],
+    [h("span", { class: "ponto vivo" }), "Conexão ativa"],
+    [h("span", { class: "ponto offline" }), "Reconectando"],
+  ];
+  const views = ORDER.map(name => [VIEWS[name].icone, VIEWS[name].titulo]);
+  const actions = [
+    ["busca", "Buscar"], ["filtro", "Filtros"], ["painel", "Abrir ou recolher a navegação"],
+    ["ajuda", "Atalhos e legenda"], ["editar", "Editar"], ["salvar", "Salvar"],
+    ["desfazer", "Sair da edição ou descartar"], ["copiar", "Copiar"], ["check", "Aplicar ou confirmar"],
+    ["campos", "Campos e metadados"], ["camadas", "Agrupamento ou rateio"], ["alvo", "Saldo ou calibração"],
+    ["laptop", "Máquina ou horas extras"], ["mais", "Outras informações"], ["fechar", "Fechar"],
+    [h("span", { class: "paleta-amostra" }), "Paleta de cores"],
+    ...THEMES.map(([, title, symbol]) => [symbol, title]),
+  ];
+  const groups = [
+    ["Nos cards", cards], ["Situação", states], ["Navegação", views], ["Ações e ferramentas", actions],
+  ];
+  return h("section", { class: "legenda-icones", "aria-labelledby": "legenda-icones-titulo" },
+    h("h3", { id: "legenda-icones-titulo" }, "Legenda de ícones"),
+    groups.map(([title, entries]) => h("section", { class: "legenda-grupo" },
+      h("h4", {}, title),
+      h("ul", { class: "legenda-itens" }, entries.map(([symbol, description, className]) => h("li", {},
+        h("span", { class: "legenda-simbolo", "aria-hidden": "true" },
+          typeof symbol === "string" ? icon(symbol, className) : symbol), description))))));
+}
+
 function showShortcuts() {
   showPanel(h("h2", {}, "Atalhos de teclado"), h("p", { class: "vazio" }, "Disponíveis quando você não estiver preenchendo um campo."),
     h("dl", { class: "atalhos" },
@@ -2316,7 +2360,8 @@ function showShortcuts() {
       h("dt", {}, h("kbd", {}, "Home"), " / ", h("kbd", {}, "End")), h("dd", {}, "Ir à primeira ou à última visão"),
       h("dt", {}, h("kbd", {}, "Enter"), " / ", h("kbd", {}, "Espaço")), h("dd", {}, "Abrir o card em foco"),
       h("dt", {}, h("kbd", {}, "Esc")), h("dd", {}, "Fechar o painel e voltar ao item de origem"),
-      h("dt", {}, h("kbd", {}, "?")), h("dd", {}, "Mostrar esta ajuda")));
+      h("dt", {}, h("kbd", {}, "?")), h("dd", {}, "Mostrar esta ajuda")),
+    shortcutIconLegend());
 }
 
 document.addEventListener("keydown", (event) => {
@@ -2379,8 +2424,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("tema").addEventListener("click", cycleTheme);
   const help = document.getElementById("ajuda");
-  if (help) help.addEventListener("click", showShortcuts);
+  if (help) {
+    help.prepend(icon("ajuda"));
+    help.addEventListener("click", showShortcuts);
+  }
   const filter = document.getElementById("filtro");
+  filter.before(icon("busca"));
+  document.getElementById("alternar-filtros").prepend(icon("filtro"));
   filter.addEventListener("input", () => { app.busca = filter.value; clearTimeout(app.buscaTimer); app.buscaTimer = setTimeout(render, 150); });
   app.rascunho = loadDraft();
   window.addEventListener("beforeunload", event => {

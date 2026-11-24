@@ -79,6 +79,12 @@ Preencha com fatos confirmados e indique o que ainda precisa ser definido.
 - **Riscos, dependências e pendências** — O que pode afetar a entrega ou ainda depende de definição.
 ```
 
+Para uma issue pacote, use **Resumo rápido** com Tarefa e Entrega esperada,
+**Observações** com o contexto estável do pacote e **Informações para IA** com
+os cinco campos do modelo acima. Para copiar os dois modelos no CLI, use
+`add --help` ou `capture --help`. A validação do formato ocorre ao criar uma
+tarefa nesses dois caminhos.
+
 Atualize a descrição com `task edit --descricao` ou pelo card à medida que
 mudarem as decisões, o escopo ou o aceite. Registre a mudança relevante e sua
 origem no histórico (`edit --append`). Mantenha referências detalhadas que
@@ -194,7 +200,7 @@ resumo), da base confidencial, das issues e das tarefas. Lote JSON no scratchpad
 
 Sem `--apply`, devolve a prévia. A captura casa por `id`, issue, código ou título
 e aceita atualizações parciais de tarefas existentes. A prévia e a aplicação
-recusam o lote se um item novo estiver sem descrição ou Size válido. Termo da
+recusam o lote se um item novo estiver sem descrição no contrato ou Size válido. Termo da
 lista local também recusa o lote indicando o campo. `automatic` aplica
 com `--apply`; `manual` aplica após `do task capture` com o `approval_hash`. A
 aplicação torna `ativa` a tarefa da sessão.

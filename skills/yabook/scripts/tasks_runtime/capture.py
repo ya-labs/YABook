@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 from . import events
+from .description import SESSION_RULE
 from .sheet import LEGACY_WINDOW_MINUTES, WINDOW_MINUTES, window_records
 from .store import TaskStore, atomic_write, now
 
@@ -27,7 +28,7 @@ REASK_AFTER = 8
 RULES = ("Use task start na tarefa escolhida; geral fica no épico. Pergunte só se ambíguo. "
          "Conclusão: task edit --append e próximo passo. Use task ask/answer, prazo, --aguardando fora de QA "
          "(remova no retorno), fase e --size da issue. Informação nova confirmada: atualize descrição, anotação ou anexo. "
-         "Conversa sem registro: task capture. Em automatic, grave sem pedir autorização.")
+         "Conversa sem registro: task capture. Em automatic, grave sem pedir autorização. " + SESSION_RULE)
 SIGNAL = re.compile(r"#\d+|\b(prazo|entrega|amanha|segunda|terca|quarta|quinta|sexta|\d{1,2}/\d{1,2}"
                     r"|(chamado|projeto|demanda|issue|pr) ?#?\d{2,}"
                     r"|termin\w*|conclu\w*|finaliz\w*|resolv\w*|pendente|pendencia|bloquead\w*|aguardando|aguardo|esperando|escopo|decidimos|ficou definido|lista de fontes|inventario|anexo)\b")

@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from tasks_runtime import init as task_init
+from tasks_runtime.description import description_help
 from tasks_runtime.store import TaskStore
 
 CONFIG = os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json"))
@@ -53,7 +54,8 @@ def build_parser():
     recent = sub.add_parser("recent")
     recent.add_argument("--limit", type=int, default=10)
     sub.add_parser("review", help="Perguntas abertas, prazos, tarefas sem prazo e paradas")
-    add = sub.add_parser("add", help="Cria tarefa com campos já interpretados pelo agente")
+    add = sub.add_parser("add", help="Cria tarefa com campos já interpretados pelo agente",
+                         formatter_class=argparse.RawDescriptionHelpFormatter, epilog=description_help())
     add.add_argument("--tipo", required=True)
     add.add_argument("--titulo", required=True)
     edit = sub.add_parser("edit")
@@ -71,7 +73,8 @@ def build_parser():
         command.add_argument("--issue", action="append", help="dono/repo#n, repetível")
         command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
         command.add_argument("--proximo-passo")
-        command.add_argument("--descricao", help="Objetivo e escopo vigente em Markdown")
+        command.add_argument("--descricao", help=("Descrição no contrato Markdown da tarefa nova (veja os modelos abaixo)"
+                                                  if command is add else "Objetivo e escopo vigente em Markdown"))
         command.add_argument("--relatorio-conclusao", help="Resumo da entrega, mudanças e validações em Markdown")
         command.add_argument("--size", type=int, choices=range(1, 6), metavar="1-5",
                              help="Tamanho na escala de Size das issues (entrega com agentes)")
@@ -141,7 +144,8 @@ def build_parser():
     analyze = sub.add_parser("analyze", help="Registra a análise de ações do quadro")
     analyze.add_argument("--id", action="append", required=True)
     analyze.add_argument("--resultado", required=True)
-    capture = sub.add_parser("capture", help="Cria ou atualiza em lote as tarefas levantadas de uma conversa")
+    capture = sub.add_parser("capture", help="Cria ou atualiza em lote as tarefas levantadas de uma conversa",
+                             formatter_class=argparse.RawDescriptionHelpFormatter, epilog=description_help())
     capture.add_argument("--input", required=True, help="JSON com itens, perguntas, ativa e horas")
     capture.add_argument("--apply", action="store_true", help="Grava; na política manual exige --approval-hash")
     capture.add_argument("--approval-hash", help="Hash da prévia apresentada")

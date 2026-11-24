@@ -11,6 +11,7 @@ import yabook_tasks
 from tasks_runtime import sheet, tree
 from tasks_runtime.batch import Capture
 from tasks_runtime.commands import Tasks
+from tasks_runtime.description import description_model
 from tasks_runtime.store import TaskStore, scaffold
 
 
@@ -51,8 +52,8 @@ class OwnTypeCodeTest(unittest.TestCase):
 
     def test_mixed_codes_warn_in_capture_and_add(self):
         plan = Capture(self.store, dict(machine="trabalho")).plan(dict(itens=[
-            dict(tipo="projeto", titulo="Novo", descricao="Atender a demanda", size=1, projeto="1002", demanda="4000"),
-            dict(tipo="issue", titulo="Normal", descricao="Atender a demanda", size=1, demanda="4000")]))
+            dict(tipo="projeto", titulo="Novo", descricao=description_model(), size=1, projeto="1002", demanda="4000"),
+            dict(tipo="issue", titulo="Normal", descricao=description_model(), size=1, demanda="4000")]))
         self.assertEqual(len(plan["avisos"]), 1)
         self.assertIn("projeto 1002", plan["avisos"][0])
         config = Path(self.tmp.name) / "cfg.json"
@@ -60,7 +61,7 @@ class OwnTypeCodeTest(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             code = yabook_tasks.main(["--config", str(config), "add", "--tipo", "demanda", "--titulo", "X",
-                                      "--descricao", "Atender a demanda", "--size", "1", "--demanda", "5000", "--projeto", "1000"])
+                                      "--descricao", description_model(), "--size", "1", "--demanda", "5000", "--projeto", "1000"])
         self.assertEqual(code, 0)
         self.assertIn("demanda 5000", json.loads(out.getvalue())["aviso"])
 
