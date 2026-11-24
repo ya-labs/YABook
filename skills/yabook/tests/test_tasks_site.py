@@ -190,27 +190,33 @@ const result = {};
 for (const task of tasks) {
   const card = vm.runInContext(`card(tasks.find(t => t.id === ${JSON.stringify(task.id)}))`, ctx);
   const badges = find(card, "card-selos")[0];
-  result[task.id] = {selo: badges ? find(badges, "card-demanda").map(n => [n.tag, n.textContent]) : [],
-    rodape: find(find(card, "card-rodape")[0], "card-demanda").length};
+  result[task.id] = {
+    demanda: badges ? find(badges, "card-demanda").map(n => [n.tag, n.textContent]) : [],
+    pai: badges ? find(badges, "card-pai").map(n => n.textContent) : [],
+    chave: find(card, "card-chave")[0].textContent,
+  };
 }
 process.stdout.write(JSON.stringify(result));
 '''
         tasks = [
-            dict(id="chamado", titulo="Chamado", tipo="demanda", papel="ativo", coluna="andamento", demanda="322628", codigo="322628", nivel="historia"),
+            dict(id="projeto", titulo="Projeto", tipo="projeto", papel="ativo", coluna="andamento", projeto="5723", codigo="5723", nivel="epico", numero=3),
+            dict(id="chamado", titulo="Chamado", tipo="demanda", papel="ativo", coluna="andamento",
+                 pai="projeto", demanda="322628", codigo="322628", nivel="historia", numero=5),
             dict(id="issue", titulo="Issue", tipo="issue", papel="ativo", coluna="andamento", pai="chamado", issue=["dono/repo#7"]),
             dict(id="propria", titulo="Própria", tipo="issue", papel="ativo", coluna="andamento", demanda="1001", issue=["dono/repo#8"]),
             dict(id="solta", titulo="Solta", tipo="issue", papel="ativo", coluna="andamento", pai="neta", issue=["dono/repo#9"]),
-            dict(id="neta", titulo="Neta", tipo="tarefa", papel="ativo", coluna="andamento", pai="chamado", numero=4),
+            dict(id="neta", titulo="Neta", tipo="tarefa", papel="ativo", coluna="andamento", pai="chamado", numero=4, codigo="322628"),
         ]
         result = subprocess.run(["node", "-e", script, str(SITE), json.dumps(tasks)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         actual = json.loads(result.stdout)
-        # O selo do pai já mostra 322628: sem duplicar.
-        self.assertEqual(actual["issue"]["selo"], [])
-        self.assertEqual(actual["propria"]["selo"], [["span", "Demanda 1001"]])
-        # Herdada do avô: selo clicável que abre a tarefa dona da demanda.
-        self.assertEqual(actual["solta"]["selo"], [["button", "Demanda 322628"]])
-        self.assertTrue(all(item["rodape"] == 0 for item in actual.values()))
+        self.assertEqual(actual["chamado"], dict(demanda=[["span", "Demanda 322628"]], pai=["@3 · 5723"], chave="@5"))
+        self.assertEqual(actual["issue"], dict(demanda=[["button", "Demanda 322628"]], pai=["@5"], chave="repo#7"))
+        self.assertEqual(actual["propria"]["demanda"], [["span", "Demanda 1001"]])
+        self.assertEqual(actual["solta"]["demanda"], [["button", "Demanda 322628"]])
+        self.assertEqual(actual["neta"], dict(demanda=[["button", "Demanda 322628"]], pai=["@5"], chave="@4"))
+        self.assertEqual(actual["projeto"]["demanda"], [])
+        self.assertIn("5723", actual["projeto"]["chave"])
 
     def test_attachment_preview_kinds_csv_and_text_decoding(self):
         script = r'''
