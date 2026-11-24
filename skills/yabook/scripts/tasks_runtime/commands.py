@@ -10,6 +10,7 @@ import unicodedata
 from pathlib import Path
 
 from . import events, remote, tree
+from .description import MODEL_COMMANDS, description_issues
 from .precommit_hook import find_terms
 from .store import Conflict, TIPOS, atomic_write, now
 
@@ -24,7 +25,10 @@ def validate_task_details(fields, *, required=False, location=""):
     if required or "descricao" in fields:
         description = fields.get("descricao")
         if not isinstance(description, str) or not description.strip():
-            errors.append(prefix + "descricao: informe o objetivo e o escopo da tarefa")
+            errors.append(prefix + "descricao: informe o objetivo e o escopo da tarefa"
+                          + (" no contrato Markdown. " + MODEL_COMMANDS if required else ""))
+        elif required and (missing := description_issues(description)):
+            errors.append(prefix + "descricao: fora do contrato. " + ". ".join(missing) + ". " + MODEL_COMMANDS)
     if required or "size" in fields:
         size = fields.get("size")
         if type(size) is not int or not 1 <= size <= 5:

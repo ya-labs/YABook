@@ -1,5 +1,6 @@
 import datetime
 import json
+import shlex
 import os
 import statistics
 import subprocess
@@ -14,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import yabook_hook as hook
 from tasks_runtime import capture, events, sheet
 from tasks_runtime.commands import Tasks
+from tasks_runtime.description import description_model
 from tasks_runtime.store import TaskStore, scaffold
 from test_tasks_store import GIT_ENV
 
@@ -321,10 +323,10 @@ class HookIntegrationTest(unittest.TestCase):
     def test_add_after_prompt_uses_task_from_tool_result(self):
         hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="corrigir tela"))
         script = str(Path(hook.__file__).with_name("yabook_tasks.py"))
-        command = "%s %s --config %s add --tipo demanda --titulo Ajuste --demanda 1234 --descricao Ajustar --size 1" % (
-            sys.executable, script, hook.config_path())
-        event = dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=command))
-        completed = subprocess.run(command.split(), check=True, capture_output=True, text=True)
+        argv = [sys.executable, script, "--config", str(hook.config_path()), "add", "--tipo", "demanda",
+                "--titulo", "Ajuste", "--demanda", "1234", "--descricao", description_model(), "--size", "1"]
+        event = dict(self.event, hook_event_name="PostToolUse", tool_name="Bash", tool_input=dict(command=shlex.join(argv)))
+        completed = subprocess.run(argv, check=True, capture_output=True, text=True)
         response = dict(stdout=completed.stdout, exit_code=1)
         self.assertEqual(hook.run(dict(event, tool_response=response)), {})
         response = dict(stdout=completed.stdout)
@@ -338,9 +340,9 @@ class HookIntegrationTest(unittest.TestCase):
         rows = [json.loads(line) for path in (self.root / "horas").glob("*.jsonl")
                 for line in path.read_text().splitlines()]
         self.assertEqual({(row["tipo"], row["tarefa"]) for row in rows}, {("janela", "demanda-1234")})
-        after = command.replace("1234", "5678")
-        completed = subprocess.run(after.split(), check=True, capture_output=True, text=True)
-        hook.run(dict(event, tool_input=dict(command=after), tool_response=dict(output=completed.stdout, exit_code=0)))
+        argv_after = ["5678" if arg == "1234" else arg for arg in argv]
+        completed = subprocess.run(argv_after, check=True, capture_output=True, text=True)
+        hook.run(dict(event, tool_input=dict(command=shlex.join(argv_after)), tool_response=dict(output=completed.stdout, exit_code=0)))
         self.assertEqual(capture.active(TaskStore(self.root), session), "demanda-1234")
 
     def test_broken_task_repository_never_blocks(self):

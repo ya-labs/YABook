@@ -18,6 +18,7 @@ import yabook_tasks
 from tasks_runtime import capture, events
 from tasks_runtime.batch import Capture
 from tasks_runtime.commands import Tasks
+from tasks_runtime.description import description_model
 from tasks_runtime.store import Conflict, TaskStore, scaffold
 from test_tasks_store import GIT_ENV
 
@@ -25,7 +26,7 @@ WHEN = datetime.datetime(2026, 11, 11, 14, 37, tzinfo=datetime.timezone(datetime
 
 
 def new_item(tipo, titulo, **fields):
-    return dict(tipo=tipo, titulo=titulo, descricao="Escopo da tarefa de teste", size=1, **fields)
+    return dict(dict(tipo=tipo, titulo=titulo, descricao=description_model(), size=1), **fields)
 
 
 def conversation():
@@ -78,7 +79,7 @@ class BatchTest(unittest.TestCase):
         question = next(t for t in self.store.list() if t["data"]["tipo"] == "pergunta")
         self.assertEqual(question["data"]["sobre"], "issue-relatorio-de-agenda")
         work = self.store.get("demanda-1001")
-        self.assertEqual(work["data"]["descricao"], "Escopo da tarefa de teste")
+        self.assertEqual(work["data"]["descricao"], description_model())
         self.assertIn("Publicado e validado", work["body"])
         self.assertIn("Base de homologação X", (self.confidential / "tarefas" / "demanda-1002.md").read_text())
         self.assertNotIn("homologação X", self.store.get("demanda-1002")["body"])
@@ -210,6 +211,28 @@ class CaptureCliTest(unittest.TestCase):
         code, done = self.cli("automatic", "capture", "--input", str(self.batch), "--apply")
         self.assertEqual((code, done["criadas"]), (0, ["tarefa-nova"]))
 
+    def test_out_of_contract_new_item_refuses_preview_and_apply(self):
+        self.batch.write_text(json.dumps(dict(itens=[new_item("tarefa", "Válida"),
+                                                     new_item("tarefa", "Livre", descricao="Um parágrafo.")])))
+
+        for flags in ((), ("--apply",)):
+            with self.subTest(flags=flags):
+                code, result = self.cli("automatic", "capture", "--input", str(self.batch), *flags)
+                self.assertEqual(code, 1)
+                self.assertIn("itens[1].descricao", result["error"])
+                self.assertIn("## Resumo rápido", result["error"])
+                self.assertIn("capture --help", result["error"])
+                self.assertEqual(TaskStore(self.root).list(), [])
+                self.assertEqual(events.read_all(self.root), [])
+
+    def test_existing_task_still_accepts_capture_of_other_fields(self):
+        task = Tasks(TaskStore(self.root)).add("tarefa", "Antiga", descricao="Descrição antiga.")["id"]
+        self.batch.write_text(json.dumps(dict(itens=[dict(tipo="tarefa", id=task, registro="Atualizada")])))
+
+        code, result = self.cli("automatic", "capture", "--input", str(self.batch), "--apply")
+        self.assertEqual((code, result["atualizadas"]), (0, [task]))
+        self.assertEqual(TaskStore(self.root).get(task)["data"]["descricao"], "Descrição antiga.")
+
     def test_incomplete_new_item_rejects_the_batch_in_preview_and_apply(self):
         incomplete = dict(tipo="tarefa", titulo="Nova", registro="Corrigir o filtro de vendas")
         self.batch.write_text(json.dumps(dict(itens=[new_item("tarefa", "Válida"), incomplete])))
@@ -238,6 +261,8 @@ class ReinforcementTest(unittest.TestCase):
         text = capture.session_start(self.cfg, "s1")
         self.assertIn("task edit --append", text)
         self.assertIn("task capture", text)
+        self.assertIn("contrato Markdown", text)
+        self.assertIn("add --help", text)
 
     def test_signal_reminder_once_per_window(self):
         Tasks(self.store).add("tarefa", "A", coluna="pronto")

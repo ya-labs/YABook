@@ -12,6 +12,7 @@ import yabook_tasks
 from tasks_runtime import editing, issueflow
 from tasks_runtime.batch import Capture
 from tasks_runtime.commands import Tasks
+from tasks_runtime.description import description_model
 from tasks_runtime.store import TaskStore, scaffold
 
 
@@ -42,7 +43,7 @@ class SizeTest(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             yabook_tasks.main(["--config", str(config), "add", "--tipo", "tarefa", "--titulo", "Pela CLI",
-                               "--descricao", "Verificar Size pela CLI", "--size", "3"])
+                               "--descricao", description_model(), "--size", "3"])
         self.assertEqual(self.store.get(json.loads(out.getvalue())["id"])["data"]["size"], 3)
 
     def test_board_size_is_manual_and_wins_over_issue(self):
@@ -67,7 +68,7 @@ class SizeTest(unittest.TestCase):
 
     def test_capture_rejects_invalid_size(self):
         capture = Capture(self.store, self.cfg)
-        item = dict(tipo="tarefa", titulo="Lote", descricao="Verificar Size na captura")
+        item = dict(tipo="tarefa", titulo="Lote", descricao=description_model())
         for size in (None, 9, True, 2.0, "2"):
             with self.subTest(size=size), self.assertRaisesRegex(ValueError, r"itens\[0\]\.size"):
                 capture.plan(dict(itens=[dict(item, size=size)]))

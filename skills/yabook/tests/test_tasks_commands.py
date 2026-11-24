@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import yabook_tasks
 from tasks_runtime import commands
 from tasks_runtime.commands import Tasks, parse_date, sync
+from tasks_runtime.description import description_model
 from tasks_runtime.store import Conflict, TaskStore, scaffold
 from test_tasks_store import GIT_ENV
 
@@ -188,7 +189,7 @@ class CliAndSyncTest(unittest.TestCase):
 
     def test_cli_flow_and_sync_between_machines(self):
         code, added = self.cli(self.work, "add", "--tipo", "demanda", "--titulo", "Ajustar limite",
-                               "--descricao", "Ajustar o limite de vendas", "--size", "1",
+                               "--descricao", description_model(), "--size", "1",
                                "--demanda", "1001", "--prazo", "2026-11-14", "--issue", "org/repo#1")
         self.assertEqual((code, added["id"]), (0, "demanda-1001"))
         code, refused = self.cli(self.work, "edit", "demanda-1001", "--issue", "org/repo#2")
