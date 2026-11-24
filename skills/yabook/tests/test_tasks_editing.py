@@ -154,12 +154,18 @@ class EditingTest(unittest.TestCase):
         editing.save(self.store, self.cfg, dict(tarefas=[
             dict(id=identifier, revision=self.rev(identifier), campos=dict(links=[address, named])),
         ]))
-        detail = server.Board(self.store, self.cfg).task(identifier)
+        board = server.Board(self.store, self.cfg)
+        detail = board.task(identifier)
         self.assertEqual(detail["data"]["links"], [address, named])
+        card = next(item for item in board.state()["tarefas"] if item["id"] == identifier)
+        self.assertEqual(card["links_total"], 2)
+        self.assertNotIn("links", card)
         editing.save(self.store, self.cfg, dict(tarefas=[
             dict(id=identifier, revision=detail["revision"], campos=dict(links=[])),
         ]))
         self.assertNotIn("links", self.store.get(identifier)["data"])
+        card = next(item for item in board.state()["tarefas"] if item["id"] == identifier)
+        self.assertEqual(card["links_total"], 0)
 
     def test_invalid_links_refuse_the_entire_draft(self):
         before = self.store.get("tarefa-revisar-layout")

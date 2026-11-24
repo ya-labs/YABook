@@ -1142,7 +1142,7 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
   overflow: visible;
 }
-.card-selos > :is(.size-numero, .card-anexos, .card-pai, .card-demanda, .card-espera, .card-rodada) {
+.card-selos > :is(.size-numero, .card-anexos, .card-links, .card-pai, .card-demanda, .card-espera, .card-rodada) {
   display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0;
   min-height: 24px; padding: 2px 6px; border: 0; border-radius: 4px; color: var(--texto);
   background: color-mix(in srgb, var(--cor-selo) 9%, transparent);

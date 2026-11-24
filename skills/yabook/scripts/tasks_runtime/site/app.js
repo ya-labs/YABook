@@ -78,6 +78,7 @@ const ICONS = {
   desfazer: '<path d="M5.5 3 2 6.5 5.5 10M2 6.5h7a4 4 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
   etiqueta: '<path d="M2 2h5l7 7-5 5-7-7z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="5" r="1" fill="currentColor"/>',
   clipe: '<path d="m6.1 8.9 4.2-4.3a1.4 1.4 0 0 1 2 2l-5.5 5.5a2.7 2.7 0 1 1-3.8-3.8l5.8-5.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  corrente: '<path d="M6 5H4a3 3 0 0 0 0 6h2m4-6h2a3 3 0 0 1 0 6h-2M5 8h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   escala: '<path d="M3.5 13V9M8 13V6M12.5 13V3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
   campos: '<path d="M2 4h12M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="5" y="2" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="10" width="3" height="4" rx="1" fill="var(--bg)" stroke="currentColor" stroke-width="1.3"/>',
   relacoes: '<path d="M8 5v3M3 11V8h10v3" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="6" y="1" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>',
@@ -342,11 +343,14 @@ function cardKey(task, ref) {
 function cardMeta(task, parent, options, demand = null, tasks = []) {
   const lines = [], selos = [], avisos = [];
   if (task.size) selos.push(sizeNumber(task, true));
-  const attachments = task.anexos_total;
-  if (attachments > 0) {
-    const title = attachments === 1 ? "1 anexo" : `${attachments} anexos`;
-    selos.push(h("span", { class: "card-anexos", role: "img", title, "aria-label": title },
-      icon("clipe"), String(attachments)));
+  for (const [amount, label, symbol] of [
+    [task.anexos_total, "anexo", "clipe"], [task.links_total, "link", "corrente"],
+  ]) {
+    if (amount > 0) {
+      const title = `${amount} ${label}${amount === 1 ? "" : "s"}`;
+      selos.push(h("span", { class: `card-${label}s`, role: "img", title, "aria-label": title },
+        icon(symbol), String(amount)));
+    }
   }
   if (options.status) lines.push(h("span", { class: "card-status", title: "Status" }, h("span", { class: `status papel-${task.papel}` }), columnName(task.coluna)));
   if (task.papel === "concluido" && task.atualizada) {
@@ -514,7 +518,7 @@ function stateLabel(task) {
 
 function sideSection(title, ...content) {
   const body = content.flat(Infinity).filter(Boolean);
-  const symbols = { "Campos": "campos", "Relacionamentos": "relacoes", "Anexos": "clipe", "Links": "seta", "Anotações": "livro" };
+  const symbols = { "Campos": "campos", "Relacionamentos": "relacoes", "Anexos": "clipe", "Links": "corrente", "Anotações": "livro" };
   return h("section", { class: "lateral-secao" }, h("h4", {}, icon(symbols[title] || "mais"), title), body.length ? body : h("p", { class: "vazio" }, "Nenhum"));
 }
 
