@@ -97,6 +97,13 @@ def build_parser():
     visibility.add_argument("--local", action="store_true", help="Guarda na base confidencial local")
     visibility.add_argument("--compartilhado", action="store_true", help="Versiona no repositório privado de tarefas")
     attach.add_argument("--revision", help="Revisão lida com task show")
+    edit_file = sub.add_parser("editar-anexo", help="Renomeia, substitui ou exclui um anexo da tarefa")
+    edit_file.add_argument("id")
+    edit_file.add_argument("anexo", help="Chave do anexo (task show)")
+    edit_file.add_argument("--nome", help="Nome novo, com a mesma extensão")
+    edit_file.add_argument("--arquivo", help="Arquivo que substitui o conteúdo")
+    edit_file.add_argument("--excluir", action="store_true", help="Remove o anexo e o arquivo guardado")
+    edit_file.add_argument("--revision", required=True, help="Revisão lida com task show")
     download = sub.add_parser("baixar-anexo", help="Copia um anexo para um caminho novo")
     download.add_argument("id")
     download.add_argument("anexo")
@@ -259,6 +266,25 @@ def run(args):
         name = args.nome or ("Documento confidencial" + path.suffix if args.local else path.name)
         item = dict(nome=name, local=args.local, base64=base64.b64encode(raw).decode("ascii"))
         return tasks.update_materials(args.id, uploads=[item], expected_revision=args.revision)
+    if args.command == "editar-anexo":
+        import base64
+        from tasks_runtime.materials import MAX_FILE
+
+        if args.excluir == bool(args.nome or args.arquivo):
+            raise ValueError("Use --excluir sozinho ou informe --nome e/ou --arquivo")
+        op = dict(acao="excluir" if args.excluir else "editar", id=args.anexo)
+        if args.nome:
+            op["nome"] = args.nome
+        if args.arquivo:
+            path = Path(args.arquivo).expanduser()
+            if not path.is_file():
+                raise ValueError("Anexo precisa ser um arquivo")
+            with path.open("rb") as file:
+                raw = file.read(MAX_FILE + 1)
+            if len(raw) > MAX_FILE:
+                raise ValueError("Cada anexo pode ter até 1 MB")
+            op["base64"] = base64.b64encode(raw).decode("ascii")
+        return tasks.update_materials(args.id, uploads=[op], expected_revision=args.revision)
     if args.command == "baixar-anexo":
         from tasks_runtime.materials import read_attachment
 

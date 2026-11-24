@@ -61,6 +61,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task edit <id> <mudança>` | `edit <id> [campos] [--unset] [--append <registro>] [--revision]` |
 | `task anotacao <id> <ação>` | `anotacao <id> <ação> [--numero N] [--titulo ... --texto ...] [--revision ...]` |
 | `task anexar <id> <arquivo>` | `anexar <id> <arquivo> --local\|--compartilhado [--nome ...] [--revision ...]` |
+| `task editar-anexo <id> <chave>` | `editar-anexo <id> <chave> --revision ... --nome ...\|--arquivo ...\|--excluir` |
 | `task baixar-anexo <id> <chave>` | `baixar-anexo <id> <chave> --output <arquivo-novo>` |
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
 | `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
