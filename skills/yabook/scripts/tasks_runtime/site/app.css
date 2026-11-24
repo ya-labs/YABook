@@ -1297,11 +1297,8 @@ h1, h2, h3, h4, th, strong, b, .card-titulo, .coluna > header .nome, .painel-top
   --cor-destaque-etapa: var(--cor-concluido-quadro, rgb(var(--c-green)));
 }
 :is(.coluna.coluna-epicos, .coluna.papel-concluido:not(.alvo), .lista-etapa.lista-epicos, .lista-etapa.papel-concluido) {
-  --fundo-coluna: light-dark(color-mix(in srgb, var(--cor-destaque-etapa) 4%, var(--bg-etapa)),
-    color-mix(in srgb, var(--cor-destaque-etapa) 9%, var(--bg-etapa)));
   border-color: color-mix(in srgb, var(--cor-destaque-etapa) 22%, var(--bg-etapa));
 }
-.lista-etapa:is(.lista-epicos, .papel-concluido) { background: var(--fundo-coluna); }
 .coluna:is(.coluna-epicos, .papel-concluido) > header .nome,
 .lista-etapa:is(.lista-epicos, .papel-concluido) > summary .nome { color: var(--cor-destaque-etapa); }
 .coluna:is(.coluna-epicos, .papel-concluido) > header .status,

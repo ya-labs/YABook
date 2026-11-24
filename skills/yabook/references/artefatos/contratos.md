@@ -62,6 +62,11 @@ transitório ou conteúdo que não tenha impacto na continuidade. Em issue pacot
 preencha apenas o contexto geral estável; não copie demandas, pendências ou
 validações por entrega. Entregas ficam nos commits e no PR; validações, no PR.
 
+## Descrição de tarefa
+
+O [contrato da descrição em YABook Tasks](../task.md#contrato-da-descrição)
+aplica os campos do corpo da issue à descrição atual do card.
+
 ## Validação antes de ações `do`
 
 | Ação | Campos e formato obrigatórios |
