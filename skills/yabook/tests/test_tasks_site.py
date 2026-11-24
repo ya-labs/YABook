@@ -31,6 +31,24 @@ process.stdout.write(JSON.stringify(vm.runInContext(expression, context)));
                                 check=True, capture_output=True, text=True)
         return json.loads(result.stdout)
 
+    def test_shortcuts_explain_icons_used_by_the_site(self):
+        result = self.evaluate("""
+            h = (tag, attrs, ...children) => ({ tag, attrs, children });
+            const groups = shortcutIconLegend();
+            const nodes = [groups];
+            for (const node of nodes) {
+                if (Array.isArray(node)) nodes.push(...node);
+                else if (node?.children) nodes.push(...node.children);
+            }
+            const drawn = nodes.map(node => node?.innerHTML).filter(Boolean);
+            const missing = Object.entries(ICONS)
+              .filter(([, drawing]) => !drawn.some(svg => svg.includes(drawing)))
+              .map(([name]) => name);
+            [missing, ["Pessoal", "Tamanho", "Anexos", "Links", "Épico", "Código da demanda"]
+              .every(label => nodes.includes(label))]
+        """, [])
+        self.assertEqual(result, [[], True])
+
     def test_board_machine_options_and_saved_filter(self):
         result = self.evaluate("""
             globalThis.localStorage = {getItem: () => "casa"};
@@ -191,7 +209,7 @@ for (const task of tasks) {
   const card = vm.runInContext(`card(tasks.find(t => t.id === ${JSON.stringify(task.id)}))`, ctx);
   const badges = find(card, "card-selos")[0];
   result[task.id] = {
-    demanda: badges ? find(badges, "card-demanda").map(n => [n.tag, n.textContent]) : [],
+    demanda: badges ? find(badges, "card-demanda").map(n => [n.tag, n.textContent, n["aria-label"]]) : [],
     pai: badges ? find(badges, "card-pai").map(n => n.textContent) : [],
     chave: find(card, "card-chave")[0].textContent,
   };
@@ -210,11 +228,11 @@ process.stdout.write(JSON.stringify(result));
         result = subprocess.run(["node", "-e", script, str(SITE), json.dumps(tasks)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         actual = json.loads(result.stdout)
-        self.assertEqual(actual["chamado"], dict(demanda=[["span", "Demanda 322628"]], pai=["@3 · 5723"], chave="@5"))
-        self.assertEqual(actual["issue"], dict(demanda=[["button", "Demanda 322628"]], pai=["@5"], chave="repo#7"))
-        self.assertEqual(actual["propria"]["demanda"], [["span", "Demanda 1001"]])
-        self.assertEqual(actual["solta"]["demanda"], [["button", "Demanda 322628"]])
-        self.assertEqual(actual["neta"], dict(demanda=[["button", "Demanda 322628"]], pai=["@5"], chave="@4"))
+        self.assertEqual(actual["chamado"], dict(demanda=[["span", "322628", "Demanda 322628"]], pai=["@3 · 5723"], chave="@5"))
+        self.assertEqual(actual["issue"], dict(demanda=[["button", "322628", "Demanda 322628 · Abrir Chamado"]], pai=["@5"], chave="repo#7"))
+        self.assertEqual(actual["propria"]["demanda"], [["span", "1001", "Demanda 1001"]])
+        self.assertEqual(actual["solta"]["demanda"], [["button", "322628", "Demanda 322628 · Abrir Chamado"]])
+        self.assertEqual(actual["neta"], dict(demanda=[["button", "322628", "Demanda 322628 · Abrir Chamado"]], pai=["@5"], chave="@4"))
         self.assertEqual(actual["projeto"]["demanda"], [])
         self.assertIn("5723", actual["projeto"]["chave"])
 
