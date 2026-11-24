@@ -22,8 +22,8 @@ from .precommit_hook import find_terms
 from .store import NIVEIS, Conflict, atomic_write, validate_quadro
 
 EDITABLE = ("titulo", "coluna", "ordem", "prazo", "proximo_passo", "projeto", "demanda", "issue", "nivel", "pai", "pessoal", "ficha",
-            "aguardando", "descricao", "size", "links")
-TEXT_FIELDS = ("titulo", "descricao", "proximo_passo", "ficha", "aguardando", "projeto", "demanda", "issue", "links")
+            "aguardando", "descricao", "relatorio_conclusao", "size", "links")
+TEXT_FIELDS = ("titulo", "descricao", "relatorio_conclusao", "proximo_passo", "ficha", "aguardando", "projeto", "demanda", "issue", "links")
 COMMIT_MESSAGE = "chore: salva alterações do quadro"
 
 
@@ -130,6 +130,11 @@ def _validate(store, cfg, tasks, changes, columns, complements):
         unknown = set(fields) - set(EDITABLE)
         if unknown:
             raise ValueError("%s: campos não editáveis %s" % (identifier, ", ".join(sorted(unknown))))
+        report = fields.get("relatorio_conclusao")
+        if report is not None:
+            if not isinstance(report, str):
+                raise ValueError("%s: relatório de conclusão precisa ser texto" % identifier)
+            fields["relatorio_conclusao"] = report.strip()
         unset = [k for k, v in fields.items() if v in (None, "", [])] + list(change.get("unset") or [])
         fields = {k: v for k, v in fields.items() if v not in (None, "", [])}
         if set(unset) - set(EDITABLE):

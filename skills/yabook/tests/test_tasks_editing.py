@@ -167,6 +167,25 @@ class EditingTest(unittest.TestCase):
         card = next(item for item in board.state()["tarefas"] if item["id"] == identifier)
         self.assertEqual(card["links_total"], 0)
 
+    def test_completion_report_is_saved_and_validated_with_the_draft(self):
+        identifier = "tarefa-revisar-layout"
+        report = "## Resumo rápido\n\nLayout entregue.\n\n## Observações\n\nValidado no navegador."
+        editing.save(self.store, self.cfg, dict(tarefas=[
+            dict(id=identifier, revision=self.rev(identifier),
+                 campos=dict(coluna="concluido", descricao="Ajustar layout.", relatorio_conclusao=report)),
+        ]))
+        board = server.Board(self.store, self.cfg)
+        detail = board.task(identifier)
+        self.assertEqual(detail["data"]["relatorio_conclusao"], report)
+        self.assertEqual(detail["data"]["descricao"], "Ajustar layout.")
+        self.assertNotIn(report, detail["body"])
+        for invalid in (["Não é texto"], "ClienteSecreto"):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                editing.save(self.store, self.cfg, dict(tarefas=[
+                    dict(id=identifier, revision=detail["revision"], campos=dict(relatorio_conclusao=invalid)),
+                ]))
+            self.assertEqual(self.rev(identifier), detail["revision"])
+
     def test_invalid_links_refuse_the_entire_draft(self):
         before = self.store.get("tarefa-revisar-layout")
         for invalid in (["mailto:teste@example.org"], ["https://"], ["https://user:secret@example.org"],

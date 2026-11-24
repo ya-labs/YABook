@@ -185,8 +185,12 @@ class Board:
         html = (SITE / "index.html").read_text(encoding="utf-8")
         css = (SITE / "app.css").read_text(encoding="utf-8")
         js = (SITE / "app.js").read_text(encoding="utf-8")
-        snapshot = dict(estado=self.state(), semana=self.week(), ficha=self.sheet(), historico=self.history(),
-                        horas_por_tarefa=sheet.recorded_hours_by_task(self.store.root))
+        state = self.state()
+        completed = {item["id"] for item in state["tarefas"] if item["papel"] == "concluido"}
+        reports = {data["id"]: data["relatorio_conclusao"] for task in self.store.list()
+                   if (data := task["data"])["id"] in completed and data.get("relatorio_conclusao")}
+        snapshot = dict(estado=state, semana=self.week(), ficha=self.sheet(), historico=self.history(),
+                        horas_por_tarefa=sheet.recorded_hours_by_task(self.store.root), relatorios_conclusao=reports)
         payload = json.dumps(snapshot, ensure_ascii=False).replace("</", "<\\/")
         html = html.replace('<link rel="stylesheet" href="app.css">', "<style>\n%s\n</style>" % css)
         html = html.replace('<script src="app.js" defer></script>',

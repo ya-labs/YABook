@@ -17,7 +17,7 @@ TIPOS = ("demanda", "projeto", "especificacao", "issue", "tarefa", "pergunta")
 PAPEIS = ("entrada", "pronto", "ativo", "validacao", "concluido", "arquivado")
 NIVEIS = ("epico", "historia", "tarefa")
 CHILD_LEVEL = {"epico": "historia", "historia": "tarefa"}
-ORDER = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "size", "size_manual", "rodada", "pessoal",
+ORDER = ("id", "numero", "tipo", "nivel", "titulo", "descricao", "relatorio_conclusao", "coluna", "ordem", "pai", "projeto", "demanda", "issue", "size", "size_manual", "rodada", "pessoal",
          "prazo", "proximo_passo", "ficha", "aguardando", "aguardando_desde", "sobre", "resposta", "refs", "links", "anotacoes_seq", "anotacoes", "anexos", "criada", "atualizada")
 REF_PREFIXES = ("confidencial", "yabook", "github")
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,79}")
@@ -337,7 +337,7 @@ class TaskStore:
             raise ValueError("`rodada` precisa ser inteiro a partir de 1")
         if "nivel" in data and data["nivel"] not in NIVEIS:
             raise ValueError("Nível inválido: %r; use %s" % (data["nivel"], ", ".join(NIVEIS)))
-        for key in ("projeto", "demanda", "pai", "descricao", "proximo_passo", "ficha", "aguardando", "sobre", "resposta", "criada", "atualizada"):
+        for key in ("projeto", "demanda", "pai", "descricao", "relatorio_conclusao", "proximo_passo", "ficha", "aguardando", "sobre", "resposta", "criada", "atualizada"):
             if key in data and not isinstance(data[key], str):
                 raise ValueError("`%s` precisa ser texto" % key)
         for key in ("prazo", "aguardando_desde"):

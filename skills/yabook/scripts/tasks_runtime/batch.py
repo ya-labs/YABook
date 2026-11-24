@@ -7,7 +7,7 @@ com um único evento.
 
 Lote (JSON):
   itens: [{chave?, id?, tipo, titulo, descricao, size, demanda?, projeto?, issue?, prazo?,
-           proximo_passo?, refs?, estado? (papel ou coluna), registro?, complemento?}]
+           proximo_passo?, relatorio_conclusao?, refs?, estado? (papel ou coluna), registro?, complemento?}]
   perguntas: [{texto, sobre? (chave ou id)}]
   ativa: chave ou id
   horas: [{tarefa (chave ou id), data, horas, obs?}]
@@ -21,7 +21,7 @@ from .commands import Tasks, _append_log, _plain, parse_date, validate_task_deta
 from .precommit_hook import find_terms
 from .store import PAPEIS, TIPOS, Conflict, atomic_write, check_tree, infer_level, now
 
-FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha", "aguardando", "descricao", "size")
+FIELDS = ("titulo", "demanda", "projeto", "issue", "prazo", "proximo_passo", "refs", "nivel", "pessoal", "ficha", "aguardando", "descricao", "relatorio_conclusao", "size")
 CODED = ("demanda", "projeto", "especificacao")
 ITEM_KEYS = FIELDS + ("chave", "id", "tipo", "estado", "registro", "complemento", "pai")
 
@@ -139,6 +139,11 @@ class Capture:
         if tipo not in TIPOS or tipo == "pergunta":
             raise ValueError(where + ": tipo inválido %r; perguntas vão em `perguntas`" % (tipo,))
         fields = {k: item[k] for k in FIELDS if item.get(k) not in (None, "", [])}
+        if "relatorio_conclusao" in fields:
+            if not isinstance(fields["relatorio_conclusao"], str):
+                raise ValueError(where + ".relatorio_conclusao: informe texto em Markdown")
+            if not fields["relatorio_conclusao"].strip():
+                fields.pop("relatorio_conclusao")
         for key in ("demanda", "projeto"):
             if key in fields:
                 fields[key] = str(fields[key])
