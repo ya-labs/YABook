@@ -21,8 +21,8 @@ separado da memória. Execute `python3 scripts/yabook_tasks.py <serviço>` relat
 ## Formato
 
 Cada tarefa é `tarefas/<id>.md` com frontmatter: `id`, `numero` (`@n` na criação,
-aceito nos comandos; `numerar [--corrigir]`), `descricao` (objetivo e escopo
-vigente em Markdown, obrigatória ao criar uma tarefa pelo agente),
+aceito nos comandos; `numerar [--corrigir]`), `descricao` (obrigatória ao criar
+uma tarefa pelo agente, conforme o [contrato abaixo](#contrato-da-descrição)),
 `maquina` (identificador da máquina na criação, de `tasks.machine`; cards
 anteriores sem o campo aparecem como `trabalho`),
 `size` (1–5 na escala das issues, obrigatório ao criar: o da issue ou estimado;
@@ -46,6 +46,44 @@ volta ao cálculo. Iniciativa pessoal exibe a issue como código.
   acessos vão ao complemento confidencial, só como `refs`.
 - A gravação recusa termos da lista local; não os mova para outro campo.
 - `validate` confere configuração, quadro e todas as tarefas.
+
+## Contrato da descrição
+
+Preencha `descricao` em Markdown com os mesmos campos do corpo de uma
+[issue do YABook](artefatos/issue.md). Em uma tarefa com issue vinculada,
+aproveite os fatos da issue e delimite a parte que pertence à tarefa.
+Título, código, vínculo com a issue e tamanho continuam nos campos do card.
+Preencha com fatos confirmados e indique o que ainda precisa ser definido.
+
+```md
+## Resumo rápido
+
+- **Tarefa** — O que precisa ser feito.
+- **Entrega esperada** — Resultado para quem vai usar ou receber a entrega.
+- **Limite** — Até onde vai a tarefa.
+
+## Escopo
+
+- Mudanças incluídas nesta tarefa.
+
+## Critérios de aceite
+
+- Condições verificáveis para considerar a entrega concluída.
+
+## Informações para IA
+
+- **Contexto confirmado e objetivo** — Situação atual e o resultado pretendido.
+- **Decisões, limites e premissas** — Condições que orientam a execução.
+- **Abordagem e pontos relevantes para continuidade** — O que outra sessão precisa saber para retomar.
+- **Validações executadas ou esperadas** — Como verificar a entrega e o que já foi verificado.
+- **Riscos, dependências e pendências** — O que pode afetar a entrega ou ainda depende de definição.
+```
+
+Atualize a descrição com `task edit --descricao` ou pelo card à medida que
+mudarem as decisões, o escopo ou o aceite. Registre a mudança relevante e sua
+origem no histórico (`edit --append`). Mantenha referências detalhadas que
+ajudam a retomar o trabalho em anotações, como um inventário confirmado de
+fontes ou uma regra de negócio.
 
 ## Comandos
 
@@ -92,7 +130,6 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 - A máquina de origem aparece em **Campos** ao abrir o card. O filtro **Máquina** no Quadro vale para as
   apresentações Quadro e Lista e pode ser combinado com os demais filtros.
 
-- Descrição mantém resumo, escopo vigente, restrições e validação em Markdown. Histórico registra o que ocorreu por rodada.
 - Use **Editar** no cabeçalho do card aberto para ativar o rascunho. **Sair** ou **Descartar** no mesmo lugar volta à leitura do card.
 - Anotações têm número por tarefa, título e texto. O site aplica criar, editar e excluir no rascunho e grava em Salvar. Número excluído não é reutilizado.
 - Ao receber informação nova e confirmada, abra a tarefa por `task show` e use a revisão lida. Se enriquecer uma nota do mesmo assunto, edite-a por número preservando o conteúdo válido. Se for assunto novo, crie uma nota. Exclua apenas a pedido da pessoa.
@@ -107,8 +144,8 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 resumo), da base confidencial, das issues e das tarefas. Lote JSON no scratchpad:
 
 - `itens`: um por tarefa, projeto, demanda, especificação ou issue. Em item novo,
-  inclua `tipo`, `titulo`, `descricao` (o que é a tarefa, seu objetivo e
-  escopo) e `size` (inteiro de 1 a 5, da issue ou estimado). Inclua, quando
+  inclua `tipo`, `titulo`, `descricao` (use o [contrato acima](#contrato-da-descrição))
+  e `size` (inteiro de 1 a 5, da issue ou estimado). Inclua, quando
   couber, códigos, `issue`, `nivel`, `pai` (chave ou id), `pessoal` só quando a pessoa
   disser, `estado` (papel ou coluna conforme a fase), `prazo`,
   `proximo_passo`, `registro` (histórico do que já foi feito), `complemento` (detalhe
@@ -122,6 +159,12 @@ recusam o lote se um item novo estiver sem descrição ou Size válido. Termo da
 lista local também recusa o lote indicando o campo. `automatic` aplica
 com `--apply`; `manual` aplica após `do task capture` com o `approval_hash`. A
 aplicação torna `ativa` a tarefa da sessão.
+
+Anotações e anexos são gravados por comandos próprios. Ao concluir uma captura
+que trouxe uma informação relevante ou um arquivo, confira os materiais já
+registrados na tarefa e use `task anotacao` ou `task anexar` conforme a
+política. Em `automatic`, faça isso ao identificar a informação, inclusive
+durante o trabalho entre as mensagens, e mencione o que foi registrado.
 
 ## Captura e histórico
 
