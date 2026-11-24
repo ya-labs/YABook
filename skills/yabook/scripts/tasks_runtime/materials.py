@@ -1,10 +1,11 @@
-"""Anotações numeradas e arquivos vinculados à revisão de uma tarefa."""
+"""Anotações, links e arquivos vinculados à revisão de uma tarefa."""
 import base64
 import binascii
 import hashlib
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from .precommit_hook import find_terms
 
@@ -34,7 +35,27 @@ def _name(value):
     return name
 
 
+def validate_links(links):
+    if not isinstance(links, list):
+        raise ValueError("Links precisam estar em uma lista")
+    seen = set()
+    for link in links:
+        if not isinstance(link, str) or not link or any(ch.isspace() or ord(ch) < 32 or ch == "\\" for ch in link):
+            raise ValueError("Informe um link HTTP ou HTTPS válido")
+        try:
+            url = urlsplit(link)
+            valid = url.scheme in ("http", "https") and url.hostname and url.username is None and url.port != 0
+        except ValueError:
+            valid = False
+        if not valid:
+            raise ValueError("Informe um link HTTP ou HTTPS válido, sem credenciais na URL")
+        if link in seen:
+            raise ValueError("Link repetido")
+        seen.add(link)
+
+
 def validate(data):
+    validate_links(data.get("links", []))
     seq = data.get("anotacoes_seq", 0)
     notes = data.get("anotacoes", [])
     if not _integer(seq, 0, 2**31 - 1) or not isinstance(notes, list) or len(notes) > MAX_NOTES:

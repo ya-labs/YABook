@@ -98,6 +98,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 - Ao receber informação nova e confirmada, abra a tarefa por `task show` e use a revisão lida. Se enriquecer uma nota do mesmo assunto, edite-a por número preservando o conteúdo válido. Se for assunto novo, crie uma nota. Exclua apenas a pedido da pessoa.
 - Quando mudar o escopo, atualize a descrição e registre a mudança e a origem em `edit --append`. Atualize o próximo passo se a decisão afetar a execução. Se o inventário estiver pendente, aguarde a fonte confirmada.
 - Anexe o arquivo real quando recebido ou localizado e relevante. Use `--local` para material interno ou confidencial e um nome genérico no card. Use `--compartilhado` para arquivo aprovado para o repositório privado de tarefas. A cópia estática não inclui anexos. Cada documento tem até 1 MB. Arquivos pendentes no site ficam na aba até salvar, e as notas usam o rascunho persistente existente.
+- Abaixo de **Relacionamentos** no painel da tarefa ficam **Anexos**, **Links** e **Anotações**. Use **Editar → Links → Adicionar link** para incluir endereços HTTP ou HTTPS. Links e remoções entram no rascunho e são gravados ao usar **Salvar** no quadro. Os links ficam no repositório privado de tarefas e aparecem no painel ao vivo.
 - Na política automática, use esses comandos quando a tarefa e a evidência forem claras. Se houver conflito com decisão anterior ou dúvida sobre o destino/sigilo, resolva antes de gravar.
 
 ## Captura da conversa
