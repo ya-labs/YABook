@@ -430,7 +430,7 @@ button.numero { cursor: pointer; } button.numero:hover { border-color: rgba(var(
 .quadro { display: flex; align-items: stretch; gap: 8px; height: 100%; padding: 0 0 8px; overflow-x: auto; }
 .coluna {
   --fundo-coluna: var(--bg-etapa);
-  display: flex; flex-direction: column; flex: 0 0 320px; min-height: 0; max-height: 100%;
+  display: flex; flex-direction: column; flex: 0 0 min(352px, 100%); min-height: 0; max-height: 100%;
   border: 1px solid var(--borda); border-radius: 14px; background-color: var(--fundo-coluna);
   background-image: linear-gradient(180deg, color-mix(in srgb, white 1.5%, var(--fundo-coluna)),
     color-mix(in srgb, var(--bg-pagina) 20%, var(--fundo-coluna)));
@@ -723,7 +723,6 @@ button.selo { cursor: pointer; text-align: left; }
   .card-titulo { font-size: 14px; }
   .card-passo, .card-pai { font-size: 11px; }
   .card-origem { font-size: 11px; }
-  .coluna { flex-basis: min(320px, calc(100vw - 54px)); }
   .quadro { gap: 8px; }
   .semana-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .dia-card { min-height: 180px; padding: 15px; }
@@ -1143,7 +1142,7 @@ button.numero:hover { border-color: transparent; background: var(--bg-hover); }
 .janela-acoes select { max-width: 220px; }
 
 /* Quadro no padrão Kanban: colunas estreitas, card compacto (título, metadados, chave e tamanho). */
-.coluna { flex-basis: 320px; border-radius: 10px; }
+.coluna { border-radius: 10px; }
 .coluna > header { padding: 12px 12px 10px; font-size: 12px; font-weight: 700; }
 .coluna > header .nome { flex: 0 1 auto; }
 .coluna > header .contador { background: none; border: 0; padding: 0; min-width: 0; color: var(--texto-2); font-weight: 600; }
