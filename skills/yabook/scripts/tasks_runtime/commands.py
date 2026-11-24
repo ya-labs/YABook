@@ -348,15 +348,15 @@ class Tasks:
             raise ValueError("Somente perguntas recebem resposta")
         return self.edit(identifier, dict(resposta=text))
 
-    def log(self, identifier, hours, note=None, day=None, machine=None):
+    def log(self, identifier, hours=None, note=None, day=None, machine=None, *, inicio=None, fim=None):
+        from .sheet import manual_time
+
         self.store.get(identifier)
-        hours = float(str(hours).replace(",", ".").rstrip("hH"))
-        if not 0 < hours <= 24:
-            raise ValueError("Horas fora do intervalo do dia")
+        duration = manual_time(hours, inicio, fim)
         self._check_text(note)
         date = parse_date(day) if day else today().isoformat()
         machine = machine or self.cfg.get("machine") or "local"
-        entry = dict(tipo="manual", data=date, tarefa=identifier, horas=hours, ts=now())
+        entry = dict(tipo="manual", data=date, tarefa=identifier, ts=now(), **duration)
         if note:
             entry["obs"] = note
         path = self.store.root / "horas" / ("%s-%s.jsonl" % (date[:7], machine))
@@ -364,7 +364,7 @@ class Tasks:
             path.parent.mkdir(exist_ok=True)
             with path.open("a", encoding="utf-8") as stream:
                 stream.write(json.dumps(entry, ensure_ascii=False) + "\n")
-        self._event("horas", tarefa=identifier, horas=hours)
+        self._event("horas", tarefa=identifier, **duration)
         return entry
 
     def split_issues(self, apply=False, issue_info=None):

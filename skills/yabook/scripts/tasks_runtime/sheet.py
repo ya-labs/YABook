@@ -10,6 +10,7 @@ datas nem números de demanda ou issue.
 import datetime
 import json
 import math
+import re
 import uuid
 from pathlib import Path
 
@@ -18,7 +19,31 @@ from .events import _machine
 
 LEGACY_WINDOW_MINUTES = 15
 WINDOW_MINUTES = 30
-SLOT_HOURS = LEGACY_WINDOW_MINUTES / 60
+_CLOCK = re.compile(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00")
+
+
+def _clock_minutes(value):
+    if not isinstance(value, str) or not _CLOCK.fullmatch(value):
+        return None
+    return int(value[:2]) * 60 + int(value[3:])
+
+
+def manual_time(hours, inicio=None, fim=None):
+    """Valida a duração ou deriva as horas de um intervalo do mesmo dia."""
+    if inicio is not None or fim is not None:
+        start, end = _clock_minutes(inicio), _clock_minutes(fim)
+        if start is None or end is None or start >= end:
+            raise ValueError("Informe início e fim em HH:MM, com fim após o início no mesmo dia")
+        if hours is not None:
+            raise ValueError("Informe a duração ou o intervalo; a duração do intervalo é calculada")
+        return dict(horas=(end - start) / 60, inicio=inicio, fim=fim)
+    try:
+        value = float(str(hours).replace(",", ".").rstrip("hH"))
+    except (TypeError, ValueError) as error:
+        raise ValueError("Informe horas ou um intervalo com início e fim") from error
+    if not 0 < value <= 24:
+        raise ValueError("Horas fora do intervalo do dia")
+    return dict(horas=value)
 
 
 def attribution(data, index=None):
@@ -38,7 +63,7 @@ def attribution(data, index=None):
 
 
 def window_records(root, day, machine=None):
-    """Janelas deduplicadas e correções ordenadas, inclusive entre máquinas."""
+    """Janelas corrigidas, horas sem horário, observações e intervalos informados."""
     if machine is not None and not isinstance(machine, str):
         raise ValueError("ficha.maquina precisa ser um identificador de máquina em texto")
     # As janelas usam o identificador normalizado. Lançamentos manuais antigos
@@ -68,7 +93,7 @@ def _hour_entries(path):
 
 
 def _resolve_windows(entries):
-    windows, corrections, manual, notes = {}, {}, {}, {}
+    windows, corrections, manual, notes, timed = {}, {}, {}, {}, {}
     for entry, include_hours in entries:
         kind = entry.get("tipo")
         if kind == "janela" and include_hours and entry.get("janela"):
@@ -82,9 +107,15 @@ def _resolve_windows(entries):
             if key not in corrections or order > corrections[key][0]:
                 corrections[key] = (order, entry["ignorar"], entry.get("para") or None)
         elif kind == "manual" and include_hours:
-            manual[entry["tarefa"]] = manual.get(entry["tarefa"], 0) + float(entry.get("horas", 0))
+            task = entry["tarefa"]
+            start, end = _clock_minutes(entry.get("inicio")), _clock_minutes(entry.get("fim"))
+            if start is not None and end is not None and start < end:
+                key = (entry["inicio"], entry["fim"], task)
+                timed[key] = dict(janela=key[0], fim=key[1], tarefa=task, minutos=end - start, ignorar=False)
+            else:
+                manual[task] = manual.get(task, 0) + float(entry.get("horas", 0))
             if entry.get("obs"):
-                notes.setdefault(entry["tarefa"], []).append(entry["obs"])
+                notes.setdefault(task, []).append(entry["obs"])
     # Chaves iguais no destino representam uma única janela. Prefira a janela
     # vigente mais longa e, na mesma duração, a que já estava no destino.
     rows = {}
@@ -99,21 +130,17 @@ def _resolve_windows(entries):
             continue
         rows[key] = dict(janela=start, tarefa=key[1], minutos=minutes, ignorar=ignored,
                          **({"origem": task} if target else {}))
-    return [rows[key] for key in sorted(rows)], manual, notes
+    return [rows[key] for key in sorted(rows)], manual, notes, [timed[key] for key in sorted(timed)]
 
 
 def activity(root, day):
     """Horas estimadas por tarefa, respeitando correções sem apagar o histórico."""
-    windows, manual, notes = window_records(root, day)
-    return accumulated_activity(windows, manual), notes
+    windows, manual, notes, intervals = window_records(root, day)
+    return accumulated_activity(windows, manual, intervals), notes
 
 
-def accumulated_activity(windows, manual):
-    hours = dict(manual)
-    for identifiers in _active_slots(windows).values():
-        for task in identifiers:
-            hours[task] = hours.get(task, 0) + SLOT_HOURS
-    return hours
+def accumulated_activity(windows, manual, intervals=()):
+    return activity_totals(windows, manual, intervals)[2]
 
 
 def correct_windows(store, machine, day, corrections):
@@ -160,29 +187,46 @@ def move_windows(store, machine, day, source, target, starts=None):
 
 
 def _active_slots(windows):
-    """Fatia os intervalos para descontar sobreposições, inclusive de durações diferentes."""
+    """Indexa cada minuto para combinar janelas automáticas e horários informados."""
     slots = {}
     for entry in windows:
-        if entry["ignorar"]:
+        start = _clock_minutes(entry["janela"])
+        if start is None or entry["ignorar"]:
             continue
-        try:
-            time = datetime.time.fromisoformat(entry["janela"])
-        except (TypeError, ValueError):
-            continue
-        start = time.hour * 60 + time.minute
-        end = start + entry.get("minutos", LEGACY_WINDOW_MINUTES)
-        for slot in range(start, end, LEGACY_WINDOW_MINUTES):
-            slots.setdefault(slot, set()).add(entry["tarefa"])
+        end = min(1440, start + entry.get("minutos", LEGACY_WINDOW_MINUTES))
+        for minute in range(start, end):
+            slots.setdefault(minute, set()).add(entry["tarefa"])
     return slots
+
+
+def _hours_by_task(slots, split):
+    minutes = {}
+    for identifiers in slots.values():
+        share = 1 / len(identifiers) if split else 1
+        for identifier in identifiers:
+            minutes[identifier] = minutes.get(identifier, 0) + share
+    return {task: value / 60 for task, value in minutes.items()}
 
 
 def captured_activity(windows):
     """Reparte o tempo simultâneo entre as tarefas de cada intervalo."""
-    result = {}
-    for identifiers in _active_slots(windows).values():
-        for identifier in identifiers:
-            result[identifier] = result.get(identifier, 0) + SLOT_HOURS / len(identifiers)
-    return result
+    return _hours_by_task(_active_slots(windows), split=True)
+
+
+def activity_totals(windows, manual, intervals):
+    """Prioriza o horário informado e mantém separadas as horas sem horário."""
+    automatic = _active_slots(windows)
+    timed = _active_slots(intervals)
+    for minute in timed:
+        automatic.pop(minute, None)
+    captured = _hours_by_task(automatic, split=True)
+    informed = dict(manual)
+    for task, duration in _hours_by_task(timed, split=True).items():
+        informed[task] = informed.get(task, 0) + duration
+    accumulated = dict(informed)
+    for task, duration in _hours_by_task(automatic, split=False).items():
+        accumulated[task] = accumulated.get(task, 0) + duration
+    return captured, informed, accumulated, timed
 
 
 def recorded_hours_by_task(root):
@@ -196,12 +240,12 @@ def recorded_hours_by_task(root):
 
     totals = {}
     for entries in days.values():
-        windows, manual, _ = _resolve_windows(entries)
-        captured = captured_activity(windows)
-        for identifier in captured.keys() | manual.keys():
+        windows, manual, _, intervals = _resolve_windows(entries)
+        captured, informed, _, _ = activity_totals(windows, manual, intervals)
+        for identifier in captured.keys() | informed.keys():
             total = totals.setdefault(identifier, dict(capturado=0.0, informado=0.0))
             total["capturado"] += captured.get(identifier, 0)
-            total["informado"] += manual.get(identifier, 0)
+            total["informado"] += informed.get(identifier, 0)
     return totals
 
 
@@ -253,30 +297,34 @@ def day_sheet(store, day, complement=None):
     machine = ficha.get("maquina")
     labels = cfg.get("rotulos", {})
     per_day, step = float(ficha.get("horas_dia", 8)), float(ficha.get("arredondamento", 1))
-    windows, manual, notes = window_records(store.root, day, machine)
-    captured = captured_activity(windows)
-    hours = accumulated_activity(windows, manual)
+    windows, manual, notes, intervals = window_records(store.root, day, machine)
+    captured, informed, hours, timed = activity_totals(windows, manual, intervals)
     tasks = {t["data"]["id"]: t for t in store.list()}
     index = {k: t["data"] for k, t in tasks.items()}
-    for entry in windows:
+    for entry in windows + intervals:
         entry["titulo"] = index.get(entry["tarefa"], {}).get("titulo", entry["tarefa"])
+    if timed:
+        for window in windows:
+            start = _clock_minutes(window["janela"])
+            if start is not None and not window["ignorar"]:
+                window["minutos_cobertos"] = sum(minute in timed for minute in range(start, start + window["minutos"]))
     groups, extras = {}, []
 
     def group_for(key):
         return groups.setdefault(key, dict(tarefas=[], capturado=0.0, informado=0.0))
 
-    for identifier in sorted(set(hours) | set(captured) | set(manual)):
+    for identifier in sorted(hours):
         task = index.get(identifier)
         key = attribution(task, index) if task else None
-        direct, informed = captured.get(identifier, 0), manual.get(identifier, 0)
+        direct, declared = captured.get(identifier, 0), informed.get(identifier, 0)
         if key is None:
             extras.append(dict(tarefa=identifier, titulo=task["titulo"] if task else identifier,
                                horas=_round_step(hours.get(identifier, 0), step),
-                               capturado=round(direct, 6), informado=round(informed, 6), registrado=round(direct + informed, 6)))
+                               capturado=round(direct, 6), informado=round(declared, 6), registrado=round(direct + declared, 6)))
             continue
         group = group_for(key)
         group["capturado"] += direct
-        group["informado"] += informed
+        group["informado"] += declared
         group["tarefas"].append(identifier)
 
     # A data da última edição é compartilhada e não identifica a máquina de origem.
@@ -316,17 +364,19 @@ def day_sheet(store, day, complement=None):
         rows.append(row)
     rows.sort(key=lambda r: (-r["total"], r["tipo"], str(r["codigo"])))
     capture_total = sum(captured.values())
-    manual_total = sum(manual.values())
+    manual_total = sum(informed.values())
+    timed_total = len(timed) / 60
     registered = sum(r["registrado"] for r in rows)
     return dict(data=day, horas_dia=per_day, total=round(sum(r["total"] for r in rows), 6), linhas=rows, divididas={},
                 acumulado_total=round(sum(hours.values()), 6),
                 saldo_rateado=round(max(0, per_day - sum(r["total"] for r in rows)), 6),
                 margem_percentual=50, margem_limite=1,
                 capturado_total=round(capture_total, 6), informado_total=round(manual_total, 6),
+                informado_com_horario=round(timed_total, 6), atividade_com_horario=round(capture_total + timed_total, 6),
                 registrado_total=round(capture_total + manual_total, 6), registrado_ficha=round(registered, 6),
                 extras_registrado=round(sum(e["registrado"] for e in extras), 6),
                 falta=round(max(0, per_day - registered), 6), excedente=round(max(0, registered - per_day), 6),
-                extras=extras, janelas=windows)
+                extras=extras, janelas=windows, intervalos_informados=intervals)
 
 
 def week_sheet(store, day, complement=None):

@@ -168,7 +168,7 @@ class CaptureTest(unittest.TestCase):
         capture.set_active(self.store, "s1", "tarefa-b", self.cfg["tasks"], when=WHEN)
         self.assertEqual([(h["janela"], h["tarefa"], h["tipo"]) for h in self.hours()],
                          [("14:00", "demanda-1001", "janela"), ("14:30", "demanda-1001", "janela")])
-        windows, manual, _ = sheet.window_records(self.root, WHEN.date().isoformat())
+        windows, manual, _, _ = sheet.window_records(self.root, WHEN.date().isoformat())
         self.assertEqual(len(windows), 2)
         self.assertEqual(manual, {})
         other = capture._read(capture._session_file(self.store, "s2"), {})

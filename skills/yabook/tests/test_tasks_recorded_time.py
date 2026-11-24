@@ -112,6 +112,45 @@ class RecordedTimeTest(unittest.TestCase):
         self.assertEqual((result["capturado_total"], result["informado_total"], result["registrado_ficha"], result["total"]), (0, .5, .5, .75))
 
 
+    def test_timed_manual_has_priority_at_the_minute_and_excludes_untimed_from_timeline(self):
+        self.window("issue-chamado", "10:30")
+        self.window("issue-chamado", "10:45")
+        self.window("issue-chamado", "12:00")
+        launch = self.tasks.log("tarefa-pessoal", day=DAY, inicio="10:40", fim="12:00")
+        self.tasks.log("issue-chamado", .5, day=DAY)
+        self.assertAlmostEqual(launch["horas"], 80 / 60)
+        result = sheet.day_sheet(self.store, DAY)
+        for key, minutes in (("capturado_total", 25), ("informado_com_horario", 80),
+                             ("atividade_com_horario", 105), ("informado_total", 110),
+                             ("registrado_total", 135), ("acumulado_total", 135)):
+            self.assertAlmostEqual(result[key] * 60, minutes, places=4)
+        self.assertEqual([w["minutos_cobertos"] for w in result["janelas"]], [5, 15, 0])
+        interval, = result["intervalos_informados"]
+        self.assertEqual((interval["janela"], interval["fim"], interval["minutos"]), ("10:40", "12:00", 80))
+        board = Board(self.store)
+        day = next(d for d in board.week(DAY)["dias"] if d["data"] == DAY)
+        self.assertEqual((day["horas"], day["informado_com_horario"], day["acumulado"]),
+                         (result["capturado_total"], result["informado_com_horario"], result["acumulado_total"]))
+        self.assertAlmostEqual(board.task("tarefa-pessoal")["horas"]["informado"] * 60, 80)
+        self.assertAlmostEqual(board.task("issue-chamado")["horas"]["capturado"] * 60, 25)
+
+    def test_concurrent_manual_intervals_divide_minutes_between_distinct_tasks(self):
+        for task in ("issue-chamado", "tarefa-pessoal", "issue-chamado"):
+            self.tasks.log(task, day=DAY, inicio="10:40", fim="12:00")
+        result = sheet.day_sheet(self.store, DAY)
+        self.assertEqual(len(result["intervalos_informados"]), 2)
+        self.assertAlmostEqual(result["informado_total"] * 60, 80, places=4)
+        self.assertAlmostEqual(result["linhas"][0]["informado"] * 60, 40, places=4)
+        self.assertAlmostEqual(result["extras"][0]["informado"] * 60, 40, places=4)
+
+    def test_timed_launch_requires_an_ordered_pair_and_no_extra_duration(self):
+        for hours, start, end in ((None, "12:00", None), (None, "25:00", "26:00"),
+                                  (None, "23:30", "00:00"), (1, "10:40", "12:00")):
+            with self.subTest(start=start, end=end), self.assertRaises(ValueError):
+                self.tasks.log("tarefa-pessoal", hours, day=DAY, inicio=start, fim=end)
+        self.assertEqual(sheet.day_sheet(self.store, DAY)["informado_total"], 0)
+        self.assertEqual(self.tasks.log("tarefa-pessoal", day=DAY, inicio="23:30", fim="24:00")["horas"], .5)
+
     def test_extra_time_is_not_rounded_up_in_the_registered_total(self):
         self.window("tarefa-pessoal")
         result = sheet.day_sheet(self.store, DAY)

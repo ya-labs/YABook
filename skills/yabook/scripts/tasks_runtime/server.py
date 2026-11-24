@@ -161,14 +161,14 @@ class Board:
         days = []
         for offset in range(7):
             current = (monday + datetime.timedelta(days=offset)).isoformat()
-            windows, manual, _ = sheet.window_records(self.store.root, current, machine)
-            hours = sheet.accumulated_activity(windows, manual)
-            captured = sheet.captured_activity(windows)
+            windows, manual, _, intervals = sheet.window_records(self.store.root, current, machine)
+            captured, informed, hours, timed = sheet.activity_totals(windows, manual, intervals)
             entries = [dict(tarefa=k, titulo=titles.get(k, k), horas=round(captured.get(k, 0), 6),
-                            informado=round(manual.get(k, 0), 6), acumulado=round(hours[k], 6))
+                            informado=round(informed.get(k, 0), 6), acumulado=round(hours[k], 6))
                        for k in sorted(hours, key=lambda k: (-captured.get(k, 0), k))]
             days.append(dict(data=current, horas=round(sum(captured.values()), 6),
-                             informado=round(sum(manual.values()), 6), acumulado=round(sum(hours.values()), 6), tarefas=entries))
+                             informado=round(sum(informed.values()), 6), informado_com_horario=round(len(timed) / 60, 6),
+                             acumulado=round(sum(hours.values()), 6), tarefas=entries))
         return dict(inicio=monday.isoformat(), dias=days)
 
     def history(self, limit=200):

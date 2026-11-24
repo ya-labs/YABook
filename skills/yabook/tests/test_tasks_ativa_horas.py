@@ -70,7 +70,7 @@ class ActiveAndHoursTest(unittest.TestCase):
         capture.mark(self.store, "trabalho", story, when)
         capture.mark(self.store, "trabalho", story, when, minutes=15)
         capture.mark(self.store, "trabalho", "projeto-5723", when.replace(hour=10))
-        windows, manual, _ = sheet.window_records(self.root, DAY)
+        windows, manual, _, _ = sheet.window_records(self.root, DAY)
         self.assertEqual(sheet.captured_activity(windows), {"projeto-5723": .75, story: .25})
         self.assertEqual(sheet.accumulated_activity(windows, manual), {"projeto-5723": 1., story: .5})
         # A correção de uma janela antiga alcança seus 15 minutos, e não toda a meia hora.
