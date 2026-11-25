@@ -2,7 +2,7 @@
   "name": "yabook",
   "displayName": "YABook",
   "description": "Tarefa ativa do YABook Tasks, alterações do agente por rodada com explicação por bloco, página de cada comando e atalhos para o Tasks e o mapa de memória.",
-  "version": "0.6.0",
+  "version": "0.7.5",
   "publisher": "yalabs",
   "icon": "media/icon.png",
   "license": "UNLICENSED",
@@ -11,6 +11,7 @@
     "vscode": "^1.90.0"
   },
   "categories": [
+    "Themes",
     "Other"
   ],
   "main": "./extension.js",
@@ -278,6 +279,18 @@
           "description": "Porta do mapa de memória; diferente da do Tasks para os dois abrirem juntos."
         }
       }
-    }
+    },
+    "themes": [
+      {
+        "label": "YA LABS Escuro",
+        "uiTheme": "vs-dark",
+        "path": "./themes/ya-labs-escuro.json"
+      },
+      {
+        "label": "YA LABS Claro",
+        "uiTheme": "vs",
+        "path": "./themes/ya-labs-claro.json"
+      }
+    ]
   }
 }
