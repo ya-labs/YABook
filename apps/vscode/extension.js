@@ -69,7 +69,9 @@ async function openHelp() {
   if (file && fs.existsSync(file)) await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(file));
 }
 
-async function copyCommand(command) {
+async function copyCommand(token) {
+  const command = typeof token === 'string' ? token : token && token.command;
+  if (!command) return;
   await vscode.env.clipboard.writeText(`$yabook ${command}`);
   vscode.window.setStatusBarMessage(`YABook: "$yabook ${command}" copiado`, 2500);
 }
@@ -97,30 +99,72 @@ class HelpTree {
   }
 
   getChildren(node) {
-    if (node && node.group) {
-      return node.group.comandos.map((command) => {
-        const item = new vscode.TreeItem(`$yabook ${command}`, vscode.TreeItemCollapsibleState.None);
-        item.iconPath = new vscode.ThemeIcon('terminal');
-        item.tooltip = 'Clique para copiar';
-        item.command = { command: 'yabook.ajuda.copiar', title: 'Copiar', arguments: [command] };
-        return { item };
-      });
-    }
     if (node) return [];
-    const actions = [
+    return [
       this.action('Ver alterações da última sessão', 'diff-multiple', 'yabook.diff.abrir', 'Aba única com as alterações do agente'),
       this.action('Abrir YABook Tasks no navegador', 'checklist', 'yabook.tasks.site', 'Inicia o site do Tasks, se preciso'),
       this.action('Abrir mapa de memória no navegador', 'type-hierarchy', 'yabook.memoria.mapa', 'Inicia o mapa de memória, se preciso'),
       this.action('Abrir ajuda completa', 'book', 'yabook.ajuda.abrir', 'help.md da versão instalada'),
     ];
-    const file = yabook.helpFile(yabook.findScripts(settings().get('scriptsDir'), sessions.listSessions(base())));
-    const groups = file && fs.existsSync(file) ? yabook.parseHelp(fs.readFileSync(file, 'utf8')) : [];
-    return actions.concat(groups.map((group) => {
+  }
+}
+
+function helpGroups() {
+  const file = yabook.helpFile(yabook.findScripts(settings().get('scriptsDir'), sessions.listSessions(base())));
+  return file && fs.existsSync(file) ? yabook.parseHelp(fs.readFileSync(file, 'utf8')) : [];
+}
+
+// Abre a página do comando em pré-visualização; sem página, a ajuda geral.
+async function openCommand(token) {
+  const command = typeof token === 'string' ? token : token && token.command;
+  if (!command) return;
+  const page = yabook.commandPage(scriptsDir(), command);
+  if (page && fs.existsSync(page)) {
+    await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(page));
+    return;
+  }
+  vscode.window.showWarningMessage(`YABook: sem página para "${command}" nesta versão; abrindo a ajuda geral.`);
+  await openHelp();
+}
+
+async function pickCommand() {
+  const choices = helpGroups().flatMap((group) => group.comandos.map((command) => ({ label: `$yabook ${command}`, description: group.grupo, command })));
+  const choice = await vscode.window.showQuickPick(choices, { placeHolder: 'Comando do YABook', matchOnDescription: true });
+  if (choice) await openCommand(choice.command);
+}
+
+class CommandsTree {
+  constructor() {
+    this.changed = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this.changed.event;
+  }
+
+  refresh() {
+    this.changed.fire();
+  }
+
+  getTreeItem(node) {
+    return node.item;
+  }
+
+  getChildren(node) {
+    if (node && node.group) {
+      return node.group.comandos.map((command) => {
+        const item = new vscode.TreeItem(`$yabook ${command}`, vscode.TreeItemCollapsibleState.None);
+        item.iconPath = new vscode.ThemeIcon('terminal');
+        item.tooltip = 'Abrir a explicação do comando';
+        item.contextValue = 'comando';
+        item.command = { command: 'yabook.comandos.abrir', title: 'Abrir explicação', arguments: [command] };
+        return { item, command };
+      });
+    }
+    if (node) return [];
+    return helpGroups().map((group) => {
       const item = new vscode.TreeItem(group.grupo, vscode.TreeItemCollapsibleState.Collapsed);
       item.iconPath = new vscode.ThemeIcon('symbol-namespace');
       item.description = `${group.comandos.length}`;
       return { item, group };
-    }));
+    });
   }
 }
 
@@ -273,11 +317,15 @@ function activate(context) {
   const explanations = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(base()), '**/explain.json'));
   comments = vscode.comments.createCommentController('yabook.explicacoes', 'YABook: explicações');
   const help = new HelpTree();
+  const commandsTree = new CommandsTree();
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('yabook.ajuda', help),
+    vscode.window.registerTreeDataProvider('yabook.comandos', commandsTree),
     vscode.commands.registerCommand('yabook.ajuda.abrir', openHelp),
     vscode.commands.registerCommand('yabook.ajuda.copiar', copyCommand),
-    vscode.commands.registerCommand('yabook.ajuda.atualizar', () => help.refresh()),
+    vscode.commands.registerCommand('yabook.comandos.abrir', openCommand),
+    vscode.commands.registerCommand('yabook.comandos.escolher', pickCommand),
+    vscode.commands.registerCommand('yabook.ajuda.atualizar', () => commandsTree.refresh()),
     vscode.commands.registerCommand('yabook.memoria.mapa', openMemoryMap),
     vscode.commands.registerCommand('yabook.tasks.site', openTasks),
     comments,

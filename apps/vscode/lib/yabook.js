@@ -44,7 +44,11 @@ function helpFile(scripts) {
 function parseHelp(markdown) {
   const section = /## Índice geral\n([\s\S]*?)(?:\n## |$)/.exec(markdown);
   if (!section) return [];
-  return section[1].split('\n').map((line) => /^- ([^:]+):\s*(.*)$/.exec(line.trim())).filter(Boolean)
+  // Só a lista logo abaixo do título: o texto seguinte pode ter outras listas.
+  const lines = section[1].replace(/^\s*\n/, '').split('\n');
+  const end = lines.findIndex((line) => !line.startsWith('- '));
+  const list = end === -1 ? lines : lines.slice(0, end);
+  return list.map((line) => /^- ([^:]+):\s*(.*)$/.exec(line.trim())).filter(Boolean)
     .map(([, grupo, rest]) => ({ grupo: grupo.trim(), comandos: [...rest.matchAll(/`([^`]+)`/g)].map((m) => m[1]) }))
     .filter((group) => group.comandos.length);
 }
@@ -55,6 +59,17 @@ function readConfig(configFile) {
   } catch (error) {
     return {};
   }
+}
+
+// Página do comando: primeiro termo sem `do` ("do sync" e "sync" usam sync.md; "diff explain" usa diff.md).
+function commandKey(token) {
+  const words = token.trim().split(/\s+/);
+  const rest = words[0] === 'do' && words.length > 1 ? words.slice(1) : words;
+  return rest[0].split('|')[0].replace(/[^a-z0-9-]/gi, '').toLowerCase();
+}
+
+function commandPage(scripts, token) {
+  return scripts ? path.join(scripts, '..', 'references', 'help', 'comandos', commandKey(token) + '.md') : null;
 }
 
 function tasksPort(configFile, fallback = 8765) {
@@ -86,4 +101,4 @@ async function waitServing(port, attempts = 20, delay = 300) {
   return false;
 }
 
-module.exports = { findScripts, helpFile, parseHelp, tasksPort, memoryRoot, serving, waitServing };
+module.exports = { findScripts, helpFile, parseHelp, commandKey, commandPage, tasksPort, memoryRoot, serving, waitServing };

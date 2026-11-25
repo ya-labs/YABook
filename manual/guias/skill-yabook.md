@@ -56,6 +56,7 @@ Arquivos principais:
 | `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 | `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
+| `references/help/comandos/` | Uma página por comando, escrita para pessoas: o que faz, quando usar, se altera algo, sintaxe, exemplos e relacionados. |
 | `references/diff.md` | Captura da versão anterior pelo hook e consulta das alterações do agente na sessão. |
 | `references/configure.md` | Entrevista e contrato da configuração local `.yabook/AGENTS.md`. |
 | `references/guardrails.md` | Contrato do comportamento global do YABook no perfil Codex. |

@@ -13,11 +13,13 @@ altera estado.
 - qualidade: `check`, `review`, `docs`;
 - revisão: `diff`, `diff explain [arquivo]` (alterações do agente na sessão);
 - plugin instalado: `sync` (comparar), `do sync` (atualizar automaticamente).
+- tarefas: `task`;
 - memória: `memory`, `memory index|context|retrieve|search|show|add|edit|forget|review|recent|clean` (faxina), `do memory [id]` (manual/pendências), `do memory policy automatic|manual` (política local). `memory source add` configura fontes compartilhadas; `do memory sync` sincroniza e incorpora novidades após curadoria do agente, conforme a política da fonte. Aprendizado cotidiano segue a política sem aprovação individual.
 
 Para tópico específico, carregue somente:
 
 - planejamento: [help/plan.md](help/plan.md);
+- um comando, para a pessoa: [help/comandos/](help/comandos/), arquivo com o nome do comando, sem do;
 - comandos: [help/commands.md](help/commands.md);
 - objetivo em linguagem natural: [help/objectives.md](help/objectives.md).
 

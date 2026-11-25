@@ -28,10 +28,18 @@ da explicação, o comentário avisa que a posição pode ter se deslocado.
 A cópia anterior mantém a extensão do arquivo, então o VS Code aplica a mesma
 linguagem e encoding (por exemplo, fontes ABL em ISO-8859-1).
 
+## Comandos
+
+A visão **Comandos** lista os comandos do YABook lidos da ajuda da versão
+instalada, agrupados como no `$yabook help`. Clicar em um comando abre uma aba
+com a página dele (o que faz, quando usar, se altera algo, sintaxe, exemplos e
+relacionados), que vem do próprio plugin em `references/help/comandos/`. O
+ícone ao lado do comando copia `$yabook <comando>`, e `YABook: Explicar um
+comando do YABook` procura qualquer comando pela paleta.
+
 ## Ajuda e atalhos
 
-A visão **Ajuda e atalhos** lista os comandos do YABook lidos da ajuda da
-versão instalada; clicar copia `$yabook <comando>`. Também abre:
+A visão **Ajuda e atalhos** abre:
 
 - o site do YABook Tasks (`task board --serve`, porta `tasks.port` ou 8765);
 - o mapa de memória (`memory map --serve`, porta 8766 por padrão);
