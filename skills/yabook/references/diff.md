@@ -20,7 +20,8 @@ mensagem sem edição não cria rodada):
 
 A cópia mantém a extensão original, para o editor aplicar a mesma linguagem e
 encoding. Sessões ficam em `~/.config/yabook/diffs/<projeto>/<sessão>/` e saem
-após `diff.retention_days` (padrão 14). `diff.enabled: false` desliga.
+após `diff.retention_days` (padrão 14). `diff.enabled: false` desliga. O manifesto
+guarda o nome do chat (`custom-title` ou `ai-title` do histórico do agente).
 
 ## Comandos
 

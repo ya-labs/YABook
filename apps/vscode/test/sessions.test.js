@@ -92,3 +92,11 @@ test('visões por rodada: última, sessão inteira e rodada antiga até a seguin
   assert.equal(sessions.viewArg('sessao'), 'sessao');
   assert.equal(sessions.viewItems({ arquivos: [] }, 'ultima').key, 'sessao'); // sessão antiga, sem rodadas
 });
+
+test('rótulo da sessão: nome do chat, senão primeira mensagem, senão projeto e data', () => {
+  const base = { projeto: '/p/YABook', atualizada: '2026-11-25T11:28:00-03:00', arquivos: [] };
+  assert.equal(sessions.label({ ...base, titulo: 'Visualização de diffs no yabook' }), 'Visualização de diffs no yabook');
+  assert.equal(sessions.label({ ...base, rodadas: [{ numero: 1, pedido: 'crie o tema' }] }), 'crie o tema');
+  assert.equal(sessions.label(base), 'YABook · 25/11 11:28');
+  assert.equal(sessions.when(base), '25/11 11:28');
+});

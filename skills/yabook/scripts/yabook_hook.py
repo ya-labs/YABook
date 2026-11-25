@@ -981,7 +981,9 @@ def run(event):
         return context(event_name, text[:6500])
     if event_name == "UserPromptSubmit":
         state = prompt_grant(event.get("prompt", ""), state, root)
-        state["diff_round"] = diff_capture.new_round(event.get("prompt", ""))  # rodada do `$yabook diff`
+        # Rodada do `$yabook diff`, com o nome do chat lido do histórico do agente (último conhecido).
+        state["diff_titles"] = diff_capture.chat_titles(event.get("transcript_path"), state.get("diff_titles"))
+        state["diff_round"] = diff_capture.new_round(event.get("prompt", ""), state["diff_titles"])
         state["learned"] = False  # learn dispensa o pedido do Stop só no próprio turno
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."

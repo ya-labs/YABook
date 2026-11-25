@@ -25,9 +25,10 @@ cada arquivo expansível e recolhível:
 - `YABook: Ver alterações da última rodada` e `YABook: Ver alterações da última
   sessão` fazem o mesmo pela paleta e pela visão **Ajuda e atalhos**;
 - `YABook: Escolher sessão de diff` lista sessões anteriores;
-- a visão **Alterações do agente**, na barra lateral YABook, lista as sessões e,
-  em cada uma, **Sessão inteira** e as rodadas com horário e o início da
-  mensagem; clicar em um arquivo abre o diff só dele.
+- a visão **Alterações do agente**, na barra lateral YABook, lista as sessões pelo
+  nome do chat (o renomeado ou o automático do Claude Code; sem ele, o início da
+  primeira mensagem) e, em cada uma, **Sessão inteira** e as rodadas com horário
+  e o início da mensagem; clicar em um arquivo abre o diff só dele.
 
 ## Explicação dos blocos
 
