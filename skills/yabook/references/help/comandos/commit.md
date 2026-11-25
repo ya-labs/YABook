@@ -38,6 +38,18 @@ $yabook do commit
 - `commit msg`: sugere algo como `docs: explicar o comando dev`.
 - `do commit`: cria o commit; após um `bypass`, conclui o ajuste sem exigir issue.
 
+## Contrato
+
+```text
+tipo: descrição curta
+```
+
+Tipos comuns: `feat`, `fix`, `docs`, `chore`, `refactor`. Quando há corpo, a
+sugestão vem em dois blocos, **Mensagem** (assunto) e **Descrição** (corpo),
+gravados como uma só mensagem Git separada por linha em branco. Corpo é
+obrigatório em issue package e em ajuste via `bypass` (motivo e alteração) e
+nunca lista validações: elas vão no PR.
+
 ## Relacionados
 
 - `pr`: publicar a branch e abrir o PR.

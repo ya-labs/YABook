@@ -41,7 +41,21 @@ class HelpPagesTest(unittest.TestCase):
                 self.assertNotIn(-1, positions, "seção obrigatória ausente")
                 self.assertEqual(positions, sorted(positions), "seções fora de ordem")
                 self.assertNotRegex(text, r"- \[[ x]\]", "página com checklist")
-                self.assertLessEqual(len(text), 3400, "página longa demais")
+                self.assertLessEqual(len(text), 4500 if "## Contrato" in text else 3400, "página longa demais")
+
+    def test_contract_blocks_match_the_artifact_references(self):
+        """O contrato mostrado à pessoa é cópia literal do contrato que o agente segue."""
+        sources = "".join(p.read_text(encoding="utf-8") for p in (REFERENCES / "artefatos").glob("*.md"))
+        pages = [p for p in sorted(PAGES.glob("*.md")) if "## Contrato" in p.read_text(encoding="utf-8")]
+        self.assertEqual([p.stem for p in pages], ["branch", "commit", "issue", "pr", "release"])
+        for page in pages:
+            # Os modelos têm títulos `##` dentro dos blocos: a seção termina em Relacionados.
+            section = page.read_text(encoding="utf-8").split("## Contrato", 1)[1].split("\n## Relacionados", 1)[0]
+            blocks = re.findall(r"```\w*\n.*?```", section, re.S)
+            with self.subTest(page=page.name):
+                self.assertTrue(blocks, "contrato sem bloco")
+                for block in blocks:
+                    self.assertTrue(block in sources, "bloco diferente da referência em artefatos/:\n" + block)
 
 
 if __name__ == "__main__":

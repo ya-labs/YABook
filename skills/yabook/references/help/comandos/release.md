@@ -42,6 +42,17 @@ $yabook help preparar uma release
 - `do release`: executa a release aprovada, com a tag no commit integrado.
 - `help preparar uma release`: recomenda a sequência de comandos para o objetivo.
 
+## Contrato
+
+Título:
+
+```text
+Publicar versão x.y.z
+```
+
+Corpo com objetivo, entrega, issue, mudanças, validações e observações. A tag
+aponta para o commit integrado na branch principal.
+
 ## Relacionados
 
 - `pr`: integrar as mudanças antes da release.

@@ -43,6 +43,46 @@ $yabook dev & do pr
 - `do pr`: envia a branch e abre o PR vinculado à issue.
 - `dev & do pr`: implementa, commita, envia e abre o PR em sequência.
 
+## Contrato
+
+Título objetivo, sem prefixo de tipo. Corpo:
+
+```md
+## Resumo rápido
+
+- Objetivo:
+- Entrega:
+- Issue:
+
+Closes #numero
+
+## O que mudou
+
+-
+
+## Observações
+
+-
+```
+
+Termina com o mesmo bloco recolhido das issues:
+
+```md
+<details>
+<summary>Informações para IA</summary>
+
+- **Contexto confirmado e objetivo:**
+- **Decisões, limites e premissas:**
+- **Abordagem e pontos relevantes para continuidade:**
+- **Validações executadas ou esperadas:**
+- **Riscos, dependências e pendências:**
+</details>
+```
+
+Integração: PR de issue individual usa squash, com título
+`tipo: descrição (#PR)` e o histórico de commits da branch no corpo; PR de
+issue package usa merge commit para preservar os commits documentados.
+
 ## Relacionados
 
 - `commit`: mensagens que o PR vai resumir.

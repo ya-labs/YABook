@@ -42,6 +42,50 @@ $yabook do issue
 - `issue package ...`: propõe um pacote; as entregas ficam nos commits e no PR, com merge commit.
 - `do issue`: cria a issue aprovada, com labels e `Size` no Project.
 
+## Contrato
+
+Título objetivo, sem prefixo de tipo. Labels só do catálogo oficial: tipo
+(`bug`, `feature`, `docs`, `refactor`), domínio (`frontend`, `backend`,
+`infra`, `ui/ux`, `architecture`, `process`, `ai`, `tooling`) e `epic`.
+`Size` de 1 a 5 vai no campo do Project, nunca em label ou título. Sem
+checklists no corpo.
+
+Corpo:
+
+```md
+## Resumo rápido
+
+- Tarefa:
+- Entrega esperada:
+- Limite:
+
+## Escopo
+
+-
+
+## Critérios de aceite
+
+-
+```
+
+Toda issue termina com o bloco recolhido, só com fatos úteis para continuar o
+trabalho:
+
+```md
+<details>
+<summary>Informações para IA</summary>
+
+- **Contexto confirmado e objetivo:**
+- **Decisões, limites e premissas:**
+- **Abordagem e pontos relevantes para continuidade:**
+- **Validações executadas ou esperadas:**
+- **Riscos, dependências e pendências:**
+</details>
+```
+
+`issue package` tem descrição estável e sem lista de demandas; veja
+`references/artefatos/issue-package.md`.
+
 ## Relacionados
 
 - `dev`: desenvolver a issue criada.

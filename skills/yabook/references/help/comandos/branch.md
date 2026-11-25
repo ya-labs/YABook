@@ -38,6 +38,18 @@ $yabook do branch
 - `branch`: para a issue `#92`, sugere algo como `92-reforcar-contratos`.
 - `do branch`: cria `92-reforcar-contratos`, vincula à issue `#92` e prepara o rastreamento local.
 
+## Contrato
+
+```text
+numero-descricao-curta
+```
+
+O número é o da issue. Sem tipo, área, `issue`, `#`, acentos ou espaços. A
+branch é criada vinculada à issue no GitHub (aparece em **Development**).
+
+- Aceito: `92-reforcar-contratos` para a issue `#92`.
+- Recusado: `docs/92-contratos`, `#92 contratos` ou número diferente da issue.
+
 ## Relacionados
 
 - `issue`: criar a issue antes da branch.
