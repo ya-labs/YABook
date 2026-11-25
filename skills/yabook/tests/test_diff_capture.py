@@ -118,6 +118,47 @@ class DiffCaptureTest(unittest.TestCase):
         patch_file = Path(out.getvalue().strip())
         self.assertIn("-um\n+dois\n", patch_file.read_text(encoding="utf-8"))
 
+    def test_cli_open_uses_extension_or_falls_back_to_code_diff(self):
+        source = self.root / "a.txt"; source.write_text("um\n")
+        self.tool("PreToolUse", "Edit", file_path=str(source))
+        source.write_text("dois\n")
+        calls = []
+
+        def fake_run(args, **kwargs):
+            calls.append(args)
+            listing = "yalabs.yabook\n" if installed else "ms-python.python\n"
+            return mock_result(listing if "--list-extensions" in args else "")
+
+        def mock_result(stdout):
+            return type("R", (), {"stdout": stdout, "returncode": 0})()
+
+        def run_open():
+            out = io.StringIO()
+            with patch.object(yabook_diff, "project_root", return_value=str(self.root)), \
+                    patch.object(yabook_diff.shutil, "which", return_value="/bin/code"), \
+                    patch.object(yabook_diff.subprocess, "run", side_effect=fake_run), contextlib.redirect_stdout(out):
+                yabook_diff.main(["open", "--json"])
+            return json.loads(out.getvalue())
+
+        installed = True
+        result = run_open()
+        self.assertEqual(result["editor"]["modo"], "extensao")
+        url = calls[-1][-1]
+        self.assertEqual(calls[-1][1], "--open-url")
+        self.assertTrue(url.startswith("vscode://yalabs.yabook/diff?manifest="))
+        self.assertTrue(Path(result["patch"]).exists())
+
+        installed, calls[:] = False, []
+        result = run_open()
+        self.assertEqual(result["editor"]["modo"], "code --diff")
+        self.assertEqual(calls[-1][:2], ["/bin/code", "--diff"])
+        self.assertTrue(calls[-1][3].endswith("a.txt"))
+
+        with patch.object(yabook_diff, "project_root", return_value=str(self.root)), \
+                patch.object(yabook_diff.shutil, "which", return_value=None), contextlib.redirect_stdout(io.StringIO()) as out:
+            yabook_diff.main(["open", "--json"])
+        self.assertEqual(json.loads(out.getvalue())["editor"]["modo"], "nenhum")
+
 
 if __name__ == "__main__":
     unittest.main()

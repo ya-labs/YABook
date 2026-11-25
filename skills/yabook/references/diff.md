@@ -20,8 +20,11 @@ após `diff.retention_days` (padrão 14). `diff.enabled: false` desliga.
 
 ## Comandos
 
-Rode `scripts/yabook_diff.py` no diretório do projeto:
+Rode `scripts/yabook_diff.py` no diretório do projeto. `$yabook diff` usa `open`:
 
+- `open [--sessao] [--json]`: grava o `.patch` e abre a sessão no VS Code em
+  uma aba única pela extensão `yalabs.yabook` (`apps/vscode`); sem ela, abre
+  `code --diff` por arquivo alterado (até 8); sem `code`, só lista;
 - `sessions`: sessões do projeto, da mais recente;
 - `show [--sessao <prefixo>] [--json]`: arquivos alterados, estado e linhas;
 - `patch [--sessao] [--saida <arquivo>]`: grava o `.patch` (UTF-8).

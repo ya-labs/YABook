@@ -4,6 +4,8 @@
   "scripts": {
     "desktop:dev": "npm --prefix apps/desktop run tauri:dev",
     "desktop:build": "npm --prefix apps/desktop run tauri:build",
-    "desktop:check": "npm --prefix apps/desktop run check"
+    "desktop:check": "npm --prefix apps/desktop run check",
+    "vscode:package": "python3 apps/vscode/scripts/package.py",
+    "vscode:test": "node --test apps/vscode/test/"
   }
 }
