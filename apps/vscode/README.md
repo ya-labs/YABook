@@ -64,6 +64,15 @@ são localizados por `yabook.scriptsDir` ou, sem ela, pela sessão de diff mais
 recente, pelo plugin do Claude ou pela cópia mais nova em
 `~/.local/share/yabook/plugins`.
 
+## Tema YA LABS
+
+A extensão traz os temas **YA LABS Escuro** e **YA LABS Claro**
+(`Preferences: Color Theme`). As superfícies e o azul de ação vêm da paleta do
+site do YABook Tasks, o realce de sintaxe usa as cores de rótulo do site e o
+amarelo da estrela do ícone marca destaques. Todo texto tem contraste de pelo
+menos 4,5:1 com o fundo do editor. Os arquivos em `themes/` são gerados por
+`python3 apps/vscode/scripts/themes.py`; edite a paleta no script, não o JSON.
+
 ## Instalação
 
 Cada versão é publicada nas [releases do YABook](https://github.com/ya-labs/YABook/releases)

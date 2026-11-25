@@ -13,7 +13,7 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parents[1]
-INCLUDE = ("package.json", "extension.js", "README.md", "lib", "media")
+INCLUDE = ("package.json", "extension.js", "README.md", "lib", "media", "themes")
 TYPES = {".json": "application/json", ".js": "application/javascript", ".md": "text/markdown",
          ".svg": "image/svg+xml", ".png": "image/png", ".vsixmanifest": "text/xml", ".css": "text/css",
          ".html": "text/html"}

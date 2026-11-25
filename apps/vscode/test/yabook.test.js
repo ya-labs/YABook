@@ -65,3 +65,16 @@ test('serving detecta servidor ativo e porta livre', async () => {
   await new Promise((done) => server.close(done));
   assert.equal(await yabook.serving(port), false);
 });
+
+test('temas declarados existem e estão em dia com o gerador', () => {
+  const root = path.join(__dirname, '..');
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  assert.deepEqual(manifest.contributes.themes.map((t) => t.label), ['YA LABS Escuro', 'YA LABS Claro']);
+  for (const theme of manifest.contributes.themes) {
+    const data = JSON.parse(fs.readFileSync(path.join(root, theme.path), 'utf8'));
+    assert.equal(data.name, theme.label);
+    assert.ok(data.colors['editor.background'] && data.tokenColors.length > 10);
+  }
+  const check = require('child_process').spawnSync('python3', [path.join(root, 'scripts', 'themes.py'), '--check'], { encoding: 'utf8' });
+  assert.equal(check.status, 0, check.stdout);
+});
