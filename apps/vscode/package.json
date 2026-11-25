@@ -1,0 +1,110 @@
+{
+  "name": "yabook",
+  "displayName": "YABook",
+  "description": "Alterações do agente na sessão em uma aba de diff, a partir do YABook.",
+  "version": "0.1.0",
+  "publisher": "yalabs",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onUri"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "yabook.diff.abrir",
+        "title": "Ver alterações da última sessão",
+        "category": "YABook",
+        "icon": "$(diff-multiple)"
+      },
+      {
+        "command": "yabook.diff.escolher",
+        "title": "Escolher sessão de diff",
+        "category": "YABook",
+        "icon": "$(list-selection)"
+      },
+      {
+        "command": "yabook.diff.atualizar",
+        "title": "Atualizar sessões",
+        "category": "YABook",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "yabook.diff.abrirSessao",
+        "title": "Abrir todas as alterações",
+        "category": "YABook",
+        "icon": "$(diff-multiple)"
+      },
+      {
+        "command": "yabook.diff.abrirArquivo",
+        "title": "Abrir diff do arquivo",
+        "category": "YABook"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "yabook.diff.abrirSessao",
+          "when": "false"
+        },
+        {
+          "command": "yabook.diff.abrirArquivo",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "yabook.diff.abrir",
+          "when": "view == yabook.sessoes",
+          "group": "navigation@1"
+        },
+        {
+          "command": "yabook.diff.atualizar",
+          "when": "view == yabook.sessoes",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "yabook.diff.abrirSessao",
+          "when": "view == yabook.sessoes && viewItem == sessao",
+          "group": "inline"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "yabook",
+          "title": "YABook",
+          "icon": "media/yabook.svg"
+        }
+      ]
+    },
+    "views": {
+      "yabook": [
+        {
+          "id": "yabook.sessoes",
+          "name": "Alterações do agente"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "YABook",
+      "properties": {
+        "yabook.diffsDir": {
+          "type": "string",
+          "default": "",
+          "description": "Pasta das sessões de diff. Vazio usa YABOOK_DIFFS ou ~/.config/yabook/diffs."
+        }
+      }
+    }
+  }
+}
