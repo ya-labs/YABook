@@ -66,11 +66,35 @@ recente, pelo plugin do Claude ou pela cópia mais nova em
 
 ## Instalação
 
+Cada versão é publicada nas [releases do YABook](https://github.com/ya-labs/YABook/releases)
+com a tag `vscode-v<versão>` e o `.vsix` anexado. Para instalar a partir da release:
+
+```bash
+gh release download vscode-v<versão> -R ya-labs/YABook -p 'yabook-*.vsix'
+code --install-extension yabook-<versão>.vsix
+```
+
+Ou baixe o `.vsix` pela página da release e use **Extensões → ... → Install from
+VSIX**. A partir do checkout, sem release:
+
 ```bash
 code --install-extension "$(npm run -s vscode:package)"
 ```
 
-Depois, recarregue a janela (`Developer: Reload Window`).
+Depois, recarregue a janela (`Developer: Reload Window`). Atualizar é instalar a
+versão nova do mesmo jeito.
+
+## Publicar uma versão
+
+Suba `version` em `apps/vscode/package.json` no PR da mudança. Depois do merge,
+na `main` atualizada e sem alterações locais:
+
+```bash
+npm run vscode:release -- --notas <arquivo-com-o-que-mudou.md>
+```
+
+O script recusa commit fora da `origin/main` e tag já publicada; `--dry-run`
+mostra a tag, o título e o corpo sem publicar.
 
 ## Configuração
 

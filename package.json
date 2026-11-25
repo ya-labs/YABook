@@ -6,6 +6,7 @@
     "desktop:build": "npm --prefix apps/desktop run tauri:build",
     "desktop:check": "npm --prefix apps/desktop run check",
     "vscode:package": "python3 apps/vscode/scripts/package.py",
-    "vscode:test": "node --test apps/vscode/test/"
+    "vscode:test": "node --test apps/vscode/test/",
+    "vscode:release": "python3 apps/vscode/scripts/release.py"
   }
 }
