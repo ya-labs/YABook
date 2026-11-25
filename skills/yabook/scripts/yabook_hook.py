@@ -14,6 +14,7 @@ import sys
 import time
 from pathlib import Path
 
+from diff_runtime import capture as diff_capture
 from memory_runtime.core import Vault, digest, read_json, write_json
 
 METHOD = """YABook ativo. Aplique o método YA LABS no projeto conforme AGENTS.md local.
@@ -452,6 +453,21 @@ def svn_mutation(parts):
 
 
 PATCH_TARGET = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$", re.M)
+
+
+def capture_diff(event, state, root, stage):
+    """Versão anterior para `$yabook diff`; erro na captura nunca bloqueia nem altera a ferramenta."""
+    try:
+        cfg = config()
+        if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
+            if stage == "before":
+                diff_capture.before_edit(cfg, root, event, edit_targets(event.get("tool_input", {}), root))
+        elif stage == "before":
+            diff_capture.before_command(cfg, shell_command(event), state)
+        else:
+            diff_capture.after_command(cfg, root, event, state)
+    except Exception as error:
+        record_stats("diff", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
 
 
 def edit_targets(args, root):
@@ -924,10 +940,15 @@ def run(event):
         if COMMIT.search(shell_command(event)):
             state["pre_commit_head"] = git(root, "rev-parse", "HEAD")
         result = inspect_call(event, state, root)
+        if result.get("hookSpecificOutput", {}).get("permissionDecision") != "deny":
+            capture_diff(event, state, root, "before")
         write_json(path, state)
         return result
     if event_name == "PostToolUse":
         command = shell_command(event)
+        if diff_capture.STARTED in state:
+            capture_diff(event, state, root, "after")
+            write_json(path, state)
         # Edição por ferramenta nativa ou por comando configurado (ex.: script que preserva encoding).
         patterns = config().get("learning", {}).get("edit_commands", [])
         if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit") or any(
