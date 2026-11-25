@@ -5,6 +5,8 @@ const vscode = require('vscode');
 const sessions = require('./lib/sessions');
 const explain = require('./lib/explain');
 const yabook = require('./lib/yabook');
+const tasksLib = require('./lib/tasks');
+const childProcess = require('child_process');
 const fs = require('fs');
 const os = require('os');
 
@@ -25,8 +27,8 @@ function configFile() {
 }
 
 // Servidor local em terminal próprio: fica visível e fecha com o terminal. Reaproveita o que já responde.
-async function openServer(name, port, args) {
-  const url = `http://127.0.0.1:${port}/`;
+async function openServer(name, port, args, suffix = '') {
+  const url = `http://127.0.0.1:${port}/${suffix}`;
   if (!(await yabook.serving(port))) {
     const scripts = scriptsDir();
     if (!scripts) return;
@@ -57,10 +59,88 @@ function openMemoryMap() {
     (scripts) => [path.join(scripts, 'yabook_memory.py'), '--root', root, 'map', '--serve', '--port', String(port)]);
 }
 
-function openTasks() {
+function openTasks(suffix = '') {
   const port = settings().get('tasksPort') || yabook.tasksPort(configFile());
   return openServer('YABook Tasks', port,
-    (scripts) => [path.join(scripts, 'yabook_tasks.py'), 'board', '--serve', '--port', String(port)]);
+    (scripts) => [path.join(scripts, 'yabook_tasks.py'), 'board', '--serve', '--port', String(port)], typeof suffix === 'string' ? suffix : '');
+}
+
+// Detalhes da tarefa pela CLI do YABook (`show`), sem reimplementar o formato do quadro.
+function showTask(id) {
+  const scripts = yabook.findScripts(settings().get('scriptsDir'), sessions.listSessions(base()));
+  if (!scripts || !id) return null;
+  try {
+    const output = childProcess.execFileSync(settings().get('python') || 'python3', [path.join(scripts, 'yabook_tasks.py'), 'show', id],
+      { encoding: 'utf8', timeout: 8000 });
+    return JSON.parse(output);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function openTaskDetails() {
+  const id = tasksLib.activeId(tasksLib.tasksRoot(configFile()));
+  const task = showTask(id);
+  if (!task) {
+    vscode.window.showInformationMessage(id ? `YABook: não foi possível ler a tarefa ${id}.` : 'YABook: nenhuma tarefa ativa.');
+    return;
+  }
+  const folder = path.join(os.tmpdir(), 'yabook-tarefas');
+  fs.mkdirSync(folder, { recursive: true });
+  const file = path.join(folder, `${id}.md`);
+  fs.writeFileSync(file, tasksLib.markdown(task), 'utf8');
+  await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(file));
+}
+
+class TaskTree {
+  constructor() {
+    this.changed = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this.changed.event;
+  }
+
+  refresh() {
+    this.changed.fire();
+  }
+
+  getTreeItem(node) {
+    return node;
+  }
+
+  getChildren(node) {
+    if (node) return [];
+    const id = tasksLib.activeId(tasksLib.tasksRoot(configFile()));
+    if (!id) {
+      const empty = new vscode.TreeItem('Sem tarefa ativa', vscode.TreeItemCollapsibleState.None);
+      empty.description = 'rode task start no agente';
+      empty.iconPath = new vscode.ThemeIcon('circle-slash');
+      return [empty];
+    }
+    const data = (showTask(id) || { data: { id } }).data;
+    const title = new vscode.TreeItem(data.titulo || id, vscode.TreeItemCollapsibleState.None);
+    title.description = [data.numero && `#${data.numero}`, data.coluna].filter(Boolean).join(' · ');
+    title.tooltip = 'Abrir os detalhes da tarefa';
+    title.iconPath = new vscode.ThemeIcon('tasklist');
+    title.command = { command: 'yabook.tarefa.detalhes', title: 'Detalhes' };
+    const items = [title];
+    for (const ref of [].concat(data.issue || [])) {
+      const issue = new vscode.TreeItem(ref, vscode.TreeItemCollapsibleState.None);
+      issue.iconPath = new vscode.ThemeIcon('issues');
+      const url = tasksLib.issueUrl(ref);
+      if (url) issue.command = { command: 'vscode.open', title: 'Abrir issue', arguments: [vscode.Uri.parse(url)] };
+      items.push(issue);
+    }
+    if (data.proximo_passo) {
+      const next = new vscode.TreeItem(data.proximo_passo, vscode.TreeItemCollapsibleState.None);
+      next.iconPath = new vscode.ThemeIcon('arrow-right');
+      next.tooltip = 'Próximo passo';
+      items.push(next);
+    }
+    const site = new vscode.TreeItem('Abrir no site do YABook Tasks', vscode.TreeItemCollapsibleState.None);
+    site.iconPath = new vscode.ThemeIcon('link-external');
+    site.command = { command: 'yabook.tarefa.site', title: 'Abrir no site' };
+    items.push(site);
+    return items;
+  }
 }
 
 async function openHelp() {
@@ -340,8 +420,22 @@ function activate(context) {
   const explanations = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(base()), '**/explain.json'));
   comments = vscode.comments.createCommentController('yabook.explicacoes', 'YABook: explicações');
   const help = new HelpTree();
+  const taskTree = new TaskTree();
+  const tasksRoot = tasksLib.tasksRoot(configFile());
+  if (tasksRoot) {
+    const taskWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(tasksRoot), '{local/ativa.json,tarefas/*}'));
+    const refreshTask = () => taskTree.refresh();
+    context.subscriptions.push(taskWatcher, taskWatcher.onDidCreate(refreshTask), taskWatcher.onDidChange(refreshTask), taskWatcher.onDidDelete(refreshTask));
+  }
   const commandsTree = new CommandsTree();
   context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('yabook.tarefa', taskTree),
+    vscode.commands.registerCommand('yabook.tarefa.detalhes', openTaskDetails),
+    vscode.commands.registerCommand('yabook.tarefa.site', () => {
+      const id = tasksLib.activeId(tasksLib.tasksRoot(configFile()));
+      return openTasks(id ? `?tarefa=${encodeURIComponent(id)}` : '');
+    }),
+    vscode.commands.registerCommand('yabook.tarefa.atualizar', () => taskTree.refresh()),
     vscode.window.registerTreeDataProvider('yabook.ajuda', help),
     vscode.window.registerTreeDataProvider('yabook.comandos', commandsTree),
     vscode.commands.registerCommand('yabook.ajuda.abrir', openHelp),

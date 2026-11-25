@@ -4,6 +4,16 @@ Mostra no VS Code o que o YABook registra durante o trabalho do agente. A
 extensão só lê o que os scripts Python do YABook geram; regras, hooks e memória
 continuam no plugin.
 
+## Tarefa ativa
+
+No topo da barra lateral, a visão **Tarefa ativa** mostra a última tarefa
+iniciada no YABook Tasks desta máquina (`local/ativa.json`): título, número,
+coluna, issue e próximo passo. Clicar no título abre uma aba com os detalhes
+(descrição, relatório e registro, lidos pelo `task show`); **Abrir no site do
+YABook Tasks** abre o site já com o painel da tarefa. A visão se atualiza
+sozinha quando a tarefa ativa muda. Com várias conversas na mesma máquina, ela
+mostra a última tarefa iniciada em qualquer uma delas.
+
 ## Alterações do agente
 
 O hook do YABook guarda a versão de cada arquivo antes da primeira edição do

@@ -1,8 +1,8 @@
 {
   "name": "yabook",
   "displayName": "YABook",
-  "description": "Alterações do agente em uma aba de diff com explicação por bloco, página de cada comando do YABook e atalhos para o Tasks e o mapa de memória.",
-  "version": "0.5.0",
+  "description": "Tarefa ativa do YABook Tasks, alterações do agente por rodada com explicação por bloco, página de cada comando e atalhos para o Tasks e o mapa de memória.",
+  "version": "0.6.0",
   "publisher": "yalabs",
   "icon": "media/icon.png",
   "license": "UNLICENSED",
@@ -112,6 +112,24 @@
         "title": "Abrir esta visão",
         "category": "YABook",
         "icon": "$(diff-multiple)"
+      },
+      {
+        "command": "yabook.tarefa.detalhes",
+        "title": "Detalhes da tarefa ativa",
+        "category": "YABook",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "yabook.tarefa.site",
+        "title": "Abrir a tarefa ativa no site do YABook Tasks",
+        "category": "YABook",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "yabook.tarefa.atualizar",
+        "title": "Atualizar tarefa ativa",
+        "category": "YABook",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -172,6 +190,16 @@
           "command": "yabook.ajuda.atualizar",
           "when": "view == yabook.comandos",
           "group": "navigation@2"
+        },
+        {
+          "command": "yabook.tarefa.detalhes",
+          "when": "view == yabook.tarefa",
+          "group": "navigation@1"
+        },
+        {
+          "command": "yabook.tarefa.atualizar",
+          "when": "view == yabook.tarefa",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -203,6 +231,10 @@
     },
     "views": {
       "yabook": [
+        {
+          "id": "yabook.tarefa",
+          "name": "Tarefa ativa"
+        },
         {
           "id": "yabook.ajuda",
           "name": "Ajuda e atalhos"
