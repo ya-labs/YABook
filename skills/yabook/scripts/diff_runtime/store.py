@@ -44,6 +44,7 @@ def settings(cfg):
     if not isinstance(backups, list):
         backups = [{"dir": "backup", "pattern": BACKUP_PATTERN}]
     return dict(base=Path(base).expanduser(), enabled=diff.get("enabled", True) is not False,
+                shell=diff.get("shell", True) is not False,
                 retention=int(diff.get("retention_days", RETENTION_DAYS)),
                 commands=[c for c in commands if isinstance(c, str) and c], backups=backups)
 

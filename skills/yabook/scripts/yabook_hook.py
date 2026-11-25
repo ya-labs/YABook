@@ -465,8 +465,10 @@ def capture_diff(event, state, root, stage):
                                          state.get("diff_round"))
         elif stage == "before":
             diff_capture.before_command(cfg, shell_command(event), state)
-        else:
+            diff_capture.before_shell(cfg, root, shell_command(event), state)
+        else:  # backup do comando de edição primeiro; o retrato do Git cobre o que sobrar
             diff_capture.after_command(cfg, root, event, state)
+            diff_capture.after_shell(cfg, root, event, state)
     except Exception as error:
         record_stats("diff", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
 
@@ -1033,7 +1035,7 @@ def run(event):
         return result
     if event_name == "PostToolUse":
         command = shell_command(event)
-        if diff_capture.STARTED in state:
+        if diff_capture.STARTED in state or diff_capture.GIT_SNAPSHOT in state:
             capture_diff(event, state, root, "after")
             write_json(path, state)
         # Edição por ferramenta nativa ou por comando configurado (ex.: script que preserva encoding).
