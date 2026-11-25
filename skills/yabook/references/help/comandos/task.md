@@ -37,7 +37,9 @@ $yabook task [subcomando] [...]
 - `board`: site do quadro em `127.0.0.1` (porta 8765 por padrão), com modo
   Editar; também abre pela extensão do VS Code.
 - `start <id>`: define a tarefa ativa. Sem ela, o agente não edita o projeto;
-  `start --sem-tarefa` libera as edições sem atribuir horas.
+  `start --sem-tarefa` libera as edições sem atribuir horas. Quando um item
+  entra em andamento, a história e o épico acima que ainda não começaram vão
+  junto; concluir os itens não conclui o épico.
 - `add <texto livre>`: cria tarefa com descrição e `size` de 1 a 5.
 - `capture [assunto]`: registra tarefas, perguntas e horas a partir da conversa.
 - `log <id> <horas>` ou `log <id> --inicio HH:MM --fim HH:MM`: lança horas.
