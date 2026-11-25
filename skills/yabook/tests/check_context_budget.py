@@ -25,6 +25,7 @@ ROUTES = {
     "rebase": ("C2", ["references/rebase.md"], 3400, 1),
     "branch": ("C1", ["references/roteamento.md", "references/artefatos/branch-commit.md", "references/artefatos/contratos.md"], 4200, 3),
     "commit message": ("C1", ["references/roteamento.md", "references/artefatos/branch-commit.md", "references/artefatos/contratos.md"], 4200, 3),
+    "diff": ("C1", ["references/diff.md"], 2200, 1),
     "apk": ("C1", ["references/apk.md", "references/workspace.md"], 3200, 2),
     "configure": ("C2", ["references/configure.md", "references/workspace.md"], 5200, 2),
     "guardrails": ("C1", ["references/guardrails.md"], 3200, 1),

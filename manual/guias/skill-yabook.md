@@ -56,6 +56,7 @@ Arquivos principais:
 | `references/session-minimo.md` | Contexto mínimo coletado pelo `$yabook load`. |
 | `references/sync.md` | Comparação e sincronização da skill instalada. |
 | `references/apk.md` | Contrato de prévia e preparação rastreável de APKs Android. |
+| `references/diff.md` | Captura da versão anterior pelo hook e consulta das alterações do agente na sessão. |
 | `references/configure.md` | Entrevista e contrato da configuração local `.yabook/AGENTS.md`. |
 | `references/guardrails.md` | Contrato do comportamento global do YABook no perfil Codex. |
 
@@ -231,6 +232,7 @@ Consulte o [fluxo](../processos/fluxo-de-trabalho-github.md) e os
 | `$yabook bypass <ação>` | Autoriza uma ação direta fora do fluxo nesta solicitação. |
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook apk` | Valida a configuração e mostra a prévia do APK sem executar build nem alterar arquivos. |
+| `$yabook diff` | Lista os arquivos alterados pelo agente na sessão e grava o `.patch`, sem alterar o projeto. |
 | `$yabook configure [commands]` | Entrevista e propõe a configuração local do repositório sem alterar arquivos. |
 | `$yabook do configure` | Cria ou atualiza `.yabook/AGENTS.md` a partir da proposta confirmada. |
 | `$yabook guardrails` | Audita o comportamento global do YABook sem alterar o perfil Codex. |

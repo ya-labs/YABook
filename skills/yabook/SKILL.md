@@ -52,9 +52,9 @@ Regras: [contexto.md](references/contexto.md).
   [issue package](references/artefatos/issue-package.md),
   [branch/commit](references/artefatos/branch-commit.md),
   [PR/release](references/artefatos/pr-release.md),
-  [contratos canônicos](references/artefatos/contratos.md), [briefs](references/briefs.md).
+  [contratos](references/artefatos/contratos.md), [briefs](references/briefs.md).
 - Execução: [dev](references/dev.md), [sync](references/sync.md),
-  [apk](references/apk.md), [rebase](references/rebase.md), [init](references/init.md),
+  [apk](references/apk.md), [diff](references/diff.md), [rebase](references/rebase.md), [init](references/init.md),
   [docs](references/documentacao.md), [configure](references/configure.md),
   [guardrails](references/guardrails.md), [bypass](references/bypass.md).
 - Qualidade: [check/review](references/quality.md).
@@ -65,7 +65,7 @@ Regras: [contexto.md](references/contexto.md).
 
 ## Execução e saída
 
-- Encadeamentos `&`: esquerda para direita, reutilizando contexto válido.
+- Encadeamentos `&`: esquerda para direita, reusando contexto válido.
 - Issue: título objetivo, labels oficiais e `Size` de `1` a `5` no Project.
   `issue package`: descrição estável, sem lista de demandas. Issue/PR sem checklists.
 - Branch: `numero-descricao-curta`; prefira `createLinkedBranch` e confirme
