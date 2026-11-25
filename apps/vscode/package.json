@@ -1,8 +1,8 @@
 {
   "name": "yabook",
   "displayName": "YABook",
-  "description": "Alterações do agente na sessão em uma aba de diff, a partir do YABook.",
-  "version": "0.1.0",
+  "description": "Alterações do agente na sessão em uma aba de diff, com explicação de cada bloco, a partir do YABook.",
+  "version": "0.2.0",
   "publisher": "yalabs",
   "license": "UNLICENSED",
   "private": true,
@@ -29,6 +29,18 @@
         "title": "Escolher sessão de diff",
         "category": "YABook",
         "icon": "$(list-selection)"
+      },
+      {
+        "command": "yabook.diff.explicacoes",
+        "title": "Navegar pelas explicações do diff",
+        "category": "YABook",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "yabook.diff.limparExplicacoes",
+        "title": "Ocultar explicações do diff",
+        "category": "YABook",
+        "icon": "$(comment-unresolved)"
       },
       {
         "command": "yabook.diff.atualizar",
@@ -62,6 +74,11 @@
       "view/title": [
         {
           "command": "yabook.diff.abrir",
+          "when": "view == yabook.sessoes",
+          "group": "navigation@1"
+        },
+        {
+          "command": "yabook.diff.explicacoes",
           "when": "view == yabook.sessoes",
           "group": "navigation@1"
         },

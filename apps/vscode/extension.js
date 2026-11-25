@@ -3,8 +3,55 @@
 const path = require('path');
 const vscode = require('vscode');
 const sessions = require('./lib/sessions');
+const explain = require('./lib/explain');
 
 const EMPTY = 'yabook-vazio';
+let comments;
+let threads = [];
+
+function clearExplanations() {
+  threads.forEach((thread) => thread.dispose());
+  threads = [];
+}
+
+// Explicações como comentários somente leitura ancorados em cada bloco; valem no diff e no editor comum.
+function showExplanations(session) {
+  clearExplanations();
+  for (const row of explain.anchors(session)) {
+    const markdown = new vscode.MarkdownString(row.markdown);
+    const comment = { body: markdown, mode: vscode.CommentMode.Preview, author: { name: 'YABook' } };
+    const range = new vscode.Range(row.start, 0, row.end, 0);
+    const thread = comments.createCommentThread(vscode.Uri.file(row.file), range, [comment]);
+    thread.canReply = false;
+    thread.label = `Explicação ${row.id}`;
+    thread.collapsibleState = vscode.CommentThreadCollapsibleState.Expanded;
+    threads.push(thread);
+  }
+  return threads.length;
+}
+
+async function browseExplanations() {
+  const [session] = workspaceSessions();
+  const rows = session ? explain.anchors(session) : [];
+  if (!rows.length) {
+    vscode.window.showInformationMessage('YABook: a sessão mais recente não tem explicações. Peça `$yabook diff explain` ao agente.');
+    return;
+  }
+  showExplanations(session);
+  const choice = await vscode.window.showQuickPick(
+    rows.map((row) => ({ label: `${row.id} · ${row.arquivo}:${row.start + 1}`, detail: row.texto, row })),
+    { placeHolder: 'Explicação do bloco', matchOnDetail: true }
+  );
+  if (!choice) return;
+  const change = sessions.changes(session).find((c) => c.caminho === choice.row.arquivo);
+  if (change) await openFile(session, change);
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const range = new vscode.Range(choice.row.start, 0, choice.row.end, 0);
+    editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+    editor.selection = new vscode.Selection(range.start, range.start);
+  }
+}
 
 function base() {
   return sessions.defaultBase(vscode.workspace.getConfiguration('yabook').get('diffsDir'));
@@ -36,6 +83,7 @@ async function openSession(session) {
   });
   const title = `YABook: ${path.basename(session.projeto)} (${files.length} arquivo${files.length > 1 ? 's' : ''})`;
   await vscode.commands.executeCommand('vscode.changes', title, resources);
+  showExplanations(session);
 }
 
 async function openFile(session, change) {
@@ -62,7 +110,8 @@ class SessionsTree {
     if (!node) {
       return workspaceSessions().map((session) => {
         const item = new vscode.TreeItem(sessions.label(session), vscode.TreeItemCollapsibleState.Collapsed);
-        item.description = session.agente || '';
+        const explained = explain.load(session);
+        item.description = [session.agente, explained && `${explained.blocos.length} explicação(ões)`].filter(Boolean).join(' · ');
         item.tooltip = session.pasta;
         item.contextValue = 'sessao';
         item.iconPath = new vscode.ThemeIcon('history');
@@ -102,7 +151,15 @@ function activate(context) {
   const tree = new SessionsTree();
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(base()), '**/manifest.json'));
   const refresh = () => tree.refresh();
+  const explanations = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(base()), '**/explain.json'));
+  comments = vscode.comments.createCommentController('yabook.explicacoes', 'YABook: explicações');
   context.subscriptions.push(
+    comments,
+    explanations,
+    explanations.onDidCreate(refresh),
+    explanations.onDidChange(refresh),
+    vscode.commands.registerCommand('yabook.diff.explicacoes', browseExplanations),
+    vscode.commands.registerCommand('yabook.diff.limparExplicacoes', clearExplanations),
     watcher,
     watcher.onDidCreate(refresh),
     watcher.onDidChange(refresh),

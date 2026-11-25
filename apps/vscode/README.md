@@ -16,14 +16,22 @@ cada arquivo expansível e recolhível:
 - a visão **Alterações do agente**, na barra lateral YABook, lista sessões e
   arquivos; clicar em um arquivo abre o diff só dele.
 
+## Explicação dos blocos
+
+Com `$yabook diff explain [arquivo]`, o agente escreve uma explicação curta
+para cada bloco do diff. A extensão mostra cada explicação como comentário
+ancorado no bloco, no diff e no editor comum. `YABook: Navegar pelas
+explicações do diff` lista os blocos e abre cada um; `YABook: Ocultar
+explicações do diff` remove os comentários da tela. Se o arquivo mudar depois
+da explicação, o comentário avisa que a posição pode ter se deslocado.
+
 A cópia anterior mantém a extensão do arquivo, então o VS Code aplica a mesma
 linguagem e encoding (por exemplo, fontes ABL em ISO-8859-1).
 
 ## Instalação
 
 ```bash
-npm run vscode:package
-code --install-extension apps/vscode/dist/yabook-0.1.0.vsix
+code --install-extension "$(npm run -s vscode:package)"
 ```
 
 Depois, recarregue a janela (`Developer: Reload Window`).

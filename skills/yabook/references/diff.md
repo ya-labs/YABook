@@ -29,5 +29,17 @@ Rode `scripts/yabook_diff.py` no diretório do projeto. `$yabook diff` usa `open
 - `show [--sessao <prefixo>] [--json]`: arquivos alterados, estado e linhas;
 - `patch [--sessao] [--saida <arquivo>]`: grava o `.patch` (UTF-8).
 
+## Explain
+
+`$yabook diff explain [arquivo]` explica cada bloco no VS Code:
+
+1. `blocks [--arquivo]` devolve blocos numerados (`b1`...) em JSON;
+2. escreva uma ou duas frases por bloco: o porquê e o efeito, sem repetir o
+   código; use o contexto da sessão antes de reler fontes;
+3. envie `{"b1": "texto"}` por heredoc a `explain [--arquivo]`, que valida os
+   ids, grava `explain.json` e abre a sessão com os comentários.
+
+Não crie arquivo para o JSON: o comando é consulta e o hook barra `Write`.
+
 Sem `--sessao`, usa a sessão atualizada mais recentemente. Responda com a
 lista de arquivos e o caminho do `.patch`; não repita o diff na conversa.
