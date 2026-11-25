@@ -123,6 +123,7 @@ executa somente o que foi autorizado.
 - [Como usar a telemetria de contexto](#como-usar-a-telemetria-de-contexto)
 - [Como usar o dashboard de contexto](#como-usar-o-dashboard-de-contexto)
 - [Como preparar um APK](#como-preparar-um-apk)
+- [Como revisar as alterações do agente](#como-revisar-as-alterações-do-agente)
 - [Como acompanhar uma sequência de etapas](#como-acompanhar-uma-sequência-de-etapas)
 - [Como transferir o contexto com resume](#como-transferir-o-contexto-com-resume)
 - [Como usar modos de colaboração](#como-usar-modos-de-colaboração)
@@ -424,6 +425,27 @@ fazem parte do comando.
 Para entender como a skill funciona por dentro, consulte [Skill YABook](skill-yabook.md).
 
 ---
+
+### Como revisar as alterações do agente
+
+O hook guarda a versão de cada arquivo antes da primeira edição do agente na
+sessão, sem custo de tokens. Para revisar:
+
+```text
+$yabook diff
+$yabook diff explain [arquivo]
+```
+
+- `$yabook diff`: abre todas as alterações da sessão em uma aba de diff do
+  VS Code, com cada arquivo recolhível, e grava o `.patch` da sessão.
+- `$yabook diff explain`: o agente escreve uma explicação curta por bloco, que
+  aparece como comentário ancorado no bloco.
+
+A aba única e os comentários dependem da extensão YABook para VS Code
+(`apps/vscode`), instalada com
+`code --install-extension "$(npm run -s vscode:package)"`. A extensão também
+lista os comandos do YABook e abre o site do YABook Tasks e o mapa de memória.
+Sem ela, `$yabook diff` abre um `code --diff` por arquivo.
 
 ### Como acompanhar uma sequência de etapas
 

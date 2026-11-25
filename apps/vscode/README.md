@@ -28,6 +28,21 @@ da explicação, o comentário avisa que a posição pode ter se deslocado.
 A cópia anterior mantém a extensão do arquivo, então o VS Code aplica a mesma
 linguagem e encoding (por exemplo, fontes ABL em ISO-8859-1).
 
+## Ajuda e atalhos
+
+A visão **Ajuda e atalhos** lista os comandos do YABook lidos da ajuda da
+versão instalada; clicar copia `$yabook <comando>`. Também abre:
+
+- o site do YABook Tasks (`task board --serve`, porta `tasks.port` ou 8765);
+- o mapa de memória (`memory map --serve`, porta 8766 por padrão);
+- a ajuda completa (`help.md`) em pré-visualização.
+
+Se o servidor não estiver rodando, a extensão o inicia em um terminal próprio
+(fechar o terminal encerra) e abre o navegador quando ele responder. Os scripts
+são localizados por `yabook.scriptsDir` ou, sem ela, pela sessão de diff mais
+recente, pelo plugin do Claude ou pela cópia mais nova em
+`~/.local/share/yabook/plugins`.
+
 ## Instalação
 
 ```bash
@@ -39,7 +54,9 @@ Depois, recarregue a janela (`Developer: Reload Window`).
 ## Configuração
 
 - `yabook.diffsDir`: pasta das sessões; vazio usa `YABOOK_DIFFS` ou
-  `~/.config/yabook/diffs`.
+  `~/.config/yabook/diffs`;
+- `yabook.scriptsDir`, `yabook.python`, `yabook.tasksPort` e
+  `yabook.memoryMapPort`: localização do YABook e portas dos atalhos.
 
 ## Desenvolvimento
 
