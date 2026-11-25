@@ -740,7 +740,15 @@ def tasks_issue_flow(event, session):
             ref = issueflow.ref_from_branch(cwd, branch)
             if ref:
                 result = issueflow.advance(store, tasks_cfg, ref, "inicio", branch=branch, session=session)
+                created = None
+                if result is None:  # issue sem tarefa: cria a partir do GitHub e a deixa ativa
+                    created = issueflow.create_from_issue(store, tasks_cfg, ref)
+                    if created:
+                        result = issueflow.advance(store, tasks_cfg, ref, "inicio", branch=branch, session=session)
                 notice = (result or {}).get("aviso_retroativo", "")
+                if created:
+                    notice = ("YABook Tasks: tarefa %s criada a partir da issue %s e ativa na sessão. %s"
+                              % (created, ref, notice)).strip()
                 if result and not store.get(result["id"])["data"].get("size_manual"):  # Size do Project sem esperar a rede
                     script = Path(__file__).with_name("yabook_tasks.py")
                     spawn_background([sys.executable, str(script), "--config", str(config_path()), "issue", "--ref", ref,
@@ -788,6 +796,79 @@ def task_tool_result(response):
         if isinstance(result, dict):
             return result
     return {}
+
+
+EDIT_TOOLS = ("apply_patch", "Edit", "Write", "MultiEdit", "NotebookEdit")
+TASK_MARKS = ("ativa.json", "sem-tarefa.json")
+
+
+def tasks_store():
+    cfg = config()
+    if not cfg.get("tasks"):
+        return None, None
+    from tasks_runtime import capture
+    store, tasks_cfg = capture.open_store(cfg)
+    return store, tasks_cfg
+
+
+def tasks_gate(event, root, session):
+    """Edição no projeto exige tarefa escolhida na sessão ou decisão de seguir sem tarefa, inclusive em auto."""
+    try:
+        name = event.get("tool_name", "")
+        if name in EDIT_TOOLS:
+            targets = edit_targets(event.get("tool_input", {}), root) or []
+            if not any(inside(target, root) for target in targets):
+                return None
+        elif not diff_capture.edit_command(config(), shell_command(event)):
+            return None
+        store, _ = tasks_store()
+        if store is None:
+            return None
+        from tasks_runtime import capture
+        if capture.session_resolved(store, session):
+            return None
+        suggestion = capture.active(store, session)
+        hint = " Sugestão da máquina: %s." % suggestion if suggestion else ""
+        return deny("YABook Tasks: esta sessão ainda não tem tarefa. Antes de editar, rode `yabook_tasks.py start <id>`"
+                    " (ou crie com task add/capture); para seguir sem tarefa, `yabook_tasks.py start --sem-tarefa`." + hint)
+    except Exception as error:
+        record_stats("tasks.gate", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+        return None
+
+
+def tasks_marks():
+    """Assinatura dos arquivos que a CLI grava ao iniciar tarefa ou seguir sem tarefa."""
+    store, _ = tasks_store()
+    if store is None:
+        return None
+    marks = []
+    for name in TASK_MARKS:
+        path = store.root / "local" / name
+        marks.append(path.stat().st_mtime_ns if path.exists() else 0)
+    return marks
+
+
+def tasks_bind(command, state, session):
+    """Liga a sessão à tarefa iniciada pelo comando, mesmo encadeado ou com o caminho da CLI em variável."""
+    before = state.pop("tasks_marks", None)
+    if not before:
+        return ""
+    try:
+        after = tasks_marks()
+        if not after or after == before:
+            return ""
+        store, tasks_cfg = tasks_store()
+        from tasks_runtime import capture
+        if after[1] != before[1] and "--sem-tarefa" in command:
+            capture.set_without_task(store, session)
+            return "YABook Tasks: sessão segue sem tarefa; edições liberadas sem atribuir horas."
+        identifier = json.loads((store.root / "local" / "ativa.json").read_text(encoding="utf-8")).get("id")
+        if after[0] != before[0] and identifier and re.search(r"\bstart\b", command) and store.exists(identifier):
+            notice = capture.set_active(store, session, identifier, tasks_cfg)
+            return notice or "YABook Tasks: tarefa ativa da sessão: %s." % identifier
+    except Exception as error:
+        record_stats("tasks.bind", 0, result="erro", error=type(error).__name__ + ": " + str(error)[:160])
+    return ""
 
 
 def tasks_started(event, session):
@@ -941,7 +1022,11 @@ def run(event):
             state["pre_commit_head"] = git(root, "rev-parse", "HEAD")
         result = inspect_call(event, state, root)
         if result.get("hookSpecificOutput", {}).get("permissionDecision") != "deny":
+            result = tasks_gate(event, root, path.stem) or result
+        if result.get("hookSpecificOutput", {}).get("permissionDecision") != "deny":
             capture_diff(event, state, root, "before")
+            if shell_command(event):
+                state["tasks_marks"] = tasks_marks()
         write_json(path, state)
         return result
     if event_name == "PostToolUse":
@@ -962,6 +1047,10 @@ def run(event):
                 state["committed"] = True
             write_json(path, state)
         activated = tasks_started(event, path.stem)
+        if "tasks_marks" in state:
+            bound = tasks_bind(command, state, path.stem)
+            write_json(path, state)
+            activated = activated or bound
         issue_notice = tasks_issue_flow(event, path.stem)
         followed = tasks_followed(command, path.stem)
         if LEARN.search(command):

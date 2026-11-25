@@ -16,7 +16,7 @@ em arquivo, definição por área, memória ou repasse para outra sessão.
   podem usar a branch atual com commit documentado, inclusive sem issue.
 - Crie ou atualize a issue necessária ao objetivo, evitando duplicidades.
 - Push, PR, merge de PR e branch protegida entram no objetivo sem pedido
-  separado; o hook libera todas as travas. Release só quando fizer parte do pedido.
+  separado; o hook libera as travas, exceto editar sem tarefa na sessão. Release só quando fizer parte do pedido.
   Recusas explícitas da pessoa (ex.: não reescrever histórico) continuam valendo.
 - Comandos informativos, discussões e pedidos de prévia continuam sem escrita.
   Comandos de prévia sem `do` permanecem somente leitura; o contexto não os

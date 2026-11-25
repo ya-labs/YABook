@@ -68,6 +68,21 @@ def _write_session(path, state):
     atomic_write(path, json.dumps(state, ensure_ascii=False) + "\n")
 
 
+def session_resolved(store, session):
+    """A sessão escolheu uma tarefa ou decidiu seguir sem tarefa (a sugestão da máquina não conta)."""
+    state = _read(_session_file(store, session), {})
+    return bool(state.get("ativa") or state.get("sem_tarefa"))
+
+
+def set_without_task(store, session):
+    """Registra na sessão a decisão explícita de trabalhar sem tarefa."""
+    path = _session_file(store, session)
+    with store.lock():
+        state = _read(path, {})
+        state.update(sem_tarefa=now())
+        _write_session(path, state)
+
+
 def _pending_today(state, when):
     day = window(when)[0]
     pending = {}
@@ -405,7 +420,7 @@ def _prompt(store, tasks_cfg, session, when, text):
         pending = [[day, slot, minutes] for slot, minutes in sorted(durations.items())]
         if pending != state.get("pendentes"):
             state["pendentes"], changed = pending, True
-    if current is None:
+    if current is None and not state.get("sem_tarefa"):
         # Sem escolha na sessão: pergunta de novo uma vez, depois de algumas mensagens.
         state["sem_ativa"] = state.get("sem_ativa", 0) + 1
         changed = True

@@ -1,6 +1,6 @@
 {
   "name": "yabook",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Método YA LABS e memória própria rastreável para agentes de desenvolvimento.",
   "skills": "./skills/",
   "author": {

@@ -97,6 +97,50 @@ def advance(store, cfg, ref, fase, registro=None, pr=None, branch=None, session=
     return result
 
 
+def issue_description(body):
+    """Corpo de issue YABook no contrato da descrição da tarefa (bloco de IA vira seção)."""
+    text = (body or "").replace("\r\n", "\n").strip()
+    text = re.sub(r"^- (Tarefa|Entrega esperada|Limite|Objetivo|Entrega): ", r"- **\1** — ", text, flags=re.M)
+    text = re.sub(r"<details>\s*<summary>Informações para IA</summary>\s*", "## Informações para IA\n\n", text)
+    text = text.replace("</details>", "")
+    return re.sub(r"^- \*\*(.+?):\*\* ", r"- **\1** — ", text, flags=re.M).strip()
+
+
+def _gh_json(args, timeout=6):
+    try:
+        result = subprocess.run(["gh", *args], capture_output=True, text=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode:
+        return None
+    try:
+        return json.loads(result.stdout)
+    except ValueError:
+        return None
+
+
+def create_from_issue(store, cfg, ref):
+    """Cria a tarefa de uma issue sem tarefa, abaixo da tarefa do épico quando a issue é subissue.
+
+    Sem `projeto`: o vínculo é a issue; projeto é código da empresa e tiraria a tarefa do trabalho pessoal."""
+    match = re.match(r"^([^/#]+)/([^/#]+)#(\d+)$", ref or "")
+    if not match or find(store, ref):
+        return None
+    owner, name, number = match.groups()
+    info = _gh_json(["issue", "view", number, "-R", "%s/%s" % (owner, name), "--json", "title,body"])
+    if not info or not info.get("title"):
+        return None
+    query = ("query($o:String!,$n:String!,$i:Int!){repository(owner:$o,name:$n){issue(number:$i){parent{number}}}}")
+    parent = _gh_json(["api", "graphql", "-f", "query=" + query, "-f", "o=" + owner, "-f", "n=" + name, "-F", "i=" + number])
+    parent_number = (((parent or {}).get("data") or {}).get("repository") or {}).get("issue") or {}
+    parent_number = (parent_number.get("parent") or {}).get("number")
+    epic = find(store, "%s/%s#%s" % (owner, name, parent_number)) if parent_number else None
+    fields = dict(issue=[ref], descricao=issue_description(info.get("body")))
+    if epic:
+        fields.update(nivel="historia", pai=epic["data"]["id"])
+    return Tasks(store, cfg).add("issue", info["title"], **fields)["id"]
+
+
 def _report_from_pr(info):
     body = (info.get("body") or "").replace("\r\n", "\n").strip()
     body = re.sub(r"^<details>[^\S\n]*\n<summary>Informações para IA</summary>(.*?)^</details>[^\S\n]*$",
