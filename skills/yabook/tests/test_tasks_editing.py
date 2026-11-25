@@ -75,7 +75,9 @@ class EditingTest(unittest.TestCase):
         self.assertTrue(result["commit"])
         pending = {e["id"]: e["acao"] for e in events.pending(self.root)}
         self.assertEqual(set(result["eventos"]), set(pending))
-        self.assertEqual(sorted(pending.values()), ["editar", "editar", "mover", "reordenar"])
+        # Agenda em andamento leva o épico pai junto (#339): mais um mover e o registro no épico.
+        self.assertEqual(sorted(pending.values()), ["editar", "editar", "editar", "mover", "mover", "reordenar"])
+        self.assertEqual(self.store.get("projeto-5723")["data"]["coluna"], "andamento")
         self.assertIn("Backlog → Em andamento", result["resumo"])
         self.assertIn("task review", result["resumo"])
         # Desmarcar volta ao cálculo

@@ -303,7 +303,26 @@ class Tasks:
                              if k not in ("coluna", "ordem", "atualizada", "criada") and data.get(k) != task["data"].get(k))
             if changed or append:
                 self._event("editar", tarefa=identifier, campos=changed + (["registro"] if append else []))
-            return dict(id=identifier, revision=revision, coluna=data["coluna"])
+            started = roles.get(data.get("coluna")) == "ativo" and roles.get(before) != "ativo"
+        if started and data.get("pai"):
+            self._start_ancestors(data)
+        return dict(id=identifier, revision=revision, coluna=data["coluna"])
+
+    def _start_ancestors(self, data):
+        """Item que entra em andamento leva a história e o épico acima, se ainda não começaram.
+
+        Só propaga para frente: pai em teste, concluído ou arquivado fica onde está, e concluir
+        as histórias nunca conclui o épico."""
+        roles = self.roles()
+        label = ("#%s" % data["numero"]) if data.get("numero") else data["id"]
+        note = "Em andamento: %s começou (%s)." % (label, data.get("titulo") or data["id"])
+        seen, parent = {data["id"]}, data.get("pai")
+        while parent and parent not in seen and self.store.exists(parent):  # ciclo de `pai` não trava
+            seen.add(parent)
+            current = self.store.get(parent)["data"]
+            if roles.get(current.get("coluna")) in ("entrada", "pronto"):
+                self.edit(current["id"], dict(coluna=self.first_column("ativo")), append=note)
+            parent = current.get("pai")
 
     def update_materials(self, identifier, operations=(), uploads=(), expected_revision=None):
         from . import materials
