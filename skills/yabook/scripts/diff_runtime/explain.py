@@ -46,10 +46,10 @@ def _groups(old, new):
     return groups
 
 
-def blocks(folder, data, only=None):
+def blocks(folder, data, only=None, view="sessao"):
     """Blocos numerados da sessão; linhas em base 1, contagem zero indica inserção ou remoção pura."""
     found, number = [], 0
-    for change in compare.changes(folder, data):
+    for change in compare.changes(folder, data, view):
         if only and change["caminho"] != only:
             continue
         old, new = _lines(change["antes"]), _lines(change["depois"] if change["estado"] != "removido" else None)
@@ -78,9 +78,9 @@ def parse(text):
     return texts
 
 
-def save(folder, data, texts, only=None):
+def save(folder, data, texts, only=None, view="sessao"):
     """Grava `explain.json` com posição, assinatura do arquivo atual e texto de cada bloco."""
-    current = {block["id"]: block for block in blocks(folder, data, only)}
+    current = {block["id"]: block for block in blocks(folder, data, only, view)}
     unknown = sorted(set(texts) - set(current))
     if unknown:
         raise ValueError("Blocos inexistentes na sessão atual: " + ", ".join(unknown))
@@ -91,7 +91,7 @@ def save(folder, data, texts, only=None):
         after = store.target(data["projeto"], block["arquivo"])
         rows.append(dict(id=key, arquivo=block["arquivo"], estado=block["estado"], antes=block["antes"],
                          depois=block["depois"], texto=texts[key], assinatura=digest(after)))
-    payload = dict(versao=1, sessao=data["sessao"], gerada=store.now_iso(), blocos=rows,
+    payload = dict(versao=1, sessao=data["sessao"], visao=store.view_items(data, view)[0], gerada=store.now_iso(), blocos=rows,
                    pendentes=[key for key in current if key not in texts])
     target = Path(folder) / "explain.json"
     target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

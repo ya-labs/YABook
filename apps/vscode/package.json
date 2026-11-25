@@ -2,7 +2,7 @@
   "name": "yabook",
   "displayName": "YABook",
   "description": "Alterações do agente em uma aba de diff com explicação por bloco, página de cada comando do YABook e atalhos para o Tasks e o mapa de memória.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "yalabs",
   "icon": "media/icon.png",
   "license": "UNLICENSED",
@@ -19,6 +19,12 @@
   ],
   "contributes": {
     "commands": [
+      {
+        "command": "yabook.diff.abrirRodada",
+        "title": "Ver alterações da última rodada",
+        "category": "YABook",
+        "icon": "$(debug-step-over)"
+      },
       {
         "command": "yabook.diff.abrir",
         "title": "Ver alterações da última sessão",
@@ -100,6 +106,12 @@
         "title": "Explicar um comando do YABook",
         "category": "YABook",
         "icon": "$(search)"
+      },
+      {
+        "command": "yabook.diff.abrirVisao",
+        "title": "Abrir esta visão",
+        "category": "YABook",
+        "icon": "$(diff-multiple)"
       }
     ],
     "menus": {
@@ -119,9 +131,18 @@
         {
           "command": "yabook.comandos.abrir",
           "when": "false"
+        },
+        {
+          "command": "yabook.diff.abrirVisao",
+          "when": "false"
         }
       ],
       "view/title": [
+        {
+          "command": "yabook.diff.abrirRodada",
+          "when": "view == yabook.sessoes",
+          "group": "navigation@0"
+        },
         {
           "command": "yabook.diff.abrir",
           "when": "view == yabook.sessoes",
@@ -162,6 +183,11 @@
         {
           "command": "yabook.ajuda.copiar",
           "when": "view == yabook.comandos && viewItem == comando",
+          "group": "inline"
+        },
+        {
+          "command": "yabook.diff.abrirVisao",
+          "when": "view == yabook.sessoes && viewItem == visao",
           "group": "inline"
         }
       ]

@@ -1,12 +1,13 @@
 # Diff das edições do agente
 
-Use para `$yabook diff [sessão]`. É consulta: não altera o projeto, Git ou
+Use para `$yabook diff [sessao|rodada <n>]`. É consulta: não altera o projeto, Git ou
 GitHub; grava só na pasta de sessões de diff.
 
 ## Captura
 
 O hook guarda, sem tokens, a versão de cada arquivo antes da primeira edição
-do agente na sessão:
+do agente na sessão e em cada rodada (trabalho entre duas mensagens da pessoa;
+mensagem sem edição não cria rodada):
 
 - `Edit`, `Write`, `MultiEdit` e `apply_patch`: cópia no `PreToolUse`;
 - comando de edição (`diff.commands`, padrão `learning.edit_commands`): usa o
@@ -20,7 +21,9 @@ após `diff.retention_days` (padrão 14). `diff.enabled: false` desliga.
 
 ## Comandos
 
-Rode `scripts/yabook_diff.py` no diretório do projeto. `$yabook diff` usa `open`:
+Rode `scripts/yabook_diff.py` no diretório do projeto. `$yabook diff` usa `open`
+(última rodada); `diff sessao` acrescenta `--inteira`; `diff rodada <n>`, `--rodada <n>`.
+Valem em `open`, `show`, `blocks` e `explain`; o `.patch` é sempre da sessão:
 
 - `open [--sessao] [--json]`: grava o `.patch` e abre a sessão no VS Code em
   uma aba única pela extensão `yalabs.yabook` (`apps/vscode`); sem ela, abre

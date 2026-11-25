@@ -122,6 +122,54 @@ class Session:
         write_manifest(self.folder, data)
         return True
 
+    def record_round(self, round_info, target, source=None, origin="copia"):
+        """Guarda a versão anterior na primeira edição do arquivo dentro da rodada (mensagem da pessoa)."""
+        if not round_info or not round_info.get("chave"):
+            return False
+        rel = relative(target, self.root)
+        data = self.manifest()
+        rounds = data.setdefault("rodadas", [])
+        if not rounds or rounds[-1].get("chave") != round_info["chave"]:
+            rounds.append(dict(numero=len(rounds) + 1, chave=round_info["chave"], inicio=now_iso(),
+                               pedido=round_info.get("pedido", ""), arquivos=[]))
+        current = rounds[-1]
+        if any(item["caminho"] == rel for item in current["arquivos"]):
+            return False
+        before = "rodadas/%d/antes/%s" % (current["numero"], rel)
+        new = source is None or not Path(source).exists()
+        if not new:
+            destination = self.folder / before
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        current["arquivos"].append(dict(caminho=rel, antes=None if new else before, novo=new, origem=origin,
+                                        capturado=now_iso()))
+        data["atualizada"] = now_iso()
+        write_manifest(self.folder, data)
+        return True
+
+
+def view_items(data, view=None):
+    """Arquivos da visão: `sessao` (tudo), `ultima` (padrão, última rodada) ou o número de uma rodada.
+
+    Sessão sem rodadas (gravada antes delas) cai na sessão inteira. Devolve (chave da visão, itens)."""
+    rounds = data.get("rodadas") or []
+    if view == "sessao" or not rounds:
+        return "sessao", data["arquivos"]
+    if view in (None, "", "ultima"):
+        chosen = rounds[-1]
+    else:
+        chosen = next((r for r in rounds if str(r["numero"]) == str(view)), None)
+        if chosen is None:
+            raise ValueError("Rodada não encontrada: %s (há %d)" % (view, len(rounds)))
+    # O "depois" de uma rodada antiga é o "antes" do arquivo na próxima rodada que o editou.
+    later = rounds[rounds.index(chosen) + 1:]
+    items = []
+    for item in chosen["arquivos"]:
+        following = next((i for r in later for i in r["arquivos"] if i["caminho"] == item["caminho"]), None)
+        items.append(dict(item, depois=following["antes"]) if following else item)
+    return "rodada-%d" % chosen["numero"], items
+
+
 def target(root, rel):
     """Arquivo atual correspondente a um caminho do manifesto."""
     if rel.startswith(OUTSIDE + "/"):

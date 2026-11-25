@@ -461,7 +461,8 @@ def capture_diff(event, state, root, stage):
         cfg = config()
         if event.get("tool_name") in ("apply_patch", "Edit", "Write", "MultiEdit"):
             if stage == "before":
-                diff_capture.before_edit(cfg, root, event, edit_targets(event.get("tool_input", {}), root))
+                diff_capture.before_edit(cfg, root, event, edit_targets(event.get("tool_input", {}), root),
+                                         state.get("diff_round"))
         elif stage == "before":
             diff_capture.before_command(cfg, shell_command(event), state)
         else:
@@ -978,6 +979,7 @@ def run(event):
         return context(event_name, text[:6500])
     if event_name == "UserPromptSubmit":
         state = prompt_grant(event.get("prompt", ""), state, root)
+        state["diff_round"] = diff_capture.new_round(event.get("prompt", ""))  # rodada do `$yabook diff`
         state["learned"] = False  # learn dispensa o pedido do Stop só no próprio turno
         write_json(path, state)
         text = "Estado operacional YABook atualizado; não confundir memória com autorização."

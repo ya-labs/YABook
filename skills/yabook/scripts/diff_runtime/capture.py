@@ -24,8 +24,15 @@ def session(cfg, root, event):
     return current, options
 
 
-def before_edit(cfg, root, event, targets):
-    """Guarda a versão de cada alvo antes da primeira edição na sessão."""
+def new_round(prompt):
+    """Rodada aberta por uma mensagem da pessoa; o trecho ajuda a reconhecê-la na lista."""
+    text = re.sub(r"<([\w-]+)[^>]*>.*?</\1>", " ", prompt or "", flags=re.S)
+    text = " ".join(text.split())
+    return dict(chave="%.6f" % time.time(), pedido=text[:80] + ("…" if len(text) > 80 else ""))
+
+
+def before_edit(cfg, root, event, targets, round_info=None):
+    """Guarda a versão de cada alvo antes da primeira edição na sessão e na rodada."""
     if not targets or not store.settings(cfg)["enabled"]:
         return 0
     current, _ = session(cfg, root, event)
@@ -34,7 +41,9 @@ def before_edit(cfg, root, event, targets):
         target = Path(target)
         if target.is_dir():
             continue
-        recorded += current.record(target, target if target.exists() else None)
+        source = target if target.exists() else None
+        recorded += current.record(target, source)
+        current.record_round(round_info, target, source)
     return recorded
 
 
@@ -72,7 +81,7 @@ def backups_since(root, rules, started):
 
 
 def after_command(cfg, root, event, state):
-    """Registra o backup mais antigo de cada arquivo alterado pelo comando de edição."""
+    """Registra o backup mais antigo de cada arquivo alterado pelo comando de edição, na sessão e na rodada."""
     started = state.pop(STARTED, None)
     if started is None:
         return 0
@@ -80,4 +89,8 @@ def after_command(cfg, root, event, state):
     if not pairs:
         return 0
     current, _ = session(cfg, root, event)
-    return sum(current.record(original, backup, origin="backup") for original, backup in pairs)
+    recorded = 0
+    for original, backup in pairs:
+        recorded += current.record(original, backup, origin="backup")
+        current.record_round(state.get("diff_round"), original, backup, origin="backup")
+    return recorded

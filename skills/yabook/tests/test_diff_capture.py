@@ -118,6 +118,49 @@ class DiffCaptureTest(unittest.TestCase):
         patch_file = Path(out.getvalue().strip())
         self.assertIn("-um\n+dois\n", patch_file.read_text(encoding="utf-8"))
 
+    def prompt(self, text):
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt=text))
+
+    def view(self, *args):
+        out = io.StringIO()
+        with patch.object(yabook_diff, "project_root", return_value=str(self.root)), contextlib.redirect_stdout(out):
+            yabook_diff.main(["show", "--json", *args])
+        result = json.loads(out.getvalue())
+        return result["visao"], {f["caminho"]: (f["adicionadas"], f["removidas"]) for f in result["arquivos"]}
+
+    def test_rounds_split_changes_per_message(self):
+        a, b = self.root / "a.txt", self.root / "b.txt"
+        a.write_text("um\n")
+        self.prompt("<ide_opened_file>x</ide_opened_file> ajusta o a")
+        self.tool("PreToolUse", "Edit", file_path=str(a)); a.write_text("dois\n")
+        self.prompt("só uma pergunta")  # sem edição: não vira rodada
+        self.prompt("agora mexe no a e cria o b")
+        self.tool("PreToolUse", "Edit", file_path=str(a)); a.write_text("tres\n")
+        self.tool("PreToolUse", "Write", file_path=str(b)); b.write_text("novo\n")
+        folder, data = self.session()
+        self.assertEqual([(r["numero"], r["pedido"]) for r in data["rodadas"]],
+                         [(1, "ajusta o a"), (2, "agora mexe no a e cria o b")])
+        self.assertEqual(self.view(), ("rodada-2", {"a.txt": (1, 1), "b.txt": (1, 0)}))
+        self.assertEqual(self.view("--inteira"), ("sessao", {"a.txt": (1, 1), "b.txt": (1, 0)}))
+        round_one = compare.changes(folder, data, 1)
+        self.assertEqual((round_one[0]["caminho"], Path(round_one[0]["depois"]).read_text()), ("a.txt", "dois\n"))
+        self.assertIn("+dois", compare.unified(round_one[0]))  # rodada 1 termina onde a 2 começou
+
+    def test_round_uses_backup_of_edit_command(self):
+        source = self.root / "x.p"; source.write_text("v1\n")
+        self.prompt("primeira")
+        self.tool("PreToolUse", "Edit", file_path=str(source)); source.write_text("v2\n")
+        self.prompt("segunda via edita")
+        command = "python3 edita.py x.p --tag t"
+        self.tool("PreToolUse", "Bash", command=command)
+        backup = self.root / "backup" / "x.p.bak-20261125-101500-t"; backup.parent.mkdir(); backup.write_text("v2\n")
+        source.write_text("v3\n")
+        self.tool("PostToolUse", "Bash", command=command)
+        folder, data = self.session()
+        self.assertEqual(data["rodadas"][1]["arquivos"][0]["origem"], "backup")
+        self.assertEqual(self.view(), ("rodada-2", {"x.p": (1, 1)}))
+        self.assertIn("-v2\n+v3", compare.unified(compare.changes(folder, data, "ultima")[0]))
+
     def test_cli_open_uses_extension_or_falls_back_to_code_diff(self):
         source = self.root / "a.txt"; source.write_text("um\n")
         self.tool("PreToolUse", "Edit", file_path=str(source))

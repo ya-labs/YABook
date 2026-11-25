@@ -24,16 +24,17 @@ function digest(file) {
 
 // Linhas em base 0. Bloco com linhas atuais ancora no arquivo atual; arquivo removido, na cópia anterior;
 // remoção dentro de arquivo que continua existindo ancora na linha atual seguinte ao trecho removido.
-function anchor(session, block) {
+function anchor(session, block, items) {
   const [beforeStart, beforeCount] = block.antes;
   const [afterStart, afterCount] = block.depois;
   if (block.estado === 'removido') {
-    const item = session.arquivos.find((a) => a.caminho === block.arquivo);
+    const item = (items || []).find((i) => i.caminho === block.arquivo) || session.arquivos.find((a) => a.caminho === block.arquivo);
     const file = item && item.antes ? path.join(session.pasta, item.antes) : null;
     const start = Math.max(beforeStart - 1, 0);
     return file && { file, side: 'antes', start, end: start + Math.max(beforeCount - 1, 0), stale: false };
   }
-  const file = sessions.target(session, block.arquivo);
+  const item = (items || []).find((i) => i.caminho === block.arquivo);
+  const file = item && item.depois ? path.join(session.pasta, item.depois) : sessions.target(session, block.arquivo);
   const last = Math.max(lineCount(file) - 1, 0);
   const start = Math.min(Math.max(afterStart - 1, 0), last);
   const end = Math.min(afterCount > 0 ? start + afterCount - 1 : start, last);
@@ -56,10 +57,13 @@ function body(block, place) {
   return `**${block.id}** · ${counts}${removed}\n\n${block.texto}${warning}`;
 }
 
-function anchors(session) {
+// Explicações só aparecem na visão em que foram geradas (explain.json antigo, sem visão, é da sessão).
+function anchors(session, viewKey) {
   const data = load(session);
-  if (!data) return [];
-  return data.blocos.map((block) => ({ block, place: anchor(session, block) })).filter((row) => row.place)
+  const key = (data && data.visao) || 'sessao';
+  if (!data || (viewKey && viewKey !== key)) return [];
+  const items = sessions.viewItems(session, sessions.viewArg(key)).items;
+  return data.blocos.map((block) => ({ block, place: anchor(session, block, items) })).filter((row) => row.place)
     .map(({ block, place }) => ({ id: block.id, arquivo: block.arquivo, texto: block.texto, ...place, markdown: body(block, place) }));
 }
 

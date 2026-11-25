@@ -53,13 +53,13 @@ def extension_installed(code):
     return EXTENSION in result.stdout.lower().split()
 
 
-def open_in_editor(folder, files, explain=False):
+def open_in_editor(folder, files, explain=False, view_key="sessao"):
     """Abre a aba única pela extensão; sem ela, um `code --diff` por arquivo alterado."""
     code = code_binary()
     if not code:
         return dict(modo="nenhum", motivo="comando `code` fora do PATH")
     if extension_installed(code):
-        query = {"manifest": str(Path(folder) / "manifest.json")}
+        query = {"manifest": str(Path(folder) / "manifest.json"), "visao": view_key}
         if explain:
             query["explicar"] = "1"
         subprocess.run([code, "--open-url", "vscode://" + EXTENSION + "/diff?" + urlencode(query)], timeout=20)
@@ -77,6 +77,15 @@ def summary(folder, data, files):
                 atualizada=data["atualizada"], arquivos=files)
 
 
+def view_options(command):
+    command.add_argument("--rodada", help="Número da rodada; padrão: a última")
+    command.add_argument("--inteira", action="store_true", help="Sessão inteira em vez da última rodada")
+
+
+def chosen_view(args):
+    return "sessao" if getattr(args, "inteira", False) else (getattr(args, "rodada", None) or "ultima")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--projeto", default=os.getcwd(), help="Diretório do projeto; padrão: atual")
@@ -85,18 +94,22 @@ def main(argv=None):
     listing.add_argument("--json", action="store_true")
     show = sub.add_parser("show", help="Arquivos alterados na sessão")
     show.add_argument("--sessao")
+    view_options(show)
     show.add_argument("--json", action="store_true")
     patch = sub.add_parser("patch", help="Grava o .patch da sessão")
     patch.add_argument("--sessao")
     patch.add_argument("--saida")
     opening = sub.add_parser("open", help="Abre as alterações da sessão no VS Code e grava o .patch")
     opening.add_argument("--sessao")
+    view_options(opening)
     opening.add_argument("--json", action="store_true")
     parts = sub.add_parser("blocks", help="Blocos numerados do diff, em JSON, para o agente explicar")
     parts.add_argument("--sessao")
+    view_options(parts)
     parts.add_argument("--arquivo", help="Caminho relativo como aparece em show")
     explaining = sub.add_parser("explain", help="Grava as explicações (JSON na entrada padrão) e abre no VS Code")
     explaining.add_argument("--sessao")
+    view_options(explaining)
     explaining.add_argument("--arquivo")
     explaining.add_argument("--entrada", help="Arquivo JSON; padrão: entrada padrão")
     explaining.add_argument("--sem-abrir", action="store_true")
@@ -113,38 +126,40 @@ def main(argv=None):
         return 0
     folder, data = pick(base, root, args.sessao)
     if args.command == "show":
-        files = compare.changes(folder, data)
+        view_key = store.view_items(data, chosen_view(args))[0]
+        files = compare.changes(folder, data, chosen_view(args))
         if args.json:
-            print(json.dumps(summary(folder, data, files), ensure_ascii=False, indent=2))
+            print(json.dumps(dict(summary(folder, data, files), visao=view_key), ensure_ascii=False, indent=2))
             return 0
-        print(f"Sessão {data['sessao']} ({data['atualizada']}): {len(files)} arquivo(s) alterado(s)")
+        print(f"Sessão {data['sessao']} ({data['atualizada']}), {view_key}: {len(files)} arquivo(s) alterado(s)")
         for item in files:
             print(f"  {item['estado']:<9} +{item['adicionadas']} -{item['removidas']}  {item['caminho']}")
         return 0
     if args.command == "blocks":
-        found = explain.blocks(folder, data, args.arquivo)
+        found = explain.blocks(folder, data, args.arquivo, chosen_view(args))
         # Compacto: um bloco por linha, para o modelo ler com poucos tokens.
         rows = ",\n".join(json.dumps(block, ensure_ascii=False, separators=(",", ":")) for block in found)
         print('{"sessao":' + json.dumps(data["sessao"]) + ',"blocos":[\n' + rows + "\n]}")
         return 0
     if args.command == "explain":
         text = Path(args.entrada).read_text(encoding="utf-8") if args.entrada else sys.stdin.read()
-        target, payload = explain.save(folder, data, explain.parse(text), args.arquivo)
+        target, payload = explain.save(folder, data, explain.parse(text), args.arquivo, chosen_view(args))
         editor = dict(modo="nenhum", motivo="--sem-abrir")
         if not args.sem_abrir:
-            editor = open_in_editor(folder, compare.changes(folder, data), explain=True)
+            editor = open_in_editor(folder, compare.changes(folder, data, chosen_view(args)), True, payload["visao"])
         print(json.dumps(dict(explicacoes=str(target), blocos=len(payload["blocos"]), pendentes=payload["pendentes"],
                               editor=editor), ensure_ascii=False, indent=2))
         return 0
     if args.command == "open":
-        files = compare.changes(folder, data)
-        result = summary(folder, data, files)
+        view_key = store.view_items(data, chosen_view(args))[0]
+        files = compare.changes(folder, data, chosen_view(args))
+        result = dict(summary(folder, data, files), visao=view_key)
         result["patch"] = str(compare.patch(folder, data))
-        result["editor"] = open_in_editor(folder, files) if files else dict(modo="nenhum", motivo="sem alterações")
+        result["editor"] = open_in_editor(folder, files, False, view_key) if files else dict(modo="nenhum", motivo="sem alterações")
         if args.json:
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0
-        print(f"Sessão {data['sessao']}: {len(files)} arquivo(s) alterado(s); editor: {result['editor']['modo']}"
+        print(f"Sessão {data['sessao']}, {view_key}: {len(files)} arquivo(s) alterado(s); editor: {result['editor']['modo']}"
               + (f" ({result['editor']['motivo']})" if result["editor"].get("motivo") else ""))
         for item in files:
             print(f"  {item['estado']:<9} +{item['adicionadas']} -{item['removidas']}  {item['caminho']}")

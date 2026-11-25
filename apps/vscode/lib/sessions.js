@@ -68,12 +68,34 @@ function read(file) {
   }
 }
 
+// Visão: 'sessao' (tudo), 'ultima' ou número da rodada. Espelha diff_runtime/store.py:view_items.
+// Sem rodadas (sessão antiga), cai na sessão inteira. Rodada antiga termina onde a seguinte começou.
+function viewItems(session, view = 'sessao') {
+  const rounds = session.rodadas || [];
+  if (view === 'sessao' || !rounds.length) return { key: 'sessao', items: session.arquivos };
+  const chosen = view === 'ultima' || view === undefined ? rounds[rounds.length - 1] : rounds.find((r) => String(r.numero) === String(view));
+  if (!chosen) return { key: `rodada-${view}`, items: [] };
+  const later = rounds.slice(rounds.indexOf(chosen) + 1);
+  const items = chosen.arquivos.map((item) => {
+    const following = later.flatMap((r) => r.arquivos).find((i) => i.caminho === item.caminho);
+    return following ? Object.assign({}, item, { depois: following.antes }) : item;
+  });
+  return { key: `rodada-${chosen.numero}`, items };
+}
+
+// Chave de visão ('sessao' ou 'rodada-N') para o argumento de viewItems.
+function viewArg(key) {
+  const match = /^rodada-(\d+)$/.exec(key || '');
+  return match ? Number(match[1]) : key === 'sessao' ? 'sessao' : 'ultima';
+}
+
 // Arquivos alterados: antes (cópia guardada ou null se novo) e depois (atual ou null se removido).
-function changes(session) {
+function changes(session, view = 'sessao') {
   const result = [];
-  for (const item of session.arquivos) {
+  for (const item of viewItems(session, view).items) {
     const before = item.antes ? path.join(session.pasta, item.antes) : null;
-    const after = target(session, item.caminho);
+    const after = 'depois' in item ? (item.depois ? path.join(session.pasta, item.depois) : path.join(session.pasta, '_ausente'))
+      : target(session, item.caminho);
     const old = before ? read(before) : null;
     const now = read(after);
     if (old === null && now === null) continue;
@@ -89,4 +111,4 @@ function label(session) {
   return `${path.basename(session.projeto)} · ${when}`;
 }
 
-module.exports = { defaultBase, listSessions, forWorkspace, changes, label, readManifest, target };
+module.exports = { defaultBase, listSessions, forWorkspace, changes, viewItems, viewArg, label, readManifest, target };

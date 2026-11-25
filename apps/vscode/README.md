@@ -10,11 +10,14 @@ O hook do YABook guarda a versão de cada arquivo antes da primeira edição do
 agente na sessão. A extensão abre essas alterações em uma única aba de diff, com
 cada arquivo expansível e recolhível:
 
-- `$yabook diff` no agente abre a aba da sessão mais recente;
-- `YABook: Ver alterações da última sessão` faz o mesmo pela paleta;
+- `$yabook diff` no agente abre a última rodada (o que mudou desde a sua última
+  mensagem); `$yabook diff sessao`, a sessão inteira;
+- `YABook: Ver alterações da última rodada` e `YABook: Ver alterações da última
+  sessão` fazem o mesmo pela paleta e pela visão **Ajuda e atalhos**;
 - `YABook: Escolher sessão de diff` lista sessões anteriores;
-- a visão **Alterações do agente**, na barra lateral YABook, lista sessões e
-  arquivos; clicar em um arquivo abre o diff só dele.
+- a visão **Alterações do agente**, na barra lateral YABook, lista as sessões e,
+  em cada uma, **Sessão inteira** e as rodadas com horário e o início da
+  mensagem; clicar em um arquivo abre o diff só dele.
 
 ## Explicação dos blocos
 
