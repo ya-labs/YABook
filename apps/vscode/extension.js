@@ -4,6 +4,125 @@ const path = require('path');
 const vscode = require('vscode');
 const sessions = require('./lib/sessions');
 const explain = require('./lib/explain');
+const yabook = require('./lib/yabook');
+const fs = require('fs');
+const os = require('os');
+
+function settings() {
+  return vscode.workspace.getConfiguration('yabook');
+}
+
+function scriptsDir() {
+  const found = yabook.findScripts(settings().get('scriptsDir'), sessions.listSessions(base()));
+  if (!found) {
+    vscode.window.showErrorMessage('YABook: scripts do plugin não encontrados. Defina yabook.scriptsDir.');
+  }
+  return found;
+}
+
+function configFile() {
+  return process.env.YABOOK_CONFIG || path.join(os.homedir(), '.config', 'yabook', 'config.json');
+}
+
+// Servidor local em terminal próprio: fica visível e fecha com o terminal. Reaproveita o que já responde.
+async function openServer(name, port, args) {
+  const url = `http://127.0.0.1:${port}/`;
+  if (!(await yabook.serving(port))) {
+    const scripts = scriptsDir();
+    if (!scripts) return;
+    let terminal = vscode.window.terminals.find((t) => t.name === name);
+    if (terminal) terminal.dispose();
+    terminal = vscode.window.createTerminal({ name, cwd: scripts, shellPath: settings().get('python') || 'python3', shellArgs: args(scripts) });
+    const ready = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `YABook: iniciando ${name}…` },
+      () => yabook.waitServing(port)
+    );
+    if (!ready) {
+      terminal.show();
+      vscode.window.showErrorMessage(`YABook: ${name} não respondeu na porta ${port}; veja o terminal.`);
+      return;
+    }
+  }
+  await vscode.env.openExternal(vscode.Uri.parse(url));
+}
+
+function openMemoryMap() {
+  const port = settings().get('memoryMapPort') || 8766;
+  const root = yabook.memoryRoot(configFile());
+  if (!root) {
+    vscode.window.showErrorMessage('YABook: memory_root ausente na configuração do YABook; rode a configuração da memória.');
+    return undefined;
+  }
+  return openServer('YABook: mapa de memória', port,
+    (scripts) => [path.join(scripts, 'yabook_memory.py'), '--root', root, 'map', '--serve', '--port', String(port)]);
+}
+
+function openTasks() {
+  const port = settings().get('tasksPort') || yabook.tasksPort(configFile());
+  return openServer('YABook Tasks', port,
+    (scripts) => [path.join(scripts, 'yabook_tasks.py'), 'board', '--serve', '--port', String(port)]);
+}
+
+async function openHelp() {
+  const scripts = scriptsDir();
+  const file = yabook.helpFile(scripts);
+  if (file && fs.existsSync(file)) await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(file));
+}
+
+async function copyCommand(command) {
+  await vscode.env.clipboard.writeText(`$yabook ${command}`);
+  vscode.window.setStatusBarMessage(`YABook: "$yabook ${command}" copiado`, 2500);
+}
+
+class HelpTree {
+  constructor() {
+    this.changed = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this.changed.event;
+  }
+
+  refresh() {
+    this.changed.fire();
+  }
+
+  getTreeItem(node) {
+    return node.item;
+  }
+
+  action(label, icon, command, tooltip) {
+    const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
+    item.iconPath = new vscode.ThemeIcon(icon);
+    item.command = { command, title: label };
+    item.tooltip = tooltip;
+    return { item };
+  }
+
+  getChildren(node) {
+    if (node && node.group) {
+      return node.group.comandos.map((command) => {
+        const item = new vscode.TreeItem(`$yabook ${command}`, vscode.TreeItemCollapsibleState.None);
+        item.iconPath = new vscode.ThemeIcon('terminal');
+        item.tooltip = 'Clique para copiar';
+        item.command = { command: 'yabook.ajuda.copiar', title: 'Copiar', arguments: [command] };
+        return { item };
+      });
+    }
+    if (node) return [];
+    const actions = [
+      this.action('Ver alterações da última sessão', 'diff-multiple', 'yabook.diff.abrir', 'Aba única com as alterações do agente'),
+      this.action('Abrir YABook Tasks no navegador', 'checklist', 'yabook.tasks.site', 'Inicia o site do Tasks, se preciso'),
+      this.action('Abrir mapa de memória no navegador', 'type-hierarchy', 'yabook.memoria.mapa', 'Inicia o mapa de memória, se preciso'),
+      this.action('Abrir ajuda completa', 'book', 'yabook.ajuda.abrir', 'help.md da versão instalada'),
+    ];
+    const file = yabook.helpFile(yabook.findScripts(settings().get('scriptsDir'), sessions.listSessions(base())));
+    const groups = file && fs.existsSync(file) ? yabook.parseHelp(fs.readFileSync(file, 'utf8')) : [];
+    return actions.concat(groups.map((group) => {
+      const item = new vscode.TreeItem(group.grupo, vscode.TreeItemCollapsibleState.Collapsed);
+      item.iconPath = new vscode.ThemeIcon('symbol-namespace');
+      item.description = `${group.comandos.length}`;
+      return { item, group };
+    }));
+  }
+}
 
 const EMPTY = 'yabook-vazio';
 let comments;
@@ -153,7 +272,14 @@ function activate(context) {
   const refresh = () => tree.refresh();
   const explanations = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(base()), '**/explain.json'));
   comments = vscode.comments.createCommentController('yabook.explicacoes', 'YABook: explicações');
+  const help = new HelpTree();
   context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('yabook.ajuda', help),
+    vscode.commands.registerCommand('yabook.ajuda.abrir', openHelp),
+    vscode.commands.registerCommand('yabook.ajuda.copiar', copyCommand),
+    vscode.commands.registerCommand('yabook.ajuda.atualizar', () => help.refresh()),
+    vscode.commands.registerCommand('yabook.memoria.mapa', openMemoryMap),
+    vscode.commands.registerCommand('yabook.tasks.site', openTasks),
     comments,
     explanations,
     explanations.onDidCreate(refresh),

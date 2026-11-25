@@ -1,8 +1,8 @@
 {
   "name": "yabook",
   "displayName": "YABook",
-  "description": "Alterações do agente na sessão em uma aba de diff, com explicação de cada bloco, a partir do YABook.",
-  "version": "0.2.0",
+  "description": "Alterações do agente em uma aba de diff com explicação por bloco, ajuda do YABook e atalhos para o Tasks e o mapa de memória.",
+  "version": "0.3.0",
   "publisher": "yalabs",
   "license": "UNLICENSED",
   "private": true,
@@ -58,6 +58,35 @@
         "command": "yabook.diff.abrirArquivo",
         "title": "Abrir diff do arquivo",
         "category": "YABook"
+      },
+      {
+        "command": "yabook.tasks.site",
+        "title": "Abrir YABook Tasks no navegador",
+        "category": "YABook",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "yabook.memoria.mapa",
+        "title": "Abrir mapa de memória no navegador",
+        "category": "YABook",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "yabook.ajuda.abrir",
+        "title": "Abrir ajuda",
+        "category": "YABook",
+        "icon": "$(book)"
+      },
+      {
+        "command": "yabook.ajuda.copiar",
+        "title": "Copiar comando",
+        "category": "YABook"
+      },
+      {
+        "command": "yabook.ajuda.atualizar",
+        "title": "Atualizar ajuda",
+        "category": "YABook",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -68,6 +97,10 @@
         },
         {
           "command": "yabook.diff.abrirArquivo",
+          "when": "false"
+        },
+        {
+          "command": "yabook.ajuda.copiar",
           "when": "false"
         }
       ],
@@ -85,6 +118,16 @@
         {
           "command": "yabook.diff.atualizar",
           "when": "view == yabook.sessoes",
+          "group": "navigation@2"
+        },
+        {
+          "command": "yabook.ajuda.abrir",
+          "when": "view == yabook.ajuda",
+          "group": "navigation@1"
+        },
+        {
+          "command": "yabook.ajuda.atualizar",
+          "when": "view == yabook.ajuda",
           "group": "navigation@2"
         }
       ],
@@ -108,6 +151,10 @@
     "views": {
       "yabook": [
         {
+          "id": "yabook.ajuda",
+          "name": "Ajuda e atalhos"
+        },
+        {
           "id": "yabook.sessoes",
           "name": "Alterações do agente"
         }
@@ -120,6 +167,26 @@
           "type": "string",
           "default": "",
           "description": "Pasta das sessões de diff. Vazio usa YABOOK_DIFFS ou ~/.config/yabook/diffs."
+        },
+        "yabook.scriptsDir": {
+          "type": "string",
+          "default": "",
+          "description": "Pasta skills/yabook/scripts do YABook instalado. Vazio: sessão de diff mais recente, plugin do Claude ou cópia mais nova em ~/.local/share/yabook/plugins."
+        },
+        "yabook.python": {
+          "type": "string",
+          "default": "python3",
+          "description": "Interpretador usado para iniciar o site do Tasks e o mapa de memória."
+        },
+        "yabook.tasksPort": {
+          "type": "number",
+          "default": 0,
+          "description": "Porta do YABook Tasks. 0 usa tasks.port da configuração do YABook ou 8765."
+        },
+        "yabook.memoryMapPort": {
+          "type": "number",
+          "default": 8766,
+          "description": "Porta do mapa de memória; diferente da do Tasks para os dois abrirem juntos."
         }
       }
     }
