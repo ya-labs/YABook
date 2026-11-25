@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from diff_runtime import compare, store  # noqa: E402
+from diff_runtime import compare, explain, store  # noqa: E402
 
 EXTENSION = "yalabs.yabook"
 FALLBACK_LIMIT = 8
@@ -92,6 +92,14 @@ def main(argv=None):
     opening = sub.add_parser("open", help="Abre as alterações da sessão no VS Code e grava o .patch")
     opening.add_argument("--sessao")
     opening.add_argument("--json", action="store_true")
+    parts = sub.add_parser("blocks", help="Blocos numerados do diff, em JSON, para o agente explicar")
+    parts.add_argument("--sessao")
+    parts.add_argument("--arquivo", help="Caminho relativo como aparece em show")
+    explaining = sub.add_parser("explain", help="Grava as explicações (JSON na entrada padrão) e abre no VS Code")
+    explaining.add_argument("--sessao")
+    explaining.add_argument("--arquivo")
+    explaining.add_argument("--entrada", help="Arquivo JSON; padrão: entrada padrão")
+    explaining.add_argument("--sem-abrir", action="store_true")
     args = parser.parse_args(argv)
 
     base, root = store.settings(config())["base"], project_root(args.projeto)
@@ -112,6 +120,21 @@ def main(argv=None):
         print(f"Sessão {data['sessao']} ({data['atualizada']}): {len(files)} arquivo(s) alterado(s)")
         for item in files:
             print(f"  {item['estado']:<9} +{item['adicionadas']} -{item['removidas']}  {item['caminho']}")
+        return 0
+    if args.command == "blocks":
+        found = explain.blocks(folder, data, args.arquivo)
+        # Compacto: um bloco por linha, para o modelo ler com poucos tokens.
+        rows = ",\n".join(json.dumps(block, ensure_ascii=False, separators=(",", ":")) for block in found)
+        print('{"sessao":' + json.dumps(data["sessao"]) + ',"blocos":[\n' + rows + "\n]}")
+        return 0
+    if args.command == "explain":
+        text = Path(args.entrada).read_text(encoding="utf-8") if args.entrada else sys.stdin.read()
+        target, payload = explain.save(folder, data, explain.parse(text), args.arquivo)
+        editor = dict(modo="nenhum", motivo="--sem-abrir")
+        if not args.sem_abrir:
+            editor = open_in_editor(folder, compare.changes(folder, data), explain=True)
+        print(json.dumps(dict(explicacoes=str(target), blocos=len(payload["blocos"]), pendentes=payload["pendentes"],
+                              editor=editor), ensure_ascii=False, indent=2))
         return 0
     if args.command == "open":
         files = compare.changes(folder, data)

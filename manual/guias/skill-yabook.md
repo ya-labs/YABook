@@ -233,6 +233,7 @@ Consulte o [fluxo](../processos/fluxo-de-trabalho-github.md) e os
 | `$yabook sync [local|remote]` | Compara a instalação com a origem sem alterar arquivos. |
 | `$yabook apk` | Valida a configuração e mostra a prévia do APK sem executar build nem alterar arquivos. |
 | `$yabook diff` | Abre as alterações do agente na sessão em uma aba de diff do VS Code (extensão `apps/vscode`) e grava o `.patch`, sem alterar o projeto. |
+| `$yabook diff explain [arquivo]` | Explica cada bloco do diff da sessão em comentários no VS Code. |
 | `$yabook configure [commands]` | Entrevista e propõe a configuração local do repositório sem alterar arquivos. |
 | `$yabook do configure` | Cria ou atualiza `.yabook/AGENTS.md` a partir da proposta confirmada. |
 | `$yabook guardrails` | Audita o comportamento global do YABook sem alterar o perfil Codex. |
