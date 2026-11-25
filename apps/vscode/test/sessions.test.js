@@ -66,3 +66,29 @@ test('manifesto inválido é ignorado', () => {
   fs.writeFileSync(path.join(base, 'quebrado', 's9', 'manifest.json'), '{');
   assert.equal(sessions.listSessions(base).length, 2);
 });
+
+test('visões por rodada: última, sessão inteira e rodada antiga até a seguinte', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'yabook-rodadas-'));
+  const project = path.join(tmp, 'p'); const pasta = path.join(tmp, 'd');
+  fs.mkdirSync(project); fs.mkdirSync(path.join(pasta, 'antes'), { recursive: true });
+  fs.mkdirSync(path.join(pasta, 'rodadas/1/antes'), { recursive: true }); fs.mkdirSync(path.join(pasta, 'rodadas/2/antes'), { recursive: true });
+  fs.writeFileSync(path.join(pasta, 'antes/a.txt'), 'um\n');
+  fs.writeFileSync(path.join(pasta, 'rodadas/1/antes/a.txt'), 'um\n');
+  fs.writeFileSync(path.join(pasta, 'rodadas/2/antes/a.txt'), 'dois\n');
+  fs.writeFileSync(path.join(project, 'a.txt'), 'tres\n');
+  fs.writeFileSync(path.join(project, 'b.txt'), 'novo\n');
+  const session = { projeto: project, pasta,
+    arquivos: [{ caminho: 'a.txt', antes: 'antes/a.txt' }, { caminho: 'b.txt', antes: null }],
+    rodadas: [
+      { numero: 1, arquivos: [{ caminho: 'a.txt', antes: 'rodadas/1/antes/a.txt' }] },
+      { numero: 2, arquivos: [{ caminho: 'a.txt', antes: 'rodadas/2/antes/a.txt' }, { caminho: 'b.txt', antes: null }] },
+    ] };
+  assert.equal(sessions.viewItems(session, 'ultima').key, 'rodada-2');
+  assert.deepEqual(sessions.changes(session, 'ultima').map((c) => c.caminho), ['a.txt', 'b.txt']);
+  assert.deepEqual(sessions.changes(session, 'sessao').map((c) => [c.caminho, c.estado]), [['a.txt', 'alterado'], ['b.txt', 'novo']]);
+  const [first] = sessions.changes(session, 1);
+  assert.equal(fs.readFileSync(first.depois, 'utf8'), 'dois\n'); // rodada 1 termina onde a 2 começou
+  assert.equal(sessions.viewArg('rodada-2'), 2);
+  assert.equal(sessions.viewArg('sessao'), 'sessao');
+  assert.equal(sessions.viewItems({ arquivos: [] }, 'ultima').key, 'sessao'); // sessão antiga, sem rodadas
+});

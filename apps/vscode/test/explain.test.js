@@ -46,3 +46,11 @@ test('sessão sem explain.json não tem âncoras', () => {
   fs.unlinkSync(path.join(pasta, 'explain.json'));
   assert.deepEqual(explain.anchors(session), []);
 });
+
+test('explicação aparece só na visão em que foi gerada', () => {
+  const { session, pasta } = fixture();
+  const data = JSON.parse(fs.readFileSync(path.join(pasta, 'explain.json'), 'utf8'));
+  fs.writeFileSync(path.join(pasta, 'explain.json'), JSON.stringify(Object.assign(data, { visao: 'rodada-2' })));
+  assert.equal(explain.anchors(session, 'sessao').length, 0);
+  assert.equal(explain.anchors(session).length, 3); // sem visão pedida, mostra a gravada
+});

@@ -1,7 +1,8 @@
 # `$yabook diff`
 
-Abre no VS Code, em uma única aba, tudo o que o agente alterou na sessão, com
-cada arquivo expansível. `diff explain` acrescenta uma explicação curta em cada
+Abre no VS Code, em uma única aba, o que o agente alterou na última rodada (desde
+a sua última mensagem), com cada arquivo expansível. A sessão inteira e as
+rodadas anteriores continuam disponíveis. `diff explain` acrescenta uma explicação curta em cada
 bloco alterado, como comentário no próprio diff.
 
 ## Quando usar
@@ -22,18 +23,20 @@ na sessão. Edição por comando de shell comum não é capturada.
 ## Sintaxe
 
 ```text
-$yabook diff [sessão]
+$yabook diff [sessao | rodada <n>]
 $yabook diff explain [arquivo]
 ```
 
-- `diff`: abre a sessão mais recente; informe a sessão para abrir outra.
+- `diff`: abre a última rodada; `diff sessao`, a sessão inteira; `diff rodada 2`, uma rodada anterior.
 - `diff explain`: explica os blocos da sessão; com arquivo, só dele.
 - Sem a extensão, abre um diff por arquivo (até 8); sem o VS Code, só lista.
 
 Na extensão do VS Code (barra lateral YABook e paleta):
 
-- `YABook: Ver alterações da última sessão` e `YABook: Escolher sessão de diff`;
-- visão **Alterações do agente**: clique em um arquivo para ver só o diff dele;
+- `YABook: Ver alterações da última rodada`, `YABook: Ver alterações da última
+  sessão` e `YABook: Escolher sessão de diff`;
+- visão **Alterações do agente**: cada sessão lista **Sessão inteira** e as rodadas;
+  clique em um arquivo para ver só o diff dele;
 - `YABook: Navegar pelas explicações do diff` e `YABook: Ocultar explicações do
   diff`.
 

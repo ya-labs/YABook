@@ -101,7 +101,8 @@ class HelpTree {
   getChildren(node) {
     if (node) return [];
     return [
-      this.action('Ver alterações da última sessão', 'diff-multiple', 'yabook.diff.abrir', 'Aba única com as alterações do agente'),
+      this.action('Ver alterações da última rodada', 'debug-step-over', 'yabook.diff.abrirRodada', 'O que o agente mudou desde a sua última mensagem'),
+      this.action('Ver alterações da última sessão', 'diff-multiple', 'yabook.diff.abrir', 'Tudo o que o agente mudou na sessão'),
       this.action('Abrir YABook Tasks no navegador', 'checklist', 'yabook.tasks.site', 'Inicia o site do Tasks, se preciso'),
       this.action('Abrir mapa de memória no navegador', 'type-hierarchy', 'yabook.memoria.mapa', 'Inicia o mapa de memória, se preciso'),
       this.action('Abrir ajuda completa', 'book', 'yabook.ajuda.abrir', 'help.md da versão instalada'),
@@ -178,9 +179,9 @@ function clearExplanations() {
 }
 
 // Explicações como comentários somente leitura ancorados em cada bloco; valem no diff e no editor comum.
-function showExplanations(session) {
+function showExplanations(session, viewKey) {
   clearExplanations();
-  for (const row of explain.anchors(session)) {
+  for (const row of explain.anchors(session, viewKey)) {
     const markdown = new vscode.MarkdownString(row.markdown);
     const comment = { body: markdown, mode: vscode.CommentMode.Preview, author: { name: 'YABook' } };
     const range = new vscode.Range(row.start, 0, row.end, 0);
@@ -200,13 +201,14 @@ async function browseExplanations() {
     vscode.window.showInformationMessage('YABook: a sessão mais recente não tem explicações. Peça `$yabook diff explain` ao agente.');
     return;
   }
-  showExplanations(session);
+  const key = explain.load(session).visao || 'sessao';
+  showExplanations(session, key);
   const choice = await vscode.window.showQuickPick(
     rows.map((row) => ({ label: `${row.id} · ${row.arquivo}:${row.start + 1}`, detail: row.texto, row })),
     { placeHolder: 'Explicação do bloco', matchOnDetail: true }
   );
   if (!choice) return;
-  const change = sessions.changes(session).find((c) => c.caminho === choice.row.arquivo);
+  const change = sessions.changes(session, sessions.viewArg(key)).find((c) => c.caminho === choice.row.arquivo);
   if (change) await openFile(session, change);
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -234,19 +236,25 @@ function emptyUri(rel) {
   return vscode.Uri.from({ scheme: EMPTY, path: '/' + rel });
 }
 
-async function openSession(session) {
-  const files = sessions.changes(session);
+function viewTitle(key) {
+  return key === 'sessao' ? 'sessão inteira' : key.replace('rodada-', 'rodada ');
+}
+
+// Abre a visão (sessão inteira, 'ultima' ou número da rodada) na aba única de vários diffs.
+async function openSession(session, view = 'sessao') {
+  const files = sessions.changes(session, view);
+  const key = sessions.viewItems(session, view).key;
   if (!files.length) {
-    vscode.window.showInformationMessage('YABook: nenhuma alteração pendente nesta sessão.');
+    vscode.window.showInformationMessage(`YABook: nenhuma alteração pendente (${viewTitle(key)}).`);
     return;
   }
   const resources = files.map((c) => {
     const current = vscode.Uri.file(c.depois || sessions.target(session, c.caminho));
     return [current, c.antes ? vscode.Uri.file(c.antes) : undefined, c.depois ? vscode.Uri.file(c.depois) : undefined];
   });
-  const title = `YABook: ${path.basename(session.projeto)} (${files.length} arquivo${files.length > 1 ? 's' : ''})`;
+  const title = `YABook: ${path.basename(session.projeto)} · ${viewTitle(key)} (${files.length} arquivo${files.length > 1 ? 's' : ''})`;
   await vscode.commands.executeCommand('vscode.changes', title, resources);
-  showExplanations(session);
+  showExplanations(session, key);
 }
 
 async function openFile(session, change) {
@@ -281,8 +289,23 @@ class SessionsTree {
         return { item, session };
       });
     }
-    if (!node.change) {
-      return sessions.changes(node.session).map((change) => {
+    if (!node.view && !node.change) {
+      const rounds = [...(node.session.rodadas || [])].reverse();
+      const views = [{ view: 'sessao', label: 'Sessão inteira', icon: 'files' }].concat(rounds.map((r) => ({
+        view: r.numero, label: `Rodada ${r.numero}`, icon: 'debug-step-over',
+        description: `${String(r.inicio || '').slice(11, 16)} · ${r.pedido || ''}`.trim(),
+      })));
+      return views.map((v) => {
+        const item = new vscode.TreeItem(v.label, vscode.TreeItemCollapsibleState.Collapsed);
+        item.description = v.description;
+        item.tooltip = v.description || v.label;
+        item.contextValue = 'visao';
+        item.iconPath = new vscode.ThemeIcon(v.icon);
+        return { item, session: node.session, view: v.view };
+      });
+    }
+    if (node.view !== undefined && !node.change) {
+      return sessions.changes(node.session, node.view).map((change) => {
         const item = new vscode.TreeItem(path.basename(change.caminho), vscode.TreeItemCollapsibleState.None);
         item.description = `${change.estado} · ${path.dirname(change.caminho) === '.' ? '' : path.dirname(change.caminho)}`;
         item.tooltip = change.caminho;
@@ -307,7 +330,7 @@ async function pickSession() {
     ordered.map((s) => ({ label: sessions.label(s), description: s.agente || '', detail: `${s.arquivos.length} arquivo(s) · ${s.projeto}`, session: s })),
     { placeHolder: 'Sessão de diff do YABook' }
   );
-  if (choice) await openSession(choice.session);
+  if (choice) await openSession(choice.session, 'sessao');
 }
 
 function activate(context) {
@@ -342,12 +365,18 @@ function activate(context) {
     vscode.workspace.registerTextDocumentContentProvider(EMPTY, { provideTextDocumentContent: () => '' }),
     vscode.commands.registerCommand('yabook.diff.abrir', async () => {
       const [latest] = workspaceSessions();
-      if (latest) await openSession(latest);
+      if (latest) await openSession(latest, 'sessao');
       else await pickSession();
     }),
+    vscode.commands.registerCommand('yabook.diff.abrirRodada', async () => {
+      const [latest] = workspaceSessions();
+      if (latest) await openSession(latest, 'ultima');
+      else await pickSession();
+    }),
+    vscode.commands.registerCommand('yabook.diff.abrirVisao', (node) => node && openSession(node.session, node.view)),
     vscode.commands.registerCommand('yabook.diff.escolher', pickSession),
     vscode.commands.registerCommand('yabook.diff.atualizar', refresh),
-    vscode.commands.registerCommand('yabook.diff.abrirSessao', (node) => node && openSession(node.session)),
+    vscode.commands.registerCommand('yabook.diff.abrirSessao', (node) => node && openSession(node.session, 'sessao')),
     vscode.commands.registerCommand('yabook.diff.abrirArquivo', openFile),
     vscode.window.registerUriHandler({
       async handleUri(uri) {
@@ -359,7 +388,7 @@ function activate(context) {
             return;
           }
           refresh();
-          await openSession(session);
+          await openSession(session, sessions.viewArg(params.get('visao') || 'sessao'));
         }
       },
     })

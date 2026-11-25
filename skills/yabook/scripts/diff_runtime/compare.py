@@ -18,12 +18,14 @@ def read_text(path):
         return data.decode("latin-1")
 
 
-def changes(folder, data):
-    """Arquivos da sessão com estado e contagem de linhas; omite os que voltaram ao original."""
+def changes(folder, data, view="sessao"):
+    """Arquivos da visão com estado e contagem de linhas; omite os que voltaram ao original."""
     found = []
-    for item in data["arquivos"]:
+    for item in store.view_items(data, view)[1]:
         before = Path(folder) / item["antes"] if item.get("antes") else None
-        after = store.target(data["projeto"], item["caminho"])
+        later = "depois" in item  # rodada antiga: o "depois" é o "antes" da rodada seguinte (None = apagado)
+        after = (Path(folder) / item["depois"] if item["depois"] else Path(folder) / "_ausente") if later \
+            else store.target(data["projeto"], item["caminho"])
         old, new = read_text(before), read_text(after)
         if old == new and (before is not None) == after.exists():
             continue
