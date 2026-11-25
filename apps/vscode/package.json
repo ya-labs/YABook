@@ -2,7 +2,7 @@
   "name": "yabook",
   "displayName": "YABook",
   "description": "Tarefa ativa do YABook Tasks, alterações do agente por rodada com explicação por bloco, página de cada comando e atalhos para o Tasks e o mapa de memória.",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "publisher": "yalabs",
   "icon": "media/icon.png",
   "license": "UNLICENSED",

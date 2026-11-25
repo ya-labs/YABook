@@ -106,9 +106,21 @@ function changes(session, view = 'sessao') {
   return result;
 }
 
-function label(session) {
-  const when = String(session.atualizada || '').replace('T', ' ').slice(0, 16);
-  return `${path.basename(session.projeto)} · ${when}`;
+// Data e hora da última atualização, no formato "dd/mm hh:mm".
+function when(session) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(String(session.atualizada || ''));
+  return match ? `${match[3]}/${match[2]} ${match[4]}` : '';
 }
 
-module.exports = { defaultBase, listSessions, forWorkspace, changes, viewItems, viewArg, label, readManifest, target };
+// Nome do chat (espelha diff_runtime/store.py:session_title); sem ele, a primeira mensagem com edição.
+function title(session) {
+  const rounds = session.rodadas || [];
+  return session.titulo || (rounds.length ? rounds[0].pedido : '') || '';
+}
+
+// Rótulo da sessão: o nome do chat; sessões antigas sem nome ficam com projeto e data.
+function label(session) {
+  return title(session) || `${path.basename(session.projeto)} · ${when(session)}`;
+}
+
+module.exports = { defaultBase, listSessions, forWorkspace, changes, viewItems, viewArg, label, title, when, readManifest, target };

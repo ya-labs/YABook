@@ -72,7 +72,8 @@ def open_in_editor(folder, files, explain=False, view_key="sessao"):
 
 
 def summary(folder, data, files):
-    return dict(sessao=data["sessao"], pasta=str(folder), manifesto=str(Path(folder) / "manifest.json"),
+    return dict(sessao=data["sessao"], titulo=store.session_title(data), pasta=str(folder),
+                manifesto=str(Path(folder) / "manifest.json"),
                 projeto=data["projeto"], agente=data.get("agente", ""), criada=data["criada"],
                 atualizada=data["atualizada"], arquivos=files)
 
@@ -117,12 +118,14 @@ def main(argv=None):
 
     base, root = store.settings(config())["base"], project_root(args.projeto)
     if args.command == "sessions":
-        rows = [dict(sessao=d["sessao"], atualizada=d["atualizada"], agente=d.get("agente", ""),
-                     arquivos=len(d["arquivos"]), pasta=str(f)) for f, d in store.sessions(base, root)]
+        rows = [dict(sessao=d["sessao"], titulo=store.session_title(d), atualizada=d["atualizada"],
+                     agente=d.get("agente", ""), arquivos=len(d["arquivos"]), pasta=str(f))
+                for f, d in store.sessions(base, root)]
         if args.json:
             print(json.dumps(rows, ensure_ascii=False, indent=2))
         for row in [] if args.json else rows:
-            print(f"{row['sessao']}  {row['atualizada']}  {row['agente'] or '-'}  {row['arquivos']} arquivo(s)")
+            print(f"{row['sessao']}  {row['atualizada']}  {row['agente'] or '-'}  {row['arquivos']} arquivo(s)"
+                  f"  {row['titulo']}")
         return 0
     folder, data = pick(base, root, args.sessao)
     if args.command == "show":
@@ -131,7 +134,9 @@ def main(argv=None):
         if args.json:
             print(json.dumps(dict(summary(folder, data, files), visao=view_key), ensure_ascii=False, indent=2))
             return 0
-        print(f"Sessão {data['sessao']} ({data['atualizada']}), {view_key}: {len(files)} arquivo(s) alterado(s)")
+        name = store.session_title(data)
+        print(f"Sessão {data['sessao']}{' · ' + name if name else ''} ({data['atualizada']}), {view_key}: "
+              f"{len(files)} arquivo(s) alterado(s)")
         for item in files:
             print(f"  {item['estado']:<9} +{item['adicionadas']} -{item['removidas']}  {item['caminho']}")
         return 0

@@ -87,19 +87,25 @@ def write_manifest(folder, data):
 class Session:
     """Sessão de diff de um projeto; criada na primeira captura."""
 
-    def __init__(self, base, root, key, agent="", scripts=None):
+    def __init__(self, base, root, key, agent="", scripts=None, title=None):
         self.root = str(Path(root).resolve())
         self.folder = Path(base) / project_key(self.root) / key
         self.key, self.agent = key, agent or ""
         self.scripts = str(scripts or Path(__file__).resolve().parents[1])
+        self.title = title or None  # nome do chat do agente, quando conhecido
 
     def manifest(self):
         current = read_manifest(self.folder)
         if current:
+            if self.title and current.get("titulo") != self.title:
+                current["titulo"] = self.title  # chat renomeado: vale o nome mais recente
             return current
         stamp = now_iso()
-        return dict(versao=VERSION, projeto=self.root, agente=self.agent, sessao=self.key, criada=stamp,
+        data = dict(versao=VERSION, projeto=self.root, agente=self.agent, sessao=self.key, criada=stamp,
                     atualizada=stamp, scripts=self.scripts, arquivos=[])
+        if self.title:
+            data["titulo"] = self.title
+        return data
 
     def has(self, rel):
         current = read_manifest(self.folder)
@@ -147,6 +153,12 @@ class Session:
         data["atualizada"] = now_iso()
         write_manifest(self.folder, data)
         return True
+
+
+def session_title(data):
+    """Nome para mostrar: título do chat; sem ele, a primeira mensagem com edição; senão vazio."""
+    rounds = data.get("rodadas") or []
+    return data.get("titulo") or (rounds[0].get("pedido") if rounds else "") or ""
 
 
 def view_items(data, view=None):

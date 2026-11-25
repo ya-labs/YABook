@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import yabook_diff
 import yabook_hook as hook
 from diff_runtime import compare, store
+from diff_runtime.capture import chat_titles as capture_titles
 
 
 class DiffCaptureTest(unittest.TestCase):
@@ -60,6 +61,32 @@ class DiffCaptureTest(unittest.TestCase):
         folder, data = self.session()
         self.assertTrue(next(i for i in data["arquivos"] if i["caminho"] == "novo.md")["novo"])
         self.assertEqual([(c["caminho"], c["estado"]) for c in compare.changes(folder, data)], [("novo.md", "novo")])
+
+    def test_session_is_named_after_the_chat(self):
+        transcript = self.home / "chat.jsonl"
+        entries = [{"type": "user", "message": "oi"}, {"type": "ai-title", "aiTitle": "Título automático"},
+                   {"type": "custom-title", "customTitle": "Chamado 123 - renomeado"}]
+        transcript.write_text("".join(json.dumps(e) + "\n" for e in entries))
+        source = self.root / "a.txt"; source.write_text("um\n")
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="ajusta", transcript_path=str(transcript)))
+        self.tool("PreToolUse", "Edit", file_path=str(source)); source.write_text("dois\n")
+        self.assertEqual(self.session()[1]["titulo"], "Chamado 123 - renomeado")  # renomeado vence o automático
+        # O renomeado sai do trecho lido no fim do arquivo: o último título conhecido continua valendo.
+        with transcript.open("a") as stream:
+            stream.write(json.dumps({"type": "user", "message": "x" * 300_000}) + "\n")
+            stream.write(json.dumps({"type": "ai-title", "aiTitle": "Outro automático"}) + "\n")
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="de novo", transcript_path=str(transcript)))
+        self.tool("PreToolUse", "Edit", file_path=str(self.root / "b.txt"))
+        self.assertEqual(self.session()[1]["titulo"], "Chamado 123 - renomeado")
+        self.assertEqual(capture_titles(transcript)["ai"], "Outro automático")
+
+    def test_session_without_chat_title_uses_first_message(self):
+        source = self.root / "a.txt"; source.write_text("um\n")
+        hook.run(dict(self.event, hook_event_name="UserPromptSubmit", prompt="primeiro pedido com edição"))
+        self.tool("PreToolUse", "Edit", file_path=str(source))
+        folder, data = self.session()
+        self.assertNotIn("titulo", data)
+        self.assertEqual(store.session_title(data), "primeiro pedido com edição")
 
     def test_edit_command_uses_backup_written_by_the_command(self):
         source = self.root / "fontes" / "x.p"; source.parent.mkdir(); source.write_text("antes\n")

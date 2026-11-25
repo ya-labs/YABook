@@ -362,8 +362,10 @@ class SessionsTree {
       return workspaceSessions().map((session) => {
         const item = new vscode.TreeItem(sessions.label(session), vscode.TreeItemCollapsibleState.Collapsed);
         const explained = explain.load(session);
-        item.description = [session.agente, explained && `${explained.blocos.length} explicação(ões)`].filter(Boolean).join(' · ');
-        item.tooltip = session.pasta;
+        const named = Boolean(sessions.title(session));
+        item.description = [named && sessions.when(session), session.agente,
+          explained && `${explained.blocos.length} explicação(ões)`].filter(Boolean).join(' · ');
+        item.tooltip = `${sessions.label(session)}\n${session.projeto}\n${session.pasta}`;
         item.contextValue = 'sessao';
         item.iconPath = new vscode.ThemeIcon('history');
         return { item, session };
@@ -407,7 +409,8 @@ async function pickSession() {
     return;
   }
   const choice = await vscode.window.showQuickPick(
-    ordered.map((s) => ({ label: sessions.label(s), description: s.agente || '', detail: `${s.arquivos.length} arquivo(s) · ${s.projeto}`, session: s })),
+    ordered.map((s) => ({ label: sessions.label(s), description: [sessions.when(s), s.agente].filter(Boolean).join(' · '),
+      detail: `${s.arquivos.length} arquivo(s) · ${s.projeto}`, session: s })),
     { placeHolder: 'Sessão de diff do YABook' }
   );
   if (choice) await openSession(choice.session, 'sessao');

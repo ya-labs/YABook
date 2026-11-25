@@ -10,6 +10,7 @@ registra a versão anterior de cada arquivo que o comando alterou, criou ou remo
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -77,7 +78,7 @@ def after_shell(cfg, root, event, state):
     listing = _git(before["top"], "diff", "--name-status", "-z", "--no-renames", before["tree"], after["tree"])
     fields = listing.stdout.decode("utf-8", "surrogateescape").split("\0")
     changes = list(zip(fields[0::2], fields[1::2]))
-    current, _ = session(cfg, root, event)
+    current, _ = session(cfg, root, event, state.get("diff_round"))
     recorded = 0
     with tempfile.TemporaryDirectory() as folder:
         for status, rel in changes:
@@ -93,26 +94,62 @@ def after_shell(cfg, root, event, state):
     return recorded
 
 
-def session(cfg, root, event):
+def session(cfg, root, event, round_info=None):
     options = store.settings(cfg)
-    current = store.Session(options["base"], root, store.session_key(event), event.get("agent", ""))
+    current = store.Session(options["base"], root, store.session_key(event), event.get("agent", ""),
+                            title=(round_info or {}).get("titulo"))
     if not current.folder.exists():
         store.prune(options["base"], options["retention"], keep=current.folder)
     return current, options
 
 
-def new_round(prompt):
+TITLE_TAIL = 256 * 1024  # o título automático se repete no histórico; o fim do arquivo basta
+
+
+def chat_titles(transcript_path, previous=None):
+    """Nome do chat no histórico do agente (Claude Code: `custom-title` renomeado, `ai-title` automático).
+
+    Lê só o fim do arquivo e mantém o último título conhecido, porque o renomeado pode ter sido gravado
+    muito antes. Agente sem esse histórico fica sem título e a sessão usa a primeira mensagem."""
+    titles = dict(previous or {})
+    try:
+        path = Path(transcript_path or "")
+        if not transcript_path or not path.is_file():
+            return titles
+        with path.open("rb") as stream:
+            size = stream.seek(0, os.SEEK_END)
+            stream.seek(max(0, size - TITLE_TAIL))
+            tail = stream.read().decode("utf-8", "ignore").splitlines()
+        for line in tail:
+            if '"custom-title"' not in line and '"ai-title"' not in line:
+                continue
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                continue  # primeira linha do recorte pode vir cortada
+            if entry.get("type") == "custom-title" and entry.get("customTitle"):
+                titles["custom"] = str(entry["customTitle"]).strip()
+            elif entry.get("type") == "ai-title" and entry.get("aiTitle"):
+                titles["ai"] = str(entry["aiTitle"]).strip()
+    except OSError:
+        pass
+    return titles
+
+
+def new_round(prompt, titles=None):
     """Rodada aberta por uma mensagem da pessoa; o trecho ajuda a reconhecê-la na lista."""
     text = re.sub(r"<([\w-]+)[^>]*>.*?</\1>", " ", prompt or "", flags=re.S)
     text = " ".join(text.split())
-    return dict(chave="%.6f" % time.time(), pedido=text[:80] + ("…" if len(text) > 80 else ""))
+    titles = titles or {}
+    return dict(chave="%.6f" % time.time(), pedido=text[:80] + ("…" if len(text) > 80 else ""),
+                titulo=titles.get("custom") or titles.get("ai"))
 
 
 def before_edit(cfg, root, event, targets, round_info=None):
     """Guarda a versão de cada alvo antes da primeira edição na sessão e na rodada."""
     if not targets or not store.settings(cfg)["enabled"]:
         return 0
-    current, _ = session(cfg, root, event)
+    current, _ = session(cfg, root, event, round_info)
     recorded = 0
     for target in targets:
         target = Path(target)
@@ -165,7 +202,7 @@ def after_command(cfg, root, event, state):
     pairs = backups_since(root, store.settings(cfg)["backups"], started)
     if not pairs:
         return 0
-    current, _ = session(cfg, root, event)
+    current, _ = session(cfg, root, event, state.get("diff_round"))
     recorded = 0
     for original, backup in pairs:
         recorded += current.record(original, backup, origin="backup")
