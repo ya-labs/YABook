@@ -13,7 +13,10 @@ mensagem sem edição não cria rodada):
 - comando de edição (`diff.commands`, padrão `learning.edit_commands`): usa o
   backup que o próprio comando gravou (`diff.backups`, padrão
   `backup/<arquivo>.bak-AAAAMMDD-HHMMSS-<tag>`), sem cópia extra;
-- edição por shell fora desses comandos não é capturada.
+- outro comando de shell em repositório Git: retrato do worktree antes e depois
+  (índice temporário, sem tocar no índice real nem no stash); `switch`,
+  `checkout`, `pull`, `merge`, `reset`, `stash` e afins ficam de fora;
+  `diff.shell: false` desliga. Fora do Git, só os casos acima.
 
 A cópia mantém a extensão original, para o editor aplicar a mesma linguagem e
 encoding. Sessões ficam em `~/.config/yabook/diffs/<projeto>/<sessão>/` e saem

@@ -18,7 +18,10 @@ Não altera o projeto, o Git nem o GitHub. Grava só na pasta de sessões de dif
 explicações. As sessões são apagadas após 14 dias, por padrão.
 
 A versão anterior de cada arquivo é guardada antes da primeira edição do agente
-na sessão. Edição por comando de shell comum não é capturada.
+na sessão. Em repositório Git, edições feitas por scripts e comandos de shell
+também entram; fora do Git, só as feitas pelas ferramentas de edição do agente e
+por comandos de edição configurados (como a `edita-abl`). Trocar de branch,
+`pull` e `merge` não contam como alteração do agente.
 
 ## Sintaxe
 
