@@ -444,7 +444,8 @@ $yabook diff explain [arquivo]
 A aba única e os comentários dependem da extensão YABook para VS Code
 (`apps/vscode`), instalada com
 `code --install-extension "$(npm run -s vscode:package)"`. A extensão também
-lista os comandos do YABook e abre o site do YABook Tasks e o mapa de memória.
+lista os comandos do YABook, com uma página explicativa de cada um, e abre o
+site do YABook Tasks e o mapa de memória.
 Sem ela, `$yabook diff` abre um `code --diff` por arquivo.
 
 ### Como acompanhar uma sequência de etapas

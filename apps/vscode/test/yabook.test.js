@@ -28,12 +28,23 @@ test('findScripts segue configuração, sessão, plugin do Claude e cópia mais 
 });
 
 test('parseHelp lê os grupos do índice geral', () => {
-  const markdown = '# Help\n\n## Índice geral\n\n- contexto: `load`, `status`;\n- revisão: `diff`, `diff explain [arquivo]` (alterações);\n- sem comando\n\nPara tópico...\n\n## Outra\n- x: `nao`';
+  const markdown = '# Help\n\n## Índice geral\n\n- contexto: `load`, `status`;\n- revisão: `diff`, `diff explain [arquivo]` (alterações);\n- sem comando\n\nPara tópico...\n\n- um comando: `nao`;\n\n## Outra\n- x: `nao`';
   assert.deepEqual(yabook.parseHelp(markdown), [
     { grupo: 'contexto', comandos: ['load', 'status'] },
     { grupo: 'revisão', comandos: ['diff', 'diff explain [arquivo]'] },
   ]);
   assert.deepEqual(yabook.parseHelp('sem índice'), []);
+});
+
+test('commandKey e commandPage apontam a página do comando', () => {
+  assert.equal(yabook.commandKey('load'), 'load');
+  assert.equal(yabook.commandKey('do sync'), 'sync');
+  assert.equal(yabook.commandKey('do'), 'do');
+  assert.equal(yabook.commandKey('diff explain [arquivo]'), 'diff');
+  assert.equal(yabook.commandKey('memory index|context|retrieve'), 'memory');
+  assert.equal(yabook.commandKey('do memory policy automatic|manual'), 'memory');
+  assert.equal(yabook.commandPage('/p/skills/yabook/scripts', 'do sync'), path.join('/p/skills/yabook/references/help/comandos/sync.md'));
+  assert.equal(yabook.commandPage(null, 'load'), null);
 });
 
 test('tasksPort usa tasks.port ou o padrão', () => {
