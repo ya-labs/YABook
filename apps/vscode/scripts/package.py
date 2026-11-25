@@ -15,7 +15,8 @@ from xml.sax.saxutils import escape
 ROOT = Path(__file__).resolve().parents[1]
 INCLUDE = ("package.json", "extension.js", "README.md", "lib", "media")
 TYPES = {".json": "application/json", ".js": "application/javascript", ".md": "text/markdown",
-         ".svg": "image/svg+xml", ".vsixmanifest": "text/xml", ".css": "text/css", ".html": "text/html"}
+         ".svg": "image/svg+xml", ".png": "image/png", ".vsixmanifest": "text/xml", ".css": "text/css",
+         ".html": "text/html"}
 
 
 def files():
@@ -28,6 +29,10 @@ def files():
 
 
 def manifest(meta):
+    icon = "extension/" + meta["icon"] if meta.get("icon") else ""
+    icon_meta = f"\n    <Icon>{escape(icon)}</Icon>" if icon else ""
+    icon_asset = (f'\n    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="{escape(icon)}" Addressable="true" />'
+                  if icon else "")
     return f"""<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
@@ -35,7 +40,7 @@ def manifest(meta):
     <DisplayName>{escape(meta['displayName'])}</DisplayName>
     <Description xml:space="preserve">{escape(meta['description'])}</Description>
     <Categories>{escape(','.join(meta.get('categories', [])))}</Categories>
-    <GalleryFlags>Public</GalleryFlags>
+    <GalleryFlags>Public</GalleryFlags>{icon_meta}
     <Properties>
       <Property Id="Microsoft.VisualStudio.Code.Engine" Value="{escape(meta['engines']['vscode'])}" />
       <Property Id="Microsoft.VisualStudio.Code.ExtensionDependencies" Value="" />
@@ -49,7 +54,7 @@ def manifest(meta):
   </Installation>
   <Dependencies />
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />{icon_asset}
   </Assets>
 </PackageManifest>
 """

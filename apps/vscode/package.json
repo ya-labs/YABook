@@ -2,8 +2,9 @@
   "name": "yabook",
   "displayName": "YABook",
   "description": "Alterações do agente em uma aba de diff com explicação por bloco, ajuda do YABook e atalhos para o Tasks e o mapa de memória.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "yalabs",
+  "icon": "media/icon.png",
   "license": "UNLICENSED",
   "private": true,
   "engines": {
