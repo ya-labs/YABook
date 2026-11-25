@@ -144,7 +144,7 @@ O agente interpreta o texto livre e chama o serviço com campos estruturados.
 | `task editar-anexo <id> <chave>` | `editar-anexo <id> <chave> --revision ... --nome ...\|--arquivo ...\|--excluir` |
 | `task baixar-anexo <id> <chave>` | `baixar-anexo <id> <chave> --output <arquivo-novo>` |
 | `task forget <id>` | `forget <id> [--motivo]`: arquiva sem apagar |
-| `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo` |
+| `task start <id>` | `start`: define a tarefa ativa e leva `entrada`/`pronto` ao papel `ativo`; `start --sem-tarefa` segue a sessão sem tarefa |
 | `task ask <pergunta>` | `ask [--sobre <id>]`; resposta dada na conversa: o agente grava `answer <id> <resposta>` |
 | `task capture [assunto]` | `capture --input <lote.json> [--apply] [--approval-hash]`; ver Captura da conversa |
 | `task retroativo` | `retroativo --sessao <id-do-aviso>` mostra as janelas. Após `do task retroativo`, use `--apply --approval-hash <hash-da-previa>` |

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from tasks_runtime import init as task_init
 from tasks_runtime.description import description_help
-from tasks_runtime.store import TaskStore
+from tasks_runtime.store import TaskStore, atomic_write, now
 
 CONFIG = os.environ.get("YABOOK_CONFIG", str(Path.home() / ".config/yabook/config.json"))
 
@@ -68,7 +68,8 @@ def build_parser():
     for command in (add, edit):
         command.add_argument("--coluna")
         command.add_argument("--prazo", help="AAAA-MM-DD, DD/MM, hoje, amanhã, +Nd ou dia da semana")
-        command.add_argument("--projeto")
+        command.add_argument("--projeto", help="Código de projeto da empresa (ex.: 6549); tira a tarefa do trabalho pessoal. "
+                             "Tarefas do YABook e outras pessoais não usam: o vínculo vem de --issue")
         command.add_argument("--demanda")
         command.add_argument("--issue", action="append", help="dono/repo#n, repetível")
         command.add_argument("--ref", action="append", help="confidencial:|yabook:|github:, repetível")
@@ -116,7 +117,9 @@ def build_parser():
     forget.add_argument("id")
     forget.add_argument("--motivo")
     start = sub.add_parser("start", help="Define a tarefa ativa")
-    start.add_argument("id")
+    start.add_argument("id", nargs="?")
+    start.add_argument("--sem-tarefa", action="store_true",
+                       help="Segue esta sessão sem tarefa: libera as edições sem atribuir horas")
     ask = sub.add_parser("ask", help="Registra pergunta pendente do agente")
     ask.add_argument("pergunta")
     ask.add_argument("--sobre")
@@ -164,6 +167,7 @@ def build_parser():
     flow.add_argument("--pr", help="Número ou URL do PR")
     flow.add_argument("--repo-dir", default=os.getcwd(), help="Checkout usado para branch, remoto e gh")
     flow.add_argument("--size-da-issue", action="store_true", help="Copia o Size da issue no Project para a tarefa")
+    flow.add_argument("--criar", action="store_true", help="Sem tarefa para a issue, cria a partir do GitHub")
     mirror = sub.add_parser("espelhar", help="Publica papel e size das tarefas no GitHub Project da issue")
     mirror.add_argument("--simular", action="store_true", help="Mostra o que mudaria, sem gravar no Project")
     hours = sub.add_parser("horas", help="Corrige horas capturadas: mover janelas de um dia entre tarefas")
@@ -307,6 +311,11 @@ def run(args):
     if args.command == "forget":
         return tasks.forget(args.id, args.motivo)
     if args.command == "start":
+        if args.sem_tarefa == bool(args.id):
+            raise ValueError("Informe a tarefa ou --sem-tarefa")
+        if args.sem_tarefa:  # o hook liga a decisão à sessão ao ver este marcador mudar
+            atomic_write(store.root / "local" / "sem-tarefa.json", json.dumps(dict(desde=now()), ensure_ascii=False) + "\n")
+            return dict(sem_tarefa=True)
         return tasks.start(args.id, state)
     if args.command == "ask":
         return tasks.ask(args.pergunta, args.sobre)
@@ -353,7 +362,9 @@ def run(args):
             return issueflow.sync_size(store, cfg, ref)
         if not ref or not args.fase:
             raise ValueError("Informe --fase e --ref (ou rode na branch n-descricao de um repositório do GitHub)")
-        return issueflow.advance(store, cfg, ref, args.fase, args.registro, args.pr) or dict(id=None, ref=ref, motivo="Sem tarefa para a issue")
+        created = issueflow.create_from_issue(store, cfg, ref) if args.criar else None
+        result = issueflow.advance(store, cfg, ref, args.fase, args.registro, args.pr) or dict(id=None, ref=ref, motivo="Sem tarefa para a issue")
+        return dict(result, criada=created) if created else result
     if args.command == "espelhar":
         from tasks_runtime import mirror
         return mirror.run(store, cfg, args.simular)
