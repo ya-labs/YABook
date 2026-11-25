@@ -67,11 +67,14 @@ recente, pelo plugin do Claude ou pela cópia mais nova em
 ## Tema YA LABS
 
 A extensão traz os temas **YA LABS Escuro** e **YA LABS Claro**
-(`Preferences: Color Theme`). As superfícies e o azul de ação vêm da paleta do
-site do YABook Tasks, o realce de sintaxe usa as cores de rótulo do site e o
-amarelo da estrela do ícone marca destaques. Todo texto tem contraste de pelo
-menos 4,5:1 com o fundo do editor. Os arquivos em `themes/` são gerados por
-`python3 apps/vscode/scripts/themes.py`; edite a paleta no script, não o JSON.
+(`Preferences: Color Theme`), com o azul escuro da marca nas superfícies. O
+realce de sintaxe e o contraste seguem o Night Owl sem itálico (Light Owl na
+variante clara): base fria em tons pastel (azul, turquesa, verde-claro e roxo) e
+acentos quentes suaves em strings e números. O laranja da marca, suavizado,
+aparece só onde o Night Owl usa o roxo de destaque: botões, contadores e a marca
+da aba e da visão ativas. Os arquivos em
+`themes/` são gerados por `python3 apps/vscode/scripts/themes.py`; edite a
+paleta no script, não o JSON.
 
 ## Instalação
 
