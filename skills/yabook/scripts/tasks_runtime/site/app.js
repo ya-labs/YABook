@@ -2312,6 +2312,12 @@ function listen() {
 
 window.addEventListener("hashchange", render);
 
+// `?tarefa=<id>` abre o painel da tarefa na carga (link da extensão do VS Code); o hash continua das visões.
+function openFromLink() {
+  const id = new URLSearchParams(location.search).get("tarefa");
+  if (id && !SNAPSHOT) openTask(id);
+}
+
 function shortcutIconLegend() {
   const cards = [
     ["usuario", "Pessoal"], ["escala", "Tamanho"], ["etiqueta", "Código da demanda"],
@@ -2441,7 +2447,7 @@ document.addEventListener("DOMContentLoaded", () => {
   app.editando = !SNAPSHOT && draftCount() > 0;
   setInterval(refreshChangeTimes, 60000);
   document.addEventListener("visibilitychange", refreshChangeTimes);
-  refresh();
+  refresh().then(openFromLink);
   listen();
   // Sem PWA: remove o service worker e o cache deixados pelas versões antigas.
   if (!SNAPSHOT && "serviceWorker" in navigator) {
